@@ -1,0 +1,8 @@
+{
+  "name": "d43-catalog",
+  "description": "Lambda functions for handling the Door43 Catalog",
+  "memory": 512,
+  "timeout": 300,
+  "role": "arn:aws:iam::002723143144:role/tx_lambda_function",
+  "environment": {}
+}
