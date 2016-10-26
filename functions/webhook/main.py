@@ -7,11 +7,30 @@
 from __future__ import print_function
 
 import os
-import sys
 import json
+import tempfile
 
-from general_tools.url_utils import get_url
+from glob import glob
+from general_tools.url_utils import get_url, download_file
+from general_tools.file_utils import unzip, read_file
 from aws_tools.dynamodb_handler import DynamoDBHandler
+
+
+def download_repo(commit_url, repo_dir):
+    repo_zip_url = commit_url.replace('commit', 'archive') + '.zip'
+    repo_zip_file = os.path.join(tempfile.gettempdir(), repo_zip_url.rpartition('/')[2])
+    try:
+        print('Downloading {0}...'.format(repo_zip_url))
+        if not os.path.isfile(repo_zip_file):
+            download_file(repo_zip_url, repo_zip_file)
+    finally:
+        print('finished.')
+
+    try:
+        print('Unzipping {0}...'.format(repo_zip_file))
+        unzip(repo_zip_file, repo_dir)
+    finally:
+        print('finished.')
 
 
 def handle(event, context):
@@ -20,6 +39,7 @@ def handle(event, context):
         env_vars = retrieve(event, 'stage-variables', 'payload')
         api_url = retrieve(env_vars, 'api_url', 'Environment Vars')
         gogs_url = retrieve(env_vars, 'gogs_url', 'Environment Vars')
+        gogs_org = retrieve(env_vars, 'gogs_org', 'Environment Vars')
         repo_commit = retrieve(event, 'body-json', 'payload')
 
         commit_id = repo_commit['after']
@@ -29,26 +49,52 @@ def handle(event, context):
                 break
 
         commit_url = commit['url']
-        manifest_url = commit_url.replace('/commit/', '/raw/')+'/manifest.json'
+
+        if not commit_url.startswith(gogs_url):
+            raise Exception('Only accepting webhooks from {0}'.format(gogs_url))
+
         repo_owner = repo_commit['repository']['owner']['username']
+        repo_name = repo_commit['repository']['name']
 
-        if repo_owner != 'Door43':
-            return
-
-        manifest = get_url(manifest_url)
+        if repo_owner.lower() != gogs_org.lower():
+            raise Exception("Org must be {0}".format(gogs_org))
 
         catalog_handler = DynamoDBHandler('catalog-production')
 
-        data = {
-            'repo_name': repo_commit['repository']['name'],
-            'manifest': manifest
-        }
-        print(json.dumps(data))
-        catalog_handler.insert_item(data)
+        if repo_name == 'localization':
+            download_repo(commit_url, tempfile.gettempdir())
+            files = sorted(glob(os.path.join(tempfile.gettempdir(), repo_name, '*.json')))
+            for f in files:
+                print("Reading {0}...".format(f))
+                contents = read_file(f)
+                lang = os.path.splitext(os.path.basename(f))[0]
+                data = {
+                    'repo_name': 'localization_{0}'.format(lang),
+                    'contents': contents
+                }
+                catalog_handler.insert_item(data)
+        if repo_name == 'catalogs':
+            catalogs_url = commit_url.replace('/commit/', '/raw/') + '/catalogs.json'
+            print("Getting {0}...".format(catalogs_url))
+            contents = get_url(catalogs_url)
+            data = {
+                'repo_name': 'catalogs',
+                'contents': contents
+            }
+            catalog_handler.insert_item(data)
+        else:
+            manifest_url = commit_url.replace('/commit/', '/raw/') + '/manifest.json'
+            print("Getting {0}...".format(manifest_url))
+            contents = get_url(manifest_url)
+            data = {
+                'repo_name': repo_name,
+                'contents': contents
+            }
+            catalog_handler.insert_item(data)
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))
 
-    return data
+    return 'ok'
 
 
 def retrieve(dictionary, key, dict_name=None):
