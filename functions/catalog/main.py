@@ -44,7 +44,7 @@ def handle(event, context):
                 else:
                     language = l
                 if repo_name.startswith('localization_'):
-                    language['localization'] = contents
+                    language.update(contents)
                 else:
                     if 'resources' not in language:
                         language['resources'] = []
