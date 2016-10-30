@@ -1,0 +1,9 @@
+[run]
+source =
+    functions/signing
+
+omit =
+    */__init__.py
+    */six.py
+    functions/signing/**/*.*
+    functions/signing/main.py

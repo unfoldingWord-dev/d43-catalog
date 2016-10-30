@@ -1,0 +1,9 @@
+*
+!/main.py
+!/requirements.txt
+!/.gitignore
+!/.apexignore
+!/README.md
+!/signing.py
+!/__init__.py
+!/uW-sk.enc
