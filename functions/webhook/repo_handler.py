@@ -121,7 +121,7 @@ class RepoHandler:
     def process_file(self, path):
         stats = os.stat(path)
         file_path = '{0}/{1}/v{2}/{3}'.format(self.manifest.language['slug'],
-                                              self.manifest.slug.split('-')[2],
+                                              self.manifest.slug.split('-')[1],
                                               self.manifest.status['version'],
                                               os.path.basename(path))
         url = '{0}/{1}'.format(self.cdn_url, file_path)
