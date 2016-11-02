@@ -69,7 +69,7 @@ class RepoHandler:
                     localization[language] = json.loads(read_file(f))
                 data = {
                     'repo_name': self.repo_name,
-                    'commit': self.commit_id,
+                    'commit_id': self.commit_id,
                     'timestamp': self.timestamp,
                     'data': json.dumps(localization, sort_keys=True)
                 }
@@ -102,9 +102,9 @@ class RepoHandler:
                     'modified_at': stats.st_mtime,
                     'mime_type': 'application/zip',
                     'url': url,
-                    'sig': url + '.sig'
+                    'sig': ""
                 }
-                self.manifest.formats.append(file_info)
+                self.manifest.formats = [file_info]
                 self.files.append(temp_path)
                 self.s3_handler.upload_file(self.repo_file, temp_path)
                 data = {
