@@ -12,6 +12,20 @@ from aws_tools.s3_handler import S3Handler
 
 VERSION = 3
 
+
+# gets the existing language container or creates a new one
+def get_language(data, language):
+    found_lang = None
+    for lang in data['languages']:
+        if lang['slug'] == language['slug']:
+            found_lang = lang
+    if not found_lang:
+        data['languages'].append(language)
+    else:
+        language = found_lang
+    return language
+
+
 def handle(event, context):
     print(context.invoked_function_arn)
 
@@ -20,40 +34,48 @@ def handle(event, context):
     else:
         api_bucket = 'api.door43.org'
 
-    catalog_handler = DynamoDBHandler('catalog-production')
-    data = {
+    catalog_handler = DynamoDBHandler('d43-catalog-in-progress')
+
+    catalog = {
         "languages": []
     }
-    
-    for item in catalog_handler.query_items():
-        repo_name = item['repo_name']
-        print(repo_name)
-        contents = json.loads(item['contents'])
-        if repo_name == "catalogs":
-            data['catalogs'] = contents
+
+    items = catalog_handler.query_items()
+    latest = {}
+
+    for item in items:
+        if item['repo_name'] in latest:
+            if item['timestamp'] > latest[item['repo_name']]['timestamp']:
+                latest[item['repo_name']] = item
         else:
-            if 'language' in contents:
-                language = contents['language']
-                del contents['language']
-                l = None
-                for lang in data['languages']:
-                    if lang['slug'] == language['slug']:
-                        l = lang
-                if not l:
-                    data['languages'].append(language)
-                else:
-                    language = l
-                if repo_name.startswith('localization_'):
-                    language.update(contents)
-                else:
-                    if 'resources' not in language:
-                        language['resources'] = []
-                    language['resources'].append(contents)
+            latest[item['repo_name']] = item
+
+    for repo_name in sorted(latest):
+        print(repo_name)
+        item = latest[repo_name]
+        data = json.loads(item['data'])
+        if repo_name == "catalogs":
+            catalog['catalogs'] = data
+        elif repo_name == 'localization':
+            for lang in data:
+                localization = data[lang]
+                language = localization['language']
+                del localization['language']
+                language = get_language(catalog, language)  # gets the existing language container or creates a new one
+                language.update(localization)
+        else:
+            if 'language' in data:
+                language = data['language']
+                del data['language']
+                language = get_language(catalog, language)  # gets the existing language container or creates a new one
+                if 'resources' not in language:
+                    language['resources'] = []
+                language['resources'].append(data)
 
     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
-    write_file(catalog_path, data)
+    write_file(catalog_path, catalog)
     s3handler = S3Handler(api_bucket)
     s3handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(VERSION), cache_time=0)
 
-    return data
+    return catalog
 

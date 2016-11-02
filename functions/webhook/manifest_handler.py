@@ -6,12 +6,9 @@ from __future__ import print_function, unicode_literals
 
 import os
 
-from six import iteritems
-from glob import glob
 from datetime import datetime
-from door43_tools.bible_books import BOOK_NAMES, BOOK_NUMBERS
 from door43_tools.language_handler import Language
-from general_tools.file_utils import load_json_object, get_files, get_subdirs, read_file
+from general_tools.file_utils import load_json_object
 
 
 class Manifest(object):
@@ -29,17 +26,15 @@ class Manifest(object):
         self.name = ""
         self.icon = "https://cdn.door43.org/images/default_icon.jpg"
 
-        self.formats = {}
+        self.formats = []
         self.language = {}
-        self.projects = {}
+        self.projects = []
         self.status = {}
 
         # deserialize
         if file_name:
             if os.path.isfile(file_name):
                 try:
-                    text = read_file(file_name)
-                    print(text)
                     manifest_json = load_json_object(file_name)
                 except Exception as e:
                     raise Exception('Structure error of the manifest.json file: {0}'.format(e))
