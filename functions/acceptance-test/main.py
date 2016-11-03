@@ -35,7 +35,7 @@ class AcceptanceTest(object):
 
     def test_catalog_structure(self):
         url = '{0}/v3/catalog.json'.format(self.api_url)
-        catalog_content = get_url(url)
+        catalog_content = get_url(url, True)
         if not catalog_content:
             self.log_error("{0} does not exist".format(url))
             return False
