@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import boto3
 import codecs
 import inspect
 import json
@@ -7,6 +6,7 @@ import os
 import shlex
 import shutil
 import tempfile
+from aws_decrypt import decrypt_file
 from base64 import b64decode
 from general_tools.file_utils import write_file
 from general_tools.url_utils import download_file
@@ -20,28 +20,6 @@ class Signing(object):
     @staticmethod
     def is_travis():
         return 'TRAVIS' in os.environ and os.environ['TRAVIS'] == 'true'
-
-    @staticmethod
-    def decrypt_file(source_file_name, destination_file_name):
-        """
-        Decrypts a file using the AWS encryption key 'signing_key'
-        :param string source_file_name:
-        :param string destination_file_name:
-        :return: bool True if successful, otherwise False
-        """
-        client = boto3.client('kms')
-
-        with codecs.open(source_file_name, 'rb') as in_file:
-            data_bytes = in_file.read()
-
-        response = client.decrypt(CiphertextBlob=data_bytes)
-
-        if 'Plaintext' not in response:
-            raise Exception('File not successfully decrypted: {}'.format(source_file_name))
-
-        write_file(destination_file_name, response['Plaintext'])
-
-        return True
 
     @staticmethod
     def sign_file(file_to_sign, pem_file=None):
@@ -129,7 +107,15 @@ class Signing(object):
             com = Popen(command, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             out, err = com.communicate()
 
-            return out.strip() == 'Verified OK'
+            if com.returncode == 0:
+                return True
+
+            if err:
+                raise Exception(err)
+
+            # we should never get here, but just in case the return code is not zero
+            # and no error was reported, just return false
+            return False
 
         finally:
             # clean up temp dir, if used
@@ -145,7 +131,7 @@ class Signing(object):
         this_dir = os.path.dirname(inspect.stack()[0][1])
         enc_file = os.path.join(this_dir, 'uW-sk.enc')
         pem_file = os.path.join(this_dir, 'uW-sk.pem')
-        result = Signing.decrypt_file(enc_file, pem_file)
+        result = decrypt_file(enc_file, pem_file)
 
         if not result:
             raise Exception('Not able to decrypt the pem file.')
@@ -241,4 +227,3 @@ class Signing(object):
         finally:
             if os.path.isdir(temp_dir):
                 shutil.rmtree(temp_dir, ignore_errors=True)
-

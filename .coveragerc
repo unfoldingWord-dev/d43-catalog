@@ -7,3 +7,4 @@ omit =
     */six.py
     functions/signing/**/*.*
     functions/signing/main.py
+    functions/signing/aws_decrypt.py
