@@ -1,0 +1,5 @@
+*.dist-info/
+.gitignore
+*.pyc
+requirements.txt
+README.md
