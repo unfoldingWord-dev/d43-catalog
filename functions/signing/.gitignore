@@ -1,0 +1,10 @@
+*
+!/main.py
+!/requirements.txt
+!/.gitignore
+!/.apexignore
+!/README.md
+!/signing.py
+!/aws_decrypt.py
+!/__init__.py
+!/uW-sk.enc
