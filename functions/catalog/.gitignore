@@ -3,4 +3,6 @@
 !requirements.txt
 !.gitignore
 !.apexignore
-
+!__init__.py
+!catalog_handler.py
+!consistency_checker.py
