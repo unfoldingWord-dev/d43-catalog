@@ -200,16 +200,15 @@ class Signing(object):
                         logger.warning('The signature was not successfully verified.')
                     return False  # remove files here
 
-
                 # update the record in DynamoDB
                 key_parts = key.split('/')  # test/repo-name/commit/file.name
                 repo_name = key_parts[1]
                 commit_id = key_parts[2]
                 db_handler = dynamodb_handler(Signing.dynamodb_table_name)
-                record_keys = {'repo_name': repo_name, 'commit_id': commit_id}
+                record_keys = {'repo_name': repo_name}
                 row = db_handler.get_item(record_keys)
 
-                if not row:
+                if not row or row['commit_id'] != commit_id:
                     return False  # Remove files here
 
                 package = json.loads(row['package'])
