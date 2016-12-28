@@ -215,7 +215,7 @@ class Signing(object):
 
                 # upload the file and the sig file to the S3 bucket
                 upload_key = '{0}/{1}/v{2}/{3}'.format(package['language']['slug'],
-                                                       package['resource']['slug'].split('-')[1],
+                                                       package['resource']['slug'].split('-')[-1],
                                                        package['resource']['status']['version'],
                                                        os.path.basename(key))
                 upload_sig_key = '{}.sig'.format(upload_key)

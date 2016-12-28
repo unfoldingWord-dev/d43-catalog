@@ -70,7 +70,7 @@ class ConsistencyChecker(object):
 
         resource = package['resource']
 
-        for key in ['name', 'icon', 'status', 'formats']:
+        for key in ['name', 'status', 'formats']:
             if key not in resource:
                 self.log_error("{0}: '{1}' does not exist".format(repo_name, key))
                 return self.errors
