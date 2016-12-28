@@ -95,7 +95,7 @@ class RepoHandler:
                                                           self.package['resource']['slug'])
                 url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
                                                         self.package['language']['slug'],
-                                                        self.package['resource']['slug'].split('-')[1],
+                                                        self.package['resource']['slug'].split('-')[-1],
                                                         self.package['resource']['status']['version'],
                                                         self.package['resource']['slug'])
                 file_info = {
@@ -120,7 +120,7 @@ class RepoHandler:
     def process_file(self, path):
         stats = os.stat(path)
         file_path = '{0}/{1}/v{2}/{3}'.format(self.package['language']['slug'],
-                                              self.package['resource']['slug'].split('-')[1],
+                                              self.package['resource']['slug'].split('-')[-1],
                                               self.package['resource']['status']['version'],
                                               os.path.basename(path))
         url = '{0}/{1}'.format(self.cdn_url, file_path)
