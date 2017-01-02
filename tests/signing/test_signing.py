@@ -40,13 +40,18 @@ class TestSigning(TestCase):
 
     class MockDynamodbHandler(object):
 
+        commit_id = ''
+
         def __init__(self, table_name):
             self.table_name = table_name
 
         # noinspection PyUnusedLocal
         @staticmethod
         def get_item(record_keys):
-            return load_json_object(os.path.join(TestSigning.resources_dir, 'dynamodb_record.json'))
+            return_val = load_json_object(os.path.join(TestSigning.resources_dir, 'dynamodb_record.json'))
+            if TestSigning.MockDynamodbHandler.commit_id:
+                return_val['commit_id'] = TestSigning.MockDynamodbHandler.commit_id
+            return return_val
 
         # noinspection PyUnusedLocal
         @staticmethod
@@ -162,6 +167,37 @@ class TestSigning(TestCase):
 
         self.assertIn('key file', str(context.exception))
 
+    def test_verify_with_wrong_certificate(self):
+
+        # initialization
+        source_file = os.path.join(self.temp_dir, 'source.json')
+        sig_file = os.path.join(self.temp_dir, 'source.sig')
+
+        # copy test file to the temp directory
+        shutil.copy(os.path.join(self.resources_dir, 'source.json'), source_file)
+
+        # check that the source file exists in the temp directory
+        self.assertTrue(os.path.isfile(source_file))
+
+        # check that .sig file DOES NOT exist
+        self.assertFalse(os.path.isfile(sig_file))
+
+        # sign the file
+        sig_file_name = Signing.sign_file(source_file,
+                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
+
+        # check that .sig file DOES exist now
+        self.assertEqual(sig_file, sig_file_name)
+        self.assertTrue(os.path.isfile(sig_file))
+
+        # this should raise an exception
+        with self.assertRaises(Exception) as context:
+            self.assertTrue(Signing.verify_signature(source_file, sig_file_name,
+                                                     pem_file=os.path.join(self.resources_dir,
+                                                                           'alt-private.pem')))
+
+        self.assertIn('key file', str(context.exception))
+
     @unittest.skipIf(Signing.is_travis(), 'Skipping test_sign_file_with_live_certificate on Travis CI.')
     def test_sign_file_with_live_certificate(self):
 
@@ -233,6 +269,9 @@ class TestSigning(TestCase):
         event = self.create_event()
         event['Records'].append(self.create_s3_record('test-cdn_bucket', test_txt))
 
+        # mock the dynamodb handler
+        self.MockDynamodbHandler.commit_id = os.path.basename(self.temp_dir)
+
         # test when S3 file exists
         self.assertTrue(os.path.isfile(test_txt))
 
@@ -244,6 +283,29 @@ class TestSigning(TestCase):
 
         expected_file = os.path.join(self.temp_dir, 'test.sig')
         self.assertTrue(os.path.isfile(expected_file))
+
+    def test_signing_handler_text_wrong_key(self):
+
+        # copy zip file to temp directory
+        test_txt = os.path.join(self.temp_dir, 'test.txt')
+        shutil.copy(os.path.join(self.resources_dir, 'test.txt'), test_txt)
+
+        # mock a lambda event object
+        event = self.create_event()
+        event['Records'].append(self.create_s3_record('test-cdn_bucket', test_txt))
+
+        # mock the dynamodb handler
+        self.MockDynamodbHandler.commit_id = os.path.basename(self.temp_dir)
+
+        # test when S3 file exists
+        self.assertTrue(os.path.isfile(test_txt))
+
+        private_pem_file = os.path.join(self.resources_dir, 'alt-private.pem')
+        public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem')
+        result = Signing.handle_s3_trigger(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockLogger(),
+                                           private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+
+        self.assertFalse(result)
 
     @unittest.skipIf(Signing.is_travis(), 'Skipping test_signing_handler_s3 on Travis CI.')
     def test_signing_handler_s3(self):
@@ -281,8 +343,11 @@ class TestSigning(TestCase):
         self.assertTrue(os.path.isfile(expected_file))
 
         # check the dynamodb record
-        row_keys = {'repo_name': 'unit-test', 'commit_id': commit_id}
+        row_keys = {'repo_name': 'unit-test'}
         row = db_handler.get_item(row_keys)
+
+        # verify this is the correct commit
+        self.assertEqual(commit_id, row['commit_id'])
 
         found_file = [f for f in row['files'] if f.endswith('test.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the files list.')
@@ -306,6 +371,9 @@ class TestSigning(TestCase):
         # mock a lambda event object
         event = self.create_event()
         event['Records'].append(self.create_s3_record('test-cdn_bucket', test_zip))
+
+        # mock the dynamodb handler
+        self.MockDynamodbHandler.commit_id = os.path.basename(self.temp_dir)
 
         # test when S3 file exists
         self.assertTrue(os.path.isfile(test_zip))

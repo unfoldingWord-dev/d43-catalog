@@ -110,12 +110,7 @@ class Signing(object):
             if com.returncode == 0:
                 return True
 
-            if err:
-                raise Exception(err)
-
-            # we should never get here, but just in case the return code is not zero
-            # and no error was reported, just return false
-            return False
+            raise RuntimeError(err)
 
         finally:
             # clean up temp dir, if used
@@ -189,9 +184,10 @@ class Signing(object):
                 sig_file = Signing.sign_file(file_to_sign, pem_file=private_pem_file)
 
                 # verify the file
-                verified = Signing.verify_signature(file_to_sign, sig_file, pem_file=public_pem_file)
+                try:
+                    Signing.verify_signature(file_to_sign, sig_file, pem_file=public_pem_file)
 
-                if not verified:
+                except RuntimeError:
                     if logger:
                         logger.warning('The signature was not successfully verified.')
                     return False
@@ -205,8 +201,12 @@ class Signing(object):
                 repo_name = key_parts[1]
                 commit_id = key_parts[2]
                 db_handler = dynamodb_handler(Signing.dynamodb_table_name)
-                record_keys = {'repo_name': repo_name, 'commit_id': commit_id}
+                record_keys = {'repo_name': repo_name}
                 row = db_handler.get_item(record_keys)
+
+                # verify this is the correct commit
+                if row['commit_id'] != commit_id:
+                    return False
 
                 # add the sig file to the files list
                 row['files'].append(upload_name)
