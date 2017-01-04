@@ -33,21 +33,11 @@ class TestSigning(TestCase):
 
         @staticmethod
         def download_file(key, local_file):
-            path = os.path.join(tempfile.gettempdir(), key)
-            shutil.copy(path, local_file)
+            shutil.copy(key, local_file)
 
         @staticmethod
         def upload_file(path, key):
-            out_path = os.path.join(tempfile.gettempdir(), key)
-            parentdir = os.path.dirname(out_path)
-            try:
-                os.makedirs(parentdir)
-            except OSError as exc:
-                if exc.errno == errno.EEXIST and os.path.isdir(parentdir):
-                    pass
-                else:
-                    raise
-            shutil.copy(path, out_path)
+            shutil.copy(path, path)
 
     class MockDynamodbHandler(object):
 
