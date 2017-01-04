@@ -11,13 +11,12 @@ import tempfile
 import json
 
 from glob import glob
-from datetime import datetime
 from stat import *
 from general_tools.url_utils import get_url, download_file
-from general_tools.file_utils import unzip, read_file, get_mime_type
+from general_tools.file_utils import unzip, read_file, get_mime_type, load_json_object
 from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_tools.s3_handler import S3Handler
-from manifest_handler import Manifest
+
 
 class RepoHandler:
     def __init__(self, event):
@@ -44,59 +43,61 @@ class RepoHandler:
 
         self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
         self.s3_handler = S3Handler(self.cdn_bucket)
-        self.manifest = None
-        self.files = []
+        self.package = None
 
     def run(self):
-            if not self.commit_url.startswith(self.gogs_url):
-                raise Exception('Only accepting webhooks from {0}'.format(self.gogs_url))
+        if not self.commit_url.startswith(self.gogs_url):
+            raise Exception('Only accepting webhooks from {0}'.format(self.gogs_url))
 
-            if self.repo_owner.lower() != self.gogs_org.lower():
-                raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
+        if self.repo_owner.lower() != self.gogs_org.lower():
+            raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
 
-            self.download_repo(self.commit_url, self.repo_file)
-            self.unzip_repo_file(self.repo_file, tempfile.gettempdir())
+        self.download_repo(self.commit_url, self.repo_file)
+        self.unzip_repo_file(self.repo_file, tempfile.gettempdir())
 
-            if not os.path.isdir(self.repo_dir):
-                raise Exception('Was not able to find {0}'.format(self.repo_dir))
+        if not os.path.isdir(self.repo_dir):
+            raise Exception('Was not able to find {0}'.format(self.repo_dir))
 
-            if self.repo_name == 'localization':
-                files = sorted(glob(os.path.join(self.repo_dir, '*.json')))
-                localization = {}
-                for f in files:
-                    print("Reading {0}...".format(f))
-                    language = os.path.splitext(os.path.basename(f))[0]
-                    localization[language] = json.loads(read_file(f))
-                data = {
-                    'repo_name': self.repo_name,
-                    'commit_id': self.commit_id,
-                    'timestamp': self.timestamp,
-                    'data': json.dumps(localization, sort_keys=True)
-                }
-            elif self.repo_name == 'catalogs':
-                catalogs_path = os.path.join(self.repo_dir, 'catalogs.json')
-                contents = read_file(catalogs_path)
-                data = {
-                    'repo_name': self.repo_name,
-                    'commit_id': self.commit_id,
-                    'timestamp': self.timestamp,
-                    'data': contents
-                }
-            else:
-                manifest_path = os.path.join(self.repo_dir, 'manifest.json')
-                if not os.path.isfile(manifest_path):
-                    raise Exception('Repository {0} does not have a manifest.json file'.format(self.repo_name))
-                self.manifest = Manifest(file_name=manifest_path, repo_name=self.repo_name)
+        data = {}
+        if self.repo_name == 'localization':
+            files = sorted(glob(os.path.join(self.repo_dir, '*.json')))
+            localization = {}
+            for f in files:
+                print("Reading {0}...".format(f))
+                language = os.path.splitext(os.path.basename(f))[0]
+                localization[language] = json.loads(read_file(f))
+            data = {
+                'repo_name': self.repo_name,
+                'commit_id': self.commit_id,
+                'timestamp': self.timestamp,
+                'package': json.dumps(localization, sort_keys=True)
+            }
+        elif self.repo_name == 'catalogs':
+            catalogs_path = os.path.join(self.repo_dir, 'catalogs.json')
+            package = read_file(catalogs_path)
+            data = {
+                'repo_name': self.repo_name,
+                'commit_id': self.commit_id,
+                'timestamp': self.timestamp,
+                'package': package
+            }
+        else:
+            package_path = os.path.join(self.repo_dir, 'package.json')
+            if not os.path.isfile(package_path):
+                raise Exception('Repository {0} does not have a package.json file'.format(self.repo_name))
+            self.package = load_json_object(package_path)
+
+            if self.package and 'language' in self.package and 'resource' in self.package:
                 # self.process_files(os.path.join(repo_path, 'content'))
                 stats = os.stat(self.repo_file)
                 temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
                                                           self.commit_id,
-                                                          self.manifest.slug)
+                                                          self.package['resource']['slug'])
                 url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
-                                                        self.manifest.language['slug'],
-                                                        self.manifest.slug.split('-')[1],
-                                                        self.manifest.status['version'],
-                                                        self.manifest.slug)
+                                                        self.package['language']['slug'],
+                                                        self.package['resource']['slug'].split('-')[-1],
+                                                        self.package['resource']['status']['version'],
+                                                        self.package['resource']['slug'])
                 file_info = {
                     'size': stats.st_size,
                     'modified_at': stats.st_mtime,
@@ -104,25 +105,23 @@ class RepoHandler:
                     'url': url,
                     'sig': ""
                 }
-                self.manifest.formats = [file_info]
-                self.files.append(temp_path)
+                self.package['resource']['formats'] = [file_info]
                 self.s3_handler.upload_file(self.repo_file, temp_path)
                 data = {
                     'repo_name': self.repo_name,
                     'commit_id': self.commit_id,
-                    'language': self.manifest.language['slug'],
+                    'language': self.package['language']['slug'],
                     'timestamp': self.timestamp,
-                    'files': self.files,
-                    'data': json.dumps(self.manifest.__dict__, sort_keys=True)
+                    'package': json.dumps(self.package, sort_keys=True)
                 }
-            self.db_handler.insert_item(data)
-            return data
+        self.db_handler.insert_item(data)
+        return data
 
     def process_file(self, path):
         stats = os.stat(path)
-        file_path = '{0}/{1}/v{2}/{3}'.format(self.manifest.language['slug'],
-                                              self.manifest.slug.split('-')[1],
-                                              self.manifest.status['version'],
+        file_path = '{0}/{1}/v{2}/{3}'.format(self.package['language']['slug'],
+                                              self.package['resource']['slug'].split('-')[-1],
+                                              self.package['resource']['status']['version'],
                                               os.path.basename(path))
         url = '{0}/{1}'.format(self.cdn_url, file_path)
         format = {
@@ -132,8 +131,7 @@ class RepoHandler:
             'url': url,
             'sig': url+'.sig'
         }
-        self.manifest.formats.append(format)
-        self.files.append(file_path)
+        self.package['resource']['formats'].append(format)
         self.s3_handler.upload_file(path, "temp/"+file_path)
 
     def process_files(self, path):
@@ -172,7 +170,8 @@ class RepoHandler:
         finally:
             print('finished.')
 
-    def retrieve(self, dictionary, key, dict_name=None):
+    @staticmethod
+    def retrieve(dictionary, key, dict_name=None):
         """
         Retrieves a value from a dictionary, raising an error message if the
         specified key is not valid
