@@ -33,6 +33,8 @@ class Signing(object):
         if not pem_file:
             pem_file = Signing.get_default_pem_file()
 
+        print(pem_file)
+
         # # read the file contents
         # with codecs.open(file_to_sign, 'r', encoding='utf-8') as in_file:
         #     content = in_file.read()
@@ -125,7 +127,7 @@ class Signing(object):
         """
         this_dir = os.path.dirname(inspect.stack()[0][1])
         enc_file = os.path.join(this_dir, 'uW-sk.enc')
-        pem_file = os.path.join(this_dir, 'uW-sk.pem')
+        pem_file = os.path.join(tempfile.gettempdir(), 'uW-sk.pem')
         result = decrypt_file(enc_file, pem_file)
 
         if not result:
@@ -166,6 +168,9 @@ class Signing(object):
                 bucket_name = record['s3']['bucket']['name']
                 key = record['s3']['object']['key']
 
+                if key.endswith('.sig'):
+                    return False
+
                 # detect test bucket
                 is_test = bucket_name.startswith('test-')
 
@@ -174,7 +179,6 @@ class Signing(object):
 
                 # get the file name
                 base_name = os.path.basename(key)
-                file_name, file_extension = os.path.splitext(base_name)
 
                 # copy the file to a temp directory
                 file_to_sign = os.path.join(temp_dir, base_name)
@@ -190,11 +194,7 @@ class Signing(object):
                 except RuntimeError:
                     if logger:
                         logger.warning('The signature was not successfully verified.')
-                    return False
-
-                # upload the sig file to the S3 bucket
-                upload_name = key.replace(file_extension, '.sig')
-                cdn_handler.upload_file(sig_file, upload_name)
+                    return False  # remove files here
 
                 # update the record in DynamoDB
                 key_parts = key.split('/')  # test/repo-name/commit/file.name
@@ -204,26 +204,36 @@ class Signing(object):
                 record_keys = {'repo_name': repo_name}
                 row = db_handler.get_item(record_keys)
 
+                if not row or row['commit_id'] != commit_id:
+                    return False  # Remove files here
+
                 # verify this is the correct commit
                 if row['commit_id'] != commit_id:
                     return False
 
-                # add the sig file to the files list
-                row['files'].append(upload_name)
+                package = json.loads(row['package'])
+
+                # upload the file and the sig file to the S3 bucket
+                upload_key = '{0}/{1}/v{2}/{3}'.format(package['language']['slug'],
+                                                       package['resource']['slug'].split('-')[-1],
+                                                       package['resource']['status']['version'],
+                                                       os.path.basename(key))
+                upload_sig_key = '{}.sig'.format(upload_key)
+
+                cdn_handler.upload_file(file_to_sign, upload_key)
+                cdn_handler.upload_file(sig_file, upload_sig_key)
 
                 # add the url of the sig file to the format item
-                data = json.loads(row['data'])
-                for fmt in data['formats']:
-                    if fmt['url'].endswith(key_parts[3]):
-                        extension_length = len(os.path.splitext(key_parts[3])[1])
-                        fmt['sig'] = '{}.sig'.format(fmt['url'][:(extension_length * -1)])
+                for fmt in package['resource']['formats']:
+                    if not fmt['sig'] and fmt['url'].endswith(upload_key):
+                        fmt['sig'] = '{}.sig'.format(fmt['url'])
                         break
 
-                row['data'] = json.dumps(data, sort_keys=True)
-                db_handler.update_item(record_keys, row)
+                db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
 
             return True
 
         finally:
             if os.path.isdir(temp_dir):
                 shutil.rmtree(temp_dir, ignore_errors=True)
+
