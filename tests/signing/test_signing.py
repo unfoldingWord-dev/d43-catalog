@@ -37,7 +37,7 @@ class TestSigning(TestCase):
 
         @staticmethod
         def upload_file(path, key):
-            shutil.copy(path, path)
+            shutil.copy(path, key)
 
     class MockDynamodbHandler(object):
 
