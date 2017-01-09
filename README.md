@@ -14,6 +14,16 @@ Requires the [tx-shared-tools library](https://github.com/unfoldingWord-dev/tx-s
 
 ## How it Works
 
+When a new repository is added or forked into the [Door43 Resource Catalog](https://git.door43.org/Door43-Catalog) organization a chain reaction is started that eventually adds the content into our API v3 catalog endpoint](https://api.door43.org/v3/catalog), assuming all the checks passed.  Here is an overview:
+
+1. Someone creates a new repo or forks a repo into the [Door43 Resource Catalog](https://git.door43.org/Door43-Catalog) organization
+1. A webhook for the organization notifies the Lambda pipeline of new or updated content
+1. The Lambda pipeline:
+  * Grabs the content and deciphers metadata
+  * Adds entry into an "in progress" database table
+  * Triggers a digital signing routine for our systems that use cryptographic verification
+  * Copies valid data into a "production" database table
+  * Saves an updated catalog file every 5 minutes (if needed) to the (S3) API endpoint
 
 ## Function Description
 
