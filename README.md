@@ -21,9 +21,9 @@ When a new repository is added or forked into the [Door43 Resource Catalog](http
 1. The Lambda pipeline:
   * Grabs the content and deciphers metadata
   * Adds entry into an "in progress" database table
-  * Triggers a digital signing routine for our systems that use cryptographic verification
-  * Copies valid data into a "production" database table
-  * Saves an updated catalog file every 5 minutes (if needed) to the (S3) API endpoint
+  * Puts the files to be signed on S3 in the cdn.door43.org bucket, keyed with `temp/<repo-name>/<commit-hash>/<filename>`
+  * The upload to S3 triggers a digital signing routine for our systems that use cryptographic verification and puts it on S3 as `cdn.door43.org/<lang>/<resource>/v<version>/<filename>`
+  * A cron job on AWS triggers the catalog.json generator (Lambda) ever 5 minutes. If there are new changes to the "in progress" DB, and all files have been signed and all JSON checks out, it copies the new catalog.json to the (S3) API endpoint
 
 ## Function Description
 
@@ -80,6 +80,7 @@ After a new catalog file is written to S3, this function does the following:
 
 - [x] Make sure structure of catalog file is correct
 - [x] Make HEAD request for each resource (every URL) in catalog to verify it exists
+- [x] Emails any errors to the specified email addresses
 
 Technically this is all duplicate testing of what we are alreadying doing elsewhere in the pipeline.  This function is the "oops" catcher.
 
