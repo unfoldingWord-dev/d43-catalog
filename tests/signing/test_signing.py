@@ -292,6 +292,8 @@ class TestSigning(TestCase):
         self.assertTrue(result)
 
         expected_file = os.path.join(self.temp_dir, 'test.sig')
+        print(expected_file)
+        print(test_txt)
         self.assertTrue(os.path.isfile(expected_file))
 
     def test_signing_handler_text_wrong_key(self):
@@ -394,6 +396,8 @@ class TestSigning(TestCase):
         self.assertTrue(result)
 
         expected_file = os.path.join(self.temp_dir, 'test.sig')
+        print(expected_file)
+        print(test_zip)
         self.assertTrue(os.path.isfile(expected_file))
 
         # test when S3 file does not exist
