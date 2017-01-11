@@ -26,6 +26,7 @@ class TestSigning(TestCase):
             print('WARNING: {}'.format(message))
 
     class MockS3Handler(object):
+        temp_dir = ''
 
         def __init__(self, bucket_name):
             self.bucket_name = bucket_name
@@ -36,7 +37,12 @@ class TestSigning(TestCase):
 
         @staticmethod
         def upload_file(path, key):
-            shutil.copy(path, key)
+            out_path = os.path.join(TestSigning.MockS3Handler.temp_dir, key)
+            parent_dir = os.path.dirname(out_path)
+            if not os.path.isdir(parent_dir):
+                os.makedirs(parent_dir)
+
+            shutil.copy(path, out_path)
 
     class MockDynamodbHandler(object):
 
@@ -60,10 +66,19 @@ class TestSigning(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp(prefix='unitTest_')
+        self.MockS3Handler.temp_dir = self.temp_dir
+        self.s3keys = []
 
     def tearDown(self):
+        # clean up local temp files
         if os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+        # clean up temp files on S3
+        if len(self.s3keys) > 0:
+            s3_handler = S3Handler('test-cdn.door43.org')
+            for s3key in self.s3keys:
+                s3_handler.delete_file(s3key)
 
     @staticmethod
     def create_event():
@@ -272,7 +287,7 @@ class TestSigning(TestCase):
         # mock the dynamodb handler
         self.MockDynamodbHandler.commit_id = os.path.basename(self.temp_dir)
 
-        # test when S3 file exists
+        # test that the mock S3 file exists
         self.assertTrue(os.path.isfile(test_txt))
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
@@ -281,7 +296,8 @@ class TestSigning(TestCase):
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         self.assertTrue(result)
 
-        expected_file = os.path.join(self.temp_dir, 'test.sig')
+        # test that the expected file was output
+        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'test.txt.sig')
         self.assertTrue(os.path.isfile(expected_file))
 
     def test_signing_handler_text_wrong_key(self):
@@ -312,55 +328,65 @@ class TestSigning(TestCase):
 
         # create test folder on S3
         commit_id = str(uuid.uuid4())[-10:]
-        test_folder = 'temp/unit-test/{}'.format(commit_id)
+        test_source_folder = 'temp/unit_test/{}'.format(commit_id)
+        test_target_folder = 'temp/unit_test/v{}'.format(commit_id)
         s3_handler = S3Handler('test-cdn.door43.org')
-        s3_key = '{}/test.zip'.format(test_folder)
-        s3_handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), s3_key)
+        s3_source_zip_key = '{}/test.zip'.format(test_source_folder)
+        s3_target_zip_key = '{}/test.zip'.format(test_target_folder)
+        self.s3keys.append(s3_source_zip_key)
+        self.s3keys.append(s3_target_zip_key)
+
+        s3_handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), s3_source_zip_key)
 
         # create a record in dynamodb
+        package = load_json_object(os.path.join(self.resources_dir, 'package.json'))
+        resource = package['resource']
+        resource['status']['version'] = commit_id
+        resource['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
         db_handler = DynamoDBHandler(Signing.dynamodb_table_name)
         db_handler.insert_item({
-            'repo_name': 'unit-test',
+            'repo_name': 'unit_test',
             'commit_id': commit_id,
-            'data': json.dumps(load_json_object(os.path.join(self.resources_dir, 'manifest.json')), sort_keys=True),
+            'package': json.dumps(package, sort_keys=True),
             'timestamp': datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            'files': [s3_key, ],
-            'language': 'en'
+            'language': 'temp'
         })
 
         # mock a lambda event object
         event = self.create_event()
-        event['Records'].append(self.create_s3_record(s3_handler.bucket_name, s3_key))
+        event['Records'].append(self.create_s3_record(s3_handler.bucket_name, s3_source_zip_key))
 
         # do the signing
         result = Signing.handle_s3_trigger(event, S3Handler, DynamoDBHandler, self.MockLogger())
         self.assertTrue(result)
 
         # check that the sig file was found
-        s3_sig = '{}/test.sig'.format(test_folder)
-        expected_file = os.path.join(self.temp_dir, 'test.sig')
+        s3_sig = '{}/test.zip.sig'.format(test_target_folder)
+        self.s3keys.append(s3_sig)
+
+        expected_file = os.path.join(self.temp_dir, 'test.zip.sig')
         s3_handler.download_file(s3_sig, expected_file)
         self.assertTrue(os.path.isfile(expected_file))
 
         # check the dynamodb record
-        row_keys = {'repo_name': 'unit-test'}
+        row_keys = {'repo_name': 'unit_test'}
         row = db_handler.get_item(row_keys)
 
         # verify this is the correct commit
         self.assertEqual(commit_id, row['commit_id'])
 
-        found_file = [f for f in row['files'] if f.endswith('test.sig')]
-        self.assertGreater(len(found_file), 0, 'The .sig file was not found in the files list.')
+        # check for the .sig file in the database
+        package_after = json.loads(row['package'], 'utf-8')
+        found_file = [f for f in package_after['resource']['formats'] if f['sig'].endswith('test.zip.sig')]
+        self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
 
-        # add the url of the sig file to the format item
-        data = json.loads(row['data'])
-        found_file = [fmt['sig'] for fmt in data['formats'] if fmt['sig'].endswith('test.sig')]
+        # added the url of the sig file to the format item
+        package = json.loads(row['package'])
+        found_file = [fmt['sig'] for fmt in package['resource']['formats'] if fmt['sig'].endswith('test.zip.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the formats list.')
 
         # clean up
         db_handler.delete_item(row_keys)
-        s3_handler.delete_file(s3_key)
-        s3_handler.delete_file(s3_sig)
 
     def test_signing_handler_zip(self):
 
@@ -375,7 +401,7 @@ class TestSigning(TestCase):
         # mock the dynamodb handler
         self.MockDynamodbHandler.commit_id = os.path.basename(self.temp_dir)
 
-        # test when S3 file exists
+        # test that the mock S3 file exists
         self.assertTrue(os.path.isfile(test_zip))
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
@@ -384,7 +410,8 @@ class TestSigning(TestCase):
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         self.assertTrue(result)
 
-        expected_file = os.path.join(self.temp_dir, 'test.sig')
+        # test that the expected file was output
+        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'test.zip.sig')
         self.assertTrue(os.path.isfile(expected_file))
 
         # test when S3 file does not exist
