@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 import uuid
+import errno
 from unittest import TestCase
 from datetime import datetime
 from aws_tools.dynamodb_handler import DynamoDBHandler
@@ -32,11 +33,21 @@ class TestSigning(TestCase):
 
         @staticmethod
         def download_file(key, local_file):
-            shutil.copy(key, local_file)
+            path = os.path.join(tempfile.gettempdir(), key)
+            shutil.copy(path, local_file)
 
         @staticmethod
         def upload_file(path, key):
-            shutil.copy(path, key)
+            out_path = os.path.join(tempfile.gettempdir(), key)
+            parentdir = os.path.dirname(out_path)
+            try:
+                os.makedirs(parentdir)
+            except OSError as exc:
+                if exc.errno == errno.EEXIST and os.path.isdir(parentdir):
+                    pass
+                else:
+                    raise
+            shutil.copy(path, out_path)
 
     class MockDynamodbHandler(object):
 
@@ -322,9 +333,8 @@ class TestSigning(TestCase):
         db_handler.insert_item({
             'repo_name': 'unit-test',
             'commit_id': commit_id,
-            'data': json.dumps(load_json_object(os.path.join(self.resources_dir, 'manifest.json')), sort_keys=True),
+            'package': json.dumps(load_json_object(os.path.join(self.resources_dir, 'package.json')), sort_keys=True),
             'timestamp': datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            'files': [s3_key, ],
             'language': 'en'
         })
 
@@ -353,8 +363,8 @@ class TestSigning(TestCase):
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the files list.')
 
         # add the url of the sig file to the format item
-        data = json.loads(row['data'])
-        found_file = [fmt['sig'] for fmt in data['formats'] if fmt['sig'].endswith('test.sig')]
+        package = json.loads(row['package'])
+        found_file = [fmt['sig'] for fmt in package['resource']['formats'] if fmt['sig'].endswith('test.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the formats list.')
 
         # clean up

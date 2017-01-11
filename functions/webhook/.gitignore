@@ -5,3 +5,4 @@
 !.apexignore
 !repo_handler.py
 !manifest_handler.py
+!__init__.py
