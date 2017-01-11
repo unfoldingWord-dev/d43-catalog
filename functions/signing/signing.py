@@ -236,4 +236,3 @@ class Signing(object):
         finally:
             if os.path.isdir(temp_dir):
                 shutil.rmtree(temp_dir, ignore_errors=True)
-

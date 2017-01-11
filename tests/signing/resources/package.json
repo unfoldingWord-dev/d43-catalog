@@ -6,7 +6,7 @@
   "language": {
     "dir": "ltr",
     "name": "English",
-    "slug": "en"
+    "slug": "temp"
   },
   "resource": {
     "formats": [
@@ -23,7 +23,7 @@
     "name": "Unit Test File",
     "package_version": 7,
     "projects": [],
-    "slug": "unit-test",
+    "slug": "unit_test",
     "status": {
       "checking_entity": [
         "Phil Hopper"
