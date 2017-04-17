@@ -85,7 +85,12 @@ class RepoHandler:
             package_path = os.path.join(self.repo_dir, 'package.json')
             if not os.path.isfile(package_path):
                 raise Exception('Repository {0} does not have a package.json file'.format(self.repo_name))
-            self.package = load_json_object(package_path)
+            print("Loading Manifest...")
+            try:
+                self.package = load_json_object(package_path)
+            except Exception as e:
+                raise Exception('Bad Manifest: {0}'.format(e))
+            print("Done...")
 
             if self.package and 'language' in self.package and 'resource' in self.package:
                 # self.process_files(os.path.join(repo_path, 'content'))

@@ -50,7 +50,7 @@ class AcceptanceTest(object):
 
         for key in ['catalogs', 'languages']:
             if key not in catalog:
-                self.log_error("{0} doesn't have '{1}'".format(self.catalg_url, key))
+                self.log_error("{0} doesn't have '{1}'".format(self.catalog_url, key))
         if 'languages' not in catalog:
             return False
 
