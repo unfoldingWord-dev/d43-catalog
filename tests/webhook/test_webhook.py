@@ -15,7 +15,7 @@ class TestWebhook(TestCase):
         pass
 
     def test_webook_with_valid_data(self):
-        request_file = os.path.join(self.resources_dir, 'valid-request.json')
+        request_file = os.path.join(self.resources_dir, 'invalid-request.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
