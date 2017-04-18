@@ -10,6 +10,7 @@ import os
 import tempfile
 import json
 import shutil
+import datetime
 
 from glob import glob
 from stat import *
@@ -47,34 +48,33 @@ class RepoHandler:
         self.s3_handler = S3Handler(self.cdn_bucket)
         self.package = None
 
-    def clean(self):
+    def _clean(self):
         """
         Removes temporary files
         :return: 
         """
+
         if self.temp_dir and os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def run(self):
-        """
-        Runs the handler and performs cleaning operations at the end.
-        :return: 
-        """
-        try:
-            self._run()
-        finally:
-            self.clean()
-
-    def _run(self):
-        """
-        Runs the handler without any cleaning operations at the end
-        :return: 
-        """
         if not self.commit_url.startswith(self.gogs_url):
             raise Exception('Only accepting webhooks from {0}'.format(self.gogs_url))
 
         if self.repo_owner.lower() != self.gogs_org.lower():
             raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
+
+        try:
+            data = self._build_catalog_entry()
+            self._submit(data)
+        finally:
+            self._clean()
+
+    def _build_catalog_entry(self):
+        """
+        Constructs a new catalog entry from the repository
+        :return: the constructed object
+        """
 
         self.download_repo(self.commit_url, self.repo_file)
         self.unzip_repo_file(self.repo_file, self.temp_dir)
@@ -89,7 +89,10 @@ class RepoHandler:
             for f in files:
                 print("Reading {0}...".format(f))
                 language = os.path.splitext(os.path.basename(f))[0]
-                localization[language] = json.loads(read_file(f))
+                try:
+                    localization[language] = json.loads(read_file(f))
+                except Exception as e:
+                    raise Exception('Bad JSON: {0}'.format(e))
             data = {
                 'repo_name': self.repo_name,
                 'commit_id': self.commit_id,
@@ -109,19 +112,14 @@ class RepoHandler:
             package_path = os.path.join(self.repo_dir, 'package.json')
             if not os.path.isfile(package_path):
                 raise Exception('Repository {0} does not have a package.json file'.format(self.repo_name))
-            print("Loading Manifest...")
             try:
                 self.package = load_json_object(package_path)
             except Exception as e:
                 raise Exception('Bad Manifest: {0}'.format(e))
-            print("Done...")
 
             if self.package and 'language' in self.package and 'resource' in self.package:
                 # self.process_files(os.path.join(repo_path, 'content'))
                 stats = os.stat(self.repo_file)
-                temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
-                                                          self.commit_id,
-                                                          self.package['resource']['slug'])
                 url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
                                                         self.package['language']['slug'],
                                                         self.package['resource']['slug'].split('-')[-1],
@@ -129,13 +127,12 @@ class RepoHandler:
                                                         self.package['resource']['slug'])
                 file_info = {
                     'size': stats.st_size,
-                    'modified_at': stats.st_mtime,
+                    'modified_at': datetime.datetime.fromtimestamp(stats.st_mtime).replace(microsecond=0).isoformat('T'),
                     'mime_type': 'application/zip',
                     'url': url,
                     'sig': ""
                 }
                 self.package['resource']['formats'] = [file_info]
-                self.s3_handler.upload_file(self.repo_file, temp_path)
                 data = {
                     'repo_name': self.repo_name,
                     'commit_id': self.commit_id,
@@ -143,8 +140,21 @@ class RepoHandler:
                     'timestamp': self.timestamp,
                     'package': json.dumps(self.package, sort_keys=True)
                 }
-        self.db_handler.insert_item(data)
         return data
+
+    def _submit(self, data):
+        """
+        Uploads the repo file if necessary and inserts the catalog object into the database
+        :return: 
+        """
+
+        if self.package and 'language' in self.package and 'resource' in self.package:
+            temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
+                                                      self.commit_id,
+                                                      self.package['resource']['slug'])
+            self.s3_handler.upload_file(self.repo_file, temp_path)
+
+        self.db_handler.insert_item(data)
 
     def process_file(self, path):
         stats = os.stat(path)
