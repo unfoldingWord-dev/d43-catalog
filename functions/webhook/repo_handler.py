@@ -9,6 +9,8 @@ from __future__ import print_function
 import os
 import tempfile
 import json
+import shutil
+import datetime
 
 from glob import glob
 from stat import *
@@ -19,7 +21,7 @@ from aws_tools.s3_handler import S3Handler
 
 
 class RepoHandler:
-    def __init__(self, event):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None):
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
@@ -29,8 +31,9 @@ class RepoHandler:
         self.repo_commit = self.retrieve(event, 'body-json', 'payload')
         self.repo_owner = self.repo_commit['repository']['owner']['username']
         self.repo_name = self.repo_commit['repository']['name']
-        self.repo_file = os.path.join(tempfile.gettempdir(), self.repo_name+'.zip')
-        self.repo_dir = os.path.join(tempfile.gettempdir(), self.repo_name)
+        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
+        self.repo_file = os.path.join(self.temp_dir, self.repo_name+'.zip')
+        self.repo_dir = os.path.join(self.temp_dir, self.repo_name)
 
         self.commit_id = self.repo_commit['after']
         commit = None
@@ -41,9 +44,26 @@ class RepoHandler:
         self.timestamp = commit['timestamp']
         self.commit_id = self.commit_id[:10]
 
-        self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
-        self.s3_handler = S3Handler(self.cdn_bucket)
+        if not dynamodb_handler:
+            self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
+        else:
+            self.db_handler = dynamodb_handler
+
+        if not s3_handler:
+            self.s3_handler = S3Handler(self.cdn_bucket)
+        else:
+            self.s3_handler = s3_handler
+
         self.package = None
+
+    def _clean(self):
+        """
+        Removes temporary files
+        :return: 
+        """
+
+        if self.temp_dir and os.path.isdir(self.temp_dir):
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def run(self):
         if not self.commit_url.startswith(self.gogs_url):
@@ -52,8 +72,20 @@ class RepoHandler:
         if self.repo_owner.lower() != self.gogs_org.lower():
             raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
 
+        try:
+            data = self._build_catalog_entry()
+            self._submit(self.s3_handler, self.db_handler, data)
+        finally:
+            self._clean()
+
+    def _build_catalog_entry(self):
+        """
+        Constructs a new catalog entry from the repository
+        :return: the constructed object
+        """
+
         self.download_repo(self.commit_url, self.repo_file)
-        self.unzip_repo_file(self.repo_file, tempfile.gettempdir())
+        self.unzip_repo_file(self.repo_file, self.temp_dir)
 
         if not os.path.isdir(self.repo_dir):
             raise Exception('Was not able to find {0}'.format(self.repo_dir))
@@ -65,7 +97,10 @@ class RepoHandler:
             for f in files:
                 print("Reading {0}...".format(f))
                 language = os.path.splitext(os.path.basename(f))[0]
-                localization[language] = json.loads(read_file(f))
+                try:
+                    localization[language] = json.loads(read_file(f))
+                except Exception as e:
+                    raise Exception('Bad JSON: {0}'.format(e))
             data = {
                 'repo_name': self.repo_name,
                 'commit_id': self.commit_id,
@@ -85,14 +120,14 @@ class RepoHandler:
             package_path = os.path.join(self.repo_dir, 'package.json')
             if not os.path.isfile(package_path):
                 raise Exception('Repository {0} does not have a package.json file'.format(self.repo_name))
-            self.package = load_json_object(package_path)
+            try:
+                self.package = load_json_object(package_path)
+            except Exception as e:
+                raise Exception('Bad Manifest: {0}'.format(e))
 
             if self.package and 'language' in self.package and 'resource' in self.package:
                 # self.process_files(os.path.join(repo_path, 'content'))
                 stats = os.stat(self.repo_file)
-                temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
-                                                          self.commit_id,
-                                                          self.package['resource']['slug'])
                 url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
                                                         self.package['language']['slug'],
                                                         self.package['resource']['slug'].split('-')[-1],
@@ -100,13 +135,12 @@ class RepoHandler:
                                                         self.package['resource']['slug'])
                 file_info = {
                     'size': stats.st_size,
-                    'modified_at': stats.st_mtime,
-                    'mime_type': 'application/zip',
+                    'modified_at': datetime.datetime.fromtimestamp(stats.st_mtime).replace(microsecond=0).isoformat('T'),
+                    'mime_type': 'application/zip; content={0}'.format(self.package['content_mime_type']),
                     'url': url,
                     'sig': ""
                 }
                 self.package['resource']['formats'] = [file_info]
-                self.s3_handler.upload_file(self.repo_file, temp_path)
                 data = {
                     'repo_name': self.repo_name,
                     'commit_id': self.commit_id,
@@ -114,8 +148,21 @@ class RepoHandler:
                     'timestamp': self.timestamp,
                     'package': json.dumps(self.package, sort_keys=True)
                 }
-        self.db_handler.insert_item(data)
         return data
+
+    def _submit(self, s3_handler, dynamodb_handler, data):
+        """
+        Uploads the repo file if necessary and inserts the catalog object into the database
+        :return: 
+        """
+
+        if self.package and 'language' in self.package and 'resource' in self.package:
+            temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
+                                                      self.commit_id,
+                                                      self.package['resource']['slug'])
+            s3_handler.upload_file(self.repo_file, temp_path)
+
+        dynamodb_handler.insert_item(data)
 
     def process_file(self, path):
         stats = os.stat(path)
