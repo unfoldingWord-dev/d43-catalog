@@ -1,0 +1,78 @@
+{
+  "stage-variables": {
+    "gogs_url": "",
+    "gogs_org": "Door43-Catalog",
+    "cdn_bucket": "",
+    "cdn_url": ""
+  },
+  "body-json":{
+    "secret": "",
+    "ref": "refs/heads/master",
+    "before": "fe217dafa0d10ccab1f436c5aae4bf60a3284b51",
+    "after": "32400de54b33f44a646bb163d7439a28963d93c9",
+    "compare_url": "https://git.door43.org/Door43-Catalog/hr-src/compare/fe217dafa0d10ccab1f436c5aae4bf60a3284b51...32400de54b33f44a646bb163d7439a28963d93c9",
+    "commits": [
+      {
+        "id": "32400de54b33f44a646bb163d7439a28963d93c9",
+        "message": "fixed bug in comment\n",
+        "url": "https://git.door43.org/Door43-Catalog/hr-src/commit/32400de54b33f44a646bb163d7439a28963d93c9",
+        "author": {
+          "name": "Joel Lonbeck",
+          "email": "joel@neutrinographics.com",
+          "username": "joel"
+        },
+        "committer": {
+          "name": "Joel Lonbeck",
+          "email": "joel@neutrinographics.com",
+          "username": "joel"
+        },
+        "timestamp": "2017-04-18T00:41:48Z"
+      }
+    ],
+    "repository": {
+      "id": 5924,
+      "owner": {
+        "id": 4598,
+        "username": "Door43-Catalog",
+        "full_name": "Door43 Resource Catalog",
+        "email": "",
+        "avatar_url": "https://git.door43.org/avatars/4598"
+      },
+      "name": "hr-src",
+      "full_name": "Door43-Catalog/hr-src",
+      "description": "Croatian Šarić Bible - public domain bible (pdb)",
+      "private": false,
+      "fork": false,
+      "html_url": "https://git.door43.org/Door43-Catalog/hr-src",
+      "ssh_url": "git@git.door43.org:Door43-Catalog/hr-src.git",
+      "clone_url": "https://git.door43.org/Door43-Catalog/hr-src.git",
+      "website": "",
+      "stars_count": 0,
+      "forks_count": 0,
+      "watchers_count": 6,
+      "open_issues_count": 0,
+      "default_branch": "master",
+      "created_at": "2017-01-21T15:10:27Z",
+      "updated_at": "2017-01-21T18:41:39Z",
+      "permissions": {
+        "admin": false,
+        "push": false,
+        "pull": false
+      }
+    },
+    "pusher": {
+      "id": 644,
+      "username": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+    },
+    "sender": {
+      "id": 644,
+      "username": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+    }
+  }
+}
