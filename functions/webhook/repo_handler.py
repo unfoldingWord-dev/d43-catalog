@@ -9,6 +9,7 @@ from __future__ import print_function
 import os
 import tempfile
 import json
+import shutil
 
 from glob import glob
 from stat import *
@@ -29,8 +30,9 @@ class RepoHandler:
         self.repo_commit = self.retrieve(event, 'body-json', 'payload')
         self.repo_owner = self.repo_commit['repository']['owner']['username']
         self.repo_name = self.repo_commit['repository']['name']
-        self.repo_file = os.path.join(tempfile.gettempdir(), self.repo_name+'.zip')
-        self.repo_dir = os.path.join(tempfile.gettempdir(), self.repo_name)
+        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
+        self.repo_file = os.path.join(self.temp_dir, self.repo_name+'.zip')
+        self.repo_dir = os.path.join(self.temp_dir, self.repo_name)
 
         self.commit_id = self.repo_commit['after']
         commit = None
@@ -45,7 +47,29 @@ class RepoHandler:
         self.s3_handler = S3Handler(self.cdn_bucket)
         self.package = None
 
+    def clean(self):
+        """
+        Removes temporary files
+        :return: 
+        """
+        if self.temp_dir and os.path.isdir(self.temp_dir):
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
+
     def run(self):
+        """
+        Runs the handler and performs cleaning operations at the end.
+        :return: 
+        """
+        try:
+            self._run()
+        finally:
+            self.clean()
+
+    def _run(self):
+        """
+        Runs the handler without any cleaning operations at the end
+        :return: 
+        """
         if not self.commit_url.startswith(self.gogs_url):
             raise Exception('Only accepting webhooks from {0}'.format(self.gogs_url))
 
@@ -53,7 +77,7 @@ class RepoHandler:
             raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
 
         self.download_repo(self.commit_url, self.repo_file)
-        self.unzip_repo_file(self.repo_file, tempfile.gettempdir())
+        self.unzip_repo_file(self.repo_file, self.temp_dir)
 
         if not os.path.isdir(self.repo_dir):
             raise Exception('Was not able to find {0}'.format(self.repo_dir))

@@ -30,3 +30,5 @@ class TestWebhook(TestCase):
             handler.run()
 
         self.assertIn('Bad Manifest', str(error_context.exception))
+
+        self.assertFalse(os.path.isdir(handler.temp_dir))
