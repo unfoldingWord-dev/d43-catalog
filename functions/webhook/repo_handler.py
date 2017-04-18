@@ -21,7 +21,7 @@ from aws_tools.s3_handler import S3Handler
 
 
 class RepoHandler:
-    def __init__(self, event):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None):
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
@@ -44,8 +44,16 @@ class RepoHandler:
         self.timestamp = commit['timestamp']
         self.commit_id = self.commit_id[:10]
 
-        self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
-        self.s3_handler = S3Handler(self.cdn_bucket)
+        if not dynamodb_handler:
+            self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
+        else:
+            self.db_handler = dynamodb_handler
+
+        if not s3_handler:
+            self.s3_handler = S3Handler(self.cdn_bucket)
+        else:
+            self.s3_handler = s3_handler
+
         self.package = None
 
     def _clean(self):
@@ -66,7 +74,7 @@ class RepoHandler:
 
         try:
             data = self._build_catalog_entry()
-            self._submit(data)
+            self._submit(self.s3_handler, self.db_handler, data)
         finally:
             self._clean()
 
@@ -142,7 +150,7 @@ class RepoHandler:
                 }
         return data
 
-    def _submit(self, data):
+    def _submit(self, s3_handler, dynamodb_handler, data):
         """
         Uploads the repo file if necessary and inserts the catalog object into the database
         :return: 
@@ -152,9 +160,9 @@ class RepoHandler:
             temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
                                                       self.commit_id,
                                                       self.package['resource']['slug'])
-            self.s3_handler.upload_file(self.repo_file, temp_path)
+            s3_handler.upload_file(self.repo_file, temp_path)
 
-        self.db_handler.insert_item(data)
+        dynamodb_handler.insert_item(data)
 
     def process_file(self, path):
         stats = os.stat(path)
