@@ -4,9 +4,24 @@ import json
 from unittest import TestCase
 from functions.webhook.repo_handler import RepoHandler
 
-
 class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+
+    class MockDynamodbHandler(object):
+        def __init__(self):
+            pass
+
+        @staticmethod
+        def insert_item(data):
+            pass
+
+    class MockS3Handler:
+        def __init__(self):
+            pass
+
+        @staticmethod
+        def upload_file(path, key):
+            pass
 
     def setUp(self):
         pass
@@ -25,7 +40,7 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
-        handler = RepoHandler(request_json)
+        handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         with self.assertRaises(Exception) as error_context:
             handler.run()
 
@@ -44,6 +59,5 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
-        handler = RepoHandler(request_json)
-        handler._build_catalog_entry()
-        handler._clean()
+        handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler.run()
