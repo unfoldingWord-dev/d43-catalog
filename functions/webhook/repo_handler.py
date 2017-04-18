@@ -136,7 +136,7 @@ class RepoHandler:
                 file_info = {
                     'size': stats.st_size,
                     'modified_at': datetime.datetime.fromtimestamp(stats.st_mtime).replace(microsecond=0).isoformat('T'),
-                    'mime_type': 'application/zip',
+                    'mime_type': 'application/zip; content={0}'.format(self.package['content_mime_type']),
                     'url': url,
                     'sig': ""
                 }
