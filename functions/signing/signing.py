@@ -149,7 +149,7 @@ class Signing(object):
         """
 
         # this shouldn't happen, but just in case
-        if 'Records' not in event:
+        if 'Records' not in event or not len(event['Records']):
             if logger:
                 logger.warning('The signing script was triggered but no `Records` were found.')
             return False
@@ -182,7 +182,12 @@ class Signing(object):
 
                 # copy the file to a temp directory
                 file_to_sign = os.path.join(temp_dir, base_name)
-                cdn_handler.download_file(key, file_to_sign)
+                try:
+                    cdn_handler.download_file(key, file_to_sign)
+                except Exception as e:
+                    if logger:
+                        logger.warning('The file "{0}" could not be downloaded'.format(base_name))
+                    return False # removes files here
 
                 # sign the file
                 sig_file = Signing.sign_file(file_to_sign, pem_file=private_pem_file)
