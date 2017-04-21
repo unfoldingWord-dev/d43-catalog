@@ -11,5 +11,5 @@ from aws_tools.ses_handler import SESHandler
 from catalog_handler import CatalogHandler
 
 def handle(event, context):
-    catalog = CatalogHandler(event)
-    return catalog.handle_catalog(S3Handler, DynamoDBHandler, SESHandler)
+    catalog = CatalogHandler(event, S3Handler, DynamoDBHandler, SESHandler)
+    return catalog.handle_catalog()
