@@ -34,7 +34,7 @@ class ConsistencyChecker(object):
 
     def check(self, row):
         """
-        Performs consistency checks on the entire object including languages, resources, and formats.
+        Performs consistency checks on the row, language, and resource
         :param row: 
         :return: 
         """
@@ -74,26 +74,6 @@ class ConsistencyChecker(object):
             return self.errors
 
         resource = package['resource']
-
-        # we manually join the errors since these methods will reset self.errors
-        my_errors = list(self.errors)
-
-        my_errors += self.check_resource(resource, row)
-
-        for format in resource['formats']:
-            my_errors += self.check_format(format, row)
-
-        self.errors = list(my_errors)
-        return self.errors
-
-    def check_resource(self, resource, row):
-        """
-        Performs consistency checks on a resource
-        :return: 
-        """
-        self.errors = []
-
-        repo_name = row['repo_name']
 
         for key in ['name', 'status', 'formats']:
             if key not in resource:

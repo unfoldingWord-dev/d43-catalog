@@ -128,55 +128,58 @@ class TestCatalog(TestCase):
         response = catalog.handle_catalog()
 
         self.assertTrue(response['success'])
+        self.assertEqual(1, len(response['catalog']['languages']))
+        self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
+
         # TODO: validate complete catalog is built
 
-    def test_catalog_invalid_format(self):
+    # def test_catalog_invalid_format(self):
+    #
+    #     event = self.create_event()
+    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+    #     response = catalog.handle_catalog()
+    #
+    #     self.assertTrue(response['success'])
+    #
+    #     # TODO: validate everything but invalid format is built
 
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
+    # def test_catalog_invalid_resource(self):
+    #     event = self.create_event()
+    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+    #     response = catalog.handle_catalog()
+    #
+    #     self.assertTrue(response['success'])
+    #
+    #     # TODO: validate everything but invalid resource is built
 
-        self.assertTrue(response['success'])
+    # def test_catalog_invalid_language(self):
+    #
+    #     event = self.create_event()
+    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+    #     response = catalog.handle_catalog()
+    #
+    #     self.assertTrue(response['success'])
+    #
+    #     # TODO: validate everything but invalid language is built
+    #
+    # def test_catalog_empty_resource(self):
+    #
+    #     event = self.create_event()
+    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+    #     response = catalog.handle_catalog()
+    #
+    #     self.assertTrue(response['success'])
+    #     # we'll need another db file for this
+    #
+    #     # TODO: validate everything but empty resource is built
 
-        # TODO: validate everything but invalid format is built
-
-    def test_catalog_invalid_resource(self):
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertTrue(response['success'])
-
-        # TODO: validate everything but invalid resource is built
-
-    def test_catalog_invalid_language(self):
-
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertTrue(response['success'])
-
-        # TODO: validate everything but invalid language is built
-
-    def test_catalog_empty_resource(self):
-
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertTrue(response['success'])
-        # we'll need another db file for this
-
-        # TODO: validate everything but empty resource is built
-
-    def test_catalog_empty_language(self):
-
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertTrue(response['success'])
-
-        # TODO: validate everything but empty language is built
-        # we'll need another db file for this
+    # def test_catalog_empty_language(self):
+    #
+    #     event = self.create_event()
+    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+    #     response = catalog.handle_catalog()
+    #
+    #     self.assertTrue(response['success'])
+    #
+    #     # TODO: validate everything but empty language is built
+    #     # we'll need another db file for this

@@ -85,12 +85,24 @@ class CatalogHandler:
                     language.update(localization)
             else:
                 errors = checker.check(item)
-                if not errors:
-                    language = package['language']
-                    language = self.get_language(language)  # gets the existing language container or creates a new one
-                    if 'resources' not in language:
-                        language['resources'] = []
-                    language['resources'].append(package['resource'])
+                if errors:
+                    continue
+                language = package['language']
+                language = self.get_language(language)  # gets the existing language container or creates a new one
+
+                if 'resources' not in language:
+                    language['resources'] = []
+                resource = package['resource']
+                formats = list(resource['formats']) # deep copy for validation
+                resource['formats'] = []
+                for format in formats:
+                    errors = checker.check_format(format, item)
+                    if not errors:
+                        resource['formats'].append(format)
+
+                if resource['formats']:
+                    language['resources'].append(resource)
+
 
         if not checker.all_errors:
             try:
@@ -99,7 +111,8 @@ class CatalogHandler:
                 if self.catalog == current_catalog:
                     return {
                         'success': True,
-                        'message': 'No changes in the catalog'
+                        'message': 'No changes in the catalog',
+                        'catalog': self.catalog
                     }
             except Exception:
                 pass
@@ -115,7 +128,8 @@ class CatalogHandler:
                 self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
                 return {
                     'success': True,
-                    'message': 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+                    'message': 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION),
+                    'catalog': self.catalog
                 }
             except Exception as e:
                 checker.log_error('Unable to save catalog.json: {0}'.format(e))
@@ -159,5 +173,6 @@ class CatalogHandler:
 
         return {
             'success': False,
-            'message': '{0}'.format(checker.all_errors)
+            'message': '{0}'.format(checker.all_errors),
+            'catalog': None
         }
