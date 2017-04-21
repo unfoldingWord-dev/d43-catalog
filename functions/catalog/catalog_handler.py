@@ -126,15 +126,31 @@ class CatalogHandler:
                 catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                 write_file(catalog_path, self.catalog)
                 self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
+                self._handle_errors(checker) # handles warnings
                 return {
                     'success': True,
+                    'incomplete': len(checker.all_warnings) > 0,
                     'message': 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION),
                     'catalog': self.catalog
                 }
             except Exception as e:
                 checker.log_error('Unable to save catalog.json: {0}'.format(e))
 
-        if checker.all_errors:
+        self._handle_errors(checker)
+
+        return {
+            'success': False,
+            'message': '{0}'.format(checker.all_errors + checker.all_warnings),
+            'catalog': None
+        }
+
+    def _handle_errors(self, checker):
+        """
+        Handles errors and warnings produced by the checker
+        :param checker: 
+        :return: 
+        """
+        if checker.all_errors or checker.all_warnings:
             errors = self.errors_table.get_item({'id': 1})
             if errors:
                 count = errors['count'] + 1
@@ -170,9 +186,3 @@ class CatalogHandler:
                     }
                 }
             )
-
-        return {
-            'success': False,
-            'message': '{0}'.format(checker.all_errors),
-            'catalog': None
-        }

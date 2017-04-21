@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 import uuid
+import copy
 from unittest import TestCase
 from datetime import datetime
 from aws_tools.dynamodb_handler import DynamoDBHandler
@@ -46,36 +47,40 @@ class TestCatalog(TestCase):
             shutil.copy(path, out_path)
 
     class MockDynamodbHandler(object):
-
+        tables_file = 'dynamodb_tables.json'
         commit_id = ''
 
         def __init__(self, table_name):
             self.table_name = table_name
+            self.table = self._get_table(table_name)
 
         def _get_table(self, table_name):
-            tables = load_json_object(os.path.join(TestCatalog.resources_dir, 'dynamodb_tables.json'))
+            tables = load_json_object(os.path.join(TestCatalog.resources_dir, self.tables_file))
             return tables[table_name]
 
         # noinspection PyUnusedLocal
         def insert_item(self, data):
-            pass
+            self.table.append(data)
+            return len(self.table) - 1
 
         # noinspection PyUnusedLocal
         def get_item(self, record_keys):
-            table = self._get_table(self.table_name)
-            return_val = {}#load_json_object(os.path.join(TestCatalog.resources_dir, 'dynamodb_tables.json'))
-            if TestCatalog.MockDynamodbHandler.commit_id:
-                return_val['commit_id'] = TestCatalog.MockDynamodbHandler.commit_id
-            return return_val
+            try:
+                return copy.deepcopy(self.table[record_keys['id']])
+            except Exception:
+                return None
 
         # noinspection PyUnusedLocal
-        @staticmethod
-        def update_item(record_keys, row):
+        def update_item(self, record_keys, row):
+            try:
+                self.table[record_keys['id']].update(row)
+            except Exception:
+                return False
             return True
 
         # noinspection PyUnusedLocal
         def query_items(self):
-            return self._get_table(self.table_name)
+            return list(self.table)
 
     class MockSESHandler(object):
         pass
@@ -122,64 +127,55 @@ class TestCatalog(TestCase):
         return record
 
     def test_catalog_valid_content(self):
-
+        self.MockDynamodbHandler.tables_file = 'dynamodb_tables.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
         self.assertTrue(response['success'])
+        self.assertFalse(response['incomplete'])
         self.assertEqual(1, len(response['catalog']['languages']))
         self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
+        self.assertEqual(2, len(response['catalog']['languages'][0]['resources'][0]['formats']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][1]['formats']))
 
-        # TODO: validate complete catalog is built
+    def test_catalog_invalid_format(self):
+        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_format.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
 
-    # def test_catalog_invalid_format(self):
-    #
-    #     event = self.create_event()
-    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-    #     response = catalog.handle_catalog()
-    #
-    #     self.assertTrue(response['success'])
-    #
-    #     # TODO: validate everything but invalid format is built
+        self.assertTrue(response['success'])
+        self.assertTrue(response['incomplete'])
+        self.assertEqual(1, len(response['catalog']['languages']))
+        self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats'])) # expecting format to be skipped
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][1]['formats']))
 
-    # def test_catalog_invalid_resource(self):
-    #     event = self.create_event()
-    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-    #     response = catalog.handle_catalog()
-    #
-    #     self.assertTrue(response['success'])
-    #
-    #     # TODO: validate everything but invalid resource is built
+    def test_catalog_invalid_resource(self):
+        # tests missing status and empty formats
+        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_resource.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
 
-    # def test_catalog_invalid_language(self):
-    #
-    #     event = self.create_event()
-    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-    #     response = catalog.handle_catalog()
-    #
-    #     self.assertTrue(response['success'])
-    #
-    #     # TODO: validate everything but invalid language is built
-    #
-    # def test_catalog_empty_resource(self):
-    #
-    #     event = self.create_event()
-    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-    #     response = catalog.handle_catalog()
-    #
-    #     self.assertTrue(response['success'])
-    #     # we'll need another db file for this
-    #
-    #     # TODO: validate everything but empty resource is built
+        self.assertFalse(response['success'])
 
-    # def test_catalog_empty_language(self):
-    #
-    #     event = self.create_event()
-    #     catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-    #     response = catalog.handle_catalog()
-    #
-    #     self.assertTrue(response['success'])
-    #
-    #     # TODO: validate everything but empty language is built
-    #     # we'll need another db file for this
+    def test_catalog_empty_formats(self):
+        # tests missing status and empty formats
+        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_empty_formats.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        self.assertTrue(response['success'])
+        self.assertFalse(response['incomplete'])
+
+    def test_catalog_invalid_language(self):
+        # tests missing status and empty formats
+        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_language.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        self.assertFalse(response['success'])
