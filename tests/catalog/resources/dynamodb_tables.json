@@ -1,0 +1,12 @@
+{
+  "d43-catalog-in-progress": [
+    {
+      "repo_name": "unit-test",
+      "commit_id": "5193d11b95",
+      "language": "en",
+      "timestamp": "2016-11-12T16:22:58Z",
+      "package": "{\"package_version\": 0.1, \"modified_at\": \"20161114000000\", \"content_mime_type\": \"text/usfm\", \"versification_slug\": \"ufw\", \"language\": {\"dir\": \"ltr\", \"name\": \"English\", \"slug\": \"temp\"}, \"resource\": {\"formats\": [{\"mime_type\": \"application/zip\", \"modified_at\": \"20161111155100\", \"sig\": \"https://google.com\", \"size\": 459483, \"url\": \"https://google.com\"}], \"icon\": \"https://cdn.door43.org/en/ulb/v7/icon.jpg\", \"language\": {\"dir\": \"ltr\", \"name\": \"English\", \"slug\": \"en\"}, \"modified_at\": \"20161111155100\", \"name\": \"Unit Test File\", \"package_version\": 7, \"projects\": [], \"slug\": \"unit_test\", \"status\": {\"checking_entity\": [\"Phil Hopper\"], \"checking_level\": \"3\", \"checks_performed\": [], \"comments\": \"\", \"contributors\": [\"Wycliffe Associates\"], \"license\": \"CC BY-SA 4.0\", \"pub_date\": \"2016-11-11\", \"source_translations\": [{\"language_slug\": \"en\", \"resource_slug\": \"unit-test\", \"version\": \"1\"}], \"translate_mode\": \"all\", \"version\": \"1\"}}}"
+    }
+  ],
+  "d43-catalog-errors": []
+}
