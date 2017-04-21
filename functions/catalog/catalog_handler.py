@@ -111,6 +111,7 @@ class CatalogHandler:
                 if self.catalog == current_catalog:
                     return {
                         'success': True,
+                        'incomplete': len(checker.all_warnings) > 0,
                         'message': 'No changes in the catalog',
                         'catalog': self.catalog
                     }
@@ -140,6 +141,7 @@ class CatalogHandler:
 
         return {
             'success': False,
+            'incomplete': len(checker.all_warnings) > 0,
             'message': '{0}'.format(checker.all_errors + checker.all_warnings),
             'catalog': None
         }
