@@ -33,6 +33,11 @@ class ConsistencyChecker(object):
         return resp.status == 301 or resp.status == 200
 
     def check(self, row):
+        """
+        Performs consistency checks on the entire object including languages, resources, and formats.
+        :param row: 
+        :return: 
+        """
         self.errors = []
 
         if not row or 'repo_name' not in row or 'commit_id' not in row:
@@ -70,6 +75,26 @@ class ConsistencyChecker(object):
 
         resource = package['resource']
 
+        # we manually join the errors since these methods will reset self.errors
+        my_errors = list(self.errors)
+
+        my_errors += self.check_resource(resource, row)
+
+        for format in resource['formats']:
+            my_errors += self.check_format(format, row)
+
+        self.errors = list(my_errors)
+        return self.errors
+
+    def check_resource(self, resource, row):
+        """
+        Performs consistency checks on a resource
+        :return: 
+        """
+        self.errors = []
+
+        repo_name = row['repo_name']
+
         for key in ['name', 'status', 'formats']:
             if key not in resource:
                 self.log_error("{0}: '{1}' does not exist".format(repo_name, key))
@@ -78,17 +103,27 @@ class ConsistencyChecker(object):
         if not isinstance(resource['formats'], list):
             self.log_error("{0}: 'formats' is not an array".format(repo_name))
 
-        for format in resource['formats']:
-            for key in ["mime_type", "modified_at", "size", "url", "sig"]:
-                if key not in format:
-                    self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
-            if 'url' not in format or 'sig' not in format:
-                continue
-            if not self.url_exists(format['url']):
-                self.log_error("{0}: {1} does not exist".format(repo_name, format['url']))
-            if not format['sig']:
-                self.log_error("{0}: {1} has not been signed yet".format(repo_name, format['url']))
-            elif not self.url_exists(format['sig']):
-                self.log_error("{0}: {1} does not exist".format(repo_name, format['sig']))
+        return self.errors
+
+    def check_format(self, format, row):
+        """
+        Performs consistency checks on a format
+        :return: 
+        """
+        self.errors = []
+
+        repo_name = row['repo_name']
+
+        for key in ["mime_type", "modified_at", "size", "url", "sig"]:
+            if key not in format:
+                self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
+        if 'url' not in format or 'sig' not in format:
+            return self.errors
+        if not self.url_exists(format['url']):
+            self.log_error("{0}: {1} does not exist".format(repo_name, format['url']))
+        if not format['sig']:
+            self.log_error("{0}: {1} has not been signed yet".format(repo_name, format['url']))
+        elif not self.url_exists(format['sig']):
+            self.log_error("{0}: {1} does not exist".format(repo_name, format['sig']))
 
         return self.errors

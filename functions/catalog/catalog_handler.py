@@ -13,28 +13,32 @@ import time
 
 from general_tools.file_utils import write_file
 from general_tools.url_utils import get_url
-from aws_tools.dynamodb_handler import DynamoDBHandler
-from aws_tools.s3_handler import S3Handler
-from aws_tools.ses_handler import SESHandler
 from consistency_checker import ConsistencyChecker
 
 
 class CatalogHandler:
     API_VERSION = 3
 
-    def __init__(self, event):
+    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler):
+        """
+        Initializes a catalog handler
+        :param event: 
+        :param s3_handler: This is passed in so it can be mocked for unit testing
+        :param dynamodb_handler: This is passed in so it can be mocked for unit testing
+        :param ses_handler: This is passed in so it can be mocked for unit testing
+        """
         self.api_bucket = self.retrieve(event, 'api_bucket')
         self.to_email = self.retrieve(event, 'to_email')
         self.from_email = self.retrieve(event, 'from_email')
 
-        self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
-        self.production_table = DynamoDBHandler('d43-catalog-production')
-        self.errors_table = DynamoDBHandler('d43-catalog-errors')
+        self.progress_table = dynamodb_handler('d43-catalog-in-progress')
+        self.production_table = dynamodb_handler('d43-catalog-production')
+        self.errors_table = dynamodb_handler('d43-catalog-errors')
         self.catalog = {
             "languages": []
         }
-        self.api_handler = S3Handler(self.api_bucket)
-        self.ses_handler = SESHandler()
+        self.api_handler = s3_handler(self.api_bucket)
+        self.ses_handler = ses_handler()
 
     # gets the existing language container or creates a new one
     def get_language(self, language):
