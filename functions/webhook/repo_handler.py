@@ -127,29 +127,37 @@ class RepoHandler:
             except Exception as e:
                 raise Exception('Bad Manifest: {0}'.format(e))
 
-            if self.package and 'language' in self.package and 'resource' in self.package:
-                # self.process_files(os.path.join(repo_path, 'content'))
-                stats = os.stat(self.repo_file)
-                url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
-                                                        self.package['language']['slug'],
-                                                        self.package['resource']['slug'].split('-')[-1],
-                                                        self.package['resource']['status']['version'],
-                                                        self.package['resource']['slug'])
-                file_info = {
-                    'size': stats.st_size,
-                    'modifiedt': datetime.datetime.fromtimestamp(stats.st_mtime).replace(microsecond=0).isoformat('T'),
-                    'format': 'application/zip; content={0}'.format(self.package['content_mime_type']),
-                    'url': url,
-                    'signature': ""
-                }
-                self.package['resource']['formats'] = [file_info]
-                data = {
-                    'repo_name': self.repo_name,
-                    'commit_id': self.commit_id,
-                    'language': self.package['language']['slug'],
-                    'timestamp': self.timestamp,
-                    'package': json.dumps(self.package, sort_keys=True)
-                }
+            RepoHandler.check_manifest(self.package)
+
+            stats = os.stat(self.repo_file)
+            url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
+                                                    self.package['dublin_core']['language']['identifier'],
+                                                    self.package['dublin_core']['identifier'].split('-')[-1],
+                                                    self.package['dublin_core']['version'],
+                                                    self.package['dublin_core']['identifier'])
+
+            modified = self.package['dublin_core']['modified']
+            if not modified:
+                modified = self.timestamp
+
+            file_info = {
+                'size': stats.st_size,
+                'modified': modified,
+                'format': 'application/zip; type={0} content={1} version={2}'.format(self.package['dublin_core']['type'],
+                                                                                    self.package['dublin_core']['format'],
+                                                                                    self.package['dublin_core']['conformsto']),
+                'url': url,
+                'signature': ""
+            }
+            self.package['formats'] = [file_info]
+            data = {
+                'repo_name': self.repo_name,
+                'commit_id': self.commit_id,
+                'language': self.package['dublin_core']['language']['identifier'],
+                'timestamp': self.timestamp,
+                'package': json.dumps(self.package, sort_keys=True)
+            }
+
         return data
 
     def _submit(self, s3_handler, dynamodb_handler, data):
@@ -161,10 +169,59 @@ class RepoHandler:
         if self.package and 'language' in self.package and 'resource' in self.package:
             temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
                                                       self.commit_id,
-                                                      self.package['resource']['slug'])
+                                                      self.package['dublin_core']['identifier'])
             s3_handler.upload_file(self.repo_file, temp_path)
 
         dynamodb_handler.insert_item(data)
+
+    @staticmethod
+    def check_manifest(manifest):
+        """
+        Performs checks to ensure the manifest follows the RC0.2 specification
+        :param manifest: 
+        :return: 
+        """
+        if not manifest:
+            raise Exception('Bad Manifest')
+
+        for key in ['dublin_core', 'checking', 'projects']:
+            if key not in manifest:
+                raise Exception('Bad Manifest: Missing key {0}'.format(key))
+
+        # check checking
+        for key in ['checking_entity', 'checking_level']:
+            if key not in manifest['checking']:
+                raise Exception('Bad Manifest: Missing checking key {0}'.format(key))
+
+        if not isinstance(manifest['checking']['checking_entity'], list):
+            raise Exception('Bad Manifest: checking.checking_entity must be a list')
+
+        # check projects
+        if not isinstance(manifest['projects'], list):
+            raise Exception('Bad Manifest: projects must be a list')
+
+        for key in ['categories', 'identifier', 'path', 'sort', 'title', 'versification']:
+            for project in manifest['projects']:
+                if key not in project:
+                    raise Exception('Bad Manifest: Missing project key {0}'.format(key))
+
+        # check dublin_core
+        for key in ['conformsto', 'contributor', 'creator', 'description', 'format', 'identifier', 'issued', 'language',
+                    'modified', 'publisher', 'relation', 'rights', 'source', 'subject', 'title', 'type', 'version']:
+            if key not in manifest['dublin_core']:
+                raise Exception('Bad Manifest: Missing dublin_core key {0}'.format(key))
+
+        for key in ['direction', 'identifier', 'title']:
+            if key not in manifest['dublin_core']['language']:
+                raise Exception('Bad Manifest: Missing dublin_core.language key {0}'.format(key))
+
+        if not isinstance(manifest['dublin_core']['source'], list):
+            raise Exception('Bad Manifest: dublin_core.source must be a list')
+
+        for key in ['version', 'identifier', 'language']:
+            for source in manifest['dublin_core']['source']:
+                if key not in source:
+                    raise Exception('Bad Manifest: Missing dublin_core.source key {0}'.format(key))
 
     @staticmethod
     def load_yaml_object(file_name, default=None):
@@ -180,39 +237,39 @@ class RepoHandler:
         with codecs.open(file_name, 'r', 'utf-8-sig') as stream:
             return yaml.load(stream)
 
-    def process_file(self, path):
-        stats = os.stat(path)
-        file_path = '{0}/{1}/v{2}/{3}'.format(self.package['language']['slug'],
-                                              self.package['resource']['slug'].split('-')[-1],
-                                              self.package['resource']['status']['version'],
-                                              os.path.basename(path))
-        url = '{0}/{1}'.format(self.cdn_url, file_path)
-        format = {
-            'size': stats.st_size,
-            'modified_at': stats.st_mtime,
-            'mime_type': get_mime_type(path),
-            'url': url,
-            'sig': url+'.sig'
-        }
-        self.package['resource']['formats'].append(format)
-        self.s3_handler.upload_file(path, "temp/"+file_path)
+    # def process_file(self, path):
+    #     stats = os.stat(path)
+    #     file_path = '{0}/{1}/v{2}/{3}'.format(self.package['language']['slug'],
+    #                                           self.package['resource']['slug'].split('-')[-1],
+    #                                           self.package['resource']['status']['version'],
+    #                                           os.path.basename(path))
+    #     url = '{0}/{1}'.format(self.cdn_url, file_path)
+    #     format = {
+    #         'size': stats.st_size,
+    #         'modified_at': stats.st_mtime,
+    #         'mime_type': get_mime_type(path),
+    #         'url': url,
+    #         'sig': url+'.sig'
+    #     }
+    #     self.package['resource']['formats'].append(format)
+    #     self.s3_handler.upload_file(path, "temp/"+file_path)
 
-    def process_files(self, path):
-        self.walktree(path, self.process_file)
+    # def process_files(self, path):
+    #     self.walktree(path, self.process_file)
 
-    def walktree(self, top, callback):
-        for f in os.listdir(top):
-            pathname = os.path.join(top, f)
-            mode = os.stat(pathname).st_mode
-            if S_ISDIR(mode):
-                # It's a directory, recurse into it
-                self.walktree(pathname, callback)
-            elif S_ISREG(mode):
-                # It's a file, call the callback function
-                callback(pathname)
-            else:
-                # Unknown file type, print a message
-                print('Skipping %s' % pathname)
+    # def walktree(self, top, callback):
+    #     for f in os.listdir(top):
+    #         pathname = os.path.join(top, f)
+    #         mode = os.stat(pathname).st_mode
+    #         if S_ISDIR(mode):
+    #             # It's a directory, recurse into it
+    #             self.walktree(pathname, callback)
+    #         elif S_ISREG(mode):
+    #             # It's a file, call the callback function
+    #             callback(pathname)
+    #         else:
+    #             # Unknown file type, print a message
+    #             print('Skipping %s' % pathname)
 
     def get_url(self, url):
         return get_url(url)
