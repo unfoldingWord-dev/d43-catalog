@@ -47,6 +47,7 @@ class ConsistencyChecker(object):
         """
         self.errors = []
 
+        # checks the row
         if not row or 'repo_name' not in row or 'commit_id' not in row:
             self.log_error('Bad row in table')
             return self.errors
@@ -72,19 +73,37 @@ class ConsistencyChecker(object):
             self.log_error('{0}: unable to decode "package" - {1}'.format(repo_name, e))
             return self.errors
 
-        if 'language' not in package or 'slug' not in package['language']:
+        # checks the language
+        if 'language' not in package:
             self.log_error("{0}: 'language' is not set up properly".format(repo_name))
             return self.errors
 
-        if 'resource' not in package or 'slug' not in package['resource']:
+        language = package['language']
+        for key in ['identifier', 'direction', 'title']:
+            if key not in language:
+                self.log_error("{0}: The language key '{1}' does not exist".format(repo_name, key))
+
+        if 'resource' not in package:
             self.log_error("{0}: 'resource' is not set up properly".format(repo_name))
             return self.errors
 
+        # checks the resource
         resource = package['resource']
 
-        for key in ['name', 'status', 'formats']:
+        for key in ['identifier', 'title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
+                    'issued', 'modified', 'version', 'checking',  'formats']:
             if key not in resource:
-                self.log_error("{0}: '{1}' does not exist".format(repo_name, key))
+                self.log_error("{0}: The resource key '{1}' does not exist".format(repo_name, key))
+                return self.errors
+
+        for key in ['language', 'identifier', 'version']:
+            if key not in resource['source']:
+                self.log_error("{0}: The resource-source key '{1}' does not exist".format(repo_name, key))
+                return self.errors
+
+        for key in ['checking_entity', 'checking_level']:
+            if key not in resource['checking']:
+                self.log_error("{0}: The resource-checking key '{1}' does not exist".format(repo_name, key))
                 return self.errors
 
         if not isinstance(resource['formats'], list):
@@ -101,7 +120,7 @@ class ConsistencyChecker(object):
 
         repo_name = row['repo_name']
 
-        for key in ["mime_type", "modified_at", "size", "url", "sig"]:
+        for key in ["format", "modified", "size", "url", "signature"]:
             if key not in format:
                 self.log_warning("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
         if 'url' not in format or 'sig' not in format:
