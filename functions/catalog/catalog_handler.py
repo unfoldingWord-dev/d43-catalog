@@ -106,7 +106,7 @@ class CatalogHandler:
         # remove empty languages
         condensed_languages = []
         for lang in self.catalog['languages']:
-            if lang['resources'] and len(lang['resources']) > 0:
+            if 'resources' in lang and len(lang['resources']) > 0:
                 condensed_languages.append(lang)
         self.catalog['languages'] = condensed_languages
 

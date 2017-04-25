@@ -11,6 +11,8 @@ import tempfile
 import json
 import shutil
 import datetime
+import yaml
+import codecs
 
 from glob import glob
 from stat import *
@@ -117,11 +119,11 @@ class RepoHandler:
                 'package': package
             }
         else:
-            package_path = os.path.join(self.repo_dir, 'package.json')
+            package_path = os.path.join(self.repo_dir, 'manifest.yaml')
             if not os.path.isfile(package_path):
-                raise Exception('Repository {0} does not have a package.json file'.format(self.repo_name))
+                raise Exception('Repository {0} does not have a manifest.yaml file'.format(self.repo_name))
             try:
-                self.package = load_json_object(package_path)
+                self.package = RepoHandler.load_yaml_object(package_path)
             except Exception as e:
                 raise Exception('Bad Manifest: {0}'.format(e))
 
@@ -135,10 +137,10 @@ class RepoHandler:
                                                         self.package['resource']['slug'])
                 file_info = {
                     'size': stats.st_size,
-                    'modified_at': datetime.datetime.fromtimestamp(stats.st_mtime).replace(microsecond=0).isoformat('T'),
-                    'mime_type': 'application/zip; content={0}'.format(self.package['content_mime_type']),
+                    'modifiedt': datetime.datetime.fromtimestamp(stats.st_mtime).replace(microsecond=0).isoformat('T'),
+                    'format': 'application/zip; content={0}'.format(self.package['content_mime_type']),
                     'url': url,
-                    'sig': ""
+                    'signature': ""
                 }
                 self.package['resource']['formats'] = [file_info]
                 data = {
@@ -163,6 +165,20 @@ class RepoHandler:
             s3_handler.upload_file(self.repo_file, temp_path)
 
         dynamodb_handler.insert_item(data)
+
+    @staticmethod
+    def load_yaml_object(file_name, default=None):
+        """
+        Deserialized <file_name> into a Python object
+        :param str|unicode file_name: The name of the file to read
+        :param default: The value to return if the file is not found
+        """
+        if not os.path.isfile(file_name):
+            return default
+
+        # use utf-8-sig in case the file has a Byte Order Mark
+        with codecs.open(file_name, 'r', 'utf-8-sig') as stream:
+            return yaml.load(stream)
 
     def process_file(self, path):
         stats = os.stat(path)

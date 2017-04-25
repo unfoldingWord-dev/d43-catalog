@@ -61,3 +61,17 @@ class TestWebhook(TestCase):
 
         handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         handler.run()
+
+    def test_webhook_with_obs_data(self):
+        request_file = os.path.join(self.resources_dir, 'obs-request.json')
+
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler.run()
