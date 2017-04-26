@@ -188,10 +188,11 @@ class TestCatalog(TestCase):
 
     def test_catalog_empty_formats(self):
         # tests missing status and empty formats
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_empty_formats.json'
+        self.MockDynamodbHandler.tables_file = 'empty_formats_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
         self.assertTrue(response['success'])
         self.assertFalse(response['incomplete'])
+        self.assertIn('no formats', response['message'])

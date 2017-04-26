@@ -146,6 +146,10 @@ class CatalogHandler:
             response['catalog'] = None
             response['message'] = '{0}'.format(checker.all_errors)
 
+        if len(checker.all_errors) == 0:
+            response['success'] = True
+            response['message'] = 'There were no formats to process'
+
         return response
 
     def _catalog_has_changed(self, catalog):
