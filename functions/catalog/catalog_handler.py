@@ -13,28 +13,32 @@ import time
 
 from general_tools.file_utils import write_file
 from general_tools.url_utils import get_url
-from aws_tools.dynamodb_handler import DynamoDBHandler
-from aws_tools.s3_handler import S3Handler
-from aws_tools.ses_handler import SESHandler
 from consistency_checker import ConsistencyChecker
 
 
 class CatalogHandler:
     API_VERSION = 3
 
-    def __init__(self, event):
+    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler):
+        """
+        Initializes a catalog handler
+        :param event: 
+        :param s3_handler: This is passed in so it can be mocked for unit testing
+        :param dynamodb_handler: This is passed in so it can be mocked for unit testing
+        :param ses_handler: This is passed in so it can be mocked for unit testing
+        """
         self.api_bucket = self.retrieve(event, 'api_bucket')
         self.to_email = self.retrieve(event, 'to_email')
         self.from_email = self.retrieve(event, 'from_email')
 
-        self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
-        self.production_table = DynamoDBHandler('d43-catalog-production')
-        self.errors_table = DynamoDBHandler('d43-catalog-errors')
+        self.progress_table = dynamodb_handler('d43-catalog-in-progress')
+        self.production_table = dynamodb_handler('d43-catalog-production')
+        self.errors_table = dynamodb_handler('d43-catalog-errors')
         self.catalog = {
             "languages": []
         }
-        self.api_handler = S3Handler(self.api_bucket)
-        self.ses_handler = SESHandler()
+        self.api_handler = s3_handler(self.api_bucket)
+        self.ses_handler = ses_handler()
 
     # gets the existing language container or creates a new one
     def get_language(self, language):
@@ -81,12 +85,30 @@ class CatalogHandler:
                     language.update(localization)
             else:
                 errors = checker.check(item)
-                if not errors:
-                    language = package['language']
-                    language = self.get_language(language)  # gets the existing language container or creates a new one
-                    if 'resources' not in language:
-                        language['resources'] = []
-                    language['resources'].append(package['resource'])
+                if errors:
+                    continue
+                language = package['language']
+                language = self.get_language(language)  # gets the existing language container or creates a new one
+
+                if 'resources' not in language:
+                    language['resources'] = []
+                resource = package['resource']
+                formats = list(resource['formats']) # deep copy for validation
+                resource['formats'] = []
+                for format in formats:
+                    errors = checker.check_format(format, item)
+                    if not errors:
+                        resource['formats'].append(format)
+
+                if resource['formats']:
+                    language['resources'].append(resource)
+
+        # remove empty languages
+        condensed_languages = []
+        for lang in self.catalog['languages']:
+            if lang['resources'] and len(lang['resources']) > 0:
+                condensed_languages.append(lang)
+        self.catalog['languages'] = condensed_languages
 
         if not checker.all_errors:
             try:
@@ -95,7 +117,9 @@ class CatalogHandler:
                 if self.catalog == current_catalog:
                     return {
                         'success': True,
-                        'message': 'No changes in the catalog'
+                        'incomplete': len(checker.all_warnings) > 0,
+                        'message': 'No changes in the catalog',
+                        'catalog': self.catalog
                     }
             except Exception:
                 pass
@@ -109,14 +133,32 @@ class CatalogHandler:
                 catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                 write_file(catalog_path, self.catalog)
                 self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
+                self._handle_errors(checker) # handles warnings
                 return {
                     'success': True,
-                    'message': 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+                    'incomplete': len(checker.all_warnings) > 0,
+                    'message': 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION),
+                    'catalog': self.catalog
                 }
             except Exception as e:
                 checker.log_error('Unable to save catalog.json: {0}'.format(e))
 
-        if checker.all_errors:
+        self._handle_errors(checker)
+
+        return {
+            'success': False,
+            'incomplete': len(checker.all_warnings) > 0,
+            'message': '{0}'.format(checker.all_errors + checker.all_warnings),
+            'catalog': None
+        }
+
+    def _handle_errors(self, checker):
+        """
+        Handles errors and warnings produced by the checker
+        :param checker: 
+        :return: 
+        """
+        if checker.all_errors or checker.all_warnings:
             errors = self.errors_table.get_item({'id': 1})
             if errors:
                 count = errors['count'] + 1
@@ -152,8 +194,3 @@ class CatalogHandler:
                     }
                 }
             )
-
-        return {
-            'success': False,
-            'message': '{0}'.format(checker.all_errors)
-        }
