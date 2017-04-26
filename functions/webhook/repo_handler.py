@@ -20,8 +20,7 @@ from general_tools.url_utils import get_url, download_file
 from general_tools.file_utils import unzip, read_file, get_mime_type, load_json_object
 from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_tools.s3_handler import S3Handler
-
-from functions.catalog.consistency_checker import ConsistencyChecker
+from consistency_checker import ConsistencyChecker
 
 
 class RepoHandler:

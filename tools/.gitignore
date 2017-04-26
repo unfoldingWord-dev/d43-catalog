@@ -1,0 +1,5 @@
+*
+!.gitignore
+!requirements.txt
+!consistency_checker.py
+!/__init__.py

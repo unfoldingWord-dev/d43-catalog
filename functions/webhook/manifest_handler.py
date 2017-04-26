@@ -12,6 +12,9 @@ from general_tools.file_utils import load_json_object
 
 
 class Manifest(object):
+    """
+    This is deprecated
+    """
     PACKAGE_VERSION = 7
 
     def __init__(self, file_name=None, repo_name=None):
