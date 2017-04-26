@@ -93,14 +93,14 @@ class ConsistencyChecker(object):
         for key in ["format", "modified", "size", "url", "signature"]:
             if key not in format:
                 self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
-        if 'url' not in format or 'sig' not in format:
+        if 'url' not in format or 'signature' not in format:
             return self.errors
         if not self.url_exists(format['url']):
             self.log_error("{0}: {1} does not exist".format(repo_name, format['url']))
-        if not format['sig']:
+        if not format['signature']:
             self.log_error("{0}: {1} has not been signed yet".format(repo_name, format['url']))
-        elif not self.url_exists(format['sig']):
-            self.log_error("{0}: {1} does not exist".format(repo_name, format['sig']))
+        elif not self.url_exists(format['signature']):
+            self.log_error("{0}: {1} does not exist".format(repo_name, format['signature']))
 
         return self.errors
 
