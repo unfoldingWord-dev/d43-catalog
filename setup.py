@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='d43-catalog',
-    package_dir={'acceptance-test': 'functions/acceptance-test',
+    package_dir={'acceptance-test': 'functions/acceptance',
                  'catalog': 'functions/catalog',
                  'signing': 'functions/signing',
                  'webhook': 'functions/webhook'},
