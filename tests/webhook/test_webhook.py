@@ -16,12 +16,14 @@ class TestWebhook(TestCase):
             pass
 
     class MockS3Handler:
+        uploaded_file = None
+
         def __init__(self):
             pass
 
         @staticmethod
         def upload_file(path, key):
-            pass
+            TestWebhook.MockS3Handler.uploaded_file = path
 
     def setUp(self):
         pass
@@ -61,3 +63,5 @@ class TestWebhook(TestCase):
 
         handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         handler.run()
+
+        self.assertIn('/en-obs.zip', self.MockS3Handler.uploaded_file)
