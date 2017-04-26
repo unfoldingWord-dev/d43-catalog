@@ -1,21 +1,13 @@
 from __future__ import unicode_literals, print_function
-import codecs
-import json
 import os
 import shutil
 import tempfile
-import unittest
-import uuid
 import copy
 from unittest import TestCase
-from datetime import datetime
-from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_tools.s3_handler import S3Handler
 from general_tools.file_utils import load_json_object
 
 from functions.catalog.catalog_handler import CatalogHandler
-from functions.signing.aws_decrypt import decrypt_file
-from functions.signing.signing import Signing
 
 class TestCatalog(TestCase):
 

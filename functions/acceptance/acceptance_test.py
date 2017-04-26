@@ -7,37 +7,46 @@
 from __future__ import print_function
 
 import json
-import httplib
 
 from urlparse import urlparse
-from general_tools.url_utils import get_url
-from aws_tools.ses_handler import SESHandler
+
 
 
 class AcceptanceTest(object):
-    def __init__(self, catalog_url, to_email=None, from_email=None, quiet=False):
+    def __init__(self, catalog_url, URLHandler, HTTPConnection, SESHandler, to_email=None, from_email=None, quiet=False, ):
+        """
+        Initializes an acceptance test
+        :param catalog_url: 
+        :param URLHandler: This is passed in so it can be mocked for unit testing
+        :param HTTPConnection: This is passed in so it can be mocked for unit testing
+        :param SESHandler: This is passed in so it can be mocked for unit testing
+        :param to_email: 
+        :param from_email: 
+        :param quiet: 
+        """
         self.catalog_url = catalog_url
         self.to_email = to_email
         self.from_email = from_email
         self.quiet = quiet
         self.errors = []
         self.ses_handler = SESHandler()
+        self.http_connection = HTTPConnection
+        self.url_handler = URLHandler()
 
     def log_error(self, message):
         if not self.quiet:
             print(message)
         self.errors.append(message)
 
-    @staticmethod
-    def url_exists(url):
+    def url_exists(self, url):
         p = urlparse(url)
-        conn = httplib.HTTPConnection(p.netloc)
+        conn = self.http_connection(p.netloc)
         conn.request('HEAD', p.path)
         resp = conn.getresponse()
         return resp.status == 301 or resp.status == 200
 
     def test_catalog_structure(self):
-        catalog_content = get_url(self.catalog_url, True)
+        catalog_content = self.url_handler.get_url(self.catalog_url, True)
         if not catalog_content:
             self.log_error("{0} does not exist".format(self.catalog_url))
             return False
@@ -64,15 +73,15 @@ class AcceptanceTest(object):
 
         for language in catalog['languages']:
             if not isinstance(language, dict):
-                self.log_error("languages: A language container is not an associative array")
+                self.log_error("languages: Found a language container that is not an associative array")
                 continue
 
-            if 'slug' not in language:
-                self.log_error("languages: A language container doesn't have 'slug'")
+            if 'identifier' not in language:
+                self.log_error("languages: Found a language container that doesn't have 'identifier'")
                 continue
-            lslug = language['slug']
+            lslug = language['identifier']
 
-            for key in ['name', 'dir']:
+            for key in ['title', 'direction']:
                 if key not in language:
                     self.log_error("{0}: '{0}' does not exist".format(lslug, key))
 
@@ -85,28 +94,29 @@ class AcceptanceTest(object):
                             self.log_error("{0}: A resource container is not an associative array")
                             continue
 
-                        if 'slug' not in resource:
-                            self.log_error("{0} resources: A resource container exists without a 'slug'".format(lslug))
+                        if 'identifier' not in resource:
+                            self.log_error("{0} resources: A resource container exists without an 'identifier'".format(lslug))
                             continue
-                        rslug = resource['slug']
+                        rslug = resource['identifier']
 
-                        for key in ['name', 'icon', 'status', 'formats']:
+                        for key in ['title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
+                                    'issued', 'modified', 'version', 'checking', 'formats']:
                             if key not in resource:
                                 self.log_error("{0}: '{1}' does not exist".format(rslug, key))
                         if not isinstance(resource['formats'], list):
                             self.log_error("{0}: 'formats' is not an array".format(rslug))
                         else:
                             for format in resource['formats']:
-                                for key in ["mime_type", "modified_at", "size", "url", "sig"]:
+                                for key in ["format", "modified", "size", "url", "signature"]:
                                     if key not in format:
                                         self.log_error("Format container for '{0}' doesn't have '{1}'".format(rslug, key))
-                                if 'url' not in format or 'sig' not in format:
+                                if 'url' not in format or 'signature' not in format:
                                     continue
                                 if not self.url_exists(format['url']):
                                     self.log_error("{0}: {1} does not exist".format(rslug, format['url']))
-                                if not format['sig']:
+                                if not format['signature']:
                                     self.log_error("{0}: {1} has not been signed yet".format(rslug, format['url']))
-                                elif not self.url_exists(format['sig']):
+                                elif not self.url_exists(format['signature']):
                                     self.log_error("{0}: {1} does not exist".format(rslug, format['sig']))
 
     def run(self):
@@ -164,3 +174,4 @@ class AcceptanceTest(object):
                     }
                 )
 
+        return self.errors
