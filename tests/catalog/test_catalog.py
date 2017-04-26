@@ -47,7 +47,7 @@ class TestCatalog(TestCase):
             shutil.copy(path, out_path)
 
     class MockDynamodbHandler(object):
-        tables_file = 'dynamodb_tables.json'
+        tables_file = 'valid_db.json'
         commit_id = ''
 
         def __init__(self, table_name):
@@ -127,7 +127,7 @@ class TestCatalog(TestCase):
         return record
 
     def test_catalog_valid_content(self):
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables.json'
+        self.MockDynamodbHandler.tables_file = 'valid_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
@@ -135,9 +135,24 @@ class TestCatalog(TestCase):
         self.assertTrue(response['success'])
         self.assertFalse(response['incomplete'])
         self.assertEqual(1, len(response['catalog']['languages']))
-        self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(2, len(response['catalog']['languages'][0]['resources'][0]['formats']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][1]['formats']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
+
+    def test_catalog_mixed_content(self):
+        """
+        Tests what happens when some content is valid and some is not
+        :return: 
+        """
+        self.MockDynamodbHandler.tables_file = 'mixed_db.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        self.assertTrue(response['success'])
+        self.assertTrue(response['incomplete'])
+        self.assertEqual(1, len(response['catalog']['languages']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
 
     def test_catalog_invalid_format(self):
         self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_format.json'
