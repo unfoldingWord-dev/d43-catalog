@@ -16,7 +16,6 @@ from general_tools.file_utils import write_file
 from general_tools.url_utils import get_url
 from consistency_checker import ConsistencyChecker
 
-
 class CatalogHandler:
     API_VERSION = 3
 
