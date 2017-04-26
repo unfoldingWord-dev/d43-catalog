@@ -166,15 +166,14 @@ class RepoHandler:
 
     def _submit(self, s3_handler, dynamodb_handler, data):
         """
-        Uploads the repo file if necessary and inserts the catalog object into the database
+        Uploads the repo file and inserts the catalog object into the database
         :return: 
         """
 
-        if self.package and 'language' in self.package and 'resource' in self.package:
-            temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
-                                                      self.commit_id,
-                                                      self.package['dublin_core']['identifier'])
-            s3_handler.upload_file(self.repo_file, temp_path)
+        temp_path = 'temp/{0}/{1}/{2}.zip'.format(self.repo_name,
+                                                  self.commit_id,
+                                                  self.package['dublin_core']['identifier'])
+        s3_handler.upload_file(self.repo_file, temp_path)
 
         dynamodb_handler.insert_item(data)
 

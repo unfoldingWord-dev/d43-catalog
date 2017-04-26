@@ -216,12 +216,13 @@ class Signing(object):
                 if row['commit_id'] != commit_id:
                     return False
 
-                package = json.loads(row['package'])
+                manifest = json.loads(row['package'])
+                dc = manifest['dublin_core']
 
                 # upload the file and the sig file to the S3 bucket
-                upload_key = '{0}/{1}/v{2}/{3}'.format(package['language']['slug'],
-                                                       package['resource']['slug'].split('-')[-1],
-                                                       package['resource']['status']['version'],
+                upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
+                                                       dc['identifier'].split('-')[-1],
+                                                       dc['version'],
                                                        os.path.basename(key))
                 upload_sig_key = '{}.sig'.format(upload_key)
 
@@ -229,12 +230,12 @@ class Signing(object):
                 cdn_handler.upload_file(sig_file, upload_sig_key)
 
                 # add the url of the sig file to the format item
-                for fmt in package['resource']['formats']:
-                    if not fmt['sig'] and fmt['url'].endswith(upload_key):
-                        fmt['sig'] = '{}.sig'.format(fmt['url'])
+                for fmt in manifest['formats']:
+                    if not fmt['signature'] and fmt['url'].endswith(upload_key):
+                        fmt['signature'] = '{}.sig'.format(fmt['url'])
                         break
 
-                db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
+                db_handler.update_item(record_keys, {'package': json.dumps(manifest, sort_keys=True)})
 
             return True
 
