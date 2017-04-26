@@ -16,7 +16,6 @@ class ConsistencyChecker(object):
     def __init__(self, quiet=False):
         self.quiet = quiet
         self.all_errors = []
-        self.all_warnings = []
         self.errors = []
 
     def log_error(self, message):
@@ -24,12 +23,6 @@ class ConsistencyChecker(object):
             print(message)
         self.errors.append(message)
         self.all_errors.append(message)
-
-    def log_warning(self, message):
-        if not self.quiet:
-            print(message)
-        self.errors.append(message)
-        self.all_warnings.append(message)
 
     @staticmethod
     def url_exists(url):
@@ -68,46 +61,23 @@ class ConsistencyChecker(object):
             return self.errors
 
         try:
-            package = json.loads(row['package'])
+            manifest = json.loads(row['package'])
         except Exception as e:
-            self.log_error('{0}: unable to decode "package" - {1}'.format(repo_name, e))
+            self.log_error('{0}: unable to decode "manifest" - {1}'.format(repo_name, e))
             return self.errors
 
-        # checks the language
-        if 'language' not in package:
-            self.log_error("{0}: 'language' is not set up properly".format(repo_name))
+        # check manifest
+        try:
+            ConsistencyChecker.check_manifest(manifest)
+        except Exception as e:
+            self.log_error('{0}: {1}'.format(repo_name, e))
             return self.errors
 
-        language = package['language']
-        for key in ['identifier', 'direction', 'title']:
-            if key not in language:
-                self.log_error("{0}: The language key '{1}' does not exist".format(repo_name, key))
-
-        if 'resource' not in package:
-            self.log_error("{0}: 'resource' is not set up properly".format(repo_name))
-            return self.errors
-
-        # checks the resource
-        resource = package['resource']
-
-        for key in ['identifier', 'title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
-                    'issued', 'modified', 'version', 'checking',  'formats']:
-            if key not in resource:
-                self.log_error("{0}: The resource key '{1}' does not exist".format(repo_name, key))
-                return self.errors
-
-        for key in ['language', 'identifier', 'version']:
-            if key not in resource['source']:
-                self.log_error("{0}: The resource-source key '{1}' does not exist".format(repo_name, key))
-                return self.errors
-
-        for key in ['checking_entity', 'checking_level']:
-            if key not in resource['checking']:
-                self.log_error("{0}: The resource-checking key '{1}' does not exist".format(repo_name, key))
-                return self.errors
-
-        if not isinstance(resource['formats'], list):
-            self.log_error("{0}: 'formats' is not an array".format(repo_name))
+        # check formats
+        if not 'formats' in manifest:
+            self.log_error('{0}: manifest missing key - {1}'.format(repo_name, 'formats'))
+        if not isinstance(manifest['formats'], list):
+            self.log_error("{0}: manifest key formats must be an array".format(repo_name))
 
         return self.errors
 
@@ -122,14 +92,64 @@ class ConsistencyChecker(object):
 
         for key in ["format", "modified", "size", "url", "signature"]:
             if key not in format:
-                self.log_warning("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
+                self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
         if 'url' not in format or 'sig' not in format:
             return self.errors
         if not self.url_exists(format['url']):
-            self.log_warning("{0}: {1} does not exist".format(repo_name, format['url']))
+            self.log_error("{0}: {1} does not exist".format(repo_name, format['url']))
         if not format['sig']:
-            self.log_warning("{0}: {1} has not been signed yet".format(repo_name, format['url']))
+            self.log_error("{0}: {1} has not been signed yet".format(repo_name, format['url']))
         elif not self.url_exists(format['sig']):
-            self.log_warning("{0}: {1} does not exist".format(repo_name, format['sig']))
+            self.log_error("{0}: {1} does not exist".format(repo_name, format['sig']))
 
         return self.errors
+
+    @staticmethod
+    def check_manifest(manifest):
+        """
+        Checks the manifest for consistency with the RC0.2 spec
+        An exception is raised if any inconsistency is found
+        :param manifest: 
+        :return: 
+        """
+        if not manifest:
+            raise Exception('manifest is null')
+
+        for key in ['dublin_core', 'checking', 'projects']:
+            if key not in manifest:
+                raise Exception('manifest missing key - {0}'.format(key))
+
+        # check checking
+        for key in ['checking_entity', 'checking_level']:
+            if key not in manifest['checking']:
+                raise Exception('manifest missing checking key - {0}'.format(key))
+
+        if not isinstance(manifest['checking']['checking_entity'], list):
+            raise Exception('manifest key checking.checking_entity must be an array')
+
+        # check projects
+        if not isinstance(manifest['projects'], list):
+            raise Exception('manifest key projects must be an array')
+
+        for key in ['categories', 'identifier', 'path', 'sort', 'title', 'versification']:
+            for project in manifest['projects']:
+                if key not in project:
+                    raise Exception('manifest missing project key - {0}'.format(key))
+
+        # check dublin_core
+        for key in ['conformsto', 'contributor', 'creator', 'description', 'format', 'identifier', 'issued', 'language',
+                    'modified', 'publisher', 'relation', 'rights', 'source', 'subject', 'title', 'type', 'version']:
+            if key not in manifest['dublin_core']:
+                raise Exception('manifest missing dublin_core key - {0}'.format(key))
+
+        for key in ['direction', 'identifier', 'title']:
+            if key not in manifest['dublin_core']['language']:
+                raise Exception('manifest missing dublin_core.language key - {0}'.format(key))
+
+        if not isinstance(manifest['dublin_core']['source'], list):
+            raise Exception('manifest key dublin_core.source must be an array')
+
+        for key in ['version', 'identifier', 'language']:
+            for source in manifest['dublin_core']['source']:
+                if key not in source:
+                    raise Exception('manifest missing dublin_core.source key - {0}'.format(key))

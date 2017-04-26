@@ -9,6 +9,7 @@ from __future__ import print_function
 import os
 import json
 import tempfile
+import copy
 import time
 
 from general_tools.file_utils import write_file
@@ -44,12 +45,14 @@ class CatalogHandler:
     def get_language(self, language):
         found_lang = None
         for lang in self.catalog['languages']:
-            if lang['slug'] == language['slug']:
+            if lang['identifier'] == language['identifier']:
                 found_lang = lang
         if not found_lang:
             self.catalog['languages'].append(language)
         else:
             language = found_lang
+        if 'resources' not in language:
+            language['resources'] = []
         return language
 
     @staticmethod
@@ -68,17 +71,18 @@ class CatalogHandler:
         raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
     def handle_catalog(self):
+        completed_items = 0
         items = self.progress_table.query_items()
         checker = ConsistencyChecker()
 
         for item in items:
             repo_name = item['repo_name']
-            package = json.loads(item['package'])
+            manifest = json.loads(item['package'])
             if repo_name == "catalogs":
-                self.catalog['catalogs'] = package
+                self.catalog['catalogs'] = manifest
             elif repo_name == 'localization':
-                for lang in package:
-                    localization = package[lang]
+                for lang in manifest:
+                    localization = manifest[lang]
                     language = localization['language']
                     del localization['language']
                     language = self.get_language(language)  # gets the existing language container or creates a new one
@@ -87,20 +91,19 @@ class CatalogHandler:
                 errors = checker.check(item)
                 if errors:
                     continue
-                language = package['language']
+                dc = manifest['dublin_core']
+                language = dc['language']
                 language = self.get_language(language)  # gets the existing language container or creates a new one
 
-                if 'resources' not in language:
-                    language['resources'] = []
-                resource = package['resource']
-                formats = list(resource['formats']) # deep copy for validation
-                resource['formats'] = []
-                for format in formats:
+                formats = []
+                for format in manifest['formats']:
                     errors = checker.check_format(format, item)
                     if not errors:
-                        resource['formats'].append(format)
-
-                if resource['formats']:
+                        formats.append(format)
+                if formats:
+                    completed_items += 1  # track items that made it into the catalog
+                    resource = copy.deepcopy(dc)
+                    resource['formats'] = formats
                     language['resources'].append(resource)
 
         # remove empty languages
@@ -110,47 +113,53 @@ class CatalogHandler:
                 condensed_languages.append(lang)
         self.catalog['languages'] = condensed_languages
 
-        if not checker.all_errors:
-            try:
-                catalog_url = 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-                current_catalog = json.loads(get_url(catalog_url, True))
-                if self.catalog == current_catalog:
-                    return {
-                        'success': True,
-                        'incomplete': len(checker.all_warnings) > 0,
-                        'message': 'No changes in the catalog',
-                        'catalog': self.catalog
-                    }
-            except Exception:
-                pass
+        response = {
+            'success': False,
+            'incomplete': len(checker.all_errors) > 0,
+            'message': None,
+            'catalog': self.catalog
+        }
 
-            data = {
-                'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                'catalog': json.dumps(self.catalog, sort_keys=True)
-            }
-            try:
-                self.production_table.insert_item(data)
-                catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
-                write_file(catalog_path, self.catalog)
-                self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
-                self._handle_errors(checker) # handles warnings
-                return {
-                    'success': True,
-                    'incomplete': len(checker.all_warnings) > 0,
-                    'message': 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION),
-                    'catalog': self.catalog
+        if completed_items > 0:
+            if self._catalog_has_changed(self.catalog):
+                response['success'] = True
+                response['message'] = 'No changes in the catalog'
+            else:
+                data = {
+                    'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    'catalog': json.dumps(self.catalog, sort_keys=True)
                 }
-            except Exception as e:
-                checker.log_error('Unable to save catalog.json: {0}'.format(e))
+                try:
+                    self.production_table.insert_item(data)
+                    catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
+                    write_file(catalog_path, self.catalog)
+                    self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
+                    response['success'] = True
+                    response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+                except Exception as e:
+                    checker.log_error('Unable to save catalog.json: {0}'.format(e))
+
 
         self._handle_errors(checker)
 
-        return {
-            'success': False,
-            'incomplete': len(checker.all_warnings) > 0,
-            'message': '{0}'.format(checker.all_errors + checker.all_warnings),
-            'catalog': None
-        }
+        if not response['success']:
+            response['catalog'] = None
+            response['message'] = '{0}'.format(checker.all_errors)
+
+        return response
+
+    def _catalog_has_changed(self, catalog):
+        """
+        Checks if the catalog has changed compared to the given catalog
+        :param catalog:
+        :return: 
+        """
+        try:
+            catalog_url = 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+            current_catalog = json.loads(get_url(catalog_url, True))
+            return catalog != current_catalog
+        except Exception:
+            return False
 
     def _handle_errors(self, checker):
         """
@@ -158,7 +167,7 @@ class CatalogHandler:
         :param checker: 
         :return: 
         """
-        if checker.all_errors or checker.all_warnings:
+        if len(checker.all_errors) > 0:
             errors = self.errors_table.get_item({'id': 1})
             if errors:
                 count = errors['count'] + 1

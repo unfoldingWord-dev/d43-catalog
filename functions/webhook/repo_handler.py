@@ -21,6 +21,8 @@ from general_tools.file_utils import unzip, read_file, get_mime_type, load_json_
 from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_tools.s3_handler import S3Handler
 
+from functions.catalog.consistency_checker import ConsistencyChecker
+
 
 class RepoHandler:
     def __init__(self, event, s3_handler=None, dynamodb_handler=None):
@@ -127,7 +129,10 @@ class RepoHandler:
             except Exception as e:
                 raise Exception('Bad Manifest: {0}'.format(e))
 
-            RepoHandler.check_manifest(self.package)
+            try:
+                ConsistencyChecker.check_manifest(self.package)
+            except Exception as e:
+                raise Exception('Bad Manifest: {0}'.format(e))
 
             stats = os.stat(self.repo_file)
             url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
@@ -174,54 +179,54 @@ class RepoHandler:
 
         dynamodb_handler.insert_item(data)
 
-    @staticmethod
-    def check_manifest(manifest):
-        """
-        Performs checks to ensure the manifest follows the RC0.2 specification
-        :param manifest: 
-        :return: 
-        """
-        if not manifest:
-            raise Exception('Bad Manifest')
-
-        for key in ['dublin_core', 'checking', 'projects']:
-            if key not in manifest:
-                raise Exception('Bad Manifest: Missing key {0}'.format(key))
-
-        # check checking
-        for key in ['checking_entity', 'checking_level']:
-            if key not in manifest['checking']:
-                raise Exception('Bad Manifest: Missing checking key {0}'.format(key))
-
-        if not isinstance(manifest['checking']['checking_entity'], list):
-            raise Exception('Bad Manifest: checking.checking_entity must be a list')
-
-        # check projects
-        if not isinstance(manifest['projects'], list):
-            raise Exception('Bad Manifest: projects must be a list')
-
-        for key in ['categories', 'identifier', 'path', 'sort', 'title', 'versification']:
-            for project in manifest['projects']:
-                if key not in project:
-                    raise Exception('Bad Manifest: Missing project key {0}'.format(key))
-
-        # check dublin_core
-        for key in ['conformsto', 'contributor', 'creator', 'description', 'format', 'identifier', 'issued', 'language',
-                    'modified', 'publisher', 'relation', 'rights', 'source', 'subject', 'title', 'type', 'version']:
-            if key not in manifest['dublin_core']:
-                raise Exception('Bad Manifest: Missing dublin_core key {0}'.format(key))
-
-        for key in ['direction', 'identifier', 'title']:
-            if key not in manifest['dublin_core']['language']:
-                raise Exception('Bad Manifest: Missing dublin_core.language key {0}'.format(key))
-
-        if not isinstance(manifest['dublin_core']['source'], list):
-            raise Exception('Bad Manifest: dublin_core.source must be a list')
-
-        for key in ['version', 'identifier', 'language']:
-            for source in manifest['dublin_core']['source']:
-                if key not in source:
-                    raise Exception('Bad Manifest: Missing dublin_core.source key {0}'.format(key))
+    # @staticmethod
+    # def check_manifest(manifest):
+    #     """
+    #     Performs checks to ensure the manifest follows the RC0.2 specification
+    #     :param manifest:
+    #     :return:
+    #     """
+    #     if not manifest:
+    #         raise Exception('Bad Manifest')
+    #
+    #     for key in ['dublin_core', 'checking', 'projects']:
+    #         if key not in manifest:
+    #             raise Exception('Bad Manifest: Missing key {0}'.format(key))
+    #
+    #     # check checking
+    #     for key in ['checking_entity', 'checking_level']:
+    #         if key not in manifest['checking']:
+    #             raise Exception('Bad Manifest: Missing checking key {0}'.format(key))
+    #
+    #     if not isinstance(manifest['checking']['checking_entity'], list):
+    #         raise Exception('Bad Manifest: checking.checking_entity must be a list')
+    #
+    #     # check projects
+    #     if not isinstance(manifest['projects'], list):
+    #         raise Exception('Bad Manifest: projects must be a list')
+    #
+    #     for key in ['categories', 'identifier', 'path', 'sort', 'title', 'versification']:
+    #         for project in manifest['projects']:
+    #             if key not in project:
+    #                 raise Exception('Bad Manifest: Missing project key {0}'.format(key))
+    #
+    #     # check dublin_core
+    #     for key in ['conformsto', 'contributor', 'creator', 'description', 'format', 'identifier', 'issued', 'language',
+    #                 'modified', 'publisher', 'relation', 'rights', 'source', 'subject', 'title', 'type', 'version']:
+    #         if key not in manifest['dublin_core']:
+    #             raise Exception('Bad Manifest: Missing dublin_core key {0}'.format(key))
+    #
+    #     for key in ['direction', 'identifier', 'title']:
+    #         if key not in manifest['dublin_core']['language']:
+    #             raise Exception('Bad Manifest: Missing dublin_core.language key {0}'.format(key))
+    #
+    #     if not isinstance(manifest['dublin_core']['source'], list):
+    #         raise Exception('Bad Manifest: dublin_core.source must be a list')
+    #
+    #     for key in ['version', 'identifier', 'language']:
+    #         for source in manifest['dublin_core']['source']:
+    #             if key not in source:
+    #                 raise Exception('Bad Manifest: Missing dublin_core.source key {0}'.format(key))
 
     @staticmethod
     def load_yaml_object(file_name, default=None):
