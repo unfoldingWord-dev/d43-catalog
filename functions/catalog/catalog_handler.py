@@ -179,7 +179,7 @@ class CatalogHandler:
         self.errors_table.update_item({'id': 1}, {'count': count, 'errors': checker.all_errors})
         if count > 4:
             print("ALERT! FAILED MORE THAN 4 TIMES!")
-            response = self.ses_handler.send_email(
+            self.ses_handler.send_email(
                 Source=self.from_email,
                 Destination={
                     'ToAddresses': [

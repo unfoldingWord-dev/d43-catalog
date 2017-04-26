@@ -138,6 +138,14 @@ class TestCatalog(TestCase):
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
 
+    def test_catalog_no_sig_content(self):
+        self.MockDynamodbHandler.tables_file = 'no_sig_db.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        self.assertFalse(response['success'])
+
     def test_catalog_mixed_content(self):
         """
         Tests what happens when some content is valid and some is not
@@ -155,26 +163,28 @@ class TestCatalog(TestCase):
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
 
     def test_catalog_invalid_format(self):
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_format.json'
+        self.MockDynamodbHandler.tables_file = 'invalid_format_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
+        # we expect the invalid resource to be skipped
         self.assertTrue(response['success'])
         self.assertTrue(response['incomplete'])
         self.assertEqual(1, len(response['catalog']['languages']))
-        self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats'])) # expecting format to be skipped
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][1]['formats']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
 
-    def test_catalog_invalid_resource(self):
-        # tests missing status and empty formats
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_resource.json'
+
+    def test_catalog_invalid_manifest(self):
+        self.MockDynamodbHandler.tables_file = 'invalid_manifest_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
         self.assertFalse(response['success'])
+        self.assertIn('manifest missing key', response['message'])
+        self.assertIsNone(response['catalog'])
 
     def test_catalog_empty_formats(self):
         # tests missing status and empty formats
@@ -185,12 +195,3 @@ class TestCatalog(TestCase):
 
         self.assertTrue(response['success'])
         self.assertFalse(response['incomplete'])
-
-    def test_catalog_invalid_language(self):
-        # tests missing status and empty formats
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_language.json'
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertFalse(response['success'])
