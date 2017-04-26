@@ -27,7 +27,7 @@ def handle(event, context):
         key = record['s3']['object']['key']
         url = 'https://{0}/{1}'.format(bucket_name, key)
 
-        acceptance = AcceptanceTest(url, httplib.HTTPConnection, SESHandler, to_email="acceptancetest@door43.org", from_email="acceptancetest@door43.org")
+        acceptance = AcceptanceTest(url, URLHandler, httplib.HTTPConnection, SESHandler, to_email="acceptancetest@door43.org", from_email="acceptancetest@door43.org")
         acceptance.run()
         print(acceptance.errors)
         return acceptance.errors

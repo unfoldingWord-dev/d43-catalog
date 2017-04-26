@@ -18,6 +18,7 @@ setup(
     classifiers=[],
     install_requires=[
         'tx-shared-tools',
-        'requests'
+        'requests',
+        'pyyaml'
     ]
 )
