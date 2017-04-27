@@ -76,6 +76,7 @@ class CatalogHandler:
 
         for item in items:
             repo_name = item['repo_name']
+            print('processing {}'.format(repo_name))
             manifest = json.loads(item['package'])
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = manifest
@@ -99,7 +100,7 @@ class CatalogHandler:
                     errors = checker.check_format(format, item)
                     if not errors:
                         formats.append(format)
-                if formats:
+                if len(formats) > 0:
                     completed_items += 1  # track items that made it into the catalog
                     resource = copy.deepcopy(dc)
                     resource['formats'] = formats
@@ -133,6 +134,7 @@ class CatalogHandler:
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                     write_file(catalog_path, self.catalog)
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
+
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
                 except Exception as e:
@@ -149,6 +151,11 @@ class CatalogHandler:
             response['success'] = True
             response['message'] = 'There were no formats to process'
 
+        if(response['success']):
+            print(response['message'])
+        else:
+            print('Catalog was not published due to errors')
+
         return response
 
     def _catalog_has_changed(self, catalog):
@@ -159,10 +166,11 @@ class CatalogHandler:
         """
         try:
             catalog_url = 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-            current_catalog = json.loads(get_url(catalog_url, True))
-            return catalog != current_catalog
+            current_catalog_str = get_url(catalog_url, True)
+            catalog_str = json.dumps(catalog)
+            return current_catalog_str != catalog_str
         except Exception:
-            return False
+            return True
 
     def _handle_errors(self, checker):
         """
