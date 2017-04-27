@@ -76,7 +76,6 @@ class CatalogHandler:
 
         for item in items:
             repo_name = item['repo_name']
-            print('processing {}'.format(repo_name))
             manifest = json.loads(item['package'])
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = manifest
@@ -123,7 +122,7 @@ class CatalogHandler:
         if completed_items > 0:
             if not self._catalog_has_changed(self.catalog):
                 response['success'] = True
-                response['message'] = 'No changes in the catalog'
+                response['message'] = 'No changes detected. Catalog not deployed'
             else:
                 data = {
                     'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -166,9 +165,9 @@ class CatalogHandler:
         """
         try:
             catalog_url = 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-            current_catalog_str = get_url(catalog_url, True)
-            catalog_str = json.dumps(catalog)
-            return current_catalog_str != catalog_str
+            current_catalog = json.loads(get_url(catalog_url, True))
+            same = current_catalog == catalog
+            return not same
         except Exception:
             return True
 
@@ -190,27 +189,30 @@ class CatalogHandler:
         self.errors_table.update_item({'id': 1}, {'count': count, 'errors': checker.all_errors})
         if count > 4:
             print("ALERT! FAILED MORE THAN 4 TIMES!")
-            self.ses_handler.send_email(
-                Source=self.from_email,
-                Destination={
-                    'ToAddresses': [
-                        self.to_email
-                    ]
-                },
-                Message={
-                    'Subject': {
-                        'Data': 'ERRORS Generating catalog.json',
-                        'Charset': 'UTF-8'
+            try:
+                self.ses_handler.send_email(
+                    Source=self.from_email,
+                    Destination={
+                        'ToAddresses': [
+                            self.to_email
+                        ]
                     },
-                    'Body': {
-                        'Text': {
-                            'Data': 'Errors generating catalog.json: '+"\n"+"\n".join(checker.all_errors),
+                    Message={
+                        'Subject': {
+                            'Data': 'ERRORS Generating catalog.json',
                             'Charset': 'UTF-8'
                         },
-                        'Html': {
-                            'Data': 'Errors generating catalog.json: <ul><li>'+'</li><li>'.join(checker.all_errors)+'</li></ul>',
-                            'Charset': 'UTF-8'
+                        'Body': {
+                            'Text': {
+                                'Data': 'Errors generating catalog.json: '+"\n"+"\n".join(checker.all_errors),
+                                'Charset': 'UTF-8'
+                            },
+                            'Html': {
+                                'Data': 'Errors generating catalog.json: <ul><li>'+'</li><li>'.join(checker.all_errors)+'</li></ul>',
+                                'Charset': 'UTF-8'
+                            }
                         }
                     }
-                }
-            )
+                )
+            except Exception as e:
+                print("ALERT! FAILED TO SEND EMAIL: {}".format(e))

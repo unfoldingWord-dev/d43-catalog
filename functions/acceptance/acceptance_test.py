@@ -122,56 +122,59 @@ class AcceptanceTest(object):
     def run(self):
         self.test_catalog_structure()
         if self.to_email and self.from_email:
-            if self.errors:
-                response = self.ses_handler.send_email(
-                    Source=self.from_email,
-                    Destination={
-                        'ToAddresses': [
-                            self.to_email
-                        ]
-                    },
-                    Message={
-                        'Subject': {
-                            'Data': 'ERRORS in {0}'.format(self.catalog_url),
-                            'Charset': 'UTF-8'
+            try:
+                if self.errors:
+                    response = self.ses_handler.send_email(
+                        Source=self.from_email,
+                        Destination={
+                            'ToAddresses': [
+                                self.to_email
+                            ]
                         },
-                        'Body': {
-                            'Text': {
-                                'Data': 'Errors in {0}: '.format(self.catalog_url) + "\n" + "\n".join(self.errors),
+                        Message={
+                            'Subject': {
+                                'Data': 'ERRORS in {0}'.format(self.catalog_url),
                                 'Charset': 'UTF-8'
                             },
-                            'Html': {
-                                'Data': 'Errors in <a href="{0}">{0}</a>: '.format(
-                                    self.catalog_url) + ' <ul><li>' + '</li><li>'.join(self.errors) + '</li></ul>',
-                                'Charset': 'UTF-8'
+                            'Body': {
+                                'Text': {
+                                    'Data': 'Errors in {0}: '.format(self.catalog_url) + "\n" + "\n".join(self.errors),
+                                    'Charset': 'UTF-8'
+                                },
+                                'Html': {
+                                    'Data': 'Errors in <a href="{0}">{0}</a>: '.format(
+                                        self.catalog_url) + ' <ul><li>' + '</li><li>'.join(self.errors) + '</li></ul>',
+                                    'Charset': 'UTF-8'
+                                }
                             }
                         }
-                    }
-                )
-            else:
-                response = self.ses_handler.send_email(
-                    Source=self.from_email,
-                    Destination={
-                        'ToAddresses': [
-                            self.to_email
-                        ]
-                    },
-                    Message={
-                        'Subject': {
-                            'Data': 'New {0} was generated'.format(self.catalog_url),
-                            'Charset': 'UTF-8'
+                    )
+                else:
+                    response = self.ses_handler.send_email(
+                        Source=self.from_email,
+                        Destination={
+                            'ToAddresses': [
+                                self.to_email
+                            ]
                         },
-                        'Body': {
-                            'Text': {
-                                'Data': 'New {0} was generated.'.format(self.catalog_url),
+                        Message={
+                            'Subject': {
+                                'Data': 'New {0} was generated'.format(self.catalog_url),
                                 'Charset': 'UTF-8'
                             },
-                            'Html': {
-                                'Data': 'New <a href="{0}">{0}</a> was generated.'.format(self.catalog_url),
-                                'Charset': 'UTF-8'
+                            'Body': {
+                                'Text': {
+                                    'Data': 'New {0} was generated.'.format(self.catalog_url),
+                                    'Charset': 'UTF-8'
+                                },
+                                'Html': {
+                                    'Data': 'New <a href="{0}">{0}</a> was generated.'.format(self.catalog_url),
+                                    'Charset': 'UTF-8'
+                                }
                             }
                         }
-                    }
-                )
+                    )
+            except Exception as e:
+                print("ALERT! FAILED TO SEND EMAIL: {}".format(e))
 
         return self.errors
