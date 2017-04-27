@@ -142,6 +142,10 @@ class ConsistencyChecker(object):
             if key not in manifest['dublin_core']:
                 raise Exception('manifest missing dublin_core key - {0}'.format(key))
 
+        expectedRCVersion = 'rc0.2'
+        if manifest['dublin_core']['conformsto'].lower() != expectedRCVersion:
+            raise Exception('unsupported rc version {}. Expected {}'.format(manifest['dublin_core']['conformsto'], expectedRCVersion))
+
         for key in ['direction', 'identifier', 'title']:
             if key not in manifest['dublin_core']['language']:
                 raise Exception('manifest missing dublin_core.language key - {0}'.format(key))
