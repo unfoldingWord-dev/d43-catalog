@@ -10,7 +10,6 @@ before_install:
 - eval export AWS_SECRET_ACCESS_KEY=\$${TRAVIS_BRANCH}_aws_secret_access_key
 - eval export AWS_REGION=\$${TRAVIS_BRANCH}_aws_region
 install:
-- bash install-requirements.sh
 - pip install coveralls
 
 script:
