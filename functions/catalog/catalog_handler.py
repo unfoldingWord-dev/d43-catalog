@@ -102,6 +102,12 @@ class CatalogHandler:
                 if len(formats) > 0:
                     completed_items += 1  # track items that made it into the catalog
                     resource = copy.deepcopy(dc)
+                    del resource['conformsto']
+                    del resource['format']
+                    del resource['language']
+                    del resource['type']
+                    if not resource['relation']:
+                        resource['relation'] = []
                     resource['formats'] = formats
                     language['resources'].append(resource)
 
