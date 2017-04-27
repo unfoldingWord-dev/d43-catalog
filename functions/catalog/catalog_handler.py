@@ -121,7 +121,7 @@ class CatalogHandler:
         }
 
         if completed_items > 0:
-            if self._catalog_has_changed(self.catalog):
+            if not self._catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes in the catalog'
             else:
