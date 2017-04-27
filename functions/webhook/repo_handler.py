@@ -140,13 +140,9 @@ class RepoHandler:
                                                     self.package['dublin_core']['version'],
                                                     self.package['dublin_core']['identifier'])
 
-            modified = self.package['dublin_core']['modified']
-            if not modified:
-                modified = self.timestamp
-
             file_info = {
                 'size': stats.st_size,
-                'modified': modified,
+                'modified': self.timestamp,
                 'format': 'application/zip; type={0} content={1} version={2}'.format(self.package['dublin_core']['type'],
                                                                                     self.package['dublin_core']['format'],
                                                                                     self.package['dublin_core']['conformsto']),
