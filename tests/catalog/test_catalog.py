@@ -118,7 +118,7 @@ class TestCatalog(TestCase):
 
         return record
 
-    def test_catalog_valid_content(self):
+    def test_catalog_valid_obs_content(self):
         self.MockDynamodbHandler.tables_file = 'valid_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
@@ -126,9 +126,12 @@ class TestCatalog(TestCase):
 
         self.assertTrue(response['success'])
         self.assertFalse(response['incomplete'])
+        self.assertIn('Uploaded new catalog', response['message'])
         self.assertEqual(1, len(response['catalog']['languages']))
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
+        self.assertNotIn('formats', response['catalog']['languages'][0]['resources'][0])
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects'][0]['formats']))
 
     def test_catalog_no_sig_content(self):
         self.MockDynamodbHandler.tables_file = 'no_sig_db.json'
@@ -137,6 +140,7 @@ class TestCatalog(TestCase):
         response = catalog.handle_catalog()
 
         self.assertFalse(response['success'])
+        self.assertIn('has not been signed yet', response['message'])
 
     def test_catalog_mixed_content(self):
         """
@@ -149,10 +153,10 @@ class TestCatalog(TestCase):
         response = catalog.handle_catalog()
 
         self.assertTrue(response['success'])
+        self.assertIn('Uploaded new catalog', response['message'])
         self.assertTrue(response['incomplete'])
         self.assertEqual(1, len(response['catalog']['languages']))
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
 
     def test_catalog_invalid_format(self):
         self.MockDynamodbHandler.tables_file = 'invalid_format_db.json'
@@ -162,10 +166,10 @@ class TestCatalog(TestCase):
 
         # we expect the invalid resource to be skipped
         self.assertTrue(response['success'])
+        self.assertIn('Uploaded new catalog', response['message'])
         self.assertTrue(response['incomplete'])
         self.assertEqual(1, len(response['catalog']['languages']))
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats']))
 
 
     def test_catalog_invalid_manifest(self):
@@ -185,6 +189,19 @@ class TestCatalog(TestCase):
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
-        self.assertTrue(response['success'])
+        self.assertFalse(response['success'])
+        self.assertIn('There were no formats to process', response['message'])
         self.assertFalse(response['incomplete'])
-        self.assertIn('no formats', response['message'])
+
+    def test_catalog_complex(self):
+        """
+        Tests multiple repositories sharing a single resource
+        and other complex situations
+        :return: 
+        """
+        self.MockDynamodbHandler.tables_file = 'complex_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+        self.assertFalse(True)
