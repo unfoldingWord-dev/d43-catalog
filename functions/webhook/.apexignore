@@ -1,4 +1,3 @@
 *.dist-info/
 .gitignore
 *.pyc
-requirements.txt

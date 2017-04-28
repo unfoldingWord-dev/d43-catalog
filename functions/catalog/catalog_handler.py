@@ -39,13 +39,19 @@ class CatalogHandler:
         }
         self.api_handler = s3_handler(self.api_bucket)
         self.ses_handler = ses_handler()
+        self.versification_package = None
 
-    # gets the existing language container or creates a new one
     def get_language(self, language):
+        """
+        Gets the existing language container or creates a new one
+        :param language: 
+        :return: 
+        """
         found_lang = None
         for lang in self.catalog['languages']:
             if lang['identifier'] == language['identifier']:
                 found_lang = lang
+                break
         if not found_lang:
             self.catalog['languages'].append(language)
         else:
@@ -53,6 +59,28 @@ class CatalogHandler:
         if 'resources' not in language:
             language['resources'] = []
         return language
+
+    def get_project(self, language, project):
+        """
+        Gets the existing project from the language or creates a new one
+        :param language: 
+        :param project: 
+        :return: 
+        """
+        found_proj = None
+        if 'projects' not in language:
+            language['projects'] = []
+
+        for proj in language['projects']:
+            if proj['identifier'] == project['identifier']:
+                found_proj = proj
+                break
+        if not found_proj:
+            language['projects'].append(project)
+        else:
+            project = found_proj
+        return project
+
 
     @staticmethod
     def retrieve(dictionary, key, dict_name=None):
@@ -86,6 +114,17 @@ class CatalogHandler:
                     del localization['language']
                     language = self.get_language(language)  # gets the existing language container or creates a new one
                     language.update(localization)
+            elif repo_name == 'versification':
+                self.versification_package = manifest
+                for lang in self.catalog['languages']:
+                    for project in manifest:
+                        versification = project['chunks_url']
+                        project = self.get_project(lang, project)
+                        project['chunks_url'] = versification
+
+                # we'll need to update/stub projects in all existing languages and any new ones added as we process RCs.
+                # we could just remember the versification in a variable and inject it as we get new RCs.
+                pass
             else:
                 errors = checker.check(item)
                 if errors:
@@ -108,12 +147,18 @@ class CatalogHandler:
                     del resource['type']
                     if not resource['relation']:
                         resource['relation'] = []
+                    # store projects
+                    for project in manifest['projects']:
+                        if not project['categories']:
+                            project['categories'] = []
+                        del project['path']
+                        resource['projects'].append(project)
+                        # add chunks
+                        if self.versification_package and project['identifier'] in self.versification_package:
+                            project.update(self.versification_package[project['identifier']])
+                    # store formats
                     if len(manifest['projects']) == 1:
                         # single-project RCs store formats in projects
-                        resource['projects'] = manifest['projects']
-                        if not resource['projects'][0]['categories']:
-                            resource['projects'][0]['categories'] = []
-                        del resource['projects'][0]['path']
                         resource['projects'][0]['formats'] = formats
                     else:
                         # multi-project RCs store formats in resource
