@@ -204,4 +204,8 @@ class TestCatalog(TestCase):
         handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = handler.handle_catalog()
         catalog = response['catalog']
-        self.assertFalse(True)
+
+        # TODO: we need to run tests to ensure complex data is handled correctly.
+        # e.g. one repo provides resource formats and another provide a project format for that resource
+        # two repos with the same resource provide formats at the same level (conflict resource formats, conflicting projects formats)
+        #
