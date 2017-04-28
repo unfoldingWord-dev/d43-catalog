@@ -1,8 +1,6 @@
 *
 !main.py
-!requirements.txt
 !.gitignore
 !.apexignore
-!repo_handler.py
-!manifest_handler.py
+!webhook_handler.py
 !/__init__.py

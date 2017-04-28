@@ -2,7 +2,7 @@ import codecs
 import os
 import json
 from unittest import TestCase
-from functions.webhook.repo_handler import RepoHandler
+from functions.webhook.webhook_handler import WebhookHandler
 
 class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
@@ -15,11 +15,18 @@ class TestWebhook(TestCase):
             TestWebhook.MockDynamodbHandler.data = data
 
     class MockS3Handler:
-        uploaded_file = None
+        uploads = []
+
+        @staticmethod
+        def reset():
+            TestWebhook.MockS3Handler.uploads = []
 
         @staticmethod
         def upload_file(path, key):
-            TestWebhook.MockS3Handler.uploaded_file = path
+            TestWebhook.MockS3Handler.uploads.append({
+                'key': key,
+                'path': path
+            })
 
     def setUp(self):
         pass
@@ -39,7 +46,8 @@ class TestWebhook(TestCase):
             request_json = json.loads(content)
 
         self.MockDynamodbHandler.data = None
-        handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         with self.assertRaises(Exception) as error_context:
             handler.run()
 
@@ -59,8 +67,36 @@ class TestWebhook(TestCase):
             request_json = json.loads(content)
 
         self.MockDynamodbHandler.data = None
-        handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         handler.run()
 
-        self.assertIn('/en-obs.zip', self.MockS3Handler.uploaded_file)
         entry = self.MockDynamodbHandler.data
+        self.assertEqual(1, len(self.MockS3Handler.uploads))
+        self.assertIn('/en-obs.zip', self.MockS3Handler.uploads[0]['path'])
+        self.assertIn('temp/en-obs/{}/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+
+
+    def test_webhook_versification(self):
+        request_file = os.path.join(self.resources_dir, 'versification-request.json')
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        self.MockDynamodbHandler.data = None
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler.run()
+
+        self.assertEqual(66, len(self.MockS3Handler.uploads))
+        data = self.MockDynamodbHandler.data
+        self.assertTrue(len(data['package']) > 0)
+        self.assertIn('chunks_url', data['package'][0])
+        self.assertIn('identifier', data['package'][0])
+        self.assertNotIn('chunks', data['package'][0])
+        for upload in self.MockS3Handler.uploads:
+            self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
