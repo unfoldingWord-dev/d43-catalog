@@ -193,6 +193,15 @@ class TestCatalog(TestCase):
         self.assertIn('There were no formats to process', response['message'])
         self.assertFalse(response['incomplete'])
 
+    def test_catalog_versification(self):
+        self.MockDynamodbHandler.tables_file = 'versification_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+
     def test_catalog_complex(self):
         """
         Tests multiple repositories sharing a single resource

@@ -108,62 +108,13 @@ class CatalogHandler:
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = manifest
             elif repo_name == 'localization':
-                for lang in manifest:
-                    localization = manifest[lang]
-                    language = localization['language']
-                    del localization['language']
-                    language = self.get_language(language)  # gets the existing language container or creates a new one
-                    language.update(localization)
+                self._build_localization(manifest)
             elif repo_name == 'versification':
-                self.versification_package = manifest
-                for lang in self.catalog['languages']:
-                    for project in manifest:
-                        versification = project['chunks_url']
-                        project = self.get_project(lang, project)
-                        project['chunks_url'] = versification
+                self._build_versification(manifest)
 
-                # we'll need to update/stub projects in all existing languages and any new ones added as we process RCs.
-                # we could just remember the versification in a variable and inject it as we get new RCs.
-                pass
             else:
-                errors = checker.check(item)
-                if errors:
-                    continue
-                dc = manifest['dublin_core']
-                language = dc['language']
-                language = self.get_language(language)  # gets the existing language container or creates a new one
-
-                formats = []
-                for format in manifest['formats']:
-                    errors = checker.check_format(format, item)
-                    if not errors:
-                        formats.append(format)
-                if len(formats) > 0:
-                    completed_items += 1  # track items that made it into the catalog
-                    resource = copy.deepcopy(dc)
-                    del resource['conformsto']
-                    del resource['format']
-                    del resource['language']
-                    del resource['type']
-                    if not resource['relation']:
-                        resource['relation'] = []
-                    # store projects
-                    for project in manifest['projects']:
-                        if not project['categories']:
-                            project['categories'] = []
-                        del project['path']
-                        resource['projects'].append(project)
-                        # add chunks
-                        if self.versification_package and project['identifier'] in self.versification_package:
-                            project.update(self.versification_package[project['identifier']])
-                    # store formats
-                    if len(manifest['projects']) == 1:
-                        # single-project RCs store formats in projects
-                        resource['projects'][0]['formats'] = formats
-                    else:
-                        # multi-project RCs store formats in resource
-                        resource['formats'] = formats
-                    language['resources'].append(resource)
+                if self._build_rc(item, manifest, checker):
+                    completed_items += 1
 
         # remove empty languages
         condensed_languages = []
@@ -213,6 +164,92 @@ class CatalogHandler:
             print('Catalog was not published due to errors')
 
         return response
+
+    def _build_rc(self, item, manifest, checker):
+        """
+        Builds a RC entry in the catalog.
+        :param item: 
+        :param manifest: 
+        :param checker: 
+        :return: True if the entry was successfully added otherwise False
+        """
+        errors = checker.check(item)
+        if errors:
+            return False
+        dc = manifest['dublin_core']
+        language = dc['language']
+        language = self.get_language(language)  # gets the existing language container or creates a new one
+
+        formats = []
+        for format in manifest['formats']:
+            errors = checker.check_format(format, item)
+            if not errors:
+                formats.append(format)
+
+        if len(formats) > 0:
+            resource = copy.deepcopy(dc)
+            resource['projects'] = []
+            del resource['conformsto']
+            del resource['format']
+            del resource['language']
+            del resource['type']
+            if not resource['relation']:
+                resource['relation'] = []
+
+            # store projects
+            for project in manifest['projects']:
+                if not project['categories']:
+                    project['categories'] = []
+                del project['path']
+                resource['projects'].append(project)
+
+                # add versification chunks
+                if self.versification_package and project['identifier'] in self.versification_package:
+                    project.update(self.versification_package[project['identifier']])
+
+            # store formats
+            if len(manifest['projects']) == 1:
+                # single-project RCs store formats in projects
+                resource['projects'][0]['formats'] = formats
+            else:
+                # multi-project RCs store formats in resource
+                resource['formats'] = formats
+
+            language['resources'].append(resource)
+            return True
+
+        return False
+
+    def _build_versification(self, package):
+        """
+        Adds versification chunks to projects in the catalog.
+        Note: this may not do anything if no languages have been generated yet.
+        self._build_rc will pick up the slack in that case.
+        :param package: 
+        :return: 
+        """
+        # remember for use in self._build_rc
+        self.versification_package = package
+
+        # inject into existing projects
+        for lang in self.catalog['languages']:
+            for project in package:
+                versification = project['chunks_url']
+                project = self.get_project(lang, project)
+                project['chunks_url'] = versification
+
+    def _build_localization(self, package):
+        """
+        Adds localization to the catalog
+        :param package: 
+        :return: 
+        """
+        for lang in package:
+            localization = package[lang]
+            language = localization['language']
+            del localization['language']
+            language = self.get_language(language)  # gets the existing language container or creates a new one
+            language.update(localization)
 
     def _catalog_has_changed(self, catalog):
         """
