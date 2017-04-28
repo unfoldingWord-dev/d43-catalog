@@ -111,6 +111,9 @@ class CatalogHandler:
                     if len(manifest['projects']) == 1:
                         # single-project RCs store formats in projects
                         resource['projects'] = manifest['projects']
+                        if not resource['projects'][0]['categories']:
+                            resource['projects'][0]['categories'] = []
+                        del resource['projects'][0]['path']
                         resource['projects'][0]['formats'] = formats
                     else:
                         # multi-project RCs store formats in resource
