@@ -8,18 +8,14 @@ class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
     class MockDynamodbHandler(object):
-        def __init__(self):
-            pass
+        data = None
 
         @staticmethod
         def insert_item(data):
-            pass
+            TestWebhook.MockDynamodbHandler.data = data
 
     class MockS3Handler:
         uploaded_file = None
-
-        def __init__(self):
-            pass
 
         @staticmethod
         def upload_file(path, key):
@@ -42,6 +38,7 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        self.MockDynamodbHandler.data = None
         handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         with self.assertRaises(Exception) as error_context:
             handler.run()
@@ -61,7 +58,9 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        self.MockDynamodbHandler.data = None
         handler = RepoHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
         handler.run()
 
         self.assertIn('/en-obs.zip', self.MockS3Handler.uploaded_file)
+        entry = self.MockDynamodbHandler.data

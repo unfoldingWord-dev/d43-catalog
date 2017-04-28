@@ -108,7 +108,13 @@ class CatalogHandler:
                     del resource['type']
                     if not resource['relation']:
                         resource['relation'] = []
-                    resource['formats'] = formats
+                    if len(manifest['projects']) == 1:
+                        # single-project RCs store formats in projects
+                        resource['projects'] = manifest['projects']
+                        resource['projects'][0]['formats'] = formats
+                    else:
+                        # multi-project RCs store formats in resource
+                        resource['formats'] = formats
                     language['resources'].append(resource)
 
         # remove empty languages
@@ -144,17 +150,14 @@ class CatalogHandler:
                     response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
                 except Exception as e:
                     checker.log_error('Unable to save catalog.json: {0}'.format(e))
-
+        else:
+            checker.log_error('There were no formats to process')
 
         self._handle_errors(checker)
 
         if not response['success']:
             response['catalog'] = None
             response['message'] = '{0}'.format(checker.all_errors)
-
-        if len(checker.all_errors) == 0:
-            response['success'] = True
-            response['message'] = 'There were no formats to process'
 
         if(response['success']):
             print(response['message'])

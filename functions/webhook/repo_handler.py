@@ -143,7 +143,7 @@ class RepoHandler:
             file_info = {
                 'size': stats.st_size,
                 'modified': self.timestamp,
-                'format': 'application/zip; type={0} content={1} version={2}'.format(self.package['dublin_core']['type'],
+                'format': 'application/zip; type={0} content={1} conformsto={2}'.format(self.package['dublin_core']['type'],
                                                                                     self.package['dublin_core']['format'],
                                                                                     self.package['dublin_core']['conformsto']),
                 'url': url,
