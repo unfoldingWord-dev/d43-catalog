@@ -200,6 +200,7 @@ class TestCatalog(TestCase):
         response = handler.handle_catalog()
         catalog = response['catalog']
 
+        # TODO: need to get a ulb project converted to RC that we can use for this unit test
         self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
 
     def test_catalog_complex(self):

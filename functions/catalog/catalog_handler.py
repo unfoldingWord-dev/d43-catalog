@@ -110,8 +110,10 @@ class CatalogHandler:
             elif repo_name == 'localization':
                 self._build_localization(manifest)
             elif repo_name == 'versification':
-                self._build_versification(manifest)
-
+                if not self._build_versification(manifest, checker):
+                    # fail build if chunks are broken
+                    completed_items = 0
+                    break
             else:
                 if self._build_rc(item, manifest, checker):
                     completed_items += 1
@@ -220,16 +222,22 @@ class CatalogHandler:
 
         return False
 
-    def _build_versification(self, package):
+    def _build_versification(self, package, checker):
         """
         Adds versification chunks to projects in the catalog.
         Note: this may not do anything if no languages have been generated yet.
         self._build_rc will pick up the slack in that case.
         :param package: 
-        :return: 
+        :return: False if errors were encountered
         """
         # remember for use in self._build_rc
         self.versification_package = package
+
+        for project in package:
+            if not ConsistencyChecker.url_exists(project['chunks_url']):
+                checker.log_error('{} does not exist'.format(project['chunks_url']))
+                # for performance's sake we'll fail on a single error
+                return False
 
         # inject into existing projects
         for lang in self.catalog['languages']:
@@ -237,6 +245,8 @@ class CatalogHandler:
                 versification = project['chunks_url']
                 project = self.get_project(lang, project)
                 project['chunks_url'] = versification
+
+        return True
 
     def _build_localization(self, package):
         """
