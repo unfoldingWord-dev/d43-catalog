@@ -101,5 +101,5 @@ class TestWebhook(TestCase):
         self.assertNotIn('chunks', data['package'][0])
         for upload in self.MockS3Handler.uploads:
             # for now we are bypassing signing and uploading directly
-            self.assertIn('https://cdn.door43.org/bible/'.format(data['commit_id']), upload['key'])
+            self.assertIn('bible/'.format(data['commit_id']), upload['key'])
             #self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
