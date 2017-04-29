@@ -25,7 +25,7 @@ class ConsistencyChecker(object):
         self.all_errors.append(message)
 
     @staticmethod
-    def condensed_languagesurl_exists(url):
+    def url_exists(url):
         p = urlparse(url)
         conn = httplib.HTTPConnection(p.netloc)
         conn.request('HEAD', p.path)

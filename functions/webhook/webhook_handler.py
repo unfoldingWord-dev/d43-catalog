@@ -147,7 +147,7 @@ class WebhookHandler:
             'timestamp': self.timestamp,
             'package': json.dumps(manifest, sort_keys=True),
             'uploads': [{
-                'key': self.make_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'key': self.make_temp_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
                 'path': self.repo_file
             }]
         }
@@ -185,8 +185,10 @@ class WebhookHandler:
             temp_dir = tempfile.mkdtemp(prefix='versification_')
             chunk_file = os.path.join(temp_dir, book['identifier'] + '.json')
             write_file(chunk_file, json.dumps(book['chunks'], sort_keys=True))
+            # for now we bypass signing and upload chunks directly
+            upload_key = book['chunks_url'] # self.make_temp_upload_key('{}/chunks.json'.format(book['identifier']))
             uploads.append({
-                'key': self.make_upload_key('{}/chunks.json'.format(book['identifier'])),
+                'key': upload_key,
                 'path': chunk_file
             })
 
@@ -238,7 +240,7 @@ class WebhookHandler:
             'package': package
         }
 
-    def make_upload_key(self, path):
+    def make_temp_upload_key(self, path):
         """
         Generates an upload key that conforms to the format `temp/<repo_name>/<commit>/<path>`.
         This allows further processing to associate files with an entry in dynamoDB.
