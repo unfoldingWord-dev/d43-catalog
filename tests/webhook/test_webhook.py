@@ -96,6 +96,7 @@ class TestWebhook(TestCase):
         data = self.MockDynamodbHandler.data
         self.assertTrue(len(data['package']) > 0)
         self.assertIn('chunks_url', data['package'][0])
+        self.assertIn('https://cdn.door43.org/bible/', data['package'][0]['chunks_url'])
         self.assertIn('identifier', data['package'][0])
         self.assertNotIn('chunks', data['package'][0])
         for upload in self.MockS3Handler.uploads:
