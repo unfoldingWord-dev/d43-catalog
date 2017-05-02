@@ -163,9 +163,10 @@ class WebhookHandler:
         uploads = []
 
         # group by project
-        for vrs in versification_dirs:
-            book_dirs = sorted(glob(os.path.join(bible_dir, vrs, 'chunks', '*.json')))
-            for b in book_dirs:
+        for vrs_dir in versification_dirs:
+            vrs_id = os.path.basename(vrs_dir)
+            book_files = sorted(glob(os.path.join(vrs_dir, 'chunks', '*.json')))
+            for b in book_files:
                 print('Reading {0}...'.format(b))
                 identifier = os.path.splitext(os.path.basename(b))[0]
                 try:
@@ -177,7 +178,7 @@ class WebhookHandler:
                     'chunks_url': '{0}/bible/{1}/v3/chunks.json'.format(self.cdn_url, identifier),
                     'chunks': {}
                 })
-                book['chunks'][vrs] = book_vrs
+                book['chunks'][vrs_id] = book_vrs
         for book in books:
             book = books[book]
 
