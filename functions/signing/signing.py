@@ -14,7 +14,6 @@ from subprocess import Popen, PIPE
 
 
 class Signing(object):
-
     dynamodb_table_name = 'd43-catalog-in-progress'
 
     @staticmethod

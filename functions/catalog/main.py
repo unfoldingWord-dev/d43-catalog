@@ -11,5 +11,8 @@ from aws_tools.ses_handler import SESHandler
 from catalog_handler import CatalogHandler
 
 def handle(event, context):
-    catalog = CatalogHandler(event, S3Handler, DynamoDBHandler, SESHandler)
-    return catalog.handle_catalog()
+    try:
+        catalog = CatalogHandler(event, S3Handler, DynamoDBHandler, SESHandler)
+        return catalog.handle_catalog()
+    except Exception as e:
+        raise Exception('Bad Request: {0}'.format(e))
