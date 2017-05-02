@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'tx-shared-tools',
         'requests',
-        'pyyaml'
+        'pyyaml',
+        'gogs_client'
     ]
 )
