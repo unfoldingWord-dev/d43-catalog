@@ -25,5 +25,6 @@ class TestFork(TestCase):
     def test_get_repos(self):
         event = self.create_event()
 
+        # TODO: create mock get_url function
         handler = ForkHandler(event, self.MockDynamodbHandler)
         repos = handler.get_new_repos()

@@ -104,7 +104,11 @@ class CatalogHandler:
 
         for item in items:
             repo_name = item['repo_name']
-            manifest = json.loads(item['package'])
+            try:
+                manifest = json.loads(item['package'])
+            except Exception as e:
+                print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
+                continue
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = manifest
             elif repo_name == 'localization':
