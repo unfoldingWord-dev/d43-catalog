@@ -201,7 +201,7 @@ class WebhookHandler:
             'repo_name': self.repo_name,
             'commit_id': self.commit_id,
             'timestamp': self.timestamp,
-            'package': package,
+            'package': json.dumps(package, sort_keys=True),
             'uploads': uploads
         }
 
