@@ -6,6 +6,7 @@ import copy
 from unittest import TestCase
 from aws_tools.s3_handler import S3Handler
 from general_tools.file_utils import load_json_object
+from tools.consistency_checker import ConsistencyChecker
 
 from functions.catalog.catalog_handler import CatalogHandler
 
@@ -37,6 +38,12 @@ class TestCatalog(TestCase):
                 os.makedirs(parent_dir)
 
             shutil.copy(path, out_path)
+
+    class MockChecker(ConsistencyChecker):
+
+        @staticmethod
+        def url_exists(url):
+            return True
 
     class MockDynamodbHandler(object):
         tables_file = 'valid_db.json'
@@ -193,15 +200,30 @@ class TestCatalog(TestCase):
         self.assertIn('There were no formats to process', response['message'])
         self.assertFalse(response['incomplete'])
 
-    def test_catalog_versification(self):
-        self.MockDynamodbHandler.tables_file = 'versification_db.json'
+    def test_catalog_ulb_versification(self):
+        self.MockDynamodbHandler.tables_file = 'ulb_versification_db.json'
         event = self.create_event()
-        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler, self.MockChecker)
         response = handler.handle_catalog()
         catalog = response['catalog']
 
+        self.assertIsNotNone(catalog)
+        self.assertIn('projects', catalog['languages'][0]['resources'][0])
+        self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
+        self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+
+    def test_catalog_versification_ulb(self):
+        self.MockDynamodbHandler.tables_file = 'versification_ulb_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler, self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIsNotNone(catalog)
+        self.assertIn('projects', catalog['languages'][0]['resources'][0])
+        self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
         # TODO: need to get a ulb project converted to RC that we can use for this unit test
-        #self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+        self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
 
     def test_catalog_complex(self):
         """

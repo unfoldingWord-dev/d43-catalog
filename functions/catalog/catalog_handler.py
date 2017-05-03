@@ -19,13 +19,14 @@ from tools.consistency_checker import ConsistencyChecker
 class CatalogHandler:
     API_VERSION = 3
 
-    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler):
+    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None):
         """
         Initializes a catalog handler
         :param event: 
         :param s3_handler: This is passed in so it can be mocked for unit testing
         :param dynamodb_handler: This is passed in so it can be mocked for unit testing
         :param ses_handler: This is passed in so it can be mocked for unit testing
+        :param consistency_checker: This is passed in so it can be mocked for unit testing
         """
         self.api_bucket = self.retrieve(event, 'api_bucket')
         self.to_email = self.retrieve(event, 'to_email')
@@ -39,11 +40,15 @@ class CatalogHandler:
         }
         self.api_handler = s3_handler(self.api_bucket)
         self.ses_handler = ses_handler()
+        if consistency_checker:
+            self.checker = consistency_checker()
+        else:
+            self.checker = ConsistencyChecker()
         self.versification_package = None
 
     def get_language(self, language):
         """
-        Gets the existing language container or creates a new one
+        Gets the existing language or creates a new one
         :param language: 
         :return: 
         """
@@ -60,23 +65,23 @@ class CatalogHandler:
             language['resources'] = []
         return language
 
-    def get_project(self, language, project):
+    def get_project(self, resource, project):
         """
-        Gets the existing project from the language or creates a new one
-        :param language: 
+        Gets the existing project from the resource or creates a new one
+        :param resource:
         :param project: 
         :return: 
         """
         found_proj = None
-        if 'projects' not in language:
-            language['projects'] = []
+        if 'projects' not in resource:
+            resource['projects'] = []
 
-        for proj in language['projects']:
+        for proj in resource['projects']:
             if proj['identifier'] == project['identifier']:
                 found_proj = proj
                 break
         if not found_proj:
-            language['projects'].append(project)
+            resource['projects'].append(project)
         else:
             project = found_proj
         return project
@@ -100,7 +105,6 @@ class CatalogHandler:
     def handle_catalog(self):
         completed_items = 0
         items = self.progress_table.query_items()
-        checker = ConsistencyChecker()
 
         for item in items:
             repo_name = item['repo_name']
@@ -114,12 +118,12 @@ class CatalogHandler:
             elif repo_name == 'localization':
                 self._build_localization(manifest)
             elif repo_name == 'versification':
-                if not self._build_versification(manifest, checker):
+                if not self._build_versification(manifest, self.checker):
                     # fail build if chunks are broken
                     completed_items = 0
                     break
             else:
-                if self._build_rc(item, manifest, checker):
+                if self._build_rc(item, manifest, self.checker):
                     completed_items += 1
 
         # remove empty languages
@@ -131,7 +135,7 @@ class CatalogHandler:
 
         response = {
             'success': False,
-            'incomplete': len(checker.all_errors) > 0,
+            'incomplete': len(self.checker.all_errors) > 0,
             'message': None,
             'catalog': self.catalog
         }
@@ -154,15 +158,15 @@ class CatalogHandler:
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
                 except Exception as e:
-                    checker.log_error('Unable to save catalog.json: {0}'.format(e))
+                    self.checker.log_error('Unable to save catalog.json: {0}'.format(e))
         else:
-            checker.log_error('There were no formats to process')
+            self.checker.log_error('There were no formats to process')
 
-        self._handle_errors(checker)
+        self._handle_errors(self.checker)
 
         if not response['success']:
             response['catalog'] = None
-            response['message'] = '{0}'.format(checker.all_errors)
+            response['message'] = '{0}'.format(self.checker.all_errors)
 
         if(response['success']):
             print(response['message'])
@@ -234,21 +238,26 @@ class CatalogHandler:
         :param package: 
         :return: False if errors were encountered
         """
-        # remember for use in self._build_rc
-        self.versification_package = package
+        dict = {}
+
 
         for project in package:
-            if not ConsistencyChecker.url_exists(project['chunks_url']):
+            dict[project['identifier']] = project
+            if not checker.url_exists(project['chunks_url']):
                 checker.log_error('{} does not exist'.format(project['chunks_url']))
                 # for performance's sake we'll fail on a single error
                 return False
 
+        # remember for use in self._build_rc
+        self.versification_package = dict
+
         # inject into existing projects
         for lang in self.catalog['languages']:
-            for project in package:
-                versification = project['chunks_url']
-                project = self.get_project(lang, project)
-                project['chunks_url'] = versification
+            if 'resources' not in lang: continue
+            for res in lang['resources']:
+                for versified_project in package:
+                    project = self.get_project(res, versified_project)
+                    project.update(versified_project)
 
         return True
 
