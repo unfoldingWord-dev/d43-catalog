@@ -76,6 +76,26 @@ class TestWebhook(TestCase):
         self.assertIn('/en-obs.zip', self.MockS3Handler.uploads[0]['path'])
         self.assertIn('temp/en-obs/{}/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
+    def test_webhook_ulb(self):
+        request_file = os.path.join(self.resources_dir, 'ulb-request.json')
+
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        self.MockDynamodbHandler.data = None
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler.run()
+
+        entry = self.MockDynamodbHandler.data
+        self.assertEqual(1, len(self.MockS3Handler.uploads))
+        self.assertIn('/en-ulb.zip', self.MockS3Handler.uploads[0]['path'])
+        self.assertIn('temp/en-ulb/{}/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
     def test_webhook_versification(self):
         request_file = os.path.join(self.resources_dir, 'versification-request.json')
