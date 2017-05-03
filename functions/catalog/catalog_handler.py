@@ -232,7 +232,7 @@ class CatalogHandler:
             for res in lang['resources']:
                 if 'projects' not in res: continue
                 for proj in res['projects']:
-                    if proj['identifier'] in dict:
+                    if proj['identifier'] in dict and proj['versification']:
                         proj.update(dict[proj['identifier']])
 
         return True
