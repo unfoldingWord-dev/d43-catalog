@@ -236,6 +236,19 @@ class TestCatalog(TestCase):
         self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
         self.assertNotIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
 
+    def test_catalog_localization(self):
+        self.MockDynamodbHandler.tables_file = 'localization_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler,
+                                 self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIn('category_labels', catalog['languages'][0])
+        self.assertIn('versification_labels', catalog['languages'][0])
+        self.assertIn('check_labels', catalog['languages'][0])
+        self.assertNotIn('language', catalog['languages'][0])
+
     def test_catalog_complex(self):
         """
         Tests multiple repositories sharing a single resource

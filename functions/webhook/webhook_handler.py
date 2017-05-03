@@ -69,10 +69,10 @@ class WebhookHandler:
             # build catalog entry
             data = self._build()
             # upload data
-            if 'uploads' in data and data['uploads']:
+            if 'uploads' in data:
                 for upload in data['uploads']:
                     self.s3_handler.upload_file(upload['path'], upload['key'])
-            del data['uploads']
+                del data['uploads']
             self.db_handler.insert_item(data)
         finally:
             # clean
