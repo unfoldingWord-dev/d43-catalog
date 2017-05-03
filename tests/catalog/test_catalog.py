@@ -222,8 +222,19 @@ class TestCatalog(TestCase):
         self.assertIsNotNone(catalog)
         self.assertIn('projects', catalog['languages'][0]['resources'][0])
         self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
-        # TODO: need to get a ulb project converted to RC that we can use for this unit test
         self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+
+    def test_catalog_versification_tq(self):
+        self.MockDynamodbHandler.tables_file = 'versification_tq_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler, self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIsNotNone(catalog)
+        self.assertIn('projects', catalog['languages'][0]['resources'][0])
+        self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
+        self.assertNotIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
 
     def test_catalog_complex(self):
         """
