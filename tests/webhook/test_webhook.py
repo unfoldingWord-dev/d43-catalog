@@ -115,10 +115,11 @@ class TestWebhook(TestCase):
         self.assertEqual(66, len(self.MockS3Handler.uploads))
         data = self.MockDynamodbHandler.data
         self.assertTrue(len(data['package']) > 0)
-        self.assertIn('chunks_url', data['package'][0])
-        self.assertIn('https://cdn.door43.org/bible/', data['package'][0]['chunks_url'])
-        self.assertIn('identifier', data['package'][0])
-        self.assertNotIn('chunks', data['package'][0])
+        package = json.loads(data['package'])
+        self.assertIn('chunks_url', package[0])
+        self.assertIn('https://cdn.door43.org/bible/', package[0]['chunks_url'])
+        self.assertIn('identifier', package[0])
+        self.assertNotIn('chunks', package[0])
         for upload in self.MockS3Handler.uploads:
             # for now we are bypassing signing and uploading directly
             self.assertIn('bible/'.format(data['commit_id']), upload['key'])
