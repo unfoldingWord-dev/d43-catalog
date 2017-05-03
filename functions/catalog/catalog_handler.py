@@ -19,6 +19,8 @@ from tools.consistency_checker import ConsistencyChecker
 class CatalogHandler:
     API_VERSION = 3
 
+    resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
+
     def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None):
         """
         Initializes a catalog handler
@@ -44,7 +46,6 @@ class CatalogHandler:
             self.checker = consistency_checker()
         else:
             self.checker = ConsistencyChecker()
-        self.versification_package = None
 
     def get_language(self, language):
         """
@@ -65,28 +66,6 @@ class CatalogHandler:
             language['resources'] = []
         return language
 
-    def get_project(self, resource, project):
-        """
-        Gets the existing project from the resource or creates a new one
-        :param resource:
-        :param project: 
-        :return: 
-        """
-        found_proj = None
-        if 'projects' not in resource:
-            resource['projects'] = []
-
-        for proj in resource['projects']:
-            if proj['identifier'] == project['identifier']:
-                found_proj = proj
-                break
-        if not found_proj:
-            resource['projects'].append(project)
-        else:
-            project = found_proj
-        return project
-
-
     @staticmethod
     def retrieve(dictionary, key, dict_name=None):
         """
@@ -105,26 +84,29 @@ class CatalogHandler:
     def handle_catalog(self):
         completed_items = 0
         items = self.progress_table.query_items()
+        versification_package = None
 
         for item in items:
             repo_name = item['repo_name']
             try:
-                manifest = json.loads(item['package'])
+                package = json.loads(item['package'])
             except Exception as e:
                 print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
                 continue
             if repo_name == "catalogs":
-                self.catalog['catalogs'] = manifest
+                self.catalog['catalogs'] = package
             elif repo_name == 'localization':
-                self._build_localization(manifest)
+                self._build_localization(package)
             elif repo_name == 'versification':
-                if not self._build_versification(manifest, self.checker):
-                    # fail build if chunks are broken
-                    completed_items = 0
-                    break
+                versification_package = package
             else:
-                if self._build_rc(item, manifest, self.checker):
+                if self._build_rc(item, package, self.checker):
                     completed_items += 1
+
+        # process versification last
+        if versification_package and not self._build_versification(versification_package, self.checker):
+                # fail build if chunks are broken
+                completed_items = 0
 
         # remove empty languages
         condensed_languages = []
@@ -213,10 +195,6 @@ class CatalogHandler:
                 del project['path']
                 resource['projects'].append(project)
 
-                # add versification chunks
-                if self.versification_package and project['identifier'] in self.versification_package:
-                    project.update(self.versification_package[project['identifier']])
-
             # store formats
             if len(manifest['projects']) == 1:
                 # single-project RCs store formats in projects
@@ -248,16 +226,14 @@ class CatalogHandler:
                 # for performance's sake we'll fail on a single error
                 return False
 
-        # remember for use in self._build_rc
-        self.versification_package = dict
-
         # inject into existing projects
         for lang in self.catalog['languages']:
             if 'resources' not in lang: continue
             for res in lang['resources']:
-                for versified_project in package:
-                    project = self.get_project(res, versified_project)
-                    project.update(versified_project)
+                if 'projects' not in res: continue
+                for proj in res['projects']:
+                    if proj['identifier'] in dict:
+                        proj.update(dict[proj['identifier']])
 
         return True
 
