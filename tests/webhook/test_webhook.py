@@ -124,3 +124,18 @@ class TestWebhook(TestCase):
             # for now we are bypassing signing and uploading directly
             self.assertIn('bible/'.format(data['commit_id']), upload['key'])
             #self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
+
+    def test_webhook_localization(self):
+        request_file = os.path.join(self.resources_dir, 'localization-request.json')
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        self.MockDynamodbHandler.data = None
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler.run()
