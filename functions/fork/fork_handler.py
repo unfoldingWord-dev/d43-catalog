@@ -8,23 +8,33 @@ from __future__ import print_function
 
 from general_tools.url_utils import get_url
 from aws_tools.dynamodb_handler import DynamoDBHandler
-import gogs_client
+import gogs_client as GogsClient
 
 class ForkHandler:
-    def __init__(self, event, dynamodb_handler=None):
+    def __init__(self, event, gogs_client=None, dynamodb_handler=None):
+        """
+        
+        :param event: 
+        :param gogs_client: Passed in for unit testing
+        :param dynamodb_handler: Passed in for unit testing
+        """
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
 
         if not dynamodb_handler:
-            self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
+            self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
         else:
-            self.db_handler = dynamodb_handler
+            self.progress_table = dynamodb_handler
+        if not gogs_client:
+            self.gogs_client = GogsClient
+        else:
+            self.gogs_client = gogs_client
 
     def run(self):
         repos = self.get_new_repos()
-        # compare with in progress
 
+        # do stuff for the repos
 
         print('hello world')
 
@@ -34,10 +44,29 @@ class ForkHandler:
         and returns those that are new.
         :return: 
         """
-        api = gogs_client.GogsApi(self.gogs_url)
-        repos = api.get_user_repos(None, self.gogs_org)
-        return repos
-        # content = get_url('{}{}'.format(self.gogs_url, self.gogs_org))
+        api = self.gogs_client.GogsApi(self.gogs_url)
+        org_repos = api.get_user_repos(None, self.gogs_org)
+        items = self.progress_table.query_items()
+
+        new_repos = []
+        for repo in org_repos:
+            repo_name = repo.full_name.split("/")[-1]
+            if not self.value_in_obj_array('repo_name', repo_name, items):
+                new_repos.append(repo)
+
+        return new_repos
+
+    def value_in_obj_array(self, key, value, array):
+        """
+        Checks if an object in the array contains a key value pair
+        :param key: the key to look up
+        :param value: the value to match
+        :param array: the array to search
+        :return: True if a match is found
+        """
+        for item in array:
+            if item[key] == value: return True
+        return False
 
     @staticmethod
     def retrieve(dictionary, key, dict_name=None):
