@@ -6,3 +6,4 @@
 !/__init__.py
 !catalog_handler.py
 !consistency_checker.py
+!v2_catalog_converter.py
