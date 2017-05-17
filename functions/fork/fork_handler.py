@@ -20,9 +20,8 @@ class ForkHandler:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         """
-        env_vars = self.retrieve(event, 'stage-variables', 'payload')
-        self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
-        self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
+        self.gogs_url = "https://git.door43.org/"
+        self.gogs_org = "Door43-Catalog"
 
         if not dynamodb_handler:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
@@ -40,15 +39,17 @@ class ForkHandler:
         for repo in repos:
             repo_name = repo.full_name.split("/")[-1]
             # get master branch (includes latest commit)
-            branch_content = get_url("https://git.door43.org/api/v1/repos/Door43-Catalog/{}/branches/master".format(repo_name), True)
-            if not branch_content:
-                print("Missing branch content for {}".format(repo_name))
+            api_url = "https://git.door43.org/api/v1/repos/Door43-Catalog/{0}/branches/master".format(repo_name)
+            try:
+                branch_content = get_url(api_url, False)
+            except Exception as e:
+                print("Could not retrieve branch for {0} from {1}: {2}".format(repo_name, api_url, e))
                 continue
 
             try:
                 branch = json.loads(branch_content)
             except Exception as e:
-                print("{0}".format(e))
+                print("Failed to parse branch for {0}: {1}".format(repo_name, e))
                 continue
 
             commit = branch["commit"]
