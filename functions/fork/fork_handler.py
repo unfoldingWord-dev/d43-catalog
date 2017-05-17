@@ -9,6 +9,7 @@ from __future__ import print_function
 from general_tools.url_utils import get_url
 from aws_tools.dynamodb_handler import DynamoDBHandler
 import gogs_client as GogsClient
+import boto3
 
 class ForkHandler:
     def __init__(self, event, gogs_client=None, dynamodb_handler=None):
@@ -33,10 +34,19 @@ class ForkHandler:
 
     def run(self):
         repos = self.get_new_repos()
+        client = boto3.client("lambda")
 
-        # do stuff for the repos
-
-        print('hello world')
+        # trigger webhook
+        for repo in repos:
+            print("Triggering webhook for {}".format(repo.full_name))
+            # TODO: the payload should be the commit
+            payload="""{
+            }"""
+            client.invoke(
+                FunctionName="webhook",
+                InvocationType="Event",
+                Payload=payload
+            )
 
     def get_new_repos(self):
         """
