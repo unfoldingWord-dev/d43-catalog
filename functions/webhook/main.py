@@ -5,12 +5,12 @@
 #
 
 from __future__ import print_function
-from repo_handler import RepoHandler
+from webhook_handler import WebhookHandler
 
 
 def handle(event, context):
     try:
-        handler = RepoHandler(event)
+        handler = WebhookHandler(event)
         handler.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

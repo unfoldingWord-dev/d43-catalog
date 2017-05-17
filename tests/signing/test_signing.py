@@ -384,15 +384,14 @@ class TestSigning(TestCase):
         s3_handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), s3_source_zip_key)
 
         # create a record in dynamodb
-        package = load_json_object(os.path.join(self.resources_dir, 'package.json'))
-        resource = package['resource']
-        resource['status']['version'] = commit_id
-        resource['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
+        manifest = load_json_object(os.path.join(self.resources_dir, 'package.json'))
+        manifest['dublin_core']['version'] = commit_id
+        manifest['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
         db_handler = DynamoDBHandler(Signing.dynamodb_table_name)
         db_handler.insert_item({
             'repo_name': 'unit_test',
             'commit_id': commit_id,
-            'package': json.dumps(package, sort_keys=True),
+            'package': json.dumps(manifest, sort_keys=True),
             'timestamp': datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             'language': 'temp'
         })
@@ -422,12 +421,12 @@ class TestSigning(TestCase):
 
         # check for the .sig file in the database
         package_after = json.loads(row['package'], 'utf-8')
-        found_file = [f for f in package_after['resource']['formats'] if f['sig'].endswith('test.zip.sig')]
+        found_file = [f for f in package_after['formats'] if f['signature'].endswith('test.zip.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
 
         # added the url of the sig file to the format item
-        package = json.loads(row['package'])
-        found_file = [fmt['sig'] for fmt in package['resource']['formats'] if fmt['sig'].endswith('test.zip.sig')]
+        manifest = json.loads(row['package'])
+        found_file = [fmt['signature'] for fmt in manifest['formats'] if fmt['signature'].endswith('test.zip.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the formats list.')
 
         # clean up

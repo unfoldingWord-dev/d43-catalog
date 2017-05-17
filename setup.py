@@ -2,11 +2,12 @@ from setuptools import setup
 
 setup(
     name='d43-catalog',
-    package_dir={'acceptance-test': 'functions/acceptance-test',
+    package_dir={'acceptance-test': 'functions/acceptance',
                  'catalog': 'functions/catalog',
                  'signing': 'functions/signing',
-                 'webhook': 'functions/webhook'},
-    packages=['acceptance-test', 'catalog', 'signing', 'webhook'],
+                 'webhook': 'functions/webhook',
+                 'fork': 'functions/fork'},
+    packages=['acceptance-test', 'catalog', 'signing', 'webhook', 'fork'],
     version='0.0.1',
     author='unfoldingWord',
     author_email='unfoldingword.org',
@@ -18,6 +19,8 @@ setup(
     classifiers=[],
     install_requires=[
         'tx-shared-tools',
-        'requests'
+        'requests',
+        'pyyaml',
+        'gogs_client'
     ]
 )
