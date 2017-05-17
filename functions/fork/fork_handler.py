@@ -10,6 +10,7 @@ from general_tools.url_utils import get_url
 from aws_tools.dynamodb_handler import DynamoDBHandler
 import gogs_client as GogsClient
 import boto3
+import json
 
 class ForkHandler:
     def __init__(self, event, gogs_client=None, dynamodb_handler=None):
@@ -36,16 +37,37 @@ class ForkHandler:
         repos = self.get_new_repos()
         client = boto3.client("lambda")
 
-        # trigger webhook
         for repo in repos:
-            print("Triggering webhook for {}".format(repo.full_name))
-            # TODO: the payload should be the commit
-            payload="""{
-            }"""
+            repo_name = repo.full_name.split("/")[-1]
+            # get master branch (includes latest commit)
+            branch_content = get_url("https://git.door43.org/api/v1/repos/Door43-Catalog/{}/branches/master".format(repo_name), True)
+            if not branch_content:
+                print("Missing branch content for {}".format(repo_name))
+                continue
+
+            try:
+                branch = json.loads(branch_content)
+            except Exception as e:
+                print("{0}".format(e))
+                continue
+
+            commit = branch["commit"]
+
+            print("Triggering webhook for {}".format(repo_name))
+            payload={
+                "after": commit["id"],
+                "commits": [commit],
+                "repository": {
+                    "owner": {
+                        "username": "Door43-Catalog"
+                    },
+                    "name": repo_name
+                }
+            }
             client.invoke(
                 FunctionName="webhook",
                 InvocationType="Event",
-                Payload=payload
+                Payload=json.dumps(payload)
             )
 
     def get_new_repos(self):
