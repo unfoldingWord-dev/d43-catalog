@@ -20,9 +20,10 @@ class ForkHandler:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         """
-        gogs_user_token = self.retrieve(event['vars'], 'gogs_user_token', 'Environment Vars')
-        gogs_url = "https://git.door43.org/"
-        self.gogs_org = "Door43-Catalog"
+        print(event)
+        gogs_user_token = self.retrieve(event, 'gogs_user_token', 'Environment Vars')
+        gogs_url = self.retrieve(event, 'gogs_url', 'Environment Vars')
+        self.gogs_org = self.retrieve(event, 'gogs_org', 'Environment Vars')
 
         if not dynamodb_handler:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
@@ -34,7 +35,7 @@ class ForkHandler:
             self.gogs_client = gogs_client
 
         self.gogs_api = self.gogs_client.GogsApi(gogs_url)
-        self.gogs_auth = gogs_client.Token(gogs_user_token)
+        self.gogs_auth = self.gogs_client.Token(gogs_user_token)
 
     def run(self):
         client = boto3.client("lambda")
@@ -46,11 +47,12 @@ class ForkHandler:
                 print("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
                 continue
             try:
-                client.invoke(
-                    FunctionName="webhook",
-                    InvocationType="Event",
-                    Payload=json.dumps(payload)
-                )
+                print("webhook stub")
+                # client.invoke(
+                #     FunctionName="webhook",
+                #     InvocationType="Event",
+                #     Payload=json.dumps(payload)
+                # )
             except Exception as e:
                 print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
                 continue
