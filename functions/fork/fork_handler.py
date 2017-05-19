@@ -20,7 +20,8 @@ class ForkHandler:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         """
-        self.gogs_url = "https://git.door43.org/"
+        gogs_user_token = self.retrieve(event['vars'], 'gogs_user_token', 'Environment Vars')
+        gogs_url = "https://git.door43.org/"
         self.gogs_org = "Door43-Catalog"
 
         if not dynamodb_handler:
@@ -31,6 +32,9 @@ class ForkHandler:
             self.gogs_client = GogsClient
         else:
             self.gogs_client = gogs_client
+
+        self.gogs_api = self.gogs_client.GogsApi(gogs_url)
+        self.gogs_auth = gogs_client.Token(gogs_user_token)
 
     def run(self):
         client = boto3.client("lambda")
@@ -57,8 +61,8 @@ class ForkHandler:
         :param repo:
         :return: 
         """
-        api = self.gogs_client.GogsApi(self.gogs_url)
-        branch = api.get_branch(None, self.gogs_org, repo.name, repo.default_branch)
+
+        branch = self.gogs_api.get_branch(self.gogs_auth, self.gogs_org, repo.name, repo.default_branch)
         return {
             "after": branch.commit.id,
             "commits": [],  # TODO: place commit in here
@@ -76,8 +80,7 @@ class ForkHandler:
         and returns those that are new.
         :return: 
         """
-        api = self.gogs_client.GogsApi(self.gogs_url)
-        org_repos = api.get_user_repos(None, self.gogs_org)
+        org_repos = self.gogs_api.get_user_repos(None, self.gogs_org)
         items = self.progress_table.query_items()
 
         new_repos = []

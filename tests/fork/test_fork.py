@@ -35,12 +35,19 @@ class TestFork(TestCase):
             def get_branch(self, auth, username, repo_name, branch):
                 return TestFork.MockGogsClient.MockGogsApi.branch
 
+        class Token(object):
+            def __init__(self, sha1):
+                pass
+
     @staticmethod
     def create_event():
         event = {
             'stage-variables': {
                 'gogs_url': 'https://git.door43.org/',
                 'gogs_org': 'Door43-Catalog'
+            },
+            "vars": {
+                "gogs_user_token": ""
             }
         }
 
