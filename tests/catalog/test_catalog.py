@@ -1,21 +1,14 @@
 from __future__ import unicode_literals, print_function
-import codecs
-import json
 import os
 import shutil
 import tempfile
-import unittest
-import uuid
 import copy
 from unittest import TestCase
-from datetime import datetime
-from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_tools.s3_handler import S3Handler
 from general_tools.file_utils import load_json_object
+from tools.consistency_checker import ConsistencyChecker
 
 from functions.catalog.catalog_handler import CatalogHandler
-from functions.signing.aws_decrypt import decrypt_file
-from functions.signing.signing import Signing
 
 class TestCatalog(TestCase):
 
@@ -46,8 +39,14 @@ class TestCatalog(TestCase):
 
             shutil.copy(path, out_path)
 
+    class MockChecker(ConsistencyChecker):
+
+        @staticmethod
+        def url_exists(url):
+            return True
+
     class MockDynamodbHandler(object):
-        tables_file = 'dynamodb_tables.json'
+        tables_file = 'valid_db.json'
         commit_id = ''
 
         def __init__(self, table_name):
@@ -126,56 +125,143 @@ class TestCatalog(TestCase):
 
         return record
 
-    def test_catalog_valid_content(self):
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables.json'
+    def test_catalog_valid_obs_content(self):
+        self.MockDynamodbHandler.tables_file = 'valid_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
         self.assertTrue(response['success'])
         self.assertFalse(response['incomplete'])
+        self.assertIn('Uploaded new catalog', response['message'])
         self.assertEqual(1, len(response['catalog']['languages']))
-        self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(2, len(response['catalog']['languages'][0]['resources'][0]['formats']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][1]['formats']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
+        self.assertNotIn('formats', response['catalog']['languages'][0]['resources'][0])
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects'][0]['formats']))
 
-    def test_catalog_invalid_format(self):
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_format.json'
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertTrue(response['success'])
-        self.assertTrue(response['incomplete'])
-        self.assertEqual(1, len(response['catalog']['languages']))
-        self.assertEqual(2, len(response['catalog']['languages'][0]['resources']))
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['formats'])) # expecting format to be skipped
-        self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][1]['formats']))
-
-    def test_catalog_invalid_resource(self):
-        # tests missing status and empty formats
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_resource.json'
+    def test_catalog_no_sig_content(self):
+        self.MockDynamodbHandler.tables_file = 'no_sig_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
         self.assertFalse(response['success'])
+        self.assertIn('has not been signed yet', response['message'])
+
+    def test_catalog_mixed_content(self):
+        """
+        Tests what happens when some content is valid and some is not
+        :return: 
+        """
+        self.MockDynamodbHandler.tables_file = 'mixed_db.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        self.assertTrue(response['success'])
+        self.assertIn('Uploaded new catalog', response['message'])
+        self.assertTrue(response['incomplete'])
+        self.assertEqual(1, len(response['catalog']['languages']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
+
+    def test_catalog_invalid_format(self):
+        self.MockDynamodbHandler.tables_file = 'invalid_format_db.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        # we expect the invalid resource to be skipped
+        self.assertTrue(response['success'])
+        self.assertIn('Uploaded new catalog', response['message'])
+        self.assertTrue(response['incomplete'])
+        self.assertEqual(1, len(response['catalog']['languages']))
+        self.assertEqual(1, len(response['catalog']['languages'][0]['resources']))
+
+
+    def test_catalog_invalid_manifest(self):
+        self.MockDynamodbHandler.tables_file = 'invalid_manifest_db.json'
+        event = self.create_event()
+        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = catalog.handle_catalog()
+
+        self.assertFalse(response['success'])
+        self.assertIn('manifest missing key', response['message'])
+        self.assertIsNone(response['catalog'])
 
     def test_catalog_empty_formats(self):
         # tests missing status and empty formats
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_empty_formats.json'
-        event = self.create_event()
-        catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        response = catalog.handle_catalog()
-
-        self.assertTrue(response['success'])
-        self.assertFalse(response['incomplete'])
-
-    def test_catalog_invalid_language(self):
-        # tests missing status and empty formats
-        self.MockDynamodbHandler.tables_file = 'dynamodb_tables_invalid_language.json'
+        self.MockDynamodbHandler.tables_file = 'empty_formats_db.json'
         event = self.create_event()
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
         self.assertFalse(response['success'])
+        self.assertIn('There were no formats to process', response['message'])
+        self.assertFalse(response['incomplete'])
+
+    def test_catalog_ulb_versification(self):
+        self.MockDynamodbHandler.tables_file = 'ulb_versification_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler, self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIsNotNone(catalog)
+        self.assertIn('projects', catalog['languages'][0]['resources'][0])
+        self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
+        self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+
+    def test_catalog_versification_ulb(self):
+        self.MockDynamodbHandler.tables_file = 'versification_ulb_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler, self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIsNotNone(catalog)
+        self.assertIn('projects', catalog['languages'][0]['resources'][0])
+        self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
+        self.assertIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+
+    def test_catalog_versification_tq(self):
+        self.MockDynamodbHandler.tables_file = 'versification_tq_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler, self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIsNotNone(catalog)
+        self.assertIn('projects', catalog['languages'][0]['resources'][0])
+        self.assertTrue(len(catalog['languages'][0]['resources'][0]['projects']) > 0)
+        self.assertNotIn('chunks_url', catalog['languages'][0]['resources'][0]['projects'][0])
+
+    def test_catalog_localization(self):
+        self.MockDynamodbHandler.tables_file = 'localization_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler,
+                                 self.MockChecker)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        self.assertIn('category_labels', catalog['languages'][0])
+        self.assertIn('versification_labels', catalog['languages'][0])
+        self.assertIn('check_labels', catalog['languages'][0])
+        self.assertNotIn('language', catalog['languages'][0])
+
+    def test_catalog_complex(self):
+        """
+        Tests multiple repositories sharing a single resource
+        and other complex situations
+        :return: 
+        """
+        self.MockDynamodbHandler.tables_file = 'complex_db.json'
+        event = self.create_event()
+        handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
+        response = handler.handle_catalog()
+        catalog = response['catalog']
+
+        # TODO: we need to run tests to ensure complex data is handled correctly.
+        # e.g. one repo provides resource formats and another provide a project format for that resource
+        # two repos with the same resource provide formats at the same level (conflict resource formats, conflicting projects formats)
+        #

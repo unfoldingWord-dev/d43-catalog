@@ -2,8 +2,18 @@
 
 from __future__ import print_function
 
-from acceptance_test import AcceptanceTest
+import httplib
 
+from acceptance_test import AcceptanceTest
+from aws_tools.ses_handler import SESHandler
+from general_tools.url_utils import get_url
+
+class URLHandler(object):
+    """
+    TRICKY: we wrap get_url so we can mock it for unit testing
+    """
+    def get_url(self, url, catch_exception=False):
+        return get_url(url, catch_exception)
 
 def handle(event, context):
     # this shouldn't happen, but just in case
@@ -17,7 +27,7 @@ def handle(event, context):
         key = record['s3']['object']['key']
         url = 'https://{0}/{1}'.format(bucket_name, key)
 
-        acceptance = AcceptanceTest(url, "acceptancetest@door43.org", "acceptancetest@door43.org")
+        acceptance = AcceptanceTest(url, URLHandler, httplib.HTTPConnection, SESHandler, to_email="acceptancetest@door43.org", from_email="acceptancetest@door43.org")
         acceptance.run()
         print(acceptance.errors)
         return acceptance.errors

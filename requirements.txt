@@ -1,2 +1,4 @@
 tx-shared-tools
 requests
+pyyaml
+gogs_client
