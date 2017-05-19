@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import gogs_client as GogsClient
+import json
 from functions.fork.fork_handler import ForkHandler
 
 class TestFork(TestCase):
@@ -26,10 +27,13 @@ class TestFork(TestCase):
 
         class MockGogsApi(object):
             repos = []
+            branch = None
             def __init__(self, base_url, session=None):
                 pass
             def get_user_repos(self, auth, username):
                 return TestFork.MockGogsClient.MockGogsApi.repos
+            def get_branch(self, auth, username, repo_name, branch):
+                return TestFork.MockGogsClient.MockGogsApi.branch
 
     @staticmethod
     def create_event():
@@ -44,13 +48,64 @@ class TestFork(TestCase):
 
     @staticmethod
     def create_repo(name):
-       return GogsClient.GogsRepo(10524,
-                                GogsClient.GogsUser(4589, "Door43-Catalog", "Door43 Resource Catalog", "", ""),
-                                "Door43-Catalog/{}".format(name),
-                                False,
-                                False,
-                                GogsClient.GogsRepo.Urls("", "", ""),
-                                GogsClient.GogsRepo.Permissions(True, True, True))
+        repo_json = {
+                "id": 10524,
+                "owner": {
+                    "id": 10524,
+                   "full_name": "Door43-Catalog",
+                   "email": "",
+                   "username": ""
+                },
+                "name": name,
+                "full_name":"Door43-Catalog/{0}".format(name),
+                "default_branch": "master",
+                "private": False,
+                "fork": False,
+                "html_url": "",
+                "ssh_url": "",
+                "clone_url": "",
+                "permissions": {
+                    "admin": True,
+                    "push": True,
+                    "pull": True
+               }
+            }
+        return GogsClient.GogsRepo.from_json(repo_json)
+
+    @staticmethod
+    def create_branch(name):
+        """
+        
+        :param name: 
+        :return: 
+        :rtype: GogsBranch
+        """
+        branch_json = {
+            "name": name,
+            "commit": {
+                "id": "c17825309a0d52201e78a19f49948bcc89e52488",
+                "message": "a commit",
+                "url": "Not implemented",
+                "author": {
+                    "name": "Joel Lonbeck",
+                    "email": "joel@neutrinographics.com",
+                    "username": "joel"
+                },
+                "committer": {
+                    "name": "Joel Lonbeck",
+                    "email": "joel@neutrinographics.com",
+                    "username": "joel"
+                },
+                "verification": {
+                    "verified": False,
+                    "reason": "gpg.error.not_signed_commit",
+                    "signature": "",
+                    "payload": ""
+                },
+                "timestamp": "2017-05-17T21:11:25Z"
+            }
+        }
+        return GogsClient.GogsBranch.from_json(branch_json)
 
     @staticmethod
     def create_db_item(repo_name):
@@ -82,35 +137,15 @@ class TestFork(TestCase):
         for repo in repos:
             self.assertNotEqual('Door43-Catalog/hmr-obs', repo.full_name)
 
-    def test_hook_repo(self):
+    def test_make_hook_payload(self):
         event = self.create_event()
+
+        # mock data
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+
         handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
-        repo = GogsClient.GogsRepo.from_json({
-                "id": 27,
-                "owner": {
-                    "id": 1,
-                    "username": "unknwon",
-                    "full_name": "",
-                    "email": "u@gogs.io",
-                    "avatar_url": "/avatars/1"
-                  },
-                  "name": "Hello-World",
-                  "full_name": "unknwon/Hello-World",
-                  "description": "Some description",
-                  "private": False,
-                  "fork": False,
-                  "parent": None,
-                  "default_branch": "master",
-                  "empty": False,
-                  "size": 42,
-                  "html_url": "http://localhost:3000/unknwon/Hello-World",
-                  "clone_url": "http://localhost:3000/unknwon/hello-world.git",
-                  "ssh_url": "jiahuachen@localhost:unknwon/hello-world.git",
-                  "permissions": {
-                    "admin": True,
-                    "push": True,
-                    "pull": True
-                  }
-                })
-        handler.hook_repo(repo)
+        repo = TestFork.create_repo("Hello")
+        payload = handler.make_hook_payload(repo)
+
+        # TODO: assert some things
 
