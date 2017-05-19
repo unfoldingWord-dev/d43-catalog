@@ -34,42 +34,36 @@ class ForkHandler:
 
     def run(self):
         repos = self.get_new_repos()
-        client = boto3.client("lambda")
-
         for repo in repos:
-            repo_name = repo.full_name.split("/")[-1]
-            # get master branch (includes latest commit)
-            api_url = "https://git.door43.org/api/v1/repos/Door43-Catalog/{0}/branches/master".format(repo_name)
             try:
-                branch_content = get_url(api_url, False)
+                self.hook_repo(repo)
             except Exception as e:
-                print("Could not retrieve branch for {0} from {1}: {2}".format(repo_name, api_url, e))
-                continue
+                print("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
 
-            try:
-                branch = json.loads(branch_content)
-            except Exception as e:
-                print("Failed to parse branch for {0}: {1}".format(repo_name, e))
-                continue
-
-            commit = branch["commit"]
-
-            print("Triggering webhook for {}".format(repo_name))
-            payload={
-                "after": commit["id"],
-                "commits": [commit],
-                "repository": {
-                    "owner": {
-                        "username": "Door43-Catalog"
-                    },
-                    "name": repo_name
-                }
+    def hook_repo(self, repo):
+        """
+        Triggers a webhook for the repo
+        :param repo:
+        :return: 
+        """
+        api = self.gogs_client.GogsApi(self.gogs_url)
+        client = boto3.client("lambda")
+        branch = api.get_branch(self.gogs_org, repo.name, "master")
+        payload = {
+            "after": branch.commit.id,
+            "commits": [],  # TODO: place commit in here
+            "repository": {
+                "owner": {
+                    "username": "Door43-Catalog"
+                },
+                "name": repo.name
             }
-            client.invoke(
-                FunctionName="webhook",
-                InvocationType="Event",
-                Payload=json.dumps(payload)
-            )
+        }
+        client.invoke(
+            FunctionName="webhook",
+            InvocationType="Event",
+            Payload=json.dumps(payload)
+        )
 
     def get_new_repos(self):
         """

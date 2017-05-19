@@ -81,3 +81,36 @@ class TestFork(TestCase):
         self.assertEqual(2, len(repos))
         for repo in repos:
             self.assertNotEqual('Door43-Catalog/hmr-obs', repo.full_name)
+
+    def test_hook_repo(self):
+        event = self.create_event()
+        handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
+        repo = GogsClient.GogsRepo.from_json({
+                "id": 27,
+                "owner": {
+                    "id": 1,
+                    "username": "unknwon",
+                    "full_name": "",
+                    "email": "u@gogs.io",
+                    "avatar_url": "/avatars/1"
+                  },
+                  "name": "Hello-World",
+                  "full_name": "unknwon/Hello-World",
+                  "description": "Some description",
+                  "private": False,
+                  "fork": False,
+                  "parent": None,
+                  "default_branch": "master",
+                  "empty": False,
+                  "size": 42,
+                  "html_url": "http://localhost:3000/unknwon/Hello-World",
+                  "clone_url": "http://localhost:3000/unknwon/hello-world.git",
+                  "ssh_url": "jiahuachen@localhost:unknwon/hello-world.git",
+                  "permissions": {
+                    "admin": True,
+                    "push": True,
+                    "pull": True
+                  }
+                })
+        handler.hook_repo(repo)
+
