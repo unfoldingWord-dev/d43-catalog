@@ -33,23 +33,33 @@ class ForkHandler:
             self.gogs_client = gogs_client
 
     def run(self):
+        client = boto3.client("lambda")
         repos = self.get_new_repos()
         for repo in repos:
             try:
-                self.hook_repo(repo)
+                payload = self.make_hook_payload(repo)
             except Exception as e:
                 print("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
+                continue
+            try:
+                client.invoke(
+                    FunctionName="webhook",
+                    InvocationType="Event",
+                    Payload=json.dumps(payload)
+                )
+            except Exception as e:
+                print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
+                continue
 
-    def hook_repo(self, repo):
+    def make_hook_payload(self, repo):
         """
         Triggers a webhook for the repo
         :param repo:
         :return: 
         """
         api = self.gogs_client.GogsApi(self.gogs_url)
-        client = boto3.client("lambda")
-        branch = api.get_branch(self.gogs_org, repo.name, "master")
-        payload = {
+        branch = api.get_branch(None, self.gogs_org, repo.name, repo.default_branch)
+        return {
             "after": branch.commit.id,
             "commits": [],  # TODO: place commit in here
             "repository": {
@@ -59,11 +69,6 @@ class ForkHandler:
                 "name": repo.name
             }
         }
-        client.invoke(
-            FunctionName="webhook",
-            InvocationType="Event",
-            Payload=json.dumps(payload)
-        )
 
     def get_new_repos(self):
         """
