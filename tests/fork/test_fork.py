@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 import gogs_client as GogsClient
@@ -42,10 +43,12 @@ class TestFork(TestCase):
     @staticmethod
     def create_event():
         event = {
-            "gogs_user_token": "",
+            "gogs_user_token": '',
             'gogs_url': 'https://git.door43.org/',
             'gogs_org': 'Door43-Catalog'
         }
+        if 'testing_gogs_user_token' in os.environ:
+            event['gogs_user_token'] = os.environ['testing_gogs_user_token']
 
         return event
 
@@ -149,6 +152,6 @@ class TestFork(TestCase):
         handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
         repo = TestFork.create_repo("Hello")
         payload = handler.make_hook_payload(repo)
-
-        # TODO: assert some things
+        self.assertEqual(1, len(payload['commits']))
+        self.assertEqual(repo.name, payload['repository']['name'])
 

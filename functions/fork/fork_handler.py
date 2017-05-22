@@ -67,7 +67,12 @@ class ForkHandler:
         branch = self.gogs_api.get_branch(self.gogs_auth, self.gogs_org, repo.name, repo.default_branch)
         return {
             "after": branch.commit.id,
-            "commits": [],  # TODO: place commit in here
+            "commits": [{
+                "id": branch.commit.id,
+                "message": branch.commit.message,
+                "timestamp": branch.commit.timestamp,
+                "url": branch.commit.url,
+            }],
             "repository": {
                 "owner": {
                     "username": "Door43-Catalog"
