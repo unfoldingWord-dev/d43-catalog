@@ -44,6 +44,7 @@ class WebhookHandler:
         self.repo_name = self.repo_commit['repository']['name']
         self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
         self.repo_file = os.path.join(self.temp_dir, self.repo_name+'.zip')
+        # TRICKY: gogs gives a lower case name to the folder in the zip archive
         self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
 
         self.commit_id = self.repo_commit['after']
