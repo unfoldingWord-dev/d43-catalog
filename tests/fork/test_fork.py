@@ -3,9 +3,14 @@ from unittest import TestCase
 
 import gogs_client as GogsClient
 import json
+from shutil import copyfile
+from tools.mocks import MockS3Handler, MockDynamodbHandler
 from functions.fork.fork_handler import ForkHandler
+from functions.webhook.webhook_handler import WebhookHandler
 
 class TestFork(TestCase):
+    resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+    mock_download = None
 
     class MockDynamodbHandler(object):
         data = None
@@ -44,8 +49,12 @@ class TestFork(TestCase):
     def create_event():
         event = {
             "gogs_user_token": '',
-            'gogs_url': 'https://git.door43.org/',
-            'gogs_org': 'Door43-Catalog'
+            "stage-variables": {
+                'gogs_url': 'https://git.door43.org/',
+                'gogs_org': 'Door43-Catalog',
+                'cdn_bucket': '',
+                'cdn_url': ''
+            }
         }
         if 'testing_gogs_user_token' in os.environ:
             event['gogs_user_token'] = os.environ['testing_gogs_user_token']
@@ -123,6 +132,10 @@ class TestFork(TestCase):
             "timestamp": "2017-05-03T21:05:33Z"
         }
 
+    @staticmethod
+    def mock_download_file(url, outfile):
+        copyfile(TestFork.mock_download, outfile)
+
     def test_get_repos(self):
         event = self.create_event()
 
@@ -150,8 +163,15 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
 
         handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
-        repo = TestFork.create_repo("Hello")
+        repo = TestFork.create_repo("en_obs")
         payload = handler.make_hook_payload(repo)
-        self.assertEqual(1, len(payload['commits']))
-        self.assertEqual(repo.name, payload['repository']['name'])
+        self.assertIn('body-json', payload)
+        self.assertIn('stage-variables', payload)
+        self.assertEqual(1, len(payload['body-json']['commits']))
+        self.assertEqual(repo.name, payload['body-json']['repository']['name'])
 
+        TestFork.mock_download = os.path.join(TestFork.resources_dir, 'en_obs.zip')
+        s3Handler = MockS3Handler()
+        dbHandler = MockDynamodbHandler()
+        webhook_handler = WebhookHandler(payload, s3Handler, dbHandler, TestFork.mock_download_file)
+        webhook_handler.run()

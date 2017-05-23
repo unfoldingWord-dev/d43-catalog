@@ -21,8 +21,11 @@ class ForkHandler:
         :param dynamodb_handler: Passed in for unit testing
         """
         gogs_user_token = self.retrieve(event, 'gogs_user_token', 'Environment Vars')
-        gogs_url = self.retrieve(event, 'gogs_url', 'Environment Vars')
-        self.gogs_org = self.retrieve(event, 'gogs_org', 'Environment Vars')
+
+        #  TRICKY: these var must be structured the same as in the webhook
+        self.stage_vars = self.retrieve(event, 'stage-variables', 'Environment Vars')
+        self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')
+        self.gogs_org = self.retrieve(self.stage_vars, 'gogs_org', 'Environment Vars')
 
         if not dynamodb_handler:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
@@ -33,7 +36,7 @@ class ForkHandler:
         else:
             self.gogs_client = gogs_client
 
-        self.gogs_api = self.gogs_client.GogsApi(gogs_url)
+        self.gogs_api = self.gogs_client.GogsApi(self.gogs_url)
         self.gogs_auth = self.gogs_client.Token(gogs_user_token)
 
     def run(self):
@@ -65,19 +68,22 @@ class ForkHandler:
 
         branch = self.gogs_api.get_branch(self.gogs_auth, self.gogs_org, repo.name, repo.default_branch)
         return {
-            "after": branch.commit.id,
-            "commits": [{
-                "id": branch.commit.id,
-                "message": branch.commit.message,
-                "timestamp": branch.commit.timestamp,
-                "url": branch.commit.url,
-            }],
-            "repository": {
-                "owner": {
-                    "username": "Door43-Catalog"
-                },
-                "name": repo.name
-            }
+            "stage-variables": self.stage_vars,
+            "body-json": {
+                "after": branch.commit.id,
+                "commits": [{
+                    "id": branch.commit.id,
+                    "message": branch.commit.message,
+                    "timestamp": branch.commit.timestamp,
+                    "url": '{0}{1}/{2}/commit/{3}'.format(self.gogs_url, self.gogs_org, repo.name, branch.commit.id) # branch.commit.url <-- not implemented yet
+                }],
+                "repository": {
+                    "owner": {
+                        "username": "Door43-Catalog"
+                    },
+                    "name": repo.name
+                }
+            },
         }
 
     def get_new_repos(self):
