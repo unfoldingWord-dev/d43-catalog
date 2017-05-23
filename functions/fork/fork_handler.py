@@ -20,7 +20,6 @@ class ForkHandler:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         """
-        print(event)
         gogs_user_token = self.retrieve(event, 'gogs_user_token', 'Environment Vars')
         gogs_url = self.retrieve(event, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(event, 'gogs_org', 'Environment Vars')
@@ -47,19 +46,19 @@ class ForkHandler:
                 print("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
                 continue
             try:
-                print("webhook stub")
-                # client.invoke(
-                #     FunctionName="webhook",
-                #     InvocationType="Event",
-                #     Payload=json.dumps(payload)
-                # )
+                print("Simulating Webhook for {}".format(repo.full_name))
+                client.invoke(
+                    FunctionName="d43-catalog_webhook",
+                    InvocationType="Event",
+                    Payload=json.dumps(payload)
+                )
             except Exception as e:
                 print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
                 continue
 
     def make_hook_payload(self, repo):
         """
-        Triggers a webhook for the repo
+        Generates a webhook payload for the repo
         :param repo:
         :return: 
         """
