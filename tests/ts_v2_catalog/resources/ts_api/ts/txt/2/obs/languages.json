@@ -1,0 +1,18 @@
+[
+  {
+    "language": {
+      "date_modified": "20150826",
+      "direction": "ltr",
+      "name": "English",
+      "slug": "en"
+    },
+    "project": {
+      "desc": "unfoldingWord | Open Bible Stories",
+      "meta": [
+
+      ],
+      "name": "Open Bible Stories"
+    },
+    "res_catalog": "https://api.unfoldingword.org/ts/txt/2/obs/en/resources.json?date_modified=20150826"
+  }
+]
