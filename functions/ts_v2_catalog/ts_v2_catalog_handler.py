@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 #
-# Class for converting the catalog into a format compatible with the uW v2 api.
+# Class for converting the catalog into a format compatible with the tS v2 api.
 #
 
 
-class UwV2CatalogHandler:
+class TsV2CatalogHandler:
 
     def __init__(self, catalog):
         """

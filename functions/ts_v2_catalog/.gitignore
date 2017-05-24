@@ -1,0 +1,6 @@
+*
+!/main.py
+!/.gitignore
+!/.apexignore
+!/__init__.py
+!/ts_v2_catalog_handler.py
