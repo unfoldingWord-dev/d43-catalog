@@ -1,14 +1,11 @@
 
 class MockS3Handler:
 
-    def __init__(self):
-        self.uploads = []
+    def __init__(self, bucket):
+        self._uploads = {}
 
     def upload_file(self, path, key):
-        self.uploads.append({
-            'key': key,
-            'path': path
-        })
+        self._uploads[key] = path
 
 class MockDynamodbHandler(object):
 
@@ -19,3 +16,4 @@ class MockDynamodbHandler(object):
     def insert_item(self, item):
         self.last_inserted_item = item
         self.db.append(item)
+
