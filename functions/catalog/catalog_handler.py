@@ -134,7 +134,7 @@ class CatalogHandler:
                 try:
                     self.production_table.insert_item(data)
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
-                    write_file(catalog_path, self.catalog)
+                    write_file(catalog_path, json.dumps(self.catalog, sort_keys=True))
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
 
                     response['success'] = True
@@ -185,6 +185,7 @@ class CatalogHandler:
             del resource['format']
             del resource['language']
             del resource['type']
+            resource['checking'] = copy.deepcopy(manifest['checking'])
             if not resource['relation']:
                 resource['relation'] = []
 

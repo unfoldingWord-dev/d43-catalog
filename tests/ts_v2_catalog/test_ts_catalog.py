@@ -62,3 +62,5 @@ class TestTsV2Catalog(TestCase):
         expected_catalog = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/catalog.json'))
 
         self.assertObjectEqual(catalog, expected_catalog)
+
+        #TODO: test paths in catalog
