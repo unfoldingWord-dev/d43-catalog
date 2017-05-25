@@ -76,5 +76,5 @@ class TestTsV2Catalog(TestCase):
         self.assertIn('catalog.json', mockS3._uploads)
         self.assertIn('obs/languages.json', mockS3._uploads)
         self.assertIn('1ch/languages.json', mockS3._uploads)
-        # self.assertIn('obs/en/resources.json', mockS3._uploads)
-        # self.assertIn('1ch/en/resources.json', mockS3._uploads)
+        self.assertIn('obs/en/resources.json', mockS3._uploads)
+        self.assertIn('1ch/en/resources.json', mockS3._uploads)

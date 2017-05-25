@@ -35,7 +35,8 @@ class TsV2CatalogHandler:
         Generates the v2 catalog
         :return: the v2 form of the catalog
         """
-        cat_languages = []
+        cat_languages = {} # grouped by projects
+        cat_resources = {} # grouped by project and language
         uploads = []
         v2_catalog = []
 
@@ -73,7 +74,9 @@ class TsV2CatalogHandler:
                             'slug': project['identifier'],
                             'sort': '{}'.format(project['sort']).zfill(2)
                         })
-                        cat_languages.append({
+                        if project['identifier'] not in cat_languages:
+                            cat_languages[project['identifier']] = []
+                        cat_languages[project['identifier']].append({
                             'language': {
                                 'date_modified': modified,
                                 'direction': language['direction'],
@@ -83,19 +86,52 @@ class TsV2CatalogHandler:
                             'project': {
                                 'desc': resource['description'],
                                 'meta': project['categories'],
-                                'name': project['title'],
-                                'slug': project['identifier']
+                                'name': project['title']
                             },
                             'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, project['identifier'], language['identifier'], modified)
                         })
+                        res_key = '{}-{}'.format(project['identifier'], language['identifier'])
+                        if res_key not in cat_resources:
+                            cat_resources[res_key] = []
+                        cat_resources[res_key].append({
+                            'date_modified': modified,
+                            'name': resource['title'],
+                            'notes': '',
+                            'slug': resource['identifier'],
+                            'status': {
+                                'checking_entity': ', '.join(resource['checking']['checking_entity']),
+                                'checking_level': resource['checking']['checking_level'],
+                                'comments': resource['comment'],
+                                'contributors': '; '.join(resource['contributor']),
+                                'publish_date': resource['issued'],
+                                'source_text': resource['source'][0]['identifier'], # v2 can only handle one source
+                                'source_text_version': resource['source'][0]['version'], # v2 can only handle one source
+                                'version': resource['version']
+
+                            },
+                            # TODO: include links as needed
+                            'checking_questions': '',
+                            'source': '',
+                            'terms': '',
+                            'tw_cat': ''
+                        })
+
+        # generate resource catalogs
+        for proj_lang_id in cat_resources:
+            res_cat = cat_resources[proj_lang_id]
+            (project_id, language_id) = proj_lang_id.split('-')
+            temp_res_file = os.path.join(self.temp_dir, '{}/{}/resources.json'.format(project_id, language_id))
+            write_file(temp_res_file, json.dumps(res_cat, sort_keys=True))
+            uploads.append({
+                'key': '{}/{}/resources.json'.format(project_id, language_id),
+                'path': temp_res_file
+            })
 
         # generate languages catalogs
-        for lang in cat_languages:
-            project_id = lang['project']['slug']
-            del lang['project']['slug']
-
+        for project_id in cat_languages:
+            lang_cat = cat_languages[project_id]
             temp_lang_file = os.path.join(self.temp_dir, '{}/languages.json'.format(project_id))
-            write_file(temp_lang_file, json.dumps(lang, sort_keys=True))
+            write_file(temp_lang_file, json.dumps(lang_cat, sort_keys=True))
             uploads.append({
                 'key': '{}/languages.json'.format(project_id),
                 'path': temp_lang_file

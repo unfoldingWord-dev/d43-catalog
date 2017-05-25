@@ -39,6 +39,13 @@
           "contributor": [
             "Wycliffe Associates"
           ],
+          "checking": {
+            "checking_entity": [
+              "Jobby Prasannan"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
           "creator": "Wycliffe Associates",
           "description": "Definitions of words to help translators of the Bible and Open Bible Stories",
           "identifier": "tw",
@@ -86,6 +93,13 @@
           "contributor": [
             "Wycliffe Associates"
           ],
+          "checking": {
+            "checking_entity": [
+              "Jobby Prasannan"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
           "creator": "Wycliffe Associates",
           "description": "An unrestricted literal Bible",
           "formats": [
@@ -135,6 +149,13 @@
             "Wycliffe Associates"
           ],
           "creator": "Wycliffe Associates",
+          "checking": {
+            "checking_entity": [
+              "Jobby Prasannan"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
           "description": "Comprehension questions for checking Bible translations",
           "formats": [
             {
@@ -179,6 +200,13 @@
             "Distant Shores Media",
             "Wycliffe Associates"
           ],
+          "checking": {
+            "checking_entity": [
+              "Jobby Prasannan"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
           "creator": "Distant Shores Media",
           "description": "An unrestricted visual mini-Bible in any language",
           "identifier": "obs",
