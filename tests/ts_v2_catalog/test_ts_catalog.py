@@ -3,6 +3,7 @@ import codecs
 import json
 from general_tools.file_utils import load_json_object
 from unittest import TestCase
+from tools.mocks import MockS3Handler
 
 from functions.ts_v2_catalog.ts_v2_catalog_handler import TsV2CatalogHandler
 
@@ -47,6 +48,15 @@ class TestTsV2Catalog(TestCase):
         else:
             return obj
 
+    def make_event(self):
+        return {
+            'stage-variables': {
+                'cdn_bucket': '',
+                'cdn_url': 'https://api.unfoldingword.org/ts/txt/2'
+            },
+            'catalog': self.latest_catalog
+        }
+
     def assertObjectEqual(self, obj1, obj2):
         """
         Checks if two objects are equal after recursively sorting them
@@ -57,10 +67,14 @@ class TestTsV2Catalog(TestCase):
         self.assertEqual(TestTsV2Catalog.ordered(obj1), TestTsV2Catalog.ordered(obj2))
 
     def test_convert_catalog(self):
-        converter = TsV2CatalogHandler(self.latest_catalog)
+        mockS3 = MockS3Handler('/ts/txt/2/')
+        converter = TsV2CatalogHandler(self.make_event(), mockS3)
         catalog = converter.convert_catalog()
         expected_catalog = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/catalog.json'))
 
         self.assertObjectEqual(catalog, expected_catalog)
-
-        #TODO: test paths in catalog
+        self.assertIn('catalog.json', mockS3._uploads)
+        self.assertIn('obs/languages.json', mockS3._uploads)
+        self.assertIn('1ch/languages.json', mockS3._uploads)
+        # self.assertIn('obs/en/resources.json', mockS3._uploads)
+        # self.assertIn('1ch/en/resources.json', mockS3._uploads)
