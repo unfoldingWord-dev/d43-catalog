@@ -268,60 +268,6 @@
           },
           "comment": "",
           "creator": "Wycliffe Associates",
-          "description": "Definitions of words to help translators of the Bible and Open Bible Stories",
-          "identifier": "tw",
-          "issued": "2016-09-30",
-          "modified": "2017-04-11",
-          "projects": [
-            {
-              "categories": [],
-              "formats": [
-                {
-                  "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2",
-                  "modified": "2017-05-03T21:05:33Z",
-                  "signature": "https://test-cdn.door43.org/en/tw/v5/tw.zip.sig",
-                  "size": 1030314,
-                  "url": "https://test-cdn.door43.org/en/tw/v5/tw.zip"
-                }
-              ],
-              "identifier": "bible",
-              "sort": 0,
-              "title": "translationWords",
-              "versification": null
-            }
-          ],
-          "publisher": "Door43",
-          "relation": [
-            "en/ulb",
-            "en/udb",
-            "en/obs",
-            "en/tn",
-            "en/tq"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "tw",
-              "language": "en",
-              "version": "4"
-            }
-          ],
-          "subject": "Translation Words",
-          "title": "translationWords",
-          "version": "5"
-        },
-        {
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "checking": {
-            "checking_entity": [
-              "Jobby Prasannan"
-            ],
-            "checking_level": "3"
-          },
-          "comment": "",
-          "creator": "Wycliffe Associates",
           "description": "An unrestricted literal Bible",
           "formats": [
             {
