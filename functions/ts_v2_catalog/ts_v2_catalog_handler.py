@@ -7,6 +7,7 @@
 import json
 import os
 from datetime import datetime
+import re
 import tempfile
 from aws_tools.s3_handler import S3Handler
 from general_tools.file_utils import write_file
@@ -35,12 +36,8 @@ class TsV2CatalogHandler:
         Generates the v2 catalog
         :return:
         """
-        cat_languages = {} # grouped by projects
-        cat_resources = {} # grouped by project and language
-        uploads = []
-        v2_catalog = []
-
         cat_dict = {}
+        supplementary_resources = []
         # walk catalog
         for language in self.latest_catalog['languages']:
             for resource in language['resources']:
@@ -49,29 +46,48 @@ class TsV2CatalogHandler:
                 if 'formats' in resource:
                     for format in resource['formats']:
                         modified = self._convert_date(format['modified'])
-                        if 'type=bundle' in format['format']:
-                            rc_type = 'bundle'
-                            # TODO: retrieve book data from resource zip
+                        type = self._get_rc_type(format)
+                        if type:
+                            rc_type = type
                             break
+                        # if 'type=bundle' in format['format']:
+                        #     rc_type = 'bundle'
+                        #     # TODO: retrieve book data from resource zip
+                        #     break
 
                 for project in resource['projects']:
                     if 'formats' in project:
                         for format in project['formats']:
                             modified = self._convert_date(format['modified'])
-                            if 'type=book' in format['format']:
-                                rc_type = 'book'
-                                # TODO: retrieve book data
+                            type = self._get_rc_type(format)
+                            if type:
+                                rc_type = type
                                 break
+                            # if 'type=book' in format['format']:
+                            #     rc_type = 'book'
+                            #     TODO: retrieve book data
+                                # break
 
                     if modified is None:
                         raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
-                        if project['identifier'] == 'obs': project['sort'] = 1
+                        self._build_catalog_node(cat_dict, language, resource, project, modified)
+                    else:
+                        # store supplementary resources for processing after catalog nodes have been fully built
+                        supplementary_resources.append({
+                            'language': language,
+                            'resource': resource,
+                            'project': project,
+                            'modified': modified,
+                            'rc_type': rc_type
+                        })
 
-                        self._build_catalog_branch(cat_dict, language, resource, project, modified)
+        # inject supplementary resources
+        for s in supplementary_resources:
+            self._add_supplement(cat_dict, s['language'], s['resource'], s['project'], s['modified'], s['rc_type'])
 
-        # normalize catalog branches
+        # normalize catalog nodes
         uploads = []
         root_cat = []
         for pid in cat_dict:
@@ -111,17 +127,49 @@ class TsV2CatalogHandler:
             'path': temp_file
         }
 
-    def _build_catalog_branch(self, catalog, language, resource, project, modified):
+    def _get_rc_type(self, format):
+        """
+        Returns the first resource type found in an array of formats
+        :param ary: 
+        :return: 
+        """
+        re_type = re.compile(r'type=(\w+)', re.UNICODE|re.IGNORECASE)
+        if 'conformsto=rc0.2' in format['format'] and 'type' in format['format']:
+            match = re_type.search(format['format'])
+            return match.group(1)
+        return None
+
+    def _add_supplement(self, catalog, language, resource, project, modified, rc_type):
         lid = language['identifier']
         rid = resource['identifier']
         pid = project['identifier']
+
+        if rc_type == '':
+            pass
+
+
+
+    def _build_catalog_node(self, catalog, language, resource, project, modified):
+        """
+        Creates/updates a node in the catalog
+        :param catalog: 
+        :param language: 
+        :param resource: 
+        :param project: 
+        :param modified: 
+        :return: 
+        """
+        lid = language['identifier']
+        rid = resource['identifier']
+        pid = project['identifier']
+
+        # TRICKY: v2 api sorted obs with 1
+        if pid == 'obs': project['sort'] = 1
 
         # init catalog nodes
         if pid not in catalog: catalog[pid] = {'_langs': {}}
         if lid not in catalog[pid]['_langs']: catalog[pid]['_langs'][lid] = {'_res': {}}
         if rid not in catalog[pid]['_langs'][lid]['_res']: catalog[pid]['_langs'][lid]['_res'][rid] = {}
-
-        ## build nodes
 
         # project
         p_modified = self._max_modified(catalog[pid], modified)
