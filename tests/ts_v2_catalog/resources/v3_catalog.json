@@ -262,7 +262,7 @@
           ],
           "checking": {
             "checking_entity": [
-              "Jobby Prasannan"
+              "Wycliffe Associates"
             ],
             "checking_level": "3"
           },
@@ -340,7 +340,7 @@
             {
               "categories": [],
               "identifier": "1ch",
-              "sort": 0,
+              "sort": 13,
               "title": "translationQuestions",
               "versification": null
             }

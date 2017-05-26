@@ -92,4 +92,4 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, 'obs/languages.json')
         self.assertS3EqualsApiJSON(mockS3, '1ch/languages.json')
         self.assertS3EqualsApiJSON(mockS3, 'obs/en/resources.json')
-        # self.assertS3EqualsApiJSON(mockS3, '1ch/en/resources.json')
+        self.assertS3EqualsApiJSON(mockS3, '1ch/en/resources.json')
