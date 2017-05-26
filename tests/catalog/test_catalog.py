@@ -140,6 +140,7 @@ class TestCatalog(TestCase):
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects']))
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects'][0]['formats']))
         self.assertIn('checking', response['catalog']['languages'][0]['resources'][0])
+        self.assertIn('comment', response['catalog']['languages'][0]['resources'][0])
 
     def test_catalog_no_sig_content(self):
         self.MockDynamodbHandler.tables_file = 'no_sig_db.json'

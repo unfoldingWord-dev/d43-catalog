@@ -66,15 +66,30 @@ class TestTsV2Catalog(TestCase):
         """
         self.assertEqual(TestTsV2Catalog.ordered(obj1), TestTsV2Catalog.ordered(obj2))
 
+    def assertS3EqualsApiJSON(self, mockS3, key):
+        """
+        Checks if a generated s3 file matches a file in the mock api
+        :param mockS3: 
+        :param key: 
+        :return: 
+        """
+        self.assertIn(key, mockS3._uploads)
+        s3_obj = json.loads(TestTsV2Catalog.read_file(mockS3._uploads[key]))
+
+        expected_obj = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/{}'.format(key)))
+        self.assertObjectEqual(s3_obj, expected_obj)
+
+
     def test_convert_catalog(self):
         mockS3 = MockS3Handler('/ts/txt/2/')
         converter = TsV2CatalogHandler(self.make_event(), mockS3)
-        catalog = converter.convert_catalog()
-        expected_catalog = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/catalog.json'))
+        converter.convert_catalog()
+        # expected_catalog = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/catalog.json'))
 
-        self.assertObjectEqual(catalog, expected_catalog)
-        self.assertIn('catalog.json', mockS3._uploads)
-        self.assertIn('obs/languages.json', mockS3._uploads)
-        self.assertIn('1ch/languages.json', mockS3._uploads)
-        self.assertIn('obs/en/resources.json', mockS3._uploads)
+
+        # self.assertObjectEqual(catalog, expected_catalog)
+        self.assertS3EqualsApiJSON(mockS3, 'catalog.json')
+        self.assertS3EqualsApiJSON(mockS3, 'obs/languages.json')
+        self.assertS3EqualsApiJSON(mockS3, '1ch/languages.json')
+        self.assertS3EqualsApiJSON(mockS3, 'obs/en/resources.json')
         self.assertIn('1ch/en/resources.json', mockS3._uploads)
