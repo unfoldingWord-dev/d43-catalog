@@ -41,33 +41,24 @@ class TsV2CatalogHandler:
         # walk catalog
         for language in self.latest_catalog['languages']:
             for resource in language['resources']:
-                modified = None
-                rc_type = None
+                rc_format = None
+                # locate rc_format (for multi-project RCs)
                 if 'formats' in resource:
                     for format in resource['formats']:
-                        modified = self._convert_date(format['modified'])
-                        type = self._get_rc_type(format)
-                        if type:
-                            rc_type = type
+                        if self._get_rc_type(format):
+                            rc_format = format
                             break
-                        # if 'type=bundle' in format['format']:
-                        #     rc_type = 'bundle'
-                        #     # TODO: retrieve book data from resource zip
-                        #     break
 
                 for project in resource['projects']:
+                    # locate rc_format (for single-project RCs)
                     if 'formats' in project:
                         for format in project['formats']:
-                            modified = self._convert_date(format['modified'])
-                            type = self._get_rc_type(format)
-                            if type:
-                                rc_type = type
+                            if self._get_rc_type(format):
+                                rc_format = format
                                 break
-                            # if 'type=book' in format['format']:
-                            #     rc_type = 'book'
-                            #     TODO: retrieve book data
-                                # break
 
+                    modified = self._convert_date(rc_format['modified'])
+                    rc_type = self._get_rc_type(rc_format)
                     if modified is None:
                         raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
 
@@ -140,13 +131,42 @@ class TsV2CatalogHandler:
         return None
 
     def _add_supplement(self, catalog, language, resource, project, modified, rc_type):
+        """
+        Adds supplementary helps to the catalog nodes
+        :param catalog: 
+        :param language: 
+        :param resource: 
+        :param project: 
+        :param modified: 
+        :param rc_type: 
+        :return: 
+        """
         lid = language['identifier']
-        rid = resource['identifier']
-        pid = project['identifier']
 
-        if rc_type == '':
-            pass
-
+        if rc_type == 'help':
+            pid = project['identifier']
+            for rid in catalog[pid]['_langs'][lid]['_res']:
+                res = catalog[pid]['_langs'][lid]['_res'][rid]
+                if 'tn' in resource['identifier']:
+                    res.update({
+                        'notes': 'https://api.unfoldingword.org/{0}/txt/1/{1}/tN-{1}.json?date_modified={2}'.format(pid, lid, modified)
+                    })
+                elif 'tq' in resource['identifier']:
+                    res.update({
+                        'checking_questions': 'https://api.unfoldingword.org/{0}/txt/1/{1}/CQ-{1}.json?date_modified={2}'.format(pid, lid,  modified)
+                    })
+        elif rc_type == 'dict':
+            for pid in catalog:
+                for rid in catalog[pid]['_langs'][lid]['_res']:
+                    res = catalog[pid]['_langs'][lid]['_res'][rid]
+                    if pid == 'obs':
+                        res.update({
+                            'terms': 'https://api.unfoldingword.org/obs/txt/1/{0}/kt-{0}.json?date_modified={1}'.format(lid, modified)
+                        })
+                    else:
+                        res.update({
+                            'terms': 'https://api.unfoldingword.org/ts/txt/2/bible/{}/terms.json?date_modified={}'.format(lid, modified)
+                        })
 
 
     def _build_catalog_node(self, catalog, language, resource, project, modified):
@@ -186,6 +206,10 @@ class TsV2CatalogHandler:
         r_modified = self._max_modified(res, p_modified) # TRICKY: dates bubble up from project
         comments = ''  # TRICKY: comments are not officially supported in RCs but we use them if available
         if 'comment' in resource: comments = resource['comment']
+        if pid == 'obs':
+            source_url = 'https://api.unfoldingword.org/obs/txt/1/{0}/obs-{0}.json?date_modified={1}'.format(lid, r_modified)
+        else:
+            source_url = 'https://api.unfoldingword.org/ts/txt/2/{0}/{1}/ulb/source.json?date_modified={2}'.format(pid, lid, r_modified)
         res.update({
             'date_modified': r_modified,
             'name': resource['title'],
@@ -197,16 +221,25 @@ class TsV2CatalogHandler:
                 'comments': comments,
                 'contributors': '; '.join(resource['contributor']),
                 'publish_date': resource['issued'],
-                'source_text': resource['source'][0]['identifier'],  # v2 can only handle one source
+                'source_text': resource['source'][0]['language'],  # v2 can only handle one source
                 'source_text_version': resource['source'][0]['version'],  # v2 can only handle one source
                 'version': resource['version']
             },
-            # TODO: include links as needed
             'checking_questions': '',
-            'source': '',
+            'source': source_url,
             'terms': '',
-            'tw_cat': ''
+            'tw_cat': '' # TODO: evaluate if we need to provide tw_cat. RC for config.yaml
         })
+        # english projects have tw_cat
+        if lid == 'en':
+            if pid == 'obs':
+                res.update({
+                    'tw_cat': 'https://api.unfoldingword.org/obs/txt/1/{0}/tw_cat-{0}.json?date_modified={1}'.format(lid, r_modified)
+                })
+            else:
+                res.update({
+                    'tw_cat': 'https://api.unfoldingword.org/ts/txt/2/{}/{}/tw_cat.json?date_modified={}'.format(pid, lid, r_modified)
+                })
 
         # language
         lang = catalog[pid]['_langs'][lid]
