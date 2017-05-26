@@ -33,7 +33,7 @@ class TsV2CatalogHandler:
     def convert_catalog(self):
         """
         Generates the v2 catalog
-        :return: the v2 form of the catalog
+        :return:
         """
         cat_languages = {} # grouped by projects
         cat_resources = {} # grouped by project and language
@@ -67,6 +67,8 @@ class TsV2CatalogHandler:
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         if project['identifier'] == 'obs': project['sort'] = 1
+
+                        # root cat
                         v2_catalog.append({
                             'date_modified': modified,
                             'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.cdn_url, project['identifier'], modified),
@@ -74,9 +76,14 @@ class TsV2CatalogHandler:
                             'slug': project['identifier'],
                             'sort': '{}'.format(project['sort']).zfill(2)
                         })
+
+                        # language cat
                         if project['identifier'] not in cat_languages:
                             cat_languages[project['identifier']] = []
-                        cat_languages[project['identifier']].append({
+                        description = ''
+                        if resource['identifier'] == 'obs':
+                            description = resource['description']
+                        cat_lang = {
                             'language': {
                                 'date_modified': modified,
                                 'direction': language['direction'],
@@ -84,15 +91,25 @@ class TsV2CatalogHandler:
                                 'slug': language['identifier']
                             },
                             'project': {
-                                'desc': resource['description'],
+                                'desc': description,
                                 'meta': project['categories'],
                                 'name': project['title']
                             },
-                            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, project['identifier'], language['identifier'], modified)
-                        })
+                            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url,
+                                                                                             project['identifier'],
+                                                                                             language['identifier'],
+                                                                                             modified)
+                        }
+                        if 'ulb' == resource['identifier'] or 'udb' == resource['identifier']:
+                            cat_lang['project']['sort'] = '{}'.format(project['sort'])
+                        cat_languages[project['identifier']].append(cat_lang)
+
+                        # resource cat
                         res_key = '{}-{}'.format(project['identifier'], language['identifier'])
                         if res_key not in cat_resources:
                             cat_resources[res_key] = []
+                        comments = '' # TRICKY: comments are not officially supported in RCs but we use them if available
+                        if 'comment' in resource: comments = resource['comment']
                         cat_resources[res_key].append({
                             'date_modified': modified,
                             'name': resource['title'],
@@ -101,7 +118,7 @@ class TsV2CatalogHandler:
                             'status': {
                                 'checking_entity': ', '.join(resource['checking']['checking_entity']),
                                 'checking_level': resource['checking']['checking_level'],
-                                'comments': resource['comment'],
+                                'comments': comments,
                                 'contributors': '; '.join(resource['contributor']),
                                 'publish_date': resource['issued'],
                                 'source_text': resource['source'][0]['identifier'], # v2 can only handle one source
@@ -148,7 +165,6 @@ class TsV2CatalogHandler:
         # upload files
         for upload in uploads:
             self.s3_handler.upload_file(upload['path'], upload['key'])
-        return v2_catalog
 
     def _convert_date(self, date_str):
         """
