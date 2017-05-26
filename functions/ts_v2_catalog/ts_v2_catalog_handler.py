@@ -40,6 +40,7 @@ class TsV2CatalogHandler:
         uploads = []
         v2_catalog = []
 
+        cat_dict = {}
         # walk catalog
         for language in self.latest_catalog['languages']:
             for resource in language['resources']:
@@ -68,103 +69,132 @@ class TsV2CatalogHandler:
                     if rc_type == 'book' or rc_type == 'bundle':
                         if project['identifier'] == 'obs': project['sort'] = 1
 
-                        # root cat
-                        v2_catalog.append({
-                            'date_modified': modified,
-                            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.cdn_url, project['identifier'], modified),
-                            'meta': project['categories'],
-                            'slug': project['identifier'],
-                            'sort': '{}'.format(project['sort']).zfill(2)
-                        })
+                        self._build_catalog_branch(cat_dict, language, resource, project, modified)
 
-                        # language cat
-                        if project['identifier'] not in cat_languages:
-                            cat_languages[project['identifier']] = []
-                        description = ''
-                        if resource['identifier'] == 'obs':
-                            description = resource['description']
-                        cat_lang = {
-                            'language': {
-                                'date_modified': modified,
-                                'direction': language['direction'],
-                                'name': language['title'],
-                                'slug': language['identifier']
-                            },
-                            'project': {
-                                'desc': description,
-                                'meta': project['categories'],
-                                'name': project['title']
-                            },
-                            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url,
-                                                                                             project['identifier'],
-                                                                                             language['identifier'],
-                                                                                             modified)
-                        }
-                        if 'ulb' == resource['identifier'] or 'udb' == resource['identifier']:
-                            cat_lang['project']['sort'] = '{}'.format(project['sort'])
-                        cat_languages[project['identifier']].append(cat_lang)
+        # normalize catalog branches
+        uploads = []
+        root_cat = []
+        for pid in cat_dict:
+            project = cat_dict[pid]
+            lang_cat = []
+            for lid in project['_langs']:
+                language = project['_langs'][lid]
+                res_cat = []
+                for rid in language['_res']:
+                    resource = language['_res'][rid]
+                    res_cat.append(resource)
+                uploads.append(self._prep_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
-                        # resource cat
-                        res_key = '{}-{}'.format(project['identifier'], language['identifier'])
-                        if res_key not in cat_resources:
-                            cat_resources[res_key] = []
-                        comments = '' # TRICKY: comments are not officially supported in RCs but we use them if available
-                        if 'comment' in resource: comments = resource['comment']
-                        cat_resources[res_key].append({
-                            'date_modified': modified,
-                            'name': resource['title'],
-                            'notes': '',
-                            'slug': resource['identifier'],
-                            'status': {
-                                'checking_entity': ', '.join(resource['checking']['checking_entity']),
-                                'checking_level': resource['checking']['checking_level'],
-                                'comments': comments,
-                                'contributors': '; '.join(resource['contributor']),
-                                'publish_date': resource['issued'],
-                                'source_text': resource['source'][0]['identifier'], # v2 can only handle one source
-                                'source_text_version': resource['source'][0]['version'], # v2 can only handle one source
-                                'version': resource['version']
+                del language['_res']
+                lang_cat.append(language)
+            uploads.append(self._prep_upload('{}/languages.json'.format(pid), lang_cat))
 
-                            },
-                            # TODO: include links as needed
-                            'checking_questions': '',
-                            'source': '',
-                            'terms': '',
-                            'tw_cat': ''
-                        })
-
-        # generate resource catalogs
-        for proj_lang_id in cat_resources:
-            res_cat = cat_resources[proj_lang_id]
-            (project_id, language_id) = proj_lang_id.split('-')
-            temp_res_file = os.path.join(self.temp_dir, '{}/{}/resources.json'.format(project_id, language_id))
-            write_file(temp_res_file, json.dumps(res_cat, sort_keys=True))
-            uploads.append({
-                'key': '{}/{}/resources.json'.format(project_id, language_id),
-                'path': temp_res_file
-            })
-
-        # generate languages catalogs
-        for project_id in cat_languages:
-            lang_cat = cat_languages[project_id]
-            temp_lang_file = os.path.join(self.temp_dir, '{}/languages.json'.format(project_id))
-            write_file(temp_lang_file, json.dumps(lang_cat, sort_keys=True))
-            uploads.append({
-                'key': '{}/languages.json'.format(project_id),
-                'path': temp_lang_file
-            })
-
-        # generate root catalog
-        temp_cat_file = os.path.join(self.temp_dir, 'catalog.json')
-        write_file(temp_cat_file, json.dumps(v2_catalog, sort_keys=True))
-        uploads.append({
-            'key': 'catalog.json',
-            'path': temp_cat_file
-        })
+            del  project['_langs']
+            root_cat.append(project)
+        uploads.append(self._prep_upload('catalog.json', root_cat))
 
         # upload files
         for upload in uploads:
             self.s3_handler.upload_file(upload['path'], upload['key'])
+
+    def _prep_upload(self, key, data):
+        """
+        Prepares some data for upload to s3
+        :param key: 
+        :param data: 
+        :return: 
+        """
+        temp_file = os.path.join(self.temp_dir, key)
+        write_file(temp_file, json.dumps(data, sort_keys=True))
+        return {
+            'key': key,
+            'path': temp_file
+        }
+
+    def _build_catalog_branch(self, catalog, language, resource, project, modified):
+        lid = language['identifier']
+        rid = resource['identifier']
+        pid = project['identifier']
+
+        # init catalog nodes
+        if pid not in catalog: catalog[pid] = {'_langs': {}}
+        if lid not in catalog[pid]['_langs']: catalog[pid]['_langs'][lid] = {'_res': {}}
+        if rid not in catalog[pid]['_langs'][lid]['_res']: catalog[pid]['_langs'][lid]['_res'][rid] = {}
+
+        ## build nodes
+
+        # project
+        p_modified = self._max_modified(catalog[pid], modified)
+        catalog[pid].update({
+            'date_modified': p_modified,
+            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.cdn_url, pid, p_modified),
+            'meta': project['categories'],
+            'slug': pid,
+            'sort': '{}'.format(project['sort']).zfill(2)
+        })
+
+        # resource
+        res = catalog[pid]['_langs'][lid]['_res'][rid]
+        r_modified = self._max_modified(res, p_modified) # TRICKY: dates bubble up from project
+        comments = ''  # TRICKY: comments are not officially supported in RCs but we use them if available
+        if 'comment' in resource: comments = resource['comment']
+        res.update({
+            'date_modified': r_modified,
+            'name': resource['title'],
+            'notes': '',
+            'slug': resource['identifier'],
+            'status': {
+                'checking_entity': ', '.join(resource['checking']['checking_entity']),
+                'checking_level': resource['checking']['checking_level'],
+                'comments': comments,
+                'contributors': '; '.join(resource['contributor']),
+                'publish_date': resource['issued'],
+                'source_text': resource['source'][0]['identifier'],  # v2 can only handle one source
+                'source_text_version': resource['source'][0]['version'],  # v2 can only handle one source
+                'version': resource['version']
+            },
+            # TODO: include links as needed
+            'checking_questions': '',
+            'source': '',
+            'terms': '',
+            'tw_cat': ''
+        })
+
+        # language
+        lang = catalog[pid]['_langs'][lid]
+        l_modified = self._max_modified(lang, r_modified) # TRICKY: dates bubble up from resource
+        description = ''
+        if rid == 'obs': description = resource['description']
+        cat_lang = {
+            'language': {
+                'date_modified': l_modified,
+                'direction': language['direction'],
+                'name': language['title'],
+                'slug': lid
+            },
+            'project': {
+                'desc': description,
+                'meta': project['categories'],
+                'name': project['title']
+            },
+            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, pid, lid, l_modified)
+        }
+        if 'ulb' == rid or 'udb' == rid:
+            cat_lang['project']['sort'] = '{}'.format(project['sort'])
+        lang.update(cat_lang)
+
+    def _max_modified(self, obj, modified):
+        """
+        Return the largest modified date
+        If the object does not have a date_modified the argument is returned
+        :param obj: 
+        :param modified: 
+        :return: 
+        """
+        if 'date_modified' not in obj or int(obj['date_modified']) < int(modified):
+            return modified
+        else:
+            return obj['date_modified']
 
     def _convert_date(self, date_str):
         """
