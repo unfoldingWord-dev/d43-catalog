@@ -10,12 +10,12 @@
     "ref": "refs/heads/master",
     "before": "8a0700f1980eb1d84c6a85e82878eb2467c771f8",
     "after": "f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
-    "compare_url": "https://git.door43.org/Door43-Catalog/en-obs/compare/8a0700f1980eb1d84c6a85e82878eb2467c771f8...f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
+    "compare_url": "https://git.door43.org/Door43-Catalog/en_obs/compare/8a0700f1980eb1d84c6a85e82878eb2467c771f8...f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
     "commits": [
       {
         "id": "f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
-        "message": "Merge branch 'master' of git.door43.org:Door43/en-obs\n",
-        "url": "https://git.door43.org/Door43-Catalog/en-obs/commit/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
+        "message": "Merge branch 'master' of git.door43.org:Door43/en_obs\n",
+        "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
         "author": {
           "name": "Joel Lonbeck",
           "email": "joel@neutrinographics.com",
@@ -30,8 +30,8 @@
       },
       {
         "id": "d7e382916968f2b6fc8f321996bcf11514d1dac5",
-        "message": "Merge branch 'catalog_updates' of joel/en-obs into master\n",
-        "url": "https://git.door43.org/Door43-Catalog/en-obs/commit/d7e382916968f2b6fc8f321996bcf11514d1dac5",
+        "message": "Merge branch 'catalog_updates' of joel/en_obs into master\n",
+        "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/d7e382916968f2b6fc8f321996bcf11514d1dac5",
         "author": {
           "name": "Joel Lonbeck",
           "email": "joel@neutrinographics.com",
@@ -47,7 +47,7 @@
       {
         "id": "af984a6a48c8327dca79abf171a698a9867a01d2",
         "message": "Merge branch 'update' into catalog_updates\n",
-        "url": "https://git.door43.org/Door43-Catalog/en-obs/commit/af984a6a48c8327dca79abf171a698a9867a01d2",
+        "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/af984a6a48c8327dca79abf171a698a9867a01d2",
         "author": {
           "name": "Joel Lonbeck",
           "email": "joel@neutrinographics.com",
@@ -62,8 +62,8 @@
       },
       {
         "id": "17f121632319d90965ab5fbcce7568bd9f798e2d",
-        "message": "Merge branch 'master' of git.door43.org:Door43/en-obs\n",
-        "url": "https://git.door43.org/Door43-Catalog/en-obs/commit/17f121632319d90965ab5fbcce7568bd9f798e2d",
+        "message": "Merge branch 'master' of git.door43.org:Door43/en_obs\n",
+        "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/17f121632319d90965ab5fbcce7568bd9f798e2d",
         "author": {
           "name": "Joel Lonbeck",
           "email": "joel@neutrinographics.com",
@@ -79,7 +79,7 @@
       {
         "id": "b4f4d698df02f9ad6ea004463f1a37e1189c6ba5",
         "message": "Fixed links to images\n",
-        "url": "https://git.door43.org/Door43-Catalog/en-obs/commit/b4f4d698df02f9ad6ea004463f1a37e1189c6ba5",
+        "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/b4f4d698df02f9ad6ea004463f1a37e1189c6ba5",
         "author": {
           "name": "Jesse Griffin",
           "email": "jag3773@gmail.com",
@@ -102,14 +102,14 @@
         "email": "",
         "avatar_url": "https://git.door43.org/avatars/4598"
       },
-      "name": "en-obs",
-      "full_name": "Door43-Catalog/en-obs",
+      "name": "en_obs",
+      "full_name": "Door43-Catalog/en_obs",
       "description": "English Open Bible Stories",
       "private": false,
       "fork": true,
-      "html_url": "https://git.door43.org/Door43-Catalog/en-obs",
-      "ssh_url": "git@git.door43.org:Door43-Catalog/en-obs.git",
-      "clone_url": "https://git.door43.org/Door43-Catalog/en-obs.git",
+      "html_url": "https://git.door43.org/Door43-Catalog/en_obs",
+      "ssh_url": "git@git.door43.org:Door43-Catalog/en_obs.git",
+      "clone_url": "https://git.door43.org/Door43-Catalog/en_obs.git",
       "website": "",
       "stars_count": 0,
       "forks_count": 0,

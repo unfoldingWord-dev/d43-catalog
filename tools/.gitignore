@@ -2,4 +2,5 @@
 !.gitignore
 !requirements.txt
 !consistency_checker.py
+!mocks.py
 !/__init__.py
