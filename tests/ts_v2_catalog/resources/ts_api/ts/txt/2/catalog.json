@@ -1,0 +1,27 @@
+[
+  {
+    "date_modified": "20170502",
+    "lang_catalog": "https://api.unfoldingword.org/ts/txt/2/gen/languages.json?date_modified=20170502",
+    "meta": [
+      "bible-ot"
+    ],
+    "slug": "gen",
+    "sort": "01"
+  },
+  {
+    "date_modified": "20170315",
+    "lang_catalog": "https://api.unfoldingword.org/ts/txt/2/obs/languages.json?date_modified=20170315",
+    "meta": [],
+    "slug": "obs",
+    "sort": "01"
+  },
+  {
+    "date_modified": "20170502",
+    "lang_catalog": "https://api.unfoldingword.org/ts/txt/2/1ch/languages.json?date_modified=20170502",
+    "meta": [
+      "bible-ot"
+    ],
+    "slug": "1ch",
+    "sort": "13"
+  }
+]
