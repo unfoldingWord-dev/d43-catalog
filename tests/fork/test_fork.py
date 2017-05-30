@@ -171,7 +171,7 @@ class TestFork(TestCase):
         self.assertEqual(repo.name, payload['body-json']['repository']['name'])
 
         TestFork.mock_download = os.path.join(TestFork.resources_dir, 'en_obs.zip')
-        s3Handler = MockS3Handler()
+        s3Handler = MockS3Handler('test')
         dbHandler = MockDynamodbHandler()
         webhook_handler = WebhookHandler(payload, s3Handler, dbHandler, TestFork.mock_download_file)
         webhook_handler.run()
