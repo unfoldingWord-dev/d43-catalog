@@ -14,6 +14,9 @@ class TestV2Catalog(TestCase):
         self.v2_catalog = load_json_object(os.path.join(TestV2Catalog.resources_dir, "v2_catalog.json"))
 
     def test_create_v2_catalog(self):
+        converter = V2CatalogConverter(self.latest_catalog)
+        catalog = converter.convert_catalog()
+        print json.dumps(catalog, sort_keys=True, indent=4)
         pass
         ###########
         # The below lines are commented out in adherence to pushed code requiring passing tests.
