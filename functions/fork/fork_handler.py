@@ -9,6 +9,8 @@ from __future__ import print_function
 from general_tools.url_utils import get_url
 from aws_tools.dynamodb_handler import DynamoDBHandler
 import gogs_client as GogsClient
+import boto3
+import json
 
 class ForkHandler:
     def __init__(self, event, gogs_client=None, dynamodb_handler=None):
@@ -18,9 +20,12 @@ class ForkHandler:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         """
-        env_vars = self.retrieve(event, 'stage-variables', 'payload')
-        self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
-        self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
+        gogs_user_token = self.retrieve(event, 'gogs_user_token', 'Environment Vars')
+
+        #  TRICKY: these var must be structured the same as in the webhook
+        self.stage_vars = self.retrieve(event, 'stage-variables', 'Environment Vars')
+        self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')
+        self.gogs_org = self.retrieve(self.stage_vars, 'gogs_org', 'Environment Vars')
 
         if not dynamodb_handler:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
@@ -31,12 +36,55 @@ class ForkHandler:
         else:
             self.gogs_client = gogs_client
 
+        self.gogs_api = self.gogs_client.GogsApi(self.gogs_url)
+        self.gogs_auth = self.gogs_client.Token(gogs_user_token)
+
     def run(self):
+        client = boto3.client("lambda")
         repos = self.get_new_repos()
+        for repo in repos:
+            try:
+                payload = self.make_hook_payload(repo)
+            except Exception as e:
+                print("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
+                continue
+            try:
+                print("Simulating Webhook for {}".format(repo.full_name))
+                client.invoke(
+                    FunctionName="d43-catalog_webhook",
+                    InvocationType="Event",
+                    Payload=json.dumps(payload)
+                )
+            except Exception as e:
+                print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
+                continue
 
-        # do stuff for the repos
+    def make_hook_payload(self, repo):
+        """
+        Generates a webhook payload for the repo
+        :param repo:
+        :return: 
+        """
 
-        print('hello world')
+        branch = self.gogs_api.get_branch(self.gogs_auth, self.gogs_org, repo.name, repo.default_branch)
+        return {
+            "stage-variables": self.stage_vars,
+            "body-json": {
+                "after": branch.commit.id,
+                "commits": [{
+                    "id": branch.commit.id,
+                    "message": branch.commit.message,
+                    "timestamp": branch.commit.timestamp,
+                    "url": '{0}{1}/{2}/commit/{3}'.format(self.gogs_url, self.gogs_org, repo.name, branch.commit.id) # branch.commit.url <-- not implemented yet
+                }],
+                "repository": {
+                    "owner": {
+                        "username": "Door43-Catalog"
+                    },
+                    "name": repo.name
+                }
+            },
+        }
 
     def get_new_repos(self):
         """
@@ -44,8 +92,7 @@ class ForkHandler:
         and returns those that are new.
         :return: 
         """
-        api = self.gogs_client.GogsApi(self.gogs_url)
-        org_repos = api.get_user_repos(None, self.gogs_org)
+        org_repos = self.gogs_api.get_user_repos(None, self.gogs_org)
         items = self.progress_table.query_items()
 
         new_repos = []

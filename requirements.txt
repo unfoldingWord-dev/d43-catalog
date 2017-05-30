@@ -1,4 +1,4 @@
 tx-shared-tools
 requests
 pyyaml
-gogs_client
+gogs_client==1.0.5

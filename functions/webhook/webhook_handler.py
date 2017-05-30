@@ -25,7 +25,14 @@ from general_tools.file_utils import write_file
 
 
 class WebhookHandler:
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, download_handler=None):
+        """
+        
+        :param event: 
+        :param s3_handler: provided for unit testing
+        :param dynamodb_handler: provided for unit testing
+        :param download_handler: provided for unit testing
+        """
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
@@ -37,7 +44,8 @@ class WebhookHandler:
         self.repo_name = self.repo_commit['repository']['name']
         self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
         self.repo_file = os.path.join(self.temp_dir, self.repo_name+'.zip')
-        self.repo_dir = os.path.join(self.temp_dir, self.repo_name)
+        # TRICKY: gogs gives a lower case name to the folder in the zip archive
+        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
 
         self.commit_id = self.repo_commit['after']
         commit = None
@@ -58,9 +66,14 @@ class WebhookHandler:
         else:
             self.s3_handler = s3_handler
 
+        if not download_handler:
+            self.download_file = download_file
+        else:
+            self.download_file = download_handler
+
     def run(self):
         if not self.commit_url.startswith(self.gogs_url):
-            raise Exception('Only accepting webhooks from {0}'.format(self.gogs_url))
+            raise Exception('Only accepting webhooks from {0} but found {1}'.format(self.gogs_url, self.commit_url))
 
         if self.repo_owner.lower() != self.gogs_org.lower():
             raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
@@ -286,7 +299,7 @@ class WebhookHandler:
         try:
             print('Downloading {0}...'.format(repo_zip_url))
             if not os.path.isfile(repo_file):
-                download_file(repo_zip_url, repo_file)
+                self.download_file(repo_zip_url, repo_file)
         finally:
             print('finished.')
 
