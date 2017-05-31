@@ -367,9 +367,7 @@ class TsV2CatalogHandler:
         verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
         chunk_marker = '<note caller="u" style="s5"></note>'
         chapters = []
-        chp = {
-            'frames': []
-        }
+        chp = ''
         fr_id = 0
         chp_num = 0
         fr_list = []
