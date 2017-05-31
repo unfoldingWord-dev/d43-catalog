@@ -122,7 +122,7 @@ class TsV2CatalogHandler:
                     # Get USX
                     if source_key in sources:
                         source_path = sources[source_key]
-                        source = self._convert_usfm_to_usx(source_path)
+                        source = self._convert_usfm_to_usx(source_path, resource['date_modified'])
                         uploads.append(self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
                         uploads.append(self._prep_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
                         del sources[source_key]
@@ -462,8 +462,7 @@ class TsV2CatalogHandler:
                                })
         return chunks
 
-    def _convert_usfm_to_usx(self, path):
-        today = ''.join(str(datetime.date.today()).rsplit('-')[0:3])
+    def _convert_usfm_to_usx(self, path, date_modified):
         # use utf-8-sig to remove the byte order mark
         with codecs.open(path, 'r', encoding='utf-8-sig') as in_file:
             usx = in_file.readlines()
@@ -474,13 +473,13 @@ class TsV2CatalogHandler:
         # NOTE: Testing only
         write_file(re.sub('\.usx$', '.json', path), json.dumps({
             'chapters': book,
-            'date_modified': today
+            'date_modified': date_modified
         }, sort_keys=True, indent=2))
 
         return {
             'source': {
                 'chapters': book,
-                'date_modified': today
+                'date_modified': date_modified
             },
             'chunks': chunks
         }
