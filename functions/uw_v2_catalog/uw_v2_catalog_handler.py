@@ -63,7 +63,10 @@ class UwV2CatalogHandler:
                 for proj in res['projects']:
                     toc.append({
                         'desc': '',
-                        'media': {},
+                        'media': {
+                            'audio': {},
+                            'video': {}
+                        },
                         'mod': mod,
                         'slug': proj['identifier'],
                         'src': '',
