@@ -6,6 +6,8 @@ import os
 import shlex
 import shutil
 import tempfile
+from aws_tools.s3_handler import S3Handler
+from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_decrypt import decrypt_file
 from base64 import b64decode
 from general_tools.file_utils import write_file
@@ -135,15 +137,15 @@ class Signing(object):
         return pem_file
 
     @staticmethod
-    def handle_s3_trigger(event, s3_handler, dynamodb_handler, logger, private_pem_file=None, public_pem_file=None):
+    def handle_s3_trigger(event, logger, s3_handler=None, dynamodb_handler=None, private_pem_file=None, public_pem_file=None):
         """
         Handles the signing of a file on S3
         :param dict event:
+        :param logger:
         :param class s3_handler: This is passed in so it can be mocked for unit testing
         :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
-        :param logger:
-        :param string private_pem_file:
-        :param string public_pem_file:
+        :param string private_pem_file: This is passed in so it can be mocked for unit testing
+        :param string public_pem_file: This is passed in so it can be mocked for unit testing
         :return: bool
         """
 
@@ -158,7 +160,7 @@ class Signing(object):
         try:
             for record in event['Records']:
 
-                # check if this is S3 bucket record
+                # check if this is an S3 bucket record
                 if 's3' not in record:
                     if logger:
                         logger.warning('The record is not an S3 bucket.')
@@ -174,7 +176,10 @@ class Signing(object):
                 is_test = bucket_name.startswith('test-')
 
                 cdn_bucket_name = ('test-' if is_test else '') + 'cdn.door43.org'
-                cdn_handler = s3_handler(cdn_bucket_name)
+                if not s3_handler:
+                    cdn_handler = S3Handler(cdn_bucket_name)
+                else:
+                    cdn_handler = s3_handler
 
                 # get the file name
                 base_name = os.path.basename(key)
@@ -204,7 +209,18 @@ class Signing(object):
                 key_parts = key.split('/')  # test/repo-name/commit/file.name
                 repo_name = key_parts[1]
                 commit_id = key_parts[2]
-                db_handler = dynamodb_handler(Signing.dynamodb_table_name)
+
+                # retrieve id's from project file uploads
+                resource_id = None
+                project_id = None
+                if len(key_parts) == 5:
+                    resource_id = key_parts[3]
+                    project_id = key_parts[4].split('.')[0]
+
+                if not dynamodb_handler:
+                    db_handler = DynamoDBHandler(Signing.dynamodb_table_name)
+                else:
+                    db_handler = dynamodb_handler
                 record_keys = {'repo_name': repo_name}
                 row = db_handler.get_item(record_keys)
 
@@ -219,20 +235,37 @@ class Signing(object):
                 dc = manifest['dublin_core']
 
                 # upload the file and the sig file to the S3 bucket
-                upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
-                                                       dc['identifier'].split('-')[-1],
-                                                       dc['version'],
-                                                       os.path.basename(key))
+                if resource_id and project_id:
+                    upload_key = '{0}/{1}/v{2}/{3}/{4}'.format(dc['language']['identifier'],
+                                                           dc['identifier'].split('-')[-1],
+                                                           dc['version'],
+                                                           resource_id,
+                                                           os.path.basename(key))
+                else:
+                    upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
+                                                           dc['identifier'].split('-')[-1],
+                                                           dc['version'],
+                                                           os.path.basename(key))
                 upload_sig_key = '{}.sig'.format(upload_key)
 
                 cdn_handler.upload_file(file_to_sign, upload_key)
                 cdn_handler.upload_file(sig_file, upload_sig_key)
 
                 # add the url of the sig file to the format item
-                for fmt in manifest['formats']:
-                    if not fmt['signature'] and fmt['url'].endswith(upload_key):
-                        fmt['signature'] = '{}.sig'.format(fmt['url'])
-                        break
+                if project_id:
+                    # project file
+                    for project in manifest['projects']:
+                        if 'formats' in project:
+                            for fmt in project['formats']:
+                                if not fmt['signature'] and fmt['url'].endswith(upload_key):
+                                    fmt['signature'] = '{}.sig'.format(fmt['url'])
+                                    break
+                else:
+                    # resource file
+                    for fmt in manifest['formats']:
+                        if not fmt['signature'] and fmt['url'].endswith(upload_key):
+                            fmt['signature'] = '{}.sig'.format(fmt['url'])
+                            break
 
                 db_handler.update_item(record_keys, {'package': json.dumps(manifest, sort_keys=True)})
 

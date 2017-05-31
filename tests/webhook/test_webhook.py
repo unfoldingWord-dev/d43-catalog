@@ -93,7 +93,7 @@ class TestWebhook(TestCase):
         handler.run()
 
         entry = self.MockDynamodbHandler.data
-        self.assertEqual(1, len(self.MockS3Handler.uploads))
+        self.assertEqual(67, len(self.MockS3Handler.uploads)) # books and bundle
         self.assertIn('/en_ulb.zip', self.MockS3Handler.uploads[0]['path'])
         self.assertIn('temp/en_ulb/{}/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
