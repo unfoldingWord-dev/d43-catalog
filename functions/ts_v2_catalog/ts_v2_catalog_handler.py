@@ -5,12 +5,17 @@
 #
 
 import json
+import yaml
 import os
-from datetime import datetime
+import datetime
+import codecs
 import re
 import tempfile
+import zipfile
 from aws_tools.s3_handler import S3Handler
-from general_tools.file_utils import write_file
+from usfm_tools.transform import UsfmTransform
+from general_tools.file_utils import write_file, read_file, unzip
+from general_tools.url_utils import download_file
 import dateutil.parser
 
 class TsV2CatalogHandler:
@@ -38,9 +43,13 @@ class TsV2CatalogHandler:
         """
         cat_dict = {}
         supplementary_resources = []
+        sources = {}
         # walk catalog
         for language in self.latest_catalog['languages']:
+            lid = language['identifier']
             for resource in language['resources']:
+                rid = resource['identifier']
+
                 rc_format = None
                 # locate rc_format (for multi-project RCs)
                 if 'formats' in resource:
@@ -48,6 +57,25 @@ class TsV2CatalogHandler:
                         if self._get_rc_type(format):
                             rc_format = format
                             break
+
+                # cache Zip based on resource, then project
+                # E.g. 1ch is a project of ULB, but ULB is one Zip
+                if 'formats' in resource:
+                    for format in resource['formats']:
+                        format_str = format['format']
+                        if 'application/zip' in format_str and 'usfm' in format_str:
+                            temp_zip = os.path.join(self.temp_dir, format['url'].split('/')[-1])
+                            download_file(format['url'], temp_zip)
+                            unzip(temp_zip, self.temp_dir)
+                            bundle_name = lid + '_' + rid
+                            bundle = os.path.join(self.temp_dir, bundle_name)
+                            manifest = yaml.load(read_file(os.path.join(bundle, 'manifest.yaml')))
+                            usx = os.path.join(bundle, 'usx')
+                            UsfmTransform.buildUSX(bundle, usx, '', True)
+                            for project in manifest['projects']:
+                                pid = project['identifier']
+                                key = '$'.join([pid, lid, rid])
+                                sources[key] = os.path.normpath(os.path.join(usx, '{}.usx'.format(pid.upper())))
 
                 for project in resource['projects']:
                     # locate rc_format (for single-project RCs)
@@ -59,6 +87,7 @@ class TsV2CatalogHandler:
 
                     modified = self._convert_date(rc_format['modified'])
                     rc_type = self._get_rc_type(rc_format)
+
                     if modified is None:
                         raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
 
@@ -89,6 +118,14 @@ class TsV2CatalogHandler:
                 res_cat = []
                 for rid in language['_res']:
                     resource = language['_res'][rid]
+                    source_key = '$'.join([pid, lid, rid])
+                    # Get USX
+                    if source_key in sources:
+                        source_path = sources[source_key]
+                        source = self._convert_usfm_to_usx(source_path)
+                        uploads.append(self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
+                        uploads.append(self._prep_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
+                        del sources[source_key]
                     res_cat.append(resource)
                 uploads.append(self._prep_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
@@ -320,3 +357,126 @@ class TsV2CatalogHandler:
             return dictionary[key]
         dict_name = "dictionary" if dict_name is None else dict_name
         raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
+
+    def _parse_usfm(self, usx):
+        """
+        Iterates through the source and splits it into frames based on the
+        s5 markers.
+        :param usx:
+        """
+        verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
+        chunk_marker = '<note caller="u" style="s5"></note>'
+        chapters = []
+        chp = {
+            'frames': []
+        }
+        fr_id = 0
+        chp_num = 0
+        fr_list = []
+        current_vs = -1
+        for line in usx:
+            if line.startswith('\n'):
+                continue
+
+            if "verse number" in line:
+                current_vs = verse_re.search(line).group(1)
+
+            if 'chapter number' in line:
+                if chp:
+                    if fr_list:
+                        fr_text = '\n'.join(fr_list)
+                        try:
+                            first_vs = verse_re.search(fr_text).group(1)
+                        except AttributeError:
+                            print('myError, chp {0}'.format(chp_num))
+                            print('Text: {0}'.format(fr_text))
+                            continue
+                        chp['frames'].append({'id': '{0}-{1}'.format(
+                            str(chp_num).zfill(2), first_vs.zfill(2)),
+                            'img': '',
+                            'format': 'usx',
+                            'text': fr_text,
+                            'lastvs': current_vs
+                        })
+                    chapters.append(chp)
+                chp_num += 1
+                chp = {'number': str(chp_num).zfill(2),
+                       'ref': '',
+                       'title': '',
+                       'frames': []
+                       }
+                fr_list = []
+                continue
+
+            if chunk_marker in line:
+                if chp_num == 0:
+                    continue
+
+                # is there something else on the line with it? (probably an end-of-paragraph marker)
+                if len(line.strip()) > len(chunk_marker):
+                    # get the text following the chunk marker
+                    rest_of_line = line.replace(chunk_marker, '')
+
+                    # append the text to the previous line, removing the unnecessary \n
+                    fr_list[-1] = fr_list[-1][:-1] + rest_of_line
+
+                if fr_list:
+                    fr_text = '\n'.join(fr_list)
+                    try:
+                        first_vs = api_publish.verse_re.search(fr_text).group(1)
+                    except AttributeError:
+                        print('Error, chp {0}'.format(chp_num))
+                        print('Text: {0}'.format(fr_text))
+                        sys.exit(1)
+
+                    chp['frames'].append({'id': '{0}-{1}'.format(
+                        str(chp_num).zfill(2), first_vs.zfill(2)),
+                        'img': '',
+                        'format': 'usx',
+                        'text': fr_text,
+                        'lastvs': current_vs
+                    })
+                    fr_list = []
+
+                continue
+
+            fr_list.append(line)
+
+        # Append the last frame and the last chapter
+        chp['frames'].append({
+            'id': '{0}-{1}'.format(str(chp_num).zfill(2), str(fr_id).zfill(2)),
+            'img': '',
+            'format': 'usx',
+            'text': '\n'.join(fr_list),
+            'lastvs': current_vs
+        })
+        chapters.append(chp)
+        return chapters
+
+    def _get_chunks(self, book):
+        chunks = []
+        verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
+        for c in book:
+            for frame in c['frames']:
+                chunks.append({'id': frame['id'],
+                               'firstvs': verse_re.search(frame['text']).group(1),
+                               'lastvs': frame["lastvs"]
+                               })
+        return chunks
+
+    def _convert_usfm_to_usx(self, path):
+        today = ''.join(str(datetime.date.today()).rsplit('-')[0:3])
+        # use utf-8-sig to remove the byte order mark
+        with codecs.open(path, 'r', encoding='utf-8-sig') as in_file:
+            usx = in_file.readlines()
+
+        book = self._parse_usfm(usx)
+        chunks = self._get_chunks(book)
+
+        return {
+            'source': {
+                'chapters': book,
+                'date_modified': today
+            },
+            'chunks': chunks
+        }

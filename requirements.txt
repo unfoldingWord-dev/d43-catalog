@@ -2,3 +2,4 @@ tx-shared-tools
 requests
 pyyaml
 gogs_client==1.0.5
+git+git://github.com/unfoldingWord-dev/USFM-Tools.git#egg=usfm_tools

@@ -86,6 +86,8 @@ class TestTsV2Catalog(TestCase):
         converter.convert_catalog()
         # expected_catalog = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/catalog.json'))
 
+        print('\n')
+        print(mockS3._uploads)
 
         # self.assertObjectEqual(catalog, expected_catalog)
         self.assertS3EqualsApiJSON(mockS3, 'catalog.json')
@@ -93,3 +95,4 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, '1ch/languages.json')
         self.assertS3EqualsApiJSON(mockS3, 'obs/en/resources.json')
         self.assertS3EqualsApiJSON(mockS3, '1ch/en/resources.json')
+        self.assertS3EqualsApiJSON(mockS3, '1ch/en/ulb/source.json')
