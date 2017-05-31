@@ -235,10 +235,17 @@ class Signing(object):
                 dc = manifest['dublin_core']
 
                 # upload the file and the sig file to the S3 bucket
-                upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
-                                                       dc['identifier'].split('-')[-1],
-                                                       dc['version'],
-                                                       os.path.basename(key))
+                if resource_id and project_id:
+                    upload_key = '{0}/{1}/v{2}/{3}/{4}'.format(dc['language']['identifier'],
+                                                           dc['identifier'].split('-')[-1],
+                                                           dc['version'],
+                                                           resource_id,
+                                                           os.path.basename(key))
+                else:
+                    upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
+                                                           dc['identifier'].split('-')[-1],
+                                                           dc['version'],
+                                                           os.path.basename(key))
                 upload_sig_key = '{}.sig'.format(upload_key)
 
                 cdn_handler.upload_file(file_to_sign, upload_key)
