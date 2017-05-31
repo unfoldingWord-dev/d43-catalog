@@ -153,16 +153,41 @@ class WebhookHandler:
             'signature': ""
         }
         manifest['formats'] = [file_info]
+
+        uploads = [{
+                'key': self.make_temp_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'path': self.repo_file
+            }]
+
+        # split usfm bundles
+        if manifest['dublin_core']['type'] == 'bundle' and manifest['dublin_core']['format'] == 'text/usfm':
+            for project in manifest['projects']:
+                if 'formats' not in project:
+                    project['formats'] = []
+                project_url = '{0}/{1}/{2}/v{3}/{4}.usfm'.format(self.cdn_url,
+                                                        manifest['dublin_core']['language']['identifier'],
+                                                        manifest['dublin_core']['identifier'].split('-')[-1],
+                                                        manifest['dublin_core']['version'],
+                                                        project['identifier'])
+                project['formats'].append({
+                    'format': 'text/usfm',
+                    'modified': manifest['dublin_core']['modified'],
+                    'signature': '',
+                    'size': 0, # TODO: get size of file
+                    'url': project_url
+                })
+                uploads.append({
+                    'key': self.make_temp_upload_key('{}/{}.usfm'.format(manifest['dublin_core']['identifier'], project['identifier'])),
+                    'path': os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
+                })
+
         return {
             'repo_name': self.repo_name,
             'commit_id': self.commit_id,
             'language': manifest['dublin_core']['language']['identifier'],
             'timestamp': self.timestamp,
             'package': json.dumps(manifest, sort_keys=True),
-            'uploads': [{
-                'key': self.make_temp_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
-                'path': self.repo_file
-            }]
+            'uploads': uploads
         }
 
     def _build_versification(self):
