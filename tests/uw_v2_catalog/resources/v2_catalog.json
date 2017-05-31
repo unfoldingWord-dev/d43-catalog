@@ -23,7 +23,14 @@
               "toc": [
                 {
                   "desc": "",
-                  "media": {},
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
                   "mod": "1475478000",
                   "slug": "gen",
                   "src": "",
@@ -32,7 +39,14 @@
                 },
                 {
                   "desc": "",
-                  "media": {},
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
                   "mod": "1475478000",
                   "slug": "1ch",
                   "src": "",
@@ -58,7 +72,14 @@
               "toc": [
                 {
                   "desc": "",
-                  "media": {},
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
                   "mod": "1479110400",
                   "slug": "1ch",
                   "src": "",
@@ -96,7 +117,14 @@
               "toc": [
                 {
                   "desc": "",
-                  "media": {},
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
                   "mod": "1489561200",
                   "slug": "obs",
                   "src": "",
