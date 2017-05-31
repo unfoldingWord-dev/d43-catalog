@@ -57,7 +57,7 @@ class UwV2CatalogHandler:
                 if int(mod) > last_modified:
                     last_modified = int(mod)
 
-                # TODO: figure out how to handle "formats" and the chunks
+                # TODO: use src and sig from v3 api once they are available
 
                 toc = []
                 for proj in res['projects']:
@@ -76,7 +76,7 @@ class UwV2CatalogHandler:
                 if 'comment' in res:
                     comment = res['comment']
                 res_v2 = {
-                    'slug': res_type, # TODO: check if should have lang_slug
+                    'slug': res_type,
                     'name': res['title'],
                     'mod': mod,
                     'status': {
