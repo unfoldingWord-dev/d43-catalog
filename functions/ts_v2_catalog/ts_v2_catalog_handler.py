@@ -423,7 +423,7 @@ class TsV2CatalogHandler:
                 if fr_list:
                     fr_text = '\n'.join(fr_list)
                     try:
-                        first_vs = api_publish.verse_re.search(fr_text).group(1)
+                        first_vs = verse_re.search(fr_text).group(1)
                     except AttributeError:
                         print('Error, chp {0}'.format(chp_num))
                         print('Text: {0}'.format(fr_text))
