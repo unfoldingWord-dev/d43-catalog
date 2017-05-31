@@ -27,6 +27,10 @@ class MockDynamodbHandler(object):
         self.db.append(item)
 
     def update_item(self, record_keys, row):
+        self.last_inserted_item = row
+        item = self.get_item(record_keys)
+        if not item: return False
+        item.update(row)
         return True
 
     def get_item(self, record_keys):
