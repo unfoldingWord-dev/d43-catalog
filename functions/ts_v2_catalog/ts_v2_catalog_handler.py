@@ -473,6 +473,12 @@ class TsV2CatalogHandler:
         book = self._parse_usfm(usx)
         chunks = self._get_chunks(book)
 
+        # NOTE: Testing only
+        write_file(re.sub('\.usx$', '.json', path), json.dumps({
+            'chapters': book,
+            'date_modified': today
+        }, sort_keys=True, indent=2))
+
         return {
             'source': {
                 'chapters': book,
