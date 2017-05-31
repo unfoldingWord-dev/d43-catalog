@@ -330,6 +330,23 @@ class TestSigning(TestCase):
         dbHandler = MockDynamodbHandler()
         item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
         item['repo_name'] = repo_name
+        manifest = json.loads(item['package'])
+        manifest['projects'] = [{
+            'categories':[],
+            'identifier':'proj',
+            'path':'./proj.usfm',
+            'sort': 0,
+            'title': 'Project',
+            'versification': None,
+            'formats': [{
+                'format': 'text/usfm',
+                'modified': '',
+                'signature': '',
+                'size': 0,
+                'url': 'https://test-cdn.door43.org/temp/unit_test/v1/res_id/proj.usfm'
+            }]
+        }]
+        item['package'] = json.dumps(manifest)
         dbHandler.insert_item(item)
 
         s3Handler = self.MockS3Handler('test-cdn_bucket')
@@ -345,6 +362,13 @@ class TestSigning(TestCase):
 
         expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'res_id', 'proj.usfm.sig')
         self.assertTrue(os.path.isfile(expected_file))
+        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'res_id', 'proj.usfm')
+        self.assertTrue(os.path.isfile(expected_file))
+
+        db_item = dbHandler.last_inserted_item
+        manifest = json.loads(db_item['package'])
+        format = manifest['projects'][0]['formats'][0]
+        self.assertTrue(format['signature'])
 
     def test_signing_handler_text_no_records(self):
         test_txt = os.path.join(self.temp_dir, 'test.txt')
