@@ -204,6 +204,8 @@ class CatalogHandler:
                 # multi-project RCs store formats in resource
                 resource['formats'] = formats
 
+            if 'comment' not in resource: resource['comment'] = ''
+
             language['resources'].append(resource)
             return True
 

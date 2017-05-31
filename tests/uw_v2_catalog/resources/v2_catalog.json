@@ -1,1 +1,144 @@
-{}
+{
+  "cat": [
+    {
+      "langs": [
+        {
+          "lc": "en",
+          "mod": "1475478000",
+          "vers": [
+            {
+              "mod": "1475478000",
+              "name": "Unlocked Dynamic Bible",
+              "slug": "udb",
+              "status": {
+                "checking_entity": "Wycliffe Associates",
+                "checking_level": "3",
+                "comments": "",
+                "contributors": "Wycliffe Associates",
+                "publish_date": "2015-08-26",
+                "source_text": "asv-en",
+                "source_text_version": "1901",
+                "version": "7"
+              },
+              "toc": [
+                {
+                  "desc": "",
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
+                  "mod": "1475478000",
+                  "slug": "gen",
+                  "src": "",
+                  "src_sig": "",
+                  "title": "Genesis"
+                },
+                {
+                  "desc": "",
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
+                  "mod": "1475478000",
+                  "slug": "1ch",
+                  "src": "",
+                  "src_sig": "",
+                  "title": "1 Chronicles"
+                }
+              ]
+            },
+            {
+              "mod": "1479110400",
+              "slug": "ulb",
+              "name": "Unlocked Literal Bible",
+              "status": {
+                "checking_entity": "Wycliffe Associates",
+                "checking_level": "3",
+                "comments": "",
+                "contributors": "Wycliffe Associates",
+                "publish_date": "2016-10-03",
+                "source_text": "asv-en",
+                "source_text_version": "1901",
+                "version": "7"
+              },
+              "toc": [
+                {
+                  "desc": "",
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
+                  "mod": "1479110400",
+                  "slug": "1ch",
+                  "src": "",
+                  "src_sig": "",
+                  "title": "1 Chronicles"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "slug": "bible",
+      "title": "Bible"
+    },
+    {
+      "langs": [
+        {
+          "lc": "en",
+          "mod": "1489561200",
+          "vers": [
+            {
+              "mod": "1489561200",
+              "name": "Open Bible Stories",
+              "slug": "obs",
+              "status": {
+                "checking_entity": "Distant Shores Media; Wycliffe Associates",
+                "checking_level": "3",
+                "comments": "",
+                "contributors": "Distant Shores Media",
+                "publish_date": "2015-08-26",
+                "source_text": "obs-en",
+                "source_text_version": "4",
+                "version": "4"
+              },
+              "toc": [
+                {
+                  "desc": "",
+                  "media": {
+                    "audio": {
+
+                    },
+                    "video": {
+
+                    }
+                  },
+                  "mod": "1489561200",
+                  "slug": "obs",
+                  "src": "",
+                  "src_sig": "",
+                  "title": "Open Bible Stories"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "slug": "obs",
+      "title": "Open Bible Stories"
+    }
+  ],
+  "mod": 1489561200
+}
