@@ -35,6 +35,13 @@ class UwV2CatalogHandler:
             'obs': 'obs'
         }
 
+        title_map = {
+            'bible': 'Bible',
+            'obs': 'Open Bible Stories'
+        }
+
+        last_modified = 0
+
         for lang in self.latest_catalog['languages']:
             lang_slug = lang['identifier']
             for res in lang['resources']:
@@ -47,32 +54,66 @@ class UwV2CatalogHandler:
 
                 mod = datestring_to_timestamp(res['modified'])
 
+                if int(mod) > last_modified:
+                    last_modified = int(mod)
+
                 # TODO: figure out how to handle "formats" and the chunks
 
                 toc = []
                 for proj in res['projects']:
                     toc.append({
+                        'desc': '',
+                        'media': {},
+                        'mod': mod,
                         'slug': proj['identifier'],
+                        'src': '',
+                        'src_sig': '',
                         'title': proj['title'],
-                        'mod': mod
                     })
 
                 source = res['source'][0]
+                comment = ''
+                if 'comment' in res:
+                    comment = res['comment']
                 res_v2 = {
                     'slug': res_type, # TODO: check if should have lang_slug
                     'name': res['title'],
                     'mod': mod,
                     'status': {
-                        'contributors': ', '.join(res['contributor']),
-                        'version': res['version'],
+                        'checking_entity': '; '.join(res['checking']['checking_entity']),
+                        'checking_level': res['checking']['checking_level'],
+                        'comments': comment,
+                        'contributors': '; '.join(res['contributor']),
+                        'publish_date': res['issued'],
+                        'source_text': source['identifier'] + '-' + source['language'],
                         'source_text_version': source['version'],
-                        'source_text': source['identifier'] + '-' + source['language']
+                        'version': res['version']
                     },
                     'toc': toc
                 }
 
                 if not lang_slug in v2_catalog[key]:
-                    v2_catalog[key][lang_slug] = []
-                v2_catalog[key][lang_slug].append(res_v2)
+                    v2_catalog[key][lang_slug] = {
+                        'lc': lang_slug,
+                        'mod': mod,
+                        'vers': []
+                    }
+                v2_catalog[key][lang_slug]['vers'].append(res_v2)
 
-        return v2_catalog
+        # condense catalog
+        catalog = {
+            'cat': [],
+            'mod': last_modified
+        }
+        for cat_slug in v2_catalog:
+            langs = []
+            for lang_slug in v2_catalog[cat_slug]:
+                langs.append(v2_catalog[cat_slug][lang_slug])
+
+            catalog['cat'].append({
+                'slug': cat_slug,
+                'title': title_map[cat_slug],
+                'langs': langs
+            })
+
+        return catalog
