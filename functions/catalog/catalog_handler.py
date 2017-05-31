@@ -191,6 +191,9 @@ class CatalogHandler:
 
             # store projects
             for project in manifest['projects']:
+                if 'formats' in project:
+                    for format in project['formats']:
+                       checker.check_format(format, item)
                 if not project['categories']:
                     project['categories'] = []
                 del project['path']
