@@ -217,11 +217,13 @@ class WebhookHandler:
                     'chunks': {}
                 })
                 book['chunks'][vrs_id] = book_vrs
+        temp_dir = os.path.join(self.temp_dir, 'versification')
+        if not os.path.isdir:
+            os.mkdir(temp_dir)
         for book in books:
             book = books[book]
 
             # write chunks
-            temp_dir = tempfile.mkdtemp(prefix='versification_')
             chunk_file = os.path.join(temp_dir, book['identifier'] + '.json')
             write_file(chunk_file, json.dumps(book['chunks'], sort_keys=True))
             # for now we bypass signing and upload chunks directly
