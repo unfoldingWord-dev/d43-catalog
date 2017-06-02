@@ -11,7 +11,7 @@ import json
 import tempfile
 import copy
 import time
-
+import boto3
 from general_tools.file_utils import write_file
 from general_tools.url_utils import get_url
 from tools.consistency_checker import ConsistencyChecker
@@ -139,6 +139,24 @@ class CatalogHandler:
 
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+
+                    # trigger tS api v2 build
+                    client = boto3.client("lambda")
+                    payload = {
+                        "stage-variables": {}, # TODO: put stage variables here
+                        "catalog": self.catalog
+                    }
+                    try:
+                        print("Triggering build for tS v2 API")
+                        client.invoke(
+                            FunctionName="d43-catalog_ts-v2-catalog",
+                            InvocationType="Event",
+                            Payload=json.dumps(payload)
+                        )
+                    except Exception as e:
+                        self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
+
+                    # TODO: trigger uW build once it's ready
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog.json: {0}'.format(e))
         else:
