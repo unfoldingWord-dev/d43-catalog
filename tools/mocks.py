@@ -40,6 +40,13 @@ class MockDynamodbHandler(object):
 
         return None
 
+    def query_items(self, query=None, only_fields_with_values=True):
+        items = []
+        for item in self.db:
+            if MockDynamodbHandler._has_keys(item, query):
+                items.append(item)
+        return items
+
     @staticmethod
     def _has_keys(obj, keys):
         """
@@ -48,6 +55,7 @@ class MockDynamodbHandler(object):
         :param keys: a list of keys and values
         :return:
         """
+        if not keys: return False
         for key in keys:
             if key not in obj or obj[key] != keys[key]:
                 return False

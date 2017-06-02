@@ -91,7 +91,7 @@ class TestSigning(TestCase):
     @staticmethod
     def create_event():
 
-        event = {'Records': []}
+        event = {'api_bucket': 'my-bucket'}
 
         return event
 
@@ -386,8 +386,9 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
-        result = Signing.handle_s3_trigger(event, self.MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = Signing(event, self.MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+        result = signer.handle_s3_trigger()
         self.assertFalse(result)
 
         # test that the expected file was not output
@@ -560,8 +561,10 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
-        result = Signing.handle_s3_trigger(event, self.MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = Signing(event, self.MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+        result = signer.handle_s3_trigger()
+
         self.assertFalse(result)
 
     def test_signing_handler_no_s3(self):
