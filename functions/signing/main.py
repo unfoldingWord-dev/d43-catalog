@@ -14,4 +14,5 @@ def handle(event, context):
     :param context:
     """
     global logger
-    Signing.handle_s3_trigger(event, logger)
+    signer = Signing(event, logger)
+    signer.handle_s3_trigger()

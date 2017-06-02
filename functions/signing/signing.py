@@ -18,6 +18,38 @@ from subprocess import Popen, PIPE
 class Signing(object):
     dynamodb_table_name = 'd43-catalog-in-progress'
 
+    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, private_pem_file=None,
+                                 public_pem_file=None):
+        """
+        Handles the signing of a file on S3
+        :param self:
+        :param dict event:
+        :param logger:
+        :param class s3_handler: This is passed in so it can be mocked for unit testing
+        :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
+        :param string private_pem_file: This is passed in so it can be mocked for unit testing
+        :param string public_pem_file: This is passed in so it can be mocked for unit testing
+        :return: bool
+        """
+        self.event = event
+        self.logger = logger
+        self.cdn_bucket_name = self.retrieve(event, 'api_bucket')
+
+        if not s3_handler:
+            self.cdn_handler = S3Handler(self.cdn_bucket_name)
+        else:
+            self.cdn_handler = s3_handler
+
+        self.temp_dir = tempfile.mkdtemp(prefix='signing_')
+
+        self.private_pem_file = private_pem_file
+        self.public_pem_file = public_pem_file
+
+        if not dynamodb_handler:
+            self.db_handler = DynamoDBHandler(Signing.dynamodb_table_name)
+        else:
+            self.db_handler = dynamodb_handler
+
     @staticmethod
     def is_travis():
         return 'TRAVIS' in os.environ and os.environ['TRAVIS'] == 'true'
@@ -137,7 +169,98 @@ class Signing(object):
         return pem_file
 
     @staticmethod
-    def handle_s3_trigger(event, logger, s3_handler=None, dynamodb_handler=None, private_pem_file=None, public_pem_file=None):
+    def retrieve(dictionary, key, dict_name=None):
+        """
+        Retrieves a value from a dictionary, raising an error message if the
+        specified key is not valid
+        :param dict dictionary:
+        :param any key:
+        :param str|unicode dict_name: name of dictionary, for error message
+        :return: value corresponding to key
+        """
+        if key in dictionary:
+            return dictionary[key]
+        dict_name = "dictionary" if dict_name is None else dict_name
+        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
+
+    def handle_s3_trigger(self):
+        items = self.db_handler.query_items()
+        try:
+            for item in items:
+                repo_name = item['repo_name']
+                try:
+                    package = json.loads(item['package'])
+                except Exception as e:
+                    print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
+                    continue
+
+                if repo_name == "catalogs" or repo_name == 'localization' or repo_name == 'versification':
+                    self.process_db_item(item, package)
+            return True
+        finally:
+            if os.path.isdir(self.temp_dir):
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+
+    def process_db_item(self, item, package):
+        if 'formats' in package:
+            for format in package['formats']:
+                # process resource formats
+                self.process_format(item, package, format)
+
+        for project in package['projects']:
+            if 'formats' in project:
+                for format in project['formats']:
+                    # process project formats
+                    self.process_format(item, package, format)
+
+        record_keys = {'repo_name': item['repo_name']}
+        self.db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
+
+    def process_format(self, item, package, format):
+        if 'signature' in format and format['signature']:
+            return True
+
+        base_name = os.path.basename(format['url'])
+        dc = package['dublin_core']
+        upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
+                                               dc['identifier'].split('-')[-1],
+                                               dc['version'],
+                                               base_name)
+        upload_sig_key = '{}.sig'.format(upload_key)
+        key = 'temp/{}/{}/()'.format(item['repo_name'], item['commit_id'], base_name)
+
+        # copy the file to a temp directory
+        file_to_sign = os.path.join(self.temp_dir, base_name)
+        try:
+            self.cdn_handler.download_file(key, file_to_sign)
+        except Exception as e:
+            if self.logger:
+                self.logger.warning('The file "{0}" could not be downloaded'.format(base_name))
+            return False  # removes files here
+
+        # sign the file
+        sig_file = Signing.sign_file(file_to_sign, pem_file=self.private_pem_file)
+
+        # verify the file
+        try:
+            Signing.verify_signature(file_to_sign, sig_file, pem_file=self.public_pem_file)
+        except RuntimeError:
+            if self.logger:
+                self.logger.warning('The signature was not successfully verified.')
+            return False  # remove files here
+
+        # upload files
+        self.cdn_handler.upload_file(file_to_sign, upload_key)
+        self.cdn_handler.upload_file(sig_file, upload_sig_key)
+
+        # add the url of the sig file to the format
+        format['signature'] = '{}.sig'.format(format['url'])
+
+        return True
+
+    @staticmethod
+    def legacy_handle_s3_trigger(event, logger, s3_handler=None, dynamodb_handler=None, private_pem_file=None, public_pem_file=None):
         """
         Handles the signing of a file on S3
         :param dict event:
