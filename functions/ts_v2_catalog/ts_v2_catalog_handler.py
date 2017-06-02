@@ -13,6 +13,7 @@ import re
 import tempfile
 import zipfile
 from aws_tools.s3_handler import S3Handler
+from aws_tools.dynamodb_handler import DynamoDBHandler
 from usfm_tools.transform import UsfmTransform
 from general_tools.file_utils import write_file, read_file, unzip
 from general_tools.url_utils import download_file
@@ -20,13 +21,13 @@ import dateutil.parser
 
 class TsV2CatalogHandler:
 
-    def __init__(self, event, s3_handler, download_handler=None):
+    def __init__(self, event, s3_handler, download_handler=None, dynamodb_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param catalog: the latest catalog
         :param  s3_handler: This is passed in so it can be mocked for unit testing
         """
-        self.latest_catalog = self.retrieve(event, 'catalog', 'payload')
+        # self.latest_catalog = self.retrieve(event, 'catalog', 'payload')
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
@@ -36,6 +37,10 @@ class TsV2CatalogHandler:
             self.s3_handler = s3_handler
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
         self.download_handler = download_handler
+        if not dynamodb_handler:
+            self.production_table = DynamoDBHandler('d43-catalog-production')
+        else:
+            self.production_table = dynamodb_handler
 
     def download_file(self, url, path, bundle_name):
         if self.download_handler:
@@ -51,6 +56,13 @@ class TsV2CatalogHandler:
         cat_dict = {}
         supplementary_resources = []
         sources = {}
+
+        # retrieve the latest catalog build
+        items = self.production_table.query_items()
+        if not items or len(items) == 0: return
+        self.latest_catalog = self.retrieve(items[0], 'catalog', 'Catalog')
+        print('Processing {}'.format(items[0]['timestamp']))
+
         # walk catalog
         for language in self.latest_catalog['languages']:
             lid = language['identifier']
@@ -438,10 +450,10 @@ class TsV2CatalogHandler:
                     fr_text = '\n'.join(fr_list)
                     try:
                         first_vs = verse_re.search(fr_text).group(1)
-                    except AttributeError:
+                    except AttributeError as e:
                         print('Error, chp {0}'.format(chp_num))
                         print('Text: {0}'.format(fr_text))
-                        sys.exit(1)
+                        raise e
 
                     chp['frames'].append({'id': '{0}-{1}'.format(
                         str(chp_num).zfill(2), first_vs.zfill(2)),

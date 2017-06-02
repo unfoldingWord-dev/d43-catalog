@@ -33,6 +33,8 @@ class CatalogHandler:
         self.api_bucket = self.retrieve(event, 'api_bucket')
         self.to_email = self.retrieve(event, 'to_email')
         self.from_email = self.retrieve(event, 'from_email')
+        self.cdn_bucket = self.retrieve(event, 'cdn_bucket')
+        self.cdn_url = self.retrieve(event, 'cdn_url')
 
         self.progress_table = dynamodb_handler('d43-catalog-in-progress')
         self.production_table = dynamodb_handler('d43-catalog-production')
@@ -143,8 +145,10 @@ class CatalogHandler:
                     # trigger tS api v2 build
                     client = boto3.client("lambda")
                     payload = {
-                        "stage-variables": {}, # TODO: put stage variables here
-                        "catalog": self.catalog
+                        "stage-variables": {
+                            "cdn_url": self.cdn_url,
+                            "cdn_bucket": self.cdn_bucket
+                        }
                     }
                     try:
                         print("Triggering build for tS v2 API")
