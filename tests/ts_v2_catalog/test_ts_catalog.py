@@ -79,17 +79,15 @@ class TestTsV2Catalog(TestCase):
         expected_obj = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/{}'.format(key)))
         self.assertObjectEqual(s3_obj, expected_obj)
 
-
     def test_convert_catalog(self):
         mockS3 = MockS3Handler('/ts/txt/2/')
-        converter = TsV2CatalogHandler(self.make_event(), mockS3)
+        zips = {
+            'en_ulb': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip")
+        }
+        download_handler = lambda url, path, bundle_name: zips[bundle_name] if bundle_name in zips else ''
+        converter = TsV2CatalogHandler(self.make_event(), mockS3, download_handler)
         converter.convert_catalog()
-        # expected_catalog = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/catalog.json'))
 
-        print('\n')
-        print(mockS3._uploads)
-
-        # self.assertObjectEqual(catalog, expected_catalog)
         self.assertS3EqualsApiJSON(mockS3, 'catalog.json')
         self.assertS3EqualsApiJSON(mockS3, 'obs/languages.json')
         self.assertS3EqualsApiJSON(mockS3, '1ch/languages.json')

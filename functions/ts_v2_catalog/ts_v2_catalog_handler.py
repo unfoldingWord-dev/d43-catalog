@@ -20,7 +20,7 @@ import dateutil.parser
 
 class TsV2CatalogHandler:
 
-    def __init__(self, event, s3_handler):
+    def __init__(self, event, s3_handler, download_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param catalog: the latest catalog
@@ -35,6 +35,13 @@ class TsV2CatalogHandler:
         else:
             self.s3_handler = s3_handler
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
+        self.download_handler = download_handler
+
+    def download_file(self, url, path, bundle_name):
+        if self.download_handler:
+            return self.download_handler(url, path, bundle_name)
+        download_file(url, path)
+        return path
 
     def convert_catalog(self):
         """
@@ -65,11 +72,20 @@ class TsV2CatalogHandler:
                         format_str = format['format']
                         if 'application/zip' in format_str and 'usfm' in format_str:
                             temp_zip = os.path.join(self.temp_dir, format['url'].split('/')[-1])
-                            download_file(format['url'], temp_zip)
-                            unzip(temp_zip, self.temp_dir)
                             bundle_name = lid + '_' + rid
+                            temp_zip = self.download_handler(format['url'], temp_zip, bundle_name)
+
+                            if not temp_zip:
+                                continue
+
+                            unzip(temp_zip, self.temp_dir)
                             bundle = os.path.join(self.temp_dir, bundle_name)
-                            manifest = yaml.load(read_file(os.path.join(bundle, 'manifest.yaml')))
+
+                            try:
+                                manifest = yaml.load(read_file(os.path.join(bundle, 'manifest.yaml')))
+                            except:
+                                continue
+
                             usx = os.path.join(bundle, 'usx')
                             UsfmTransform.buildUSX(bundle, usx, '', True)
                             for project in manifest['projects']:
@@ -469,12 +485,6 @@ class TsV2CatalogHandler:
 
         book = self._parse_usfm(usx)
         chunks = self._get_chunks(book)
-
-        # NOTE: Testing only
-        write_file(re.sub('\.usx$', '.json', path), json.dumps({
-            'chapters': book,
-            'date_modified': date_modified
-        }, sort_keys=True, indent=2))
 
         return {
             'source': {
