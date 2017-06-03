@@ -153,7 +153,7 @@ class CatalogHandler:
                     try:
                         print("Triggering build for tS v2 API")
                         client.invoke(
-                            FunctionName="d43-catalog_ts-v2-catalog",
+                            FunctionName="d43-catalog_ts_v2_catalog",
                             InvocationType="Event",
                             Payload=json.dumps(payload)
                         )

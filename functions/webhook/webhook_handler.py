@@ -135,11 +135,12 @@ class WebhookHandler:
             raise Exception('Bad Manifest: {0}'.format(e))
 
         stats = os.stat(self.repo_file)
-        url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
+        resource_key = '{}/{}/v{}/{}.zip'.format(
                                                 manifest['dublin_core']['language']['identifier'],
                                                 manifest['dublin_core']['identifier'].split('-')[-1],
                                                 manifest['dublin_core']['version'],
                                                 manifest['dublin_core']['identifier'])
+        url = '{}/{}'.format(self.cdn_url, resource_key)
 
         file_info = {
             'size': stats.st_size,
@@ -155,7 +156,7 @@ class WebhookHandler:
         manifest['formats'] = [file_info]
 
         uploads = [{
-                'key': self.make_temp_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'key': resource_key, #self.make_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
                 'path': self.repo_file
             }]
 
@@ -165,12 +166,13 @@ class WebhookHandler:
                 if 'formats' not in project:
                     project['formats'] = []
                 resource_id = manifest['dublin_core']['identifier'].split('-')[-1]
-                project_url = '{0}/{1}/{2}/v{3}/{4}/{5}.usfm'.format(self.cdn_url,
+                project_key = '{}/{}/v{}/{}/{}.usfm'.format(
                                                         manifest['dublin_core']['language']['identifier'],
                                                         resource_id,
                                                         manifest['dublin_core']['version'],
                                                         resource_id,
                                                         project['identifier'])
+                project_url = '{}/{}'.format(self.cdn_url, project_key)
                 project['formats'].append({
                     'format': 'text/usfm',
                     'modified': manifest['dublin_core']['modified'],
@@ -179,7 +181,7 @@ class WebhookHandler:
                     'url': project_url
                 })
                 uploads.append({
-                    'key': self.make_temp_upload_key('{}/{}.usfm'.format(manifest['dublin_core']['identifier'], project['identifier'])),
+                    'key': project_key,#self.make_upload_key('{}/{}.usfm'.format(manifest['dublin_core']['identifier'], project['identifier'])),
                     'path': os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
                 })
 
@@ -283,7 +285,7 @@ class WebhookHandler:
             'package': package
         }
 
-    def make_temp_upload_key(self, path):
+    def make_upload_key(self, path):
         """
         Generates an upload key that conforms to the format `temp/<repo_name>/<commit>/<path>`.
         This allows further processing to associate files with an entry in dynamoDB.
