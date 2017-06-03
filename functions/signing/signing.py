@@ -31,9 +31,9 @@ class Signing(object):
         :param string public_pem_file: This is passed in so it can be mocked for unit testing
         :return: bool
         """
-        self.event = event
+        # self.event = event
         self.logger = logger
-        self.cdn_bucket_name = self.retrieve(event, 'api_bucket')
+        self.cdn_bucket_name = 'test-cdn.door43.org' #self.retrieve(event, 'api_bucket')
 
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket_name)
@@ -194,7 +194,7 @@ class Signing(object):
                     print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
                     continue
 
-                if repo_name == "catalogs" or repo_name == 'localization' or repo_name == 'versification':
+                if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
                     self.process_db_item(item, package)
             return True
         finally:
@@ -203,23 +203,30 @@ class Signing(object):
 
 
     def process_db_item(self, item, package):
+        was_signed = False
+        print('[INFO] Processing {}'.format(item['repo_name']))
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                self.process_format(item, package, format)
-
+                if self.process_format(item, package, format):
+                    was_signed = True
         for project in package['projects']:
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    self.process_format(item, package, format)
+                    if self.process_format(item, package, format):
+                        was_signed = True
 
-        record_keys = {'repo_name': item['repo_name']}
-        self.db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
+        if was_signed:
+            print('[INFO] recording signatures')
+            record_keys = {'repo_name': item['repo_name']}
+            self.db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
 
     def process_format(self, item, package, format):
         if 'signature' in format and format['signature']:
-            return True
+            return False
+        else:
+            print('[INFO] Signing {}'.format(format['url']))
 
         base_name = os.path.basename(format['url'])
         dc = package['dublin_core']
@@ -236,7 +243,7 @@ class Signing(object):
             self.cdn_handler.download_file(key, file_to_sign)
         except Exception as e:
             if self.logger:
-                self.logger.warning('The file "{0}" could not be downloaded'.format(base_name))
+                self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, format['url'], e))
             return False  # removes files here
 
         # sign the file
