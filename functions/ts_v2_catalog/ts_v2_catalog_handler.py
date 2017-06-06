@@ -11,6 +11,7 @@ import datetime
 import codecs
 import re
 import tempfile
+import time
 import zipfile
 from aws_tools.s3_handler import S3Handler
 from aws_tools.dynamodb_handler import DynamoDBHandler
@@ -60,7 +61,7 @@ class TsV2CatalogHandler:
         # retrieve the latest catalog build
         items = self.production_table.query_items()
         if not items or len(items) == 0: return
-        self.latest_catalog = self.retrieve(items[0], 'catalog', 'Catalog')
+        self.latest_catalog = json.loads(self.retrieve(items[0], 'catalog', 'Catalog'))
         print('Processing {}'.format(items[0]['timestamp']))
 
         # walk catalog
@@ -113,11 +114,16 @@ class TsV2CatalogHandler:
                                 rc_format = format
                                 break
 
+                    if not rc_format:
+                        raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+
                     modified = self._convert_date(rc_format['modified'])
                     rc_type = self._get_rc_type(rc_format)
 
                     if modified is None:
-                        raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+                        modified = time.strftime('%Y%m%d')
+                        print('#WARNING: Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+                        # raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         self._build_catalog_node(cat_dict, language, resource, project, modified)
@@ -369,7 +375,10 @@ class TsV2CatalogHandler:
         :return: 
         """
         date_obj = dateutil.parser.parse(date_str)
-        return date_obj.strftime('%Y%m%d')
+        try:
+            return date_obj.strftime('%Y%m%d')
+        except:
+            return None
 
     @staticmethod
     def retrieve(dictionary, key, dict_name=None):
