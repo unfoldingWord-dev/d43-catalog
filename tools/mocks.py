@@ -43,7 +43,9 @@ class MockDynamodbHandler(object):
     def query_items(self, query=None, only_fields_with_values=True):
         items = []
         for item in self.db:
-            if MockDynamodbHandler._has_keys(item, query):
+            if not query:
+                items.append(item)
+            elif MockDynamodbHandler._has_keys(item, query):
                 items.append(item)
         return items
 

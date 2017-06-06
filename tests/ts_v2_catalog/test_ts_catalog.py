@@ -3,7 +3,7 @@ import codecs
 import json
 from general_tools.file_utils import load_json_object
 from unittest import TestCase
-from tools.mocks import MockS3Handler
+from tools.mocks import MockS3Handler, MockDynamodbHandler
 
 from functions.ts_v2_catalog.ts_v2_catalog_handler import TsV2CatalogHandler
 
@@ -84,8 +84,10 @@ class TestTsV2Catalog(TestCase):
         zips = {
             'en_ulb': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip")
         }
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
         download_handler = lambda url, path, bundle_name: zips[bundle_name] if bundle_name in zips else ''
-        converter = TsV2CatalogHandler(self.make_event(), mockS3, download_handler)
+        converter = TsV2CatalogHandler(self.make_event(), mockS3, download_handler, mockDb)
         converter.convert_catalog()
 
         self.assertS3EqualsApiJSON(mockS3, 'catalog.json')
