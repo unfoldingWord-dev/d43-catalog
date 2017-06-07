@@ -224,7 +224,7 @@ class CatalogHandler:
             # store formats
             # TRICKY: Bible usfm bundles should always be at the resource level
             is_bible = dc['identifier'] == 'ulb' or dc['identifier'] == 'udb'
-            if len(manifest['projects']) == 1 or (is_bible and self.has_usfm_bundle(formats)):
+            if len(manifest['projects']) == 1 and not (is_bible and self.has_usfm_bundle(formats)):
                 # single-project RCs store formats in projects
                 resource['projects'][0]['formats'] = formats
             else:
