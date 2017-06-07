@@ -172,16 +172,18 @@ class WebhookHandler:
                                                         manifest['dublin_core']['version'],
                                                         project['identifier'])
                 project_url = '{}/{}'.format(self.cdn_url, project_key)
+                p_file_path = os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
+                p_stats = os.stat(p_file_path)
                 project['formats'].append({
                     'format': 'text/usfm',
                     'modified': manifest['dublin_core']['modified'],
                     'signature': '',
-                    'size': 0, # TODO: get size of file
+                    'size': p_stats.st_size,
                     'url': project_url
                 })
                 uploads.append({
                     'key': self.make_upload_key('{}.usfm'.format(project['identifier'])),
-                    'path': os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
+                    'path': p_file_path
                 })
 
         return {
