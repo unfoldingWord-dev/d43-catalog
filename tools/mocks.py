@@ -1,12 +1,38 @@
 from general_tools.file_utils import load_json_object
+import shutil
+import tempfile
+import os
+
+
+class MockLogger(object):
+    @staticmethod
+    def warning(message):
+        print('WARNING: {}'.format(message))
+
 
 class MockS3Handler:
 
     def __init__(self, bucket):
         self._uploads = {}
+        self.temp_dir = tempfile.mkdtemp(bucket)
+
+    def __del__(self):
+        shutil.rmtree(self.temp_dir)
 
     def upload_file(self, path, key):
-        self._uploads[key] = path
+        upload_path = os.path.join(self.temp_dir, key)
+        parent_dir = os.path.dirname(upload_path)
+        if not os.path.isdir(parent_dir):
+            os.makedirs(parent_dir)
+
+        shutil.copy(path, upload_path)
+        self._uploads[key] = upload_path
+
+    def download_file(self, key, path):
+        if key in self._uploads:
+            shutil.copy(self._uploads[key], path)
+        else:
+            raise Exception('File not found for key: {}'.format(key))
 
 class MockDynamodbHandler(object):
 
@@ -48,6 +74,13 @@ class MockDynamodbHandler(object):
             elif MockDynamodbHandler._has_keys(item, query):
                 items.append(item)
         return items
+
+    def delete_item(self, query):
+        items = []
+        for item in self.db:
+            if not query or not MockDynamodbHandler._has_keys(item, query):
+                items.append(item)
+        self.db = items
 
     @staticmethod
     def _has_keys(obj, keys):
