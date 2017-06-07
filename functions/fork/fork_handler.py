@@ -56,7 +56,7 @@ class ForkHandler:
                     InvocationType="Event",
                     Payload=json.dumps(payload)
                 )
-                time.sleep(1)
+                time.sleep(5)
             except Exception as e:
                 print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
                 continue
