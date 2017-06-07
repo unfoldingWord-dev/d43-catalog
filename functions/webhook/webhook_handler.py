@@ -156,7 +156,7 @@ class WebhookHandler:
         manifest['formats'] = [file_info]
 
         uploads = [{
-                'key': resource_key, #self.make_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'key': self.make_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
                 'path': self.repo_file
             }]
 
@@ -181,7 +181,7 @@ class WebhookHandler:
                     'url': project_url
                 })
                 uploads.append({
-                    'key': project_key,#self.make_upload_key('{}/{}.usfm'.format(manifest['dublin_core']['identifier'], project['identifier'])),
+                    'key': self.make_upload_key('{}.usfm'.format(project['identifier'])),
                     'path': os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
                 })
 

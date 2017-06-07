@@ -6,6 +6,7 @@ import os
 import shlex
 import shutil
 import tempfile
+import time
 from aws_tools.s3_handler import S3Handler
 from aws_tools.dynamodb_handler import DynamoDBHandler
 from aws_decrypt import decrypt_file
@@ -49,6 +50,10 @@ class Signing(object):
             self.db_handler = DynamoDBHandler(Signing.dynamodb_table_name)
         else:
             self.db_handler = dynamodb_handler
+
+    def __del__(self):
+        if os.path.isdir(self.temp_dir):
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @staticmethod
     def is_travis():
@@ -196,7 +201,7 @@ class Signing(object):
 
                 if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
                     self.process_db_item(item, package)
-            return True
+            return len(items) > 0
         finally:
             if os.path.isdir(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
@@ -220,6 +225,7 @@ class Signing(object):
         if was_signed:
             print('[INFO] recording signatures')
             record_keys = {'repo_name': item['repo_name']}
+            time.sleep(1)
             self.db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
 
     def process_format(self, item, package, format):
@@ -235,7 +241,7 @@ class Signing(object):
                                                dc['version'],
                                                base_name)
         upload_sig_key = '{}.sig'.format(upload_key)
-        key = 'temp/{}/{}/()'.format(item['repo_name'], item['commit_id'], base_name)
+        key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], base_name)
 
         # copy the file to a temp directory
         file_to_sign = os.path.join(self.temp_dir, base_name)
@@ -243,7 +249,7 @@ class Signing(object):
             self.cdn_handler.download_file(key, file_to_sign)
         except Exception as e:
             if self.logger:
-                self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, format['url'], e))
+                self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, key, e))
             return False  # removes files here
 
         # sign the file

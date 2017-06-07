@@ -1,0 +1,7 @@
+[{
+  "repo_name": "unit-test",
+  "commit_id": "5193d11b95",
+  "language": "en",
+  "timestamp": "2016-11-12T16:22:58Z",
+  "package": "{\"checking\":{\"checking_entity\":[\"Phil Hopper\"],\"checking_level\":\"3\"},\"dublin_core\":{\"conformsto\":\"rc0.2\",\"contributor\":[\"Wycliffe Associates\"],\"creator\":\"Distant Shores Media\",\"description\":\"An unrestricted visual mini-Bible in any language\",\"format\":\"text/markdown\",\"identifier\":\"unit_test\",\"issued\":\"2015-08-26\",\"language\":{\"direction\":\"ltr\",\"identifier\":\"en-tmp\",\"title\":\"English\"},\"modified\":\"2017-01-10\",\"publisher\":\"unfoldingWord\",\"relation\":[],\"rights\":\"CC BY-SA 4.0\",\"source\":[{\"identifier\":\"unit-test\",\"language\":\"en\",\"version\":\"1\"}],\"subject\":\"Test\",\"title\":\"Unit Test File\",\"type\":\"book\",\"version\":\"1\"},\"formats\":[{\"format\":\"text/plain\",\"modified\":\"2017-01-10\",\"signature\":\"\",\"size\":100542,\"url\":\"https://test-cdn.door43.org/en-tmp/unit-test/v1/test.txt\"}],\"projects\":[]}"
+}]
