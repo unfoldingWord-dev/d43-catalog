@@ -108,7 +108,8 @@ class TestCatalog(TestCase):
             'api_bucket': 'my-bucket',
             'to_email': 'me@example.com',
             'from_email': 'me@example.com',
-
+            'cdn_bucket': 'cdn-bucket',
+            'cdn_url': 'cdn-url'
         }
 
         return event

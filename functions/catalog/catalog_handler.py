@@ -222,7 +222,9 @@ class CatalogHandler:
                 resource['projects'].append(project)
 
             # store formats
-            if len(manifest['projects']) == 1:
+            # TRICKY: Bible usfm bundles should always be at the resource level
+            is_bible = dc['identifier'] == 'ulb' or dc['identifier'] == 'udb'
+            if len(manifest['projects']) == 1 or (is_bible and self.has_usfm_bundle(formats)):
                 # single-project RCs store formats in projects
                 resource['projects'][0]['formats'] = formats
             else:
@@ -234,6 +236,17 @@ class CatalogHandler:
             language['resources'].append(resource)
             return True
 
+        return False
+
+    def has_usfm_bundle(self, formats):
+        """
+        Checks if an array of formats contains a format that is a usfm bundle
+        :param formats:
+        :return:
+        """
+        for format in formats:
+            if 'text/usfm' in format['format'] and 'type=bundle' in format['format']:
+                return True
         return False
 
     def _build_versification(self, package, checker):
