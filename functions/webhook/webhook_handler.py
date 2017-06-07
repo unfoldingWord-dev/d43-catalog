@@ -166,11 +166,10 @@ class WebhookHandler:
                 if 'formats' not in project:
                     project['formats'] = []
                 resource_id = manifest['dublin_core']['identifier'].split('-')[-1]
-                project_key = '{}/{}/v{}/{}/{}.usfm'.format(
+                project_key = '{}/{}/v{}/{}.usfm'.format(
                                                         manifest['dublin_core']['language']['identifier'],
                                                         resource_id,
                                                         manifest['dublin_core']['version'],
-                                                        resource_id,
                                                         project['identifier'])
                 project_url = '{}/{}'.format(self.cdn_url, project_key)
                 project['formats'].append({
