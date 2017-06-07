@@ -11,6 +11,7 @@ from aws_tools.dynamodb_handler import DynamoDBHandler
 import gogs_client as GogsClient
 import boto3
 import json
+import time
 
 class ForkHandler:
     def __init__(self, event, gogs_client=None, dynamodb_handler=None):
@@ -55,6 +56,7 @@ class ForkHandler:
                     InvocationType="Event",
                     Payload=json.dumps(payload)
                 )
+                time.sleep(1)
             except Exception as e:
                 print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
                 continue
