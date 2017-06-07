@@ -225,7 +225,7 @@ class Signing(object):
         if was_signed:
             print('[INFO] recording signatures')
             record_keys = {'repo_name': item['repo_name']}
-            time.sleep(1)
+            time.sleep(5)
             self.db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
 
     def process_format(self, item, package, format):
