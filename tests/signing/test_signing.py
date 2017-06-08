@@ -501,6 +501,9 @@ class TestSigning(TestCase):
         found_file = [f for f in package_after['formats'] if f['signature'].endswith('test.zip.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
 
+        self.assertIn('signed', row)
+        self.assertTrue('signed', row['signed'])
+
         # added the url of the sig file to the format item
         manifest = json.loads(row['package'])
         found_file = [fmt['signature'] for fmt in manifest['formats'] if fmt['signature'].endswith('test.zip.sig')]

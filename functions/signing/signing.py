@@ -219,7 +219,7 @@ class Signing(object):
                 (already_signed, newly_signed) = self.process_format(item, package, format)
                 if newly_signed:
                     was_signed = True
-                if not(already_signed and newly_signed):
+                if not(already_signed or newly_signed):
                     fully_signed = False
         for project in package['projects']:
             if 'formats' in project:
@@ -228,7 +228,7 @@ class Signing(object):
                     (already_signed, newly_signed) = self.process_format(item, package, format)
                     if newly_signed:
                         was_signed = True
-                    if not (already_signed and newly_signed):
+                    if not (already_signed or newly_signed):
                         fully_signed = False
 
         if was_signed:
