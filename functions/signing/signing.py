@@ -189,7 +189,9 @@ class Signing(object):
         raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
     def handle_s3_trigger(self):
-        items = self.db_handler.query_items()
+        items = self.db_handler.query_items({
+            'signed': False
+        })
         try:
             for item in items:
                 repo_name = item['repo_name']
@@ -209,28 +211,45 @@ class Signing(object):
 
     def process_db_item(self, item, package):
         was_signed = False
+        fully_signed = True
         print('[INFO] Processing {}'.format(item['repo_name']))
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                if self.process_format(item, package, format):
+                (already_signed, newly_signed) = self.process_format(item, package, format)
+                if newly_signed:
                     was_signed = True
+                if not(already_signed and newly_signed):
+                    fully_signed = False
         for project in package['projects']:
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    if self.process_format(item, package, format):
+                    (already_signed, newly_signed) = self.process_format(item, package, format)
+                    if newly_signed:
                         was_signed = True
+                    if not (already_signed and newly_signed):
+                        fully_signed = False
 
         if was_signed:
             print('[INFO] recording signatures')
             record_keys = {'repo_name': item['repo_name']}
             time.sleep(5)
-            self.db_handler.update_item(record_keys, {'package': json.dumps(package, sort_keys=True)})
+            self.db_handler.update_item(record_keys, {
+                'package': json.dumps(package, sort_keys=True),
+                'signed': fully_signed
+            })
 
     def process_format(self, item, package, format):
+        """
+        Signs a format
+        :param item:
+        :param package:
+        :param format:
+        :return: (already_signed, newly_signed)
+        """
         if 'signature' in format and format['signature']:
-            return False
+            return (True, False)
         else:
             print('[INFO] Signing {}'.format(format['url']))
 
@@ -250,7 +269,7 @@ class Signing(object):
         except Exception as e:
             if self.logger:
                 self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, key, e))
-            return False  # removes files here
+            return (False, False)
 
         # sign the file
         sig_file = Signing.sign_file(file_to_sign, pem_file=self.private_pem_file)
@@ -261,7 +280,7 @@ class Signing(object):
         except RuntimeError:
             if self.logger:
                 self.logger.warning('The signature was not successfully verified.')
-            return False  # remove files here
+            return (False, False)
 
         # upload files
         self.cdn_handler.upload_file(file_to_sign, upload_key)
@@ -270,7 +289,7 @@ class Signing(object):
         # add the url of the sig file to the format
         format['signature'] = '{}.sig'.format(format['url'])
 
-        return True
+        return (False, True)
 
     @staticmethod
     def legacy_handle_s3_trigger(event, logger, s3_handler=None, dynamodb_handler=None, private_pem_file=None, public_pem_file=None):

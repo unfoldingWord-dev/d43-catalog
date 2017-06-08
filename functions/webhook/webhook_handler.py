@@ -192,6 +192,7 @@ class WebhookHandler:
             'language': manifest['dublin_core']['language']['identifier'],
             'timestamp': self.timestamp,
             'package': json.dumps(manifest, sort_keys=True),
+            'signed': False,
             'uploads': uploads
         }
 
