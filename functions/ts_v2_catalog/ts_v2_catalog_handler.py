@@ -19,10 +19,11 @@ from usfm_tools.transform import UsfmTransform
 from general_tools.file_utils import write_file, read_file, unzip
 from general_tools.url_utils import download_file
 import dateutil.parser
+from general_tools.url_utils import get_url
 
 class TsV2CatalogHandler:
 
-    def __init__(self, event, s3_handler, download_handler=None, dynamodb_handler=None):
+    def __init__(self, event, s3_handler, download_handler=None, dynamodb_handler=None, url_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param catalog: the latest catalog
@@ -30,6 +31,7 @@ class TsV2CatalogHandler:
         """
         # self.latest_catalog = self.retrieve(event, 'catalog', 'payload')
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.catalog_url = self.retrieve(env_vars, 'catalog_url', 'Environment Vars')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         if not s3_handler:
@@ -42,6 +44,10 @@ class TsV2CatalogHandler:
             self.production_table = DynamoDBHandler('d43-catalog-production')
         else:
             self.production_table = dynamodb_handler
+        if not url_handler:
+            self.get_url = get_url
+        else:
+            self.get_url = url_handler
 
     def download_file(self, url, path, bundle_name):
         if self.download_handler:
@@ -58,11 +64,23 @@ class TsV2CatalogHandler:
         supplementary_resources = []
         sources = {}
 
-        # retrieve the latest catalog build
-        items = self.production_table.query_items()
-        if not items or len(items) == 0: return
-        self.latest_catalog = json.loads(self.retrieve(items[0], 'catalog', 'Catalog'))
-        print('Processing {}'.format(items[0]['timestamp']))
+        # retrieve the latest catalog
+        catalog_content = self.get_url(self.catalog_url, True)
+        if not catalog_content:
+            print("ERROR: {0} does not exist".format(self.catalog_url))
+            return False
+        try:
+            self.latest_catalog = json.loads(catalog_content)
+        except Exception as e:
+            print("ERROR: Failed to load the catalog json: {0}".format(e))
+            return False
+
+        # items = self.production_table.query_items({
+        #     'sha1': self.catalog_sha1
+        # })
+        # if not items or len(items) == 0: return
+        # self.latest_catalog = json.loads(self.retrieve(items[0], 'catalog', 'Catalog'))
+        # print('Processing {}'.format(items[0]['timestamp']))
 
         # walk catalog
         for language in self.latest_catalog['languages']:

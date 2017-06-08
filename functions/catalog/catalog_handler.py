@@ -12,6 +12,7 @@ import tempfile
 import copy
 import time
 import boto3
+import hashlib
 from general_tools.file_utils import write_file
 from general_tools.url_utils import get_url
 from tools.consistency_checker import ConsistencyChecker
@@ -129,14 +130,20 @@ class CatalogHandler:
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
             else:
-                data = {
-                    'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    'catalog': json.dumps(self.catalog, sort_keys=True)
-                }
+                cat_str = json.dumps(self.catalog, sort_keys=True)
+                # data = {
+                #     'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                #     'catalog': cat_str
+                # }
                 try:
-                    self.production_table.insert_item(data)
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
-                    write_file(catalog_path, json.dumps(self.catalog, sort_keys=True))
+                    write_file(catalog_path, cat_str)
+                    c_stats = os.stat(catalog_path)
+                    print('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
+
+                    # print('Writing new catalog to production table')
+                    # self.production_table.insert_item(data)
+                    print('Uploading catalog.json to CDN')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
 
                     response['success'] = True
@@ -147,7 +154,8 @@ class CatalogHandler:
                     payload = {
                         "stage-variables": {
                             "cdn_url": self.cdn_url,
-                            "cdn_bucket": self.cdn_bucket
+                            "cdn_bucket": self.cdn_bucket,
+                            "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
                         }
                     }
                     try:
@@ -162,7 +170,7 @@ class CatalogHandler:
 
                     # TODO: trigger uW build once it's ready
                 except Exception as e:
-                    self.checker.log_error('Unable to save catalog.json: {0}'.format(e))
+                    self.checker.log_error('Unable to save catalog: {0}'.format(e))
         else:
             self.checker.log_error('There were no formats to process')
 
