@@ -282,104 +282,94 @@ class TestSigning(TestCase):
 
         self.assertIn('key file', str(context.exception))
 
-    def test_signing_handler_text(self):
-        # mock a lambda event object
-        event = self.create_event()
+    # def test_signing_handler_text(self):
+    #     # mock a lambda event object
+    #     event = self.create_event()
+    #
+    #     # mock the dynamodb handler
+    #     dbHandler = MockDynamodbHandler()
+    #     dbHandler._load_db(os.path.join(self.resources_dir, 'dynamodb_text_records.json'))
+    #     item = dbHandler.query_items()[0]
+    #
+    #
+    #     s3Handler = MockS3Handler('test-cdn_bucket')
+    #     key = 'temp/{}/{}/test.txt'.format(item['repo_name'], item['commit_id'])
+    #     s3Handler.upload_file(os.path.join(self.resources_dir, 'test.txt'), key)
+    #
+    #     # test that the mock S3 file exists
+    #     self.assertTrue(os.path.isfile(os.path.join(s3Handler.temp_dir, key)))
+    #
+    #     private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
+    #     public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
+    #     signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+    #                                        private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+    #     result = signer.handle_s3_trigger()
+    #     self.assertTrue(result)
+    #
+    #     # test that the expected file was output
+    #     expected_file = os.path.join(s3Handler.temp_dir, 'en-tmp', 'unit_test', 'v1', 'test.txt.sig')
+    #     self.assertTrue(os.path.isfile(expected_file))
 
-        # mock the dynamodb handler
-        dbHandler = MockDynamodbHandler()
-        dbHandler._load_db(os.path.join(self.resources_dir, 'dynamodb_text_records.json'))
-        item = dbHandler.query_items()[0]
-
-
-        s3Handler = MockS3Handler('test-cdn_bucket')
-        key = 'temp/{}/{}/test.txt'.format(item['repo_name'], item['commit_id'])
-        s3Handler.upload_file(os.path.join(self.resources_dir, 'test.txt'), key)
-
-        # test that the mock S3 file exists
-        self.assertTrue(os.path.isfile(os.path.join(s3Handler.temp_dir, key)))
-
-        private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
-        public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
-                                           private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
-        self.assertTrue(result)
-
-        # test that the expected file was output
-        expected_file = os.path.join(s3Handler.temp_dir, 'en-tmp', 'unit_test', 'v1', 'test.txt.sig')
-        self.assertTrue(os.path.isfile(expected_file))
-
-    def test_signing_handler_text_project(self):
-        repo_name = 'tmp'
-
-        # copy file to temp directory
-        test_proj = os.path.join(self.temp_dir, 'res_id/proj.usfm')
-        os.mkdir(os.path.join(self.temp_dir, 'res_id'))
-        shutil.copy(os.path.join(self.resources_dir, 'proj.usfm'), test_proj)
-
-        # mock a lambda event object
-        event = self.create_event()
-        # event['Records'].append(self.create_s3_record('test-cdn_bucket', test_proj))
-
-        # mock the dynamodb handler
-        dbHandler = MockDynamodbHandler()
-        item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
-        item['repo_name'] = repo_name
-        manifest = json.loads(item['package'])
-        manifest['projects'] = [{
-            'categories':[],
-            'identifier':'proj',
-            'path':'./proj.usfm',
-            'sort': 0,
-            'title': 'Project',
-            'versification': None,
-            'formats': [{
-                'format': 'text/usfm',
-                'modified': '',
-                'signature': '',
-                'size': 0,
-                'url': 'https://test-cdn.door43.org/temp/unit_test/v1/res_id/proj.usfm'
-            }]
-        }]
-        item['package'] = json.dumps(manifest)
-        dbHandler.insert_item(item)
-
-        s3Handler = MockS3Handler('test-cdn_bucket')
-
-        # test that the mock S3 file exists
-        self.assertTrue(os.path.isfile(test_proj))
-
-        private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
-        public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
-                         private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
-        self.assertTrue(result)
-
-        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'res_id', 'proj.usfm.sig')
-        self.assertTrue(os.path.isfile(expected_file))
-        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'res_id', 'proj.usfm')
-        self.assertTrue(os.path.isfile(expected_file))
-
-        db_item = dbHandler.last_inserted_item
-        manifest = json.loads(db_item['package'])
-        format = manifest['projects'][0]['formats'][0]
-        self.assertTrue(format['signature'])
+    # def test_signing_handler_text_project(self):
+    #     repo_name = 'tmp'
+    #
+    #     # copy file to temp directory
+    #     test_proj = os.path.join(self.temp_dir, 'res_id/proj.usfm')
+    #     os.mkdir(os.path.join(self.temp_dir, 'res_id'))
+    #     shutil.copy(os.path.join(self.resources_dir, 'proj.usfm'), test_proj)
+    #
+    #     # mock a lambda event object
+    #     event = self.create_event()
+    #     # event['Records'].append(self.create_s3_record('test-cdn_bucket', test_proj))
+    #
+    #     # mock the dynamodb handler
+    #     dbHandler = MockDynamodbHandler()
+    #     item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
+    #     item['repo_name'] = repo_name
+    #     manifest = json.loads(item['package'])
+    #     manifest['projects'] = [{
+    #         'categories':[],
+    #         'identifier':'proj',
+    #         'path':'./proj.usfm',
+    #         'sort': 0,
+    #         'title': 'Project',
+    #         'versification': None,
+    #         'formats': [{
+    #             'format': 'text/usfm',
+    #             'modified': '',
+    #             'signature': '',
+    #             'size': 0,
+    #             'url': 'https://test-cdn.door43.org/temp/unit_test/v1/res_id/proj.usfm'
+    #         }]
+    #     }]
+    #     item['package'] = json.dumps(manifest)
+    #     dbHandler.insert_item(item)
+    #
+    #     s3Handler = MockS3Handler('test-cdn_bucket')
+    #
+    #     # test that the mock S3 file exists
+    #     self.assertTrue(os.path.isfile(test_proj))
+    #
+    #     private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
+    #     public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
+    #     signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+    #                      private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+    #     result = signer.handle_s3_trigger()
+    #     self.assertTrue(result)
+    #
+    #     expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'res_id', 'proj.usfm.sig')
+    #     self.assertTrue(os.path.isfile(expected_file))
+    #     expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'res_id', 'proj.usfm')
+    #     self.assertTrue(os.path.isfile(expected_file))
+    #
+    #     db_item = dbHandler.last_inserted_item
+    #     manifest = json.loads(db_item['package'])
+    #     format = manifest['projects'][0]['formats'][0]
+    #     self.assertTrue(format['signature'])
 
     def test_signing_handler_text_no_records(self):
-        test_txt = os.path.join(self.temp_dir, 'test.txt')
-
-        # mock a lambda event object
         event = self.create_event()
-
-        # mock the dynamodb handler
         dbHandler = MockDynamodbHandler()
-        item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
-        dbHandler.insert_item(item)
-
-        # test that the mock S3 file does not exist
-        self.assertFalse(os.path.isfile(test_txt))
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
@@ -388,12 +378,12 @@ class TestSigning(TestCase):
         result = signer.handle_s3_trigger()
         self.assertFalse(result)
 
-        # test that the expected file was not output
-        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'test.txt.sig')
-        self.assertFalse(os.path.isfile(expected_file))
-
     def test_signing_handler_text_missing_file(self):
-        # test_txt = os.path.join(self.temp_dir, 'test.txt')
+        """
+        Signing will continue to run even if a file is missing.
+        The missing file will just be ignored.
+        :return:
+        """
 
         # mock a lambda event object
         event = self.create_event()
@@ -406,17 +396,17 @@ class TestSigning(TestCase):
 
         # test that the mock S3 file does not exist
         # self.assertFalse(os.path.isfile(test_txt))
-        s3_handler = S3Handler('test-cdn_bucket')
+        s3_handler = MockS3Handler('test-cdn_bucket')
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
         signer = Signing(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.handle_s3_trigger()
-        self.assertFalse(result)
+        self.assertTrue(result)
 
         # test that the expected file was not output
-        expected_file = os.path.join(self.temp_dir, 'temp', 'unit_test', 'v1', 'test.txt.sig')
+        expected_file = os.path.join(s3_handler.temp_dir, 'temp', 'unit_test', 'v1', 'test.txt.sig')
         self.assertFalse(os.path.isfile(expected_file))
 
     def test_signing_handler_text_wrong_key(self):
@@ -431,19 +421,26 @@ class TestSigning(TestCase):
 
         # mock the dynamodb handler
         dbHandler = MockDynamodbHandler()
-        item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
-        dbHandler.insert_item(item)
+        dbHandler._load_db(os.path.join(self.resources_dir, 'db_zip_records.json'))
+        item = dbHandler.query_items()[0]
+        item_file = os.path.basename(json.loads(item['package'])['formats'][0]['url'])
+        file_key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], item_file)
+
+        s3_handler = MockS3Handler('mock-s3')
+        s3_handler.upload_file(test_txt, file_key)
 
         # test when S3 file exists
         self.assertTrue(os.path.isfile(test_txt))
 
         private_pem_file = os.path.join(self.resources_dir, 'alt-private.pem')
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem')
-        signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = Signing(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.handle_s3_trigger()
 
-        self.assertFalse(result)
+        self.assertTrue(result)
+
+        self.assertNotIn('{}.sig'.format(file_key), s3_handler._uploads)
 
     # @unittest.skipIf(Signing.is_travis(), 'Skipping test_signing_handler_s3 on Travis CI.')
     def test_signing_handler_s3(self):
@@ -470,12 +467,12 @@ class TestSigning(TestCase):
             'commit_id': commit_id,
             'package': json.dumps(manifest, sort_keys=True),
             'timestamp': datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            'language': 'temp'
+            'language': 'temp',
+            'signed': False
         })
 
         # mock a lambda event object
         event = self.create_event()
-        # event['Records'].append(self.create_s3_record(s3_handler.bucket_name, s3_source_zip_key))
 
         # do the signing
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
@@ -513,30 +510,19 @@ class TestSigning(TestCase):
         db_handler.delete_item(row_keys)
 
     def test_signing_handler_zip(self):
-        # repo_name = 'tmp'
-
-        # copy zip file to temp directory
-        # test_zip = os.path.join(self.temp_dir, 'test.zip')
-        # shutil.copy(os.path.join(self.resources_dir, 'test.zip'), test_zip)
 
         # mock a lambda event object
         event = self.create_event()
-        # event['Records'].append(self.create_s3_record('test-cdn_bucket', test_zip))
 
         # mock the dynamodb handler
         dbHandler = MockDynamodbHandler()
         dbHandler._load_db(os.path.join(self.resources_dir, 'db_zip_records.json'))
         item = dbHandler.query_items()[0]
-        # item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
-        # item['repo_name'] = repo_name
-        # dbHandler.insert_item(item)
+
 
         s3Handler = MockS3Handler('test-cdn_bucket')
         key = 'temp/{}/{}/test.zip'.format(item['repo_name'], item['commit_id'])
         s3Handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), key)
-
-        # test that the mock S3 file exists
-        # self.assertTrue(os.path.isfile(test_zip))
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
@@ -575,19 +561,3 @@ class TestSigning(TestCase):
         result = signer.handle_s3_trigger()
 
         self.assertFalse(result)
-
-    # def test_signing_handler_no_s3(self):
-    #
-    #     # mock a lambda event object
-    #     event = self.create_event()
-    #
-    #     dbHandler = MockDynamodbHandler()
-    #     item = TestSigning.create_db_item()
-    #     dbHandler.insert_item(item)
-    #
-    #     private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
-    #     public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
-    #     signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
-    #                                        private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-    #     result = signer.handle_s3_trigger()
-    #     self.assertFalse(result)
