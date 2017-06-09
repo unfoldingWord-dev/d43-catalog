@@ -1,6 +1,7 @@
 import os
 import codecs
 import json
+import shutil
 from general_tools.file_utils import load_json_object
 from unittest import TestCase
 from tools.mocks import MockS3Handler, MockDynamodbHandler
@@ -14,6 +15,38 @@ class TestTsV2Catalog(TestCase):
     def setUp(self):
         self.latest_catalog = load_json_object(os.path.join(TestTsV2Catalog.resources_dir, "v3_catalog.json"))
         self.assertIsNotNone(self.latest_catalog)
+
+    @staticmethod
+    def mock_get_url(urls, url, catch_exception):
+        """
+
+        :param dict urls: valid urls with their associated files
+        :param string url: url to get
+        :param bool catch_exception:
+        :return:
+        """
+        if url in urls:
+            try:
+                return TestTsV2Catalog.read_file(urls[url])
+            except Exception as e:
+                if not catch_exception:
+                    raise e
+        else:
+            raise Exception('404: {}'.format(url))
+
+    @staticmethod
+    def mock_download_file(urls, url, path):
+        """
+
+        :param dict urls: valid urls with their associated files
+        :param string url: url to get
+        :param string path:
+        :return:
+        """
+        if url in urls:
+            shutil.copyfile(urls[url], path)
+        else:
+            raise Exception('404: {}'.format(url))
 
     @staticmethod
     def readMockApi(path):
@@ -52,9 +85,9 @@ class TestTsV2Catalog(TestCase):
         return {
             'stage-variables': {
                 'cdn_bucket': '',
-                'cdn_url': 'https://api.unfoldingword.org/ts/txt/2'
-            },
-            'catalog': self.latest_catalog
+                'cdn_url': 'https://api.unfoldingword.org/ts/txt/2',
+                'catalog_url': 'https://api.door43.org/v3/catalog.json'
+            }
         }
 
     def assertObjectEqual(self, obj1, obj2):
@@ -80,14 +113,17 @@ class TestTsV2Catalog(TestCase):
         self.assertObjectEqual(s3_obj, expected_obj)
 
     def test_convert_catalog(self):
-        mockS3 = MockS3Handler('/ts/txt/2/')
-        zips = {
-            'en_ulb': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip")
+        mockS3 = MockS3Handler('ts_bucket')
+        urls = {
+            'https://test-cdn.door43.org/en/ulb/v7/ulb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip"),
+            'https://test-cdn.door43.org/en/udb/v7/udb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip"),
+            'https://api.door43.org/v3/catalog.json': os.path.join(TestTsV2Catalog.resources_dir, "v3_catalog.json")
         }
         mockDb = MockDynamodbHandler()
         mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
-        download_handler = lambda url, path, bundle_name: zips[bundle_name] if bundle_name in zips else ''
-        converter = TsV2CatalogHandler(self.make_event(), mockS3, download_handler, mockDb)
+        mock_get_url = lambda url, catch_exception: TestTsV2Catalog.mock_get_url(urls, url, catch_exception)
+        mock_download = lambda url, dest: TestTsV2Catalog.mock_download_file(urls, url, dest)
+        converter = TsV2CatalogHandler(self.make_event(), mockS3, mockDb, mock_get_url, mock_download)
         converter.convert_catalog()
 
         self.assertS3EqualsApiJSON(mockS3, 'catalog.json')

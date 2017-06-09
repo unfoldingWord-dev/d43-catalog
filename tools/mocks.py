@@ -14,7 +14,7 @@ class MockS3Handler:
 
     def __init__(self, bucket):
         self._uploads = {}
-        self.temp_dir = tempfile.mkdtemp(bucket)
+        self.temp_dir = tempfile.mkdtemp()
 
     def __del__(self):
         shutil.rmtree(self.temp_dir)
