@@ -23,13 +23,14 @@ from general_tools.url_utils import get_url
 
 class TsV2CatalogHandler:
 
-    def __init__(self, event, s3_handler, download_handler=None, dynamodb_handler=None, url_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
-        :param catalog: the latest catalog
         :param  s3_handler: This is passed in so it can be mocked for unit testing
+        :param dynamodb_handler: This is passed in so it can be mocked for unit testing
+        :param url_handler: This is passed in so it can be mocked for unit testing
+        :param download_handler: This is passed in so it can be mocked for unit testing
         """
-        # self.latest_catalog = self.retrieve(event, 'catalog', 'payload')
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.catalog_url = self.retrieve(env_vars, 'catalog_url', 'Environment Vars')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
@@ -39,7 +40,6 @@ class TsV2CatalogHandler:
         else:
             self.s3_handler = s3_handler
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
-        self.download_handler = download_handler
         if not dynamodb_handler:
             self.production_table = DynamoDBHandler('d43-catalog-production')
         else:
@@ -48,12 +48,10 @@ class TsV2CatalogHandler:
             self.get_url = get_url
         else:
             self.get_url = url_handler
-
-    def download_file(self, url, path, bundle_name):
-        if self.download_handler:
-            return self.download_handler(url, path, bundle_name)
-        download_file(url, path)
-        return path
+        if not download_handler:
+            self.download_file = download_file
+        else:
+            self.download_file = download_handler
 
     def convert_catalog(self):
         """
@@ -74,13 +72,6 @@ class TsV2CatalogHandler:
         except Exception as e:
             print("ERROR: Failed to load the catalog json: {0}".format(e))
             return False
-
-        # items = self.production_table.query_items({
-        #     'sha1': self.catalog_sha1
-        # })
-        # if not items or len(items) == 0: return
-        # self.latest_catalog = json.loads(self.retrieve(items[0], 'catalog', 'Catalog'))
-        # print('Processing {}'.format(items[0]['timestamp']))
 
         # walk catalog
         for language in self.latest_catalog['languages']:
@@ -104,9 +95,10 @@ class TsV2CatalogHandler:
                         if 'application/zip' in format_str and 'usfm' in format_str:
                             temp_zip = os.path.join(self.temp_dir, format['url'].split('/')[-1])
                             bundle_name = lid + '_' + rid
-                            temp_zip = self.download_handler(format['url'], temp_zip, bundle_name)
+                            self.download_file(format['url'], temp_zip)
 
-                            if not temp_zip:
+                            if not os.path.exists(temp_zip):
+                                print('ERROR: could not download file {}'.format(format['url']))
                                 continue
 
                             unzip(temp_zip, self.temp_dir)
