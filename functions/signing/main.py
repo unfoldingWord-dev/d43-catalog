@@ -15,4 +15,4 @@ def handle(event, context):
     """
     global logger
     signer = Signing(event, logger)
-    signer.handle_s3_trigger()
+    signer.run()

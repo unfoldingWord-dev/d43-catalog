@@ -52,7 +52,7 @@ class Signing(object):
             self.db_handler = dynamodb_handler
 
     def __del__(self):
-        if os.path.isdir(self.temp_dir):
+        if hasattr(self, 'temp_dir') and os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @staticmethod
@@ -188,7 +188,7 @@ class Signing(object):
         dict_name = "dictionary" if dict_name is None else dict_name
         raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
-    def handle_s3_trigger(self):
+    def run(self):
         items = self.db_handler.query_items({
             'signed': False
         })
