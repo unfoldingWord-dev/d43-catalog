@@ -84,8 +84,8 @@ class TestTsV2Catalog(TestCase):
     def make_event(self):
         return {
             'stage-variables': {
-                'cdn_bucket': '',
-                'cdn_url': 'https://api.unfoldingword.org/ts/txt/2',
+                'api_bucket': '',
+                'api_url': 'https://api.unfoldingword.org/ts/txt/2',
                 'catalog_url': 'https://api.door43.org/v3/catalog.json'
             }
         }
@@ -109,7 +109,7 @@ class TestTsV2Catalog(TestCase):
         self.assertIn(key, mockS3._uploads)
         s3_obj = json.loads(TestTsV2Catalog.read_file(mockS3._uploads[key]))
 
-        expected_obj = json.loads(TestTsV2Catalog.readMockApi('/ts/txt/2/{}'.format(key)))
+        expected_obj = json.loads(TestTsV2Catalog.readMockApi(key))
         self.assertObjectEqual(s3_obj, expected_obj)
 
     def test_convert_catalog(self):
@@ -126,9 +126,19 @@ class TestTsV2Catalog(TestCase):
         converter = TsV2CatalogHandler(self.make_event(), mockS3, mockDb, mock_get_url, mock_download)
         converter.convert_catalog()
 
-        self.assertS3EqualsApiJSON(mockS3, 'catalog.json')
-        self.assertS3EqualsApiJSON(mockS3, 'obs/languages.json')
-        self.assertS3EqualsApiJSON(mockS3, '1ch/languages.json')
-        self.assertS3EqualsApiJSON(mockS3, 'obs/en/resources.json')
-        self.assertS3EqualsApiJSON(mockS3, '1ch/en/resources.json')
-        self.assertS3EqualsApiJSON(mockS3, '1ch/en/ulb/source.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/catalog.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/languages.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/resources.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/notes.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/questions.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/tw_cat.json')
+
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/languages.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/resources.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/notes.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/questions.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/tw_cat.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/source.json')
+
+
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/bible/en/words.json')
