@@ -33,12 +33,12 @@ class TsV2CatalogHandler:
         """
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.catalog_url = self.retrieve(env_vars, 'catalog_url', 'Environment Vars')
-        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.api_bucket = self.retrieve(env_vars, 'api_bucket', 'Environment Vars')
+        self.api_url = self.retrieve(env_vars, 'api_url', 'Environment Vars')
         if not s3_handler:
-            self.s3_handler = S3Handler(self.cdn_bucket)
+            self.cdn_handler = S3Handler(self.api_bucket)
         else:
-            self.s3_handler = s3_handler
+            self.cdn_handler = s3_handler
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
         if not dynamodb_handler:
             self.production_table = DynamoDBHandler('d43-catalog-production')
@@ -152,7 +152,7 @@ class TsV2CatalogHandler:
             self._add_supplement(cat_dict, s['language'], s['resource'], s['project'], s['modified'], s['rc_type'])
 
         # normalize catalog nodes
-        uploads = []
+        api_uploads = []
         root_cat = []
         for pid in cat_dict:
             project = cat_dict[pid]
@@ -167,23 +167,23 @@ class TsV2CatalogHandler:
                     if source_key in sources:
                         source_path = sources[source_key]
                         source = self._convert_usfm_to_usx(source_path, resource['date_modified'])
-                        uploads.append(self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
-                        uploads.append(self._prep_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
+                        api_uploads.append(self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
+                        api_uploads.append(self._prep_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
                         del sources[source_key]
                     res_cat.append(resource)
-                uploads.append(self._prep_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
+                api_uploads.append(self._prep_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
                 del language['_res']
                 lang_cat.append(language)
-            uploads.append(self._prep_upload('{}/languages.json'.format(pid), lang_cat))
+            api_uploads.append(self._prep_upload('{}/languages.json'.format(pid), lang_cat))
 
             del  project['_langs']
             root_cat.append(project)
-        uploads.append(self._prep_upload('catalog.json', root_cat))
+        api_uploads.append(self._prep_upload('catalog.json', root_cat))
 
         # upload files
-        for upload in uploads:
-            self.s3_handler.upload_file(upload['path'], upload['key'])
+        for upload in api_uploads:
+            self.cdn_handler.upload_file(upload['path'], 'v2/ts/{}'.format(upload['key']))
 
     def _prep_upload(self, key, data):
         """
@@ -349,7 +349,7 @@ class TsV2CatalogHandler:
                 'meta': project['categories'],
                 'name': project['title']
             },
-            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, pid, lid, l_modified)
+            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.api_url, pid, lid, l_modified)
         }
         if 'ulb' == rid or 'udb' == rid:
             cat_lang['project']['sort'] = '{}'.format(project['sort'])
@@ -359,7 +359,7 @@ class TsV2CatalogHandler:
         p_modified = self._max_modified(catalog[pid], l_modified)
         catalog[pid].update({
             'date_modified': p_modified,
-            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.cdn_url, pid, p_modified),
+            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.api_url, pid, p_modified),
             'meta': project['categories'],
             'slug': pid,
             'sort': '{}'.format(project['sort']).zfill(2)
