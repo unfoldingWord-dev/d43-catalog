@@ -8,8 +8,6 @@ import unittest
 import uuid
 from unittest import TestCase
 from datetime import datetime
-from aws_tools.dynamodb_handler import DynamoDBHandler
-from aws_tools.s3_handler import S3Handler
 from general_tools.file_utils import load_json_object
 from functions.signing.aws_decrypt import decrypt_file
 from functions.signing.signing import Signing
@@ -20,66 +18,14 @@ class TestSigning(TestCase):
 
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
-    # class MockLogger(object):
-    #
-    #     @staticmethod
-    #     def warning(message):
-    #         print('WARNING: {}'.format(message))
-
-    # class MockS3Handler(object):
-    #     temp_dir = ''
-    #
-    #     def __init__(self, bucket_name):
-    #         self.bucket_name = bucket_name
-    #
-    #     @staticmethod
-    #     def download_file(key, local_file):
-    #         shutil.copy(key, local_file)
-    #
-    #     @staticmethod
-    #     def upload_file(path, key):
-    #         out_path = os.path.join(TestSigning.MockS3Handler.temp_dir, key)
-    #         parent_dir = os.path.dirname(out_path)
-    #         if not os.path.isdir(parent_dir):
-    #             os.makedirs(parent_dir)
-    #
-    #         shutil.copy(path, out_path)
-
-    # class MockDynamodbHandler(object):
-    #
-    #     commit_id = ''
-    #
-    #     def __init__(self, table_name):
-    #         self.table_name = table_name
-    #
-    #     # noinspection PyUnusedLocal
-    #     @staticmethod
-    #     def get_item(record_keys):
-    #         return_val = load_json_object(os.path.join(TestSigning.resources_dir, 'dynamodb_record.json'))
-    #         if TestSigning.MockDynamodbHandler.commit_id:
-    #             return_val['commit_id'] = TestSigning.MockDynamodbHandler.commit_id
-    #         return return_val
-    #
-    #     # noinspection PyUnusedLocal
-    #     @staticmethod
-    #     def update_item(record_keys, row):
-    #         return True
-
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp(prefix='signing_tests_')
-        # MockS3Handler.temp_dir = self.temp_dir
         self.s3keys = []
 
     def tearDown(self):
         # clean up local temp files
         if os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-        # clean up temp files on S3
-        if len(self.s3keys) > 0:
-            s3_handler = S3Handler('test-cdn.door43.org')
-            for s3key in self.s3keys:
-                s3_handler.delete_file(s3key)
 
     @staticmethod
     def create_db_item(commit_id=None):
@@ -375,7 +321,7 @@ class TestSigning(TestCase):
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
         signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
+        result = signer.run()
         self.assertFalse(result)
 
     def test_signing_handler_text_missing_file(self):
@@ -402,7 +348,7 @@ class TestSigning(TestCase):
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
         signer = Signing(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
+        result = signer.run()
         self.assertTrue(result)
 
         # test that the expected file was not output
@@ -436,7 +382,7 @@ class TestSigning(TestCase):
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem')
         signer = Signing(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
+        result = signer.run()
 
         self.assertTrue(result)
 
@@ -478,7 +424,7 @@ class TestSigning(TestCase):
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
         signer = Signing(event, MockLogger(), s3_handler, db_handler, private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
+        result = signer.run()
         self.assertTrue(result)
 
         # check that the sig file was found
@@ -531,7 +477,7 @@ class TestSigning(TestCase):
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
         signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
+        result = signer.run()
 
         self.assertTrue(result)
 
@@ -561,6 +507,6 @@ class TestSigning(TestCase):
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
         signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
-        result = signer.handle_s3_trigger()
+        result = signer.run()
 
         self.assertFalse(result)

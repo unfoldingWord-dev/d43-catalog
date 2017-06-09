@@ -20,9 +20,10 @@ setup(
     long_description='Publishing door43-catalog organization.',
     classifiers=[],
     install_requires=[
-        'tx-shared-tools',
+        'tx-manager',
         'requests',
         'pyyaml',
-        'gogs_client'
+        'gogs_client',
+        'usfm_tools'
     ]
 )
