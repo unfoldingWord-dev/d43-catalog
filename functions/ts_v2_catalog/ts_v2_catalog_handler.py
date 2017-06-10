@@ -59,8 +59,11 @@ class TsV2CatalogHandler:
         :return:
         """
         cat_dict = {}
-        supplementary_resources = []
-        sources = {}
+        supplemental_resources = []
+        usx_sources = {}
+        obs_sources = {}
+        note_sources = {}
+        question_sources = {}
 
         # retrieve the latest catalog
         catalog_content = self.get_url(self.catalog_url, True)
@@ -80,49 +83,23 @@ class TsV2CatalogHandler:
                 rid = resource['identifier']
 
                 rc_format = None
-                # locate rc_format (for multi-project RCs)
+
                 if 'formats' in resource:
                     for format in resource['formats']:
-                        if self._get_rc_type(format):
+                        if not rc_format and self._get_rc_type(format):
+                            # locate rc_format (for multi-project RCs)
                             rc_format = format
-                            break
-
-                # cache Zip based on resource, then project
-                # E.g. 1ch is a project of ULB, but ULB is one Zip
-                if 'formats' in resource:
-                    for format in resource['formats']:
-                        format_str = format['format']
-                        if 'application/zip' in format_str and 'usfm' in format_str:
-                            temp_zip = os.path.join(self.temp_dir, format['url'].split('/')[-1])
-                            bundle_name = lid + '_' + rid
-                            self.download_file(format['url'], temp_zip)
-
-                            if not os.path.exists(temp_zip):
-                                print('ERROR: could not download file {}'.format(format['url']))
-                                continue
-
-                            unzip(temp_zip, self.temp_dir)
-                            bundle = os.path.join(self.temp_dir, bundle_name)
-
-                            try:
-                                manifest = yaml.load(read_file(os.path.join(bundle, 'manifest.yaml')))
-                            except:
-                                continue
-
-                            usx = os.path.join(bundle, 'usx')
-                            UsfmTransform.buildUSX(bundle, usx, '', True)
-                            for project in manifest['projects']:
-                                pid = project['identifier']
-                                key = '$'.join([pid, lid, rid])
-                                sources[key] = os.path.normpath(os.path.join(usx, '{}.usx'.format(pid.upper())))
+                        usx_sources.update(self._index_usx_files(lid, rid, format))
+                        note_sources.update(self._index_note_files(lid, rid, format))
+                        question_sources.update(self._index_question_files(lid, rid, format))
 
                 for project in resource['projects']:
-                    # locate rc_format (for single-project RCs)
                     if 'formats' in project:
                         for format in project['formats']:
-                            if self._get_rc_type(format):
+                            if not rc_format and self._get_rc_type(format):
+                                # locate rc_format (for single-project RCs)
                                 rc_format = format
-                                break
+                            obs_sources.update(self._index_obs_files(lid, rid, format))
 
                     if not rc_format:
                         raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
@@ -139,7 +116,7 @@ class TsV2CatalogHandler:
                         self._build_catalog_node(cat_dict, language, resource, project, modified)
                     else:
                         # store supplementary resources for processing after catalog nodes have been fully built
-                        supplementary_resources.append({
+                        supplemental_resources.append({
                             'language': language,
                             'resource': resource,
                             'project': project,
@@ -148,7 +125,7 @@ class TsV2CatalogHandler:
                         })
 
         # inject supplementary resources
-        for s in supplementary_resources:
+        for s in supplemental_resources:
             self._add_supplement(cat_dict, s['language'], s['resource'], s['project'], s['modified'], s['rc_type'])
 
         # normalize catalog nodes
@@ -163,13 +140,27 @@ class TsV2CatalogHandler:
                 for rid in language['_res']:
                     resource = language['_res'][rid]
                     source_key = '$'.join([pid, lid, rid])
-                    # Get USX
-                    if source_key in sources:
-                        source_path = sources[source_key]
-                        source = self._convert_usfm_to_usx(source_path, resource['date_modified'])
+
+                    # TODO: convert and cache notes, questions, tw.
+
+                    # convert obs source files
+                    if rid == 'obs' and source_key in obs_sources:
+                        source_path = obs_sources[source_key]
+                        source = self._generate_obs_source_from_markdown(source_path, resource['date_modified'])
+                        # TODO: include app_words and language info
+                        api_uploads.append(
+                            self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source))
+                        del obs_sources[source_key]
+
+                    # convert usx source files
+                    if source_key in usx_sources:
+                        source_path = usx_sources[source_key]
+                        source = self._generate_source_from_usx(source_path, resource['date_modified'])
+                        # TODO: include app_words and language info
                         api_uploads.append(self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
+                        # TODO: we should probably pull the chunks from the v3 api
                         api_uploads.append(self._prep_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
-                        del sources[source_key]
+                        del usx_sources[source_key]
                     res_cat.append(resource)
                 api_uploads.append(self._prep_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
@@ -184,6 +175,69 @@ class TsV2CatalogHandler:
         # upload files
         for upload in api_uploads:
             self.cdn_handler.upload_file(upload['path'], 'v2/ts/{}'.format(upload['key']))
+
+    def _index_note_files(self, lid, rid, format):
+        # TODO: finish this
+        return {}
+
+    def _index_question_files(self, lid, rid, format):
+        # TODO: finish this
+        return {}
+
+
+    def _index_obs_files(self, lid, rid, format):
+        # TODO: finish this
+        return {}
+
+    def _generate_obs_source_from_markdown(self, path, date_modified):
+        # TODO: finish this
+        return {
+            'chapters': [],
+            'modified': ''
+        }
+
+    def _index_usx_files(self, lid, rid, format):
+        """
+        Converts a USFM bundle into USX files and returns an array of usx file paths
+        :param lid:
+        :param rid:
+        :param format:
+        :return:
+        """
+        usx_sources = {}
+
+        format_str = format['format']
+        if 'application/zip' in format_str and 'usfm' in format_str:
+            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
+            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
+            self.download_file(format['url'], zip_file)
+
+            if not os.path.exists(zip_file):
+                print('ERROR: could not download file {}'.format(format['url']))
+                return usx_sources
+
+            unzip(zip_file, zip_dir)
+            usfm_bundle_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
+
+            try:
+                manifest = yaml.load(read_file(os.path.join(usfm_bundle_dir, 'manifest.yaml')))
+            except Exception as e:
+                print('ERROR: could not read manifest in {}'.format(format['url']))
+                return usx_sources
+
+            # ensure the manifest matches
+            dc = manifest['dublin_core']
+            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
+                return usx_sources
+
+            usx_path = os.path.join(usfm_bundle_dir, 'usx')
+            UsfmTransform.buildUSX(usfm_bundle_dir, usx_path, '', True)
+            for project in manifest['projects']:
+                pid = project['identifier']
+                key = '$'.join([pid, lid, rid])
+                usx_sources[key] = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
+
+        return usx_sources
 
     def _prep_upload(self, key, data):
         """
@@ -405,7 +459,7 @@ class TsV2CatalogHandler:
         dict_name = "dictionary" if dict_name is None else dict_name
         raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
-    def _parse_usfm(self, usx):
+    def _usx_to_json(self, usx):
         """
         Iterates through the source and splits it into frames based on the
         s5 markers.
@@ -498,7 +552,7 @@ class TsV2CatalogHandler:
         chapters.append(chp)
         return chapters
 
-    def _get_chunks(self, book):
+    def _read_chunks(self, book):
         chunks = []
         verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
         for c in book:
@@ -509,13 +563,13 @@ class TsV2CatalogHandler:
                                })
         return chunks
 
-    def _convert_usfm_to_usx(self, path, date_modified):
+    def _generate_source_from_usx(self, path, date_modified):
         # use utf-8-sig to remove the byte order mark
         with codecs.open(path, 'r', encoding='utf-8-sig') as in_file:
             usx = in_file.readlines()
 
-        book = self._parse_usfm(usx)
-        chunks = self._get_chunks(book)
+        book = self._usx_to_json(usx)
+        chunks = self._read_chunks(book)
 
         return {
             'source': {
