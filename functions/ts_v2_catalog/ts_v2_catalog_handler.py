@@ -145,11 +145,8 @@ class TsV2CatalogHandler:
 
                     # convert obs source files
                     if rid == 'obs' and source_key in obs_sources:
-                        source_path = obs_sources[source_key]
-                        source = self._generate_obs_source_from_markdown(source_path, resource['date_modified'])
-                        # TODO: include app_words and language info
                         api_uploads.append(
-                            self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source))
+                            self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), obs_sources[source_key]))
                         del obs_sources[source_key]
 
                     # convert usx source files
@@ -186,15 +183,120 @@ class TsV2CatalogHandler:
 
 
     def _index_obs_files(self, lid, rid, format):
-        # TODO: finish this
-        return {}
+        """
+        Returns an array of markdown files found in a OBS book.
+        This should contain a single file per chapter
+        :param lid:
+        :param rid:
+        :param format:
+        :return:
+        """
+        obs_sources = {}
+        format_str = format['format']
+        if rid == 'obs' and 'type=book' in format_str:
+            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
+            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
+            self.download_file(format['url'], zip_file)
 
-    def _generate_obs_source_from_markdown(self, path, date_modified):
-        # TODO: finish this
-        return {
-            'chapters': [],
-            'modified': ''
-        }
+            if not os.path.exists(zip_file):
+                print('ERROR: could not download file {}'.format(format['url']))
+                return obs_sources
+
+            unzip(zip_file, zip_dir)
+            book_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
+
+            try:
+                manifest = yaml.load(read_file(os.path.join(book_dir, 'manifest.yaml')))
+            except Exception as e:
+                print('ERROR: could not read manifest in {}'.format(format['url']))
+                return obs_sources
+
+            # ensure the manifest matches
+            dc = manifest['dublin_core']
+            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
+                return obs_sources
+
+            for project in manifest['projects']:
+                pid = project['identifier']
+                content_dir = os.path.join(book_dir, project['path'])
+                key = '$'.join([pid, lid, rid])
+                chapters_json = self._obs_chapters_to_json(os.path.normpath(content_dir))
+
+                # app words
+                app_words = {}
+                app_words_file = os.path.join(book_dir, '.apps', 'uw', 'app_words.json')
+                if os.path.exists(app_words_file):
+                    try:
+                        app_words = json.loads(read_file(app_words_file))
+                    except Exception as e:
+                        print('ERROR: failed to load app words: {}'.format(e))
+
+                obs_sources[key] = {
+                    'app_words': app_words,
+                    'chapters': chapters_json,
+                    'date_modified': dc['modified'].replace('-', ''),
+                    'direction': dc['language']['direction'],
+                    'language': dc['language']['identifier']
+                }
+
+        return obs_sources
+
+    def _obs_chapters_to_json(self, dir):
+        """
+
+        :param dir: the obs book content directory
+        :param date_modified:
+        :return:
+        """
+        obs_title_re = re.compile('^\s*#+\s*(.*)', re.UNICODE)
+        obs_footer_re = re.compile('\_+([^\_]*)\_+$', re.UNICODE)
+        obs_image_re = re.compile('.*!\[OBS Image\]\(.*\).*', re.IGNORECASE | re.UNICODE)
+        chapters = []
+        for chapter_file in os.listdir(dir):
+            chapter_slug = chapter_file.split('.md')[0]
+            path = os.path.join(dir, chapter_file)
+            if os.path.isfile(path):
+                chapter_file = os.path.join(dir, path)
+                chapter_str = read_file(chapter_file).strip()
+
+                title_match = obs_title_re.match(chapter_str)
+                if title_match:
+                    title = title_match.group(1)
+                else:
+                    print('ERROR: missing title in {}'.format(chapter_file))
+                    continue
+                chapter_str = obs_title_re.sub('', chapter_str).strip()
+                lines = chapter_str.split('\n')
+                reference_match = obs_footer_re.match(lines[-1])
+                if reference_match:
+                    reference = reference_match.group(1)
+                else:
+                    print('ERROR: missing reference in {}'.format(chapter_file))
+                    continue
+                chapter_str = '\n'.join(lines[0:-1]).strip()
+                chunks = obs_image_re.split(chapter_str)
+
+                frames = []
+                chunk_index = 0
+                for chunk in chunks:
+                    chunk = chunk.strip()
+                    if not chunk:
+                        continue
+                    chunk_index += 1
+                    id = '{}-{}'.format(chapter_slug, '{}'.format(chunk_index).zfill(2))
+                    frames.append({
+                        'id': id,
+                        'img': 'https://cdn.door43.org/obs/jpg/360px/obs-en-{}.jpg'.format(id),
+                        'text': chunk
+                    })
+                chapters.append({
+                    'frames': frames,
+                    'number': chapter_slug,
+                    'ref': reference,
+                    'title': title
+                })
+
+        return chapters
 
     def _index_usx_files(self, lid, rid, format):
         """

@@ -117,7 +117,8 @@ class TestTsV2Catalog(TestCase):
         urls = {
             'https://test-cdn.door43.org/en/ulb/v7/ulb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip"),
             'https://test-cdn.door43.org/en/udb/v7/udb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip"),
-            'https://api.door43.org/v3/catalog.json': os.path.join(TestTsV2Catalog.resources_dir, "v3_catalog.json")
+            'https://api.door43.org/v3/catalog.json': os.path.join(TestTsV2Catalog.resources_dir, "v3_catalog.json"),
+            'https://test-cdn.door43.org/en/obs/v4/obs.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_obs.zip")
         }
         mockDb = MockDynamodbHandler()
         mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
@@ -129,7 +130,7 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/catalog.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/languages.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/resources.json')
-        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/source.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/source.json')
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/notes.json')
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/questions.json')
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/tw_cat.json')
