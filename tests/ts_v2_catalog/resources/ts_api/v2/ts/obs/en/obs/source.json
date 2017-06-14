@@ -1,0 +1,173 @@
+{
+  "app_words": {
+    "cancel": "Cancel",
+    "chapters": "Chapters",
+    "languages": "Languages",
+    "next_chapter": "Next Chapter",
+    "ok": "OK",
+    "remove_locally": "Remove Locally",
+    "remove_this_string": "Remove this language from offline storage. You will need an internet connection to view it in the future.",
+    "save_locally": "Save Locally",
+    "save_this_string": "Save this language locally for offline use.",
+    "select_a_language": "Select a Language"
+  },
+  "chapters": [
+    {
+      "frames": [
+        {
+          "id": "01-01",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-01.jpg",
+          "text": "This is how the beginning of everything happened. God created the universe and everything in it in six days. After God created the earth it was dark and empty, and nothing had been formed in it. But God's Spirit was there over the water."
+        },
+        {
+          "id": "01-02",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-02.jpg",
+          "text": "Then God said, \"Let there be light!\" And there was light. God saw that the light was good and called it \"day.\" He separated it from the darkness, which he called \"night.\" God created the light on the first day of creation."
+        },
+        {
+          "id": "01-03",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-03.jpg",
+          "text": "On the second day of creation, God spoke and created the sky above the earth. He made the sky by separating the water above from the water below."
+        },
+        {
+          "id": "01-04",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-04.jpg",
+          "text": "On the third day, God spoke and separated the water from the dry land. He called the dry land \"earth,\" and he called the water \"seas.\" God saw that what he had created was good."
+        },
+        {
+          "id": "01-05",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-05.jpg",
+          "text": "Then God said, \"Let the earth produce all kinds of trees and plants.\" And that is what happened. God saw that what he had created was good."
+        },
+        {
+          "id": "01-06",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-06.jpg",
+          "text": "On the fourth day of creation, God spoke and made the sun, the moon, and the stars. God made them to give light to the earth and to mark day and night, seasons and years. God saw that what he had created was good."
+        },
+        {
+          "id": "01-07",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-07.jpg",
+          "text": "On the fifth day, God spoke and made everything that swims in the water and all the birds. God saw that it was good, and he blessed them."
+        },
+        {
+          "id": "01-08",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-08.jpg",
+          "text": "On the sixth day of creation, God said, \"Let there be all kinds of land animals!\" And it happened just like God said. Some were farm animals, some crawled on the ground, and some were wild. And God saw that it was good."
+        },
+        {
+          "id": "01-09",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-09.jpg",
+          "text": "Then God said, \"Let us make human beings in our image to be like us. They will have authority over the earth and all the animals.\""
+        },
+        {
+          "id": "01-10",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-10.jpg",
+          "text": "So God took some dirt, formed it into a man, and breathed life into him. This man's name was Adam. God planted a garden where Adam could live, and put him there to care for it."
+        },
+        {
+          "id": "01-11",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-11.jpg",
+          "text": "In the middle of the garden, God planted two special trees—the tree of life and the tree of the knowledge of good and evil. God told Adam that he could eat from any tree in the garden except from the tree of the knowledge of good and evil. If he ate from this tree, he would die."
+        },
+        {
+          "id": "01-12",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-12.jpg",
+          "text": "Then God said, \"It is not good for man to be alone.\" But none of the animals could be Adam's helper."
+        },
+        {
+          "id": "01-13",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-13.jpg",
+          "text": "So God made Adam fall into a deep sleep. Then God took one of Adam's ribs and made it into a woman and brought her to him."
+        },
+        {
+          "id": "01-14",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-14.jpg",
+          "text": "When Adam saw her, he said, \"At last! This one is like me! Let her be called 'Woman,' for she was made from Man.\" This is why a man leaves his father and mother and becomes one with his wife."
+        },
+        {
+          "id": "01-15",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-15.jpg",
+          "text": "God made man and woman in his own image. He blessed them and told them, \"Have many children and grandchildren and fill the earth!\" And God saw that everything he had made was very good, and he was very pleased with all of it. This all happened on the sixth day of creation."
+        },
+        {
+          "id": "01-16",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-01-16.jpg",
+          "text": "When the seventh day came, God had finished his work. So God rested from all he had been doing. He blessed the seventh day and made it holy, because on this day he rested from his work. This is how God created the universe and everything in it."
+        }
+      ],
+      "number": "01",
+      "ref": "A Bible story from: Genesis 1-2",
+      "title": "1. The Creation"
+    },
+    {
+      "frames": [
+        {
+          "id": "02-01",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-01.jpg",
+          "text": "Adam and his wife were very happy living in the beautiful garden God had made for them. Neither of them wore clothes, but this did not cause them to feel any shame, because there was no sin in the world. They often walked in the garden and talked with God."
+        },
+        {
+          "id": "02-02",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-02.jpg",
+          "text": "But there was a crafty snake in the garden. He asked the woman, \"Did God really tell you not to eat the fruit from any of the trees in the garden?\""
+        },
+        {
+          "id": "02-03",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-03.jpg",
+          "text": "The woman answered, \"God told us we could eat the fruit of any tree except from the tree of the knowledge of good and evil. God told us, 'If you eat that fruit or even touch it, you will die.'\""
+        },
+        {
+          "id": "02-04",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-04.jpg",
+          "text": "The snake responded to the woman, \"That is not true! You will not die. God just knows that as soon as you eat it, you will be like God and will understand good and evil like he does.\""
+        },
+        {
+          "id": "02-05",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-05.jpg",
+          "text": "The woman saw that the fruit was beautiful and looked delicious. She also wanted to be wise, so she picked some of the fruit and ate it. Then she gave some to her husband, who was with her, and he ate it, too."
+        },
+        {
+          "id": "02-06",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-06.jpg",
+          "text": "Suddenly, their eyes were opened, and they realized they were naked. They tried to cover their bodies by sewing leaves together to make clothes."
+        },
+        {
+          "id": "02-07",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-07.jpg",
+          "text": "Then the man and his wife heard the sound of God walking through the garden. They both hid from God. Then God called to the man, \"Where are you?\" Adam replied, \"I heard you walking in the garden, and I was afraid, because I was naked. So I hid.\""
+        },
+        {
+          "id": "02-08",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-08.jpg",
+          "text": "Then God asked, \"Who told you that you were naked? Did you eat the fruit I told you not to eat?\" The man answered, \"You gave me this woman, and she gave me the fruit.\" Then God asked the woman, \"What have you done?\" The woman replied, \"The snake tricked me.\""
+        },
+        {
+          "id": "02-09",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-09.jpg",
+          "text": "God said to the snake, \"You are cursed! You will slide on your belly and eat dirt. You and the woman will hate each other, and your children and her children will hate each other, too. The woman's descendant will crush your head, and you will wound his heel.\""
+        },
+        {
+          "id": "02-10",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-10.jpg",
+          "text": "God then said to the woman, \"I will make childbirth very painful for you. You will desire your husband, and he will rule over you.\""
+        },
+        {
+          "id": "02-11",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-11.jpg",
+          "text": "God said to the man, \"You listened to your wife and disobeyed me. Now the ground is cursed, and you will need to work hard to grow food. Then you will die, and your body will return to dirt.\" The man named his wife Eve, which means \"life-giver,\" because she would become the mother of all people. And God clothed Adam and Eve with animal skins."
+        },
+        {
+          "id": "02-12",
+          "img": "https://cdn.door43.org/obs/jpg/360px/obs-en-02-12.jpg",
+          "text": "Then God said, \"Now that the human beings have become like us by knowing good and evil, they must not be allowed to eat the fruit of the tree of life and live forever.\" So God sent Adam and Eve away from the beautiful garden. God placed powerful angels at the entrance to the garden to keep anyone from eating the fruit of the tree of life."
+        }
+      ],
+      "number": "02",
+      "ref": "A Bible story from: Genesis 3",
+      "title": "2. Sin Enters the World"
+    }
+  ],
+  "date_modified": "20170110",
+  "direction": "ltr",
+  "language": "en"
+}
