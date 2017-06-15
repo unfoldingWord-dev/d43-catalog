@@ -13,6 +13,7 @@ import re
 import tempfile
 import time
 import zipfile
+import markdown
 from aws_tools.s3_handler import S3Handler
 from aws_tools.dynamodb_handler import DynamoDBHandler
 from usfm_tools.transform import UsfmTransform
@@ -64,6 +65,7 @@ class TsV2CatalogHandler:
         obs_sources = {}
         note_sources = {}
         question_sources = {}
+        tw_sources = {}
 
         # retrieve the latest catalog
         catalog_content = self.get_url(self.catalog_url, True)
@@ -100,6 +102,8 @@ class TsV2CatalogHandler:
                                 # locate rc_format (for single-project RCs)
                                 rc_format = format
                             obs_sources.update(self._index_obs_files(lid, rid, format))
+                            if lid not in tw_sources:
+                                tw_sources.update(self._index_words_files(lid, rid, format))
 
                     if not rc_format:
                         raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
@@ -128,8 +132,13 @@ class TsV2CatalogHandler:
         for s in supplemental_resources:
             self._add_supplement(cat_dict, s['language'], s['resource'], s['project'], s['modified'], s['rc_type'])
 
-        # normalize catalog nodes
         api_uploads = []
+
+        # upload tw
+        for key in tw_sources:
+            api_uploads.append(self._prep_upload('bible/{}/words.json'.format(key), tw_sources[key]))
+
+        # normalize catalog nodes
         root_cat = []
         for pid in cat_dict:
             project = cat_dict[pid]
@@ -142,6 +151,8 @@ class TsV2CatalogHandler:
                     source_key = '$'.join([pid, lid, rid])
 
                     # TODO: convert and cache notes, questions, tw.
+                    if lid not in tw_sources:
+                        resource['terms'] = ''
 
                     # convert obs source files
                     if rid == 'obs' and source_key in obs_sources:
@@ -181,6 +192,92 @@ class TsV2CatalogHandler:
         # TODO: finish this
         return {}
 
+
+    def _index_words_files(self, lid, rid, format):
+        """
+        Returns an array of markdown files found in a tW dictionary
+        :param lid:
+        :param rid:
+        :param format:
+        :return:
+        """
+        word_title_re = re.compile('^#([^#]*)#?', re.UNICODE)
+        h2_re = re.compile('^##([^#]*)#*')
+
+        words = []
+        format_str = format['format']
+        if rid == 'tw' and 'type=dict' in format_str:
+            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
+            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
+            self.download_file(format['url'], zip_file)
+
+            if not os.path.exists(zip_file):
+                print('ERROR: could not download file {}'.format(format['url']))
+                return {}
+
+            unzip(zip_file, zip_dir)
+            dict_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
+
+            try:
+                manifest = yaml.load(read_file(os.path.join(dict_dir, 'manifest.yaml')))
+            except Exception as e:
+                print('ERROR: could not read manifest in {}'.format(format['url']))
+                return {}
+
+            # ensure the manifest matches
+            dc = manifest['dublin_core']
+            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
+                return {}
+
+            # TRICKY: there should only be one project
+            for project in manifest['projects']:
+                pid = project['identifier']
+                content_dir = os.path.join(dict_dir, project['path'])
+                categories = os.listdir(content_dir)
+                for cat in categories:
+                    cat_dir = os.path.join(content_dir, cat)
+                    word_files = os.listdir(cat_dir)
+                    for word in word_files:
+                        word_path = os.path.join(cat_dir, word)
+                        word_id = word.split('.md')[0]
+                        word_content = read_file(word_path)
+
+                        # TRICKY: the title is always at the top
+                        title_match = word_title_re.match(word_content)
+                        if title_match:
+                            title = title_match.group(1)
+                        else:
+                            print('ERROR: missing title in {}'.format(word_path))
+                            continue
+                        word_content = word_title_re.sub('', word_content).strip()
+
+                        # TRICKY: the definition title is always after the title
+                        def_title = ''
+                        def_title_match = h2_re.match(word_content)
+                        if def_title_match:
+                            def_title = def_title_match.group(1).strip()
+                            word_content = h2_re.sub('', word_content).strip()
+                        else:
+                            print('ERROR: missing definition title in {}'.format(word_path))
+
+                        words.append({
+                            'aliases': [a.strip() for a in title.split(',')],
+                            'cf': [], # see also ids. search for tw links
+                            'def': markdown.markdown(word_content),
+                            'def_title': def_title,
+                            'ex':[], # examples. .. search for obs links
+                            'id': word_id,
+                            'sub': '',
+                            'term': title
+                        })
+
+            words.append({
+                'date_modified': dc['modified'].replace('-', '')
+            })
+            return {
+                lid: words
+            }
+        return {}
 
     def _index_obs_files(self, lid, rid, format):
         """
