@@ -22,6 +22,7 @@ setup(
     install_requires=[
         'tx-manager',
         'requests',
+        'markdown'
         'pyyaml',
         'gogs_client',
         'usfm_tools'
