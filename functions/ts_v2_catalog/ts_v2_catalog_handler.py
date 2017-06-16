@@ -202,7 +202,9 @@ class TsV2CatalogHandler:
         :return:
         """
         word_title_re = re.compile('^#([^#]*)#?', re.UNICODE)
-        h2_re = re.compile('^##([^#]*)#*')
+        h2_re = re.compile('^##([^#]*)#*', re.UNICODE)
+        obs_example_re = re.compile('\_*\[([^\[\]]+)\]\(([^\(\)]+)\)_*(.*)', re.UNICODE | re.IGNORECASE)
+        block_re = re.compile('^##', re.MULTILINE | re.UNICODE)
 
         words = []
         format_str = format['format']
@@ -260,15 +262,33 @@ class TsV2CatalogHandler:
                         else:
                             print('ERROR: missing definition title in {}'.format(word_path))
 
+                        # find obs examples
+                        blocks = block_re.split(word_content)
+                        cleaned_blocks = []
+                        examples = []
+                        for block in blocks:
+                            if 'examples from the bible stories' in block.lower():
+                                for link in obs_example_re.findall(block):
+                                    if 'obs' not in link[1]:
+                                        print('ERROR: non-obs link found in passage examples: {}'.format(link[1]))
+                                    else:
+                                        examples.append({
+                                            'ref': link[0].replace(':', '-'),
+                                            'text': markdown.markdown(link[2].strip())
+                                        })
+                            else:
+                                cleaned_blocks.append(block)
+                        word_content = '##'.join(cleaned_blocks)
+
                         words.append({
-                            'aliases': [a.strip() for a in title.split(',')],
+                            'aliases': [a.strip() for a in title.split(',') if a.strip() != word_id and a.strip() != title.strip()],
                             'cf': [], # see also ids. search for tw links
                             'def': markdown.markdown(word_content),
                             'def_title': def_title,
-                            'ex':[], # examples. .. search for obs links
+                            'ex': examples,
                             'id': word_id,
                             'sub': '',
-                            'term': title
+                            'term': title.strip()
                         })
 
             words.append({
