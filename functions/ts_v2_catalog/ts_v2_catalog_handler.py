@@ -34,17 +34,13 @@ class TsV2CatalogHandler:
         """
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.catalog_url = self.retrieve(env_vars, 'catalog_url', 'Environment Vars')
-        self.api_bucket = self.retrieve(env_vars, 'api_bucket', 'Environment Vars')
-        self.api_url = self.retrieve(env_vars, 'api_url', 'Environment Vars')
+        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         if not s3_handler:
-            self.cdn_handler = S3Handler(self.api_bucket)
+            self.cdn_handler = S3Handler(self.cdn_bucket)
         else:
             self.cdn_handler = s3_handler
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
-        if not dynamodb_handler:
-            self.production_table = DynamoDBHandler('d43-catalog-production')
-        else:
-            self.production_table = dynamodb_handler
         if not url_handler:
             self.get_url = get_url
         else:
@@ -274,7 +270,7 @@ class TsV2CatalogHandler:
                                     else:
                                         examples.append({
                                             'ref': link[0].replace(':', '-'),
-                                            'text': markdown.markdown(link[2].strip())
+                                            'text': markdown.markdown(link[2].strip()) # TODO: we may need to preserve links in markdown format
                                         })
                             else:
                                 cleaned_blocks.append(block)
@@ -282,8 +278,8 @@ class TsV2CatalogHandler:
 
                         words.append({
                             'aliases': [a.strip() for a in title.split(',') if a.strip() != word_id and a.strip() != title.strip()],
-                            'cf': [], # see also ids. search for tw links
-                            'def': markdown.markdown(word_content),
+                            'cf': [], # TODO: add see also ids. search for tw links
+                            'def': markdown.markdown(word_content), # TODO: we may need to preserve links in markdown format
                             'def_title': def_title,
                             'ex': examples,
                             'id': word_id,
@@ -622,7 +618,7 @@ class TsV2CatalogHandler:
                 'meta': project['categories'],
                 'name': project['title']
             },
-            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.api_url, pid, lid, l_modified)
+            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, pid, lid, l_modified)
         }
         if 'ulb' == rid or 'udb' == rid:
             cat_lang['project']['sort'] = '{}'.format(project['sort'])
@@ -632,7 +628,7 @@ class TsV2CatalogHandler:
         p_modified = self._max_modified(catalog[pid], l_modified)
         catalog[pid].update({
             'date_modified': p_modified,
-            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.api_url, pid, p_modified),
+            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.cdn_url, pid, p_modified),
             'meta': project['categories'],
             'slug': pid,
             'sort': '{}'.format(project['sort']).zfill(2)
