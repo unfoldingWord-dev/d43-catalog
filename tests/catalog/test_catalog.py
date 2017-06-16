@@ -105,6 +105,7 @@ class TestCatalog(TestCase):
 
         event = {
             'Records': [],
+            'api_url': 'my-api',
             'api_bucket': 'my-bucket',
             'to_email': 'me@example.com',
             'from_email': 'me@example.com',
