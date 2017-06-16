@@ -34,7 +34,7 @@ class CatalogHandler:
         self.cdn_url = self.retrieve(event, 'cdn_url')
         self.cdn_bucket = self.retrieve(event, 'cdn_bucket')
         self.api_bucket = self.retrieve(event, 'api_bucket')
-        self.api_url = self.retrieve(event, 'api_url')
+        # self.api_url = self.retrieve(event, 'api_url')
         self.to_email = self.retrieve(event, 'to_email')
         self.from_email = self.retrieve(event, 'from_email')
 
@@ -154,8 +154,8 @@ class CatalogHandler:
                     client = boto3.client("lambda")
                     payload = {
                         "stage-variables": {
-                            "api_url": self.cdn_url,
-                            "api_bucket": self.cdn_bucket,
+                            "cdn_url": self.cdn_url,
+                            "cdn_bucket": self.cdn_bucket,
                             "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
                         }
                     }

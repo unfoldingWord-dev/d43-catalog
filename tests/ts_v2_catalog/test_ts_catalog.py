@@ -84,8 +84,8 @@ class TestTsV2Catalog(TestCase):
     def make_event(self):
         return {
             'stage-variables': {
-                'api_bucket': '',
-                'api_url': 'https://api.unfoldingword.org/ts/txt/2',
+                'cdn_bucket': '',
+                'cdn_url': 'https://api.unfoldingword.org/ts/txt/2',
                 'catalog_url': 'https://api.door43.org/v3/catalog.json'
             }
         }
