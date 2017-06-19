@@ -20,7 +20,6 @@ setup(
     long_description='Publishing door43-catalog organization.',
     classifiers=[],
     install_requires=[
-        'tx-manager',
         'requests',
         'markdown'
         'pyyaml',

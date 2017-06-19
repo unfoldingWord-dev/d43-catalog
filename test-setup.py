@@ -12,7 +12,6 @@ setup(
     long_description='Unit test setup file',
     classifiers=[],
     install_requires=[
-        'tx-shared-tools',
         'requests'
     ],
     test_suite='tests'
