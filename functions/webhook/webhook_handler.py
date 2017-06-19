@@ -18,8 +18,7 @@ from glob import glob
 from stat import *
 from general_tools.url_utils import get_url, download_file
 from general_tools.file_utils import unzip, read_file, get_mime_type, load_json_object
-from aws_tools.dynamodb_handler import DynamoDBHandler
-from aws_tools.s3_handler import S3Handler
+from d43_aws_tools import DynamoDBHandler, S3Handler
 from tools.consistency_checker import ConsistencyChecker
 from general_tools.file_utils import write_file
 

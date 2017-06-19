@@ -4,8 +4,8 @@ import shutil
 import tempfile
 import copy
 from unittest import TestCase
-from aws_tools.s3_handler import S3Handler
-from general_tools.file_utils import load_json_object
+from d43_aws_tools import S3Handler
+from tools.file_utils import load_json_object
 from tools.consistency_checker import ConsistencyChecker
 
 from functions.catalog.catalog_handler import CatalogHandler

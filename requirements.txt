@@ -1,6 +1,6 @@
-tx-manager
 requests
 pyyaml
 markdown
 gogs_client==1.0.5
 git+git://github.com/unfoldingWord-dev/USFM-Tools.git#egg=usfm_tools
+git+git://github.com/unfoldingWord-dev/python-aws-tools.git#egg=d43_aws_tools
