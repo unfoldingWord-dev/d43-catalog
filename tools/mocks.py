@@ -1,4 +1,4 @@
-from general_tools.file_utils import load_json_object
+from tools.file_utils import load_json_object
 import shutil
 import tempfile
 import os

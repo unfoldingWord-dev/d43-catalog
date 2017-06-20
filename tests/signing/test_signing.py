@@ -8,7 +8,7 @@ import unittest
 import uuid
 from unittest import TestCase
 from datetime import datetime
-from general_tools.file_utils import load_json_object
+from tools.file_utils import load_json_object
 from functions.signing.aws_decrypt import decrypt_file
 from functions.signing.signing import Signing
 from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger

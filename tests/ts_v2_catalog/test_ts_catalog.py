@@ -2,7 +2,7 @@ import os
 import codecs
 import json
 import shutil
-from general_tools.file_utils import load_json_object
+from tools.file_utils import load_json_object
 from unittest import TestCase
 from tools.mocks import MockS3Handler, MockDynamodbHandler
 
