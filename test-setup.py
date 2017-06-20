@@ -12,7 +12,13 @@ setup(
     long_description='Unit test setup file',
     classifiers=[],
     install_requires=[
-        'requests'
+        'coveralls==1.1',
+        'requests==2.13.0',
+        'markdown==2.6.8'
+        'pyyaml==3.12',
+        'gogs_client==1.0.5',
+        'usfm-tools==0.0.12',
+        'd43_aws_tools==0.0.2'
     ],
     test_suite='tests'
 )
