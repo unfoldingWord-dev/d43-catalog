@@ -7,12 +7,11 @@ import shlex
 import shutil
 import tempfile
 import time
-from aws_tools.s3_handler import S3Handler
-from aws_tools.dynamodb_handler import DynamoDBHandler
+from d43_aws_tools import S3Handler, DynamoDBHandler
 from aws_decrypt import decrypt_file
 from base64 import b64decode
-from general_tools.file_utils import write_file
-from general_tools.url_utils import download_file
+from tools.file_utils import write_file
+from tools.url_utils import download_file
 from subprocess import Popen, PIPE
 
 

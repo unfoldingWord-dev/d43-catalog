@@ -23,7 +23,8 @@ setup(
         'requests',
         'markdown'
         'pyyaml',
-        'gogs_client',
-        'usfm_tools'
+        'gogs_client==1.0.5',
+        'usfm_tools',
+        'd43_aws_tools==0.0.2'
     ]
 )

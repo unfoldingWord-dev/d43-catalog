@@ -1,6 +1,7 @@
-requests
-pyyaml
-markdown
+coveralls==1.1
+requests==2.13.0
+pyyaml==3.12
+markdown==2.6.8
 gogs_client==1.0.5
-git+git://github.com/unfoldingWord-dev/USFM-Tools.git#egg=usfm_tools
-git+git://github.com/unfoldingWord-dev/python-aws-tools.git#egg=d43_aws_tools
+d43_aws_tools==0.0.2
+usfm-tools==0.0.12

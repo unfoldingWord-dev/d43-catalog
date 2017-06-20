@@ -1,6 +1,6 @@
 import os
 import json
-from general_tools.file_utils import load_json_object
+from tools.file_utils import load_json_object
 from unittest import TestCase
 
 from functions.uw_v2_catalog.uw_v2_catalog_handler import UwV2CatalogHandler

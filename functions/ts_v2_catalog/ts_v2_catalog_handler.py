@@ -14,13 +14,11 @@ import tempfile
 import time
 import zipfile
 import markdown
-from aws_tools.s3_handler import S3Handler
-from aws_tools.dynamodb_handler import DynamoDBHandler
+from d43_aws_tools import S3Handler, DynamoDBHandler
 from usfm_tools.transform import UsfmTransform
-from general_tools.file_utils import write_file, read_file, unzip
-from general_tools.url_utils import download_file
+from tools.file_utils import write_file, read_file, unzip
+from tools.url_utils import download_file, get_url
 import dateutil.parser
-from general_tools.url_utils import get_url
 
 class TsV2CatalogHandler:
 
