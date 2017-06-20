@@ -2,6 +2,7 @@ from setuptools import setup
 
 setup(
     name='d43-catalog',
+    version='0.0.1',
     package_dir={'acceptance-test': 'functions/acceptance',
                  'catalog': 'functions/catalog',
                  'uw-v2-catalog': 'functions/uw_v2_catalog',
@@ -10,7 +11,6 @@ setup(
                  'webhook': 'functions/webhook',
                  'fork': 'functions/fork'},
     packages=['acceptance-test', 'catalog', 'uw-v2-catalog', 'ts-v2-catalog', 'signing', 'webhook', 'fork'],
-    version='0.0.1',
     author='unfoldingWord',
     author_email='unfoldingword.org',
     description='Publishing door43-catalog organization.',
@@ -20,11 +20,11 @@ setup(
     long_description='Publishing door43-catalog organization.',
     classifiers=[],
     install_requires=[
-        'requests',
-        'markdown'
-        'pyyaml',
+        'requests==2.13.0',
+        'markdown==2.6.8'
+        'pyyaml==3.12',
         'gogs_client==1.0.5',
-        'usfm_tools',
+        'usfm-tools==0.0.12',
         'd43_aws_tools==0.0.2'
     ]
 )
