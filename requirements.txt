@@ -3,5 +3,5 @@ requests==2.13.0
 pyyaml==3.12
 markdown==2.6.8
 gogs_client==1.0.5
-d43_aws_tools==0.0.2
+d43_aws_tools==1.0.1
 usfm-tools==0.0.12
