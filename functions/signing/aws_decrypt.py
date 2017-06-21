@@ -8,7 +8,7 @@ This is a separate file so it can be excluded from coverage testing on Travis.
 This function will not run on Travis CI due to it needing AWS credentials.
 """
 
-
+# TODO: add this to the d43-aws-tools library
 def decrypt_file(source_file_name, destination_file_name):
     """
     Decrypts a file using the AWS encryption key 'signing_key'
