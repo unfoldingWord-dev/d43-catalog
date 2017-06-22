@@ -195,7 +195,8 @@ class TsV2CatalogHandler:
             self.cdn_handler.upload_file(upload['path'], 'v2/ts/{}'.format(upload['key']))
 
     def _index_note_files(self, lid, rid, format):
-
+        note_general_re = re.compile('^([^#]+)', re.UNICODE)
+        note_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
         note_sources = {}
 
         format_str = format['format']
@@ -227,8 +228,40 @@ class TsV2CatalogHandler:
                 key = '$'.join([pid, lid, rid])
                 note_dir = os.path.normpath(os.path.join(help_dir, project['path']))
                 note_json_file = os.path.normpath(os.path.join(help_dir, project['path'] + '_notes.json'))
+                note_json = []
+
+                chapters = os.listdir(note_dir)
+                for chapter in chapters:
+                    chapter_dir = os.path.join(note_dir, chapter)
+                    chunks = os.listdir(chapter_dir)
+                    for chunk in chunks:
+                        notes = []
+                        chunk_file = os.path.join(chapter_dir, chunk)
+                        chunk = chunk.split('.')[0]
+                        chunk_body = read_file(chunk_file)
+                        general_notes = note_general_re.search(chunk_body)
+
+                        if general_notes:
+                            chunk_body = note_general_re.sub('', chunk_body)
+                            notes.append({
+                                'ref': 'General Information',
+                                'text': general_notes.group(0).strip()
+                            })
+
+                        for note in note_re.findall(chunk_body):
+                            notes.append({
+                                'ref': note[0].strip(),
+                                'text': note[1].strip()
+                            })
+
+                        note_json.append({
+                            'id': '{}-{}'.format(chapter, chunk),
+                            'tn': notes
+                        })
                 # TODO: process note_dir and generate json file to upload
-                write_file(note_json_file, json.dumps({}, sort_keys=True))
+
+                note_json.append({'date_modified': dc['modified'].replace('-', '')})
+                write_file(note_json_file, json.dumps(note_json, sort_keys=True))
                 note_sources[key] = note_json_file
 
         return note_sources
