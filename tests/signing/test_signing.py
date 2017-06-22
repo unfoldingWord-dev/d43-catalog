@@ -497,11 +497,8 @@ class TestSigning(TestCase):
 
         # mock a lambda event object
         event = self.create_event()
-        event.pop('Records', None)
 
         dbHandler = MockDynamodbHandler()
-        # item = TestSigning.create_db_item()
-        # dbHandler.insert_item(item)
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
@@ -510,3 +507,28 @@ class TestSigning(TestCase):
         result = signer.run()
 
         self.assertFalse(result)
+
+    def test_signing_handler_already_signed(self):
+        event = self.create_event()
+        dbHandler = MockDynamodbHandler()
+        dbHandler._load_db(os.path.join(self.resources_dir, 'db_signed_records.json'))
+        item = dbHandler.query_items()[0]
+
+        self.assertFalse(item['signed'])
+
+        # s3Handler = MockS3Handler('test-cdn_bucket')
+        # key = 'temp/{}/{}/test.zip'.format(item['repo_name'], item['commit_id'])
+        # s3Handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), key)
+
+        private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
+        public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
+
+        signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+                         private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+
+        result = signer.run()
+        self.assertTrue(result)
+
+        self.assertEqual(1, len(dbHandler.db))
+        self.assertTrue(dbHandler.db[0]['signed'])
+
