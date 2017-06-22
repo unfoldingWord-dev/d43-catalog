@@ -86,6 +86,7 @@ class TsV2CatalogHandler:
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
                         usx_sources.update(self._index_usx_files(lid, rid, format))
+                        # TRICKY: bible notes are in the resource
                         note_sources.update(self._index_note_files(lid, rid, format))
                         question_sources.update(self._index_question_files(lid, rid, format))
 
@@ -98,6 +99,8 @@ class TsV2CatalogHandler:
                             obs_sources.update(self._index_obs_files(lid, rid, format))
                             if lid not in tw_sources:
                                 tw_sources.update(self._index_words_files(lid, rid, format))
+                            # TRICKY: obs notes are in the project
+                            note_sources.update(self._index_note_files(lid, rid, format))
 
                     if not rc_format:
                         raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
@@ -130,7 +133,7 @@ class TsV2CatalogHandler:
 
         # upload tw
         for key in tw_sources:
-            api_uploads.append(self._prep_upload('bible/{}/words.json'.format(key), tw_sources[key]))
+            api_uploads.append(self._prep_data_upload('bible/{}/words.json'.format(key), tw_sources[key]))
 
         # normalize catalog nodes
         root_cat = []
@@ -145,13 +148,26 @@ class TsV2CatalogHandler:
                     source_key = '$'.join([pid, lid, rid])
 
                     # TODO: convert and cache notes, questions, tw.
+                    if pid == 'obs':
+                        note_key = '$'.join([pid, lid, 'obs-tn'])
+                    else:
+                        note_key = '$'.join([pid, lid, 'tn'])
+                    if note_key not in note_sources:
+                        resource['notes'] = ''
+                    else:
+                        api_uploads.append({
+                            'key': '{}/{}/{}/notes.json'.format(pid, lid, rid),
+                            'path': note_sources[note_key]
+                        })
+                        del note_sources[note_key]
+
                     if lid not in tw_sources:
                         resource['terms'] = ''
 
                     # convert obs source files
                     if rid == 'obs' and source_key in obs_sources:
                         api_uploads.append(
-                            self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), obs_sources[source_key]))
+                            self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), obs_sources[source_key]))
                         del obs_sources[source_key]
 
                     # convert usx source files
@@ -159,28 +175,63 @@ class TsV2CatalogHandler:
                         source_path = usx_sources[source_key]
                         source = self._generate_source_from_usx(source_path, resource['date_modified'])
                         # TODO: include app_words and language info
-                        api_uploads.append(self._prep_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
+                        api_uploads.append(self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
                         # TODO: we should probably pull the chunks from the v3 api
-                        api_uploads.append(self._prep_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
+                        api_uploads.append(self._prep_data_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
                         del usx_sources[source_key]
                     res_cat.append(resource)
-                api_uploads.append(self._prep_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
+                api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
                 del language['_res']
                 lang_cat.append(language)
-            api_uploads.append(self._prep_upload('{}/languages.json'.format(pid), lang_cat))
+            api_uploads.append(self._prep_data_upload('{}/languages.json'.format(pid), lang_cat))
 
             del  project['_langs']
             root_cat.append(project)
-        api_uploads.append(self._prep_upload('catalog.json', root_cat))
+        api_uploads.append(self._prep_data_upload('catalog.json', root_cat))
 
         # upload files
         for upload in api_uploads:
             self.cdn_handler.upload_file(upload['path'], 'v2/ts/{}'.format(upload['key']))
 
     def _index_note_files(self, lid, rid, format):
-        # TODO: finish this
-        return {}
+
+        note_sources = {}
+
+        format_str = format['format']
+        if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
+            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
+            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
+            self.download_file(format['url'], zip_file)
+
+            if not os.path.exists(zip_file):
+                print('ERROR: could not download file {}'.format(format['url']))
+                return {}
+
+            unzip(zip_file, zip_dir)
+            help_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
+
+            try:
+                manifest = yaml.load(read_file(os.path.join(help_dir, 'manifest.yaml')))
+            except Exception as e:
+                print('ERROR: could not read manifest in {}'.format(format['url']))
+                return {}
+
+            # ensure the manifest matches
+            dc = manifest['dublin_core']
+            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
+                return {}
+
+            for project in manifest['projects']:
+                pid = project['identifier']
+                key = '$'.join([pid, lid, rid])
+                note_dir = os.path.normpath(os.path.join(help_dir, project['path']))
+                note_json_file = os.path.normpath(os.path.join(help_dir, project['path'] + '_notes.json'))
+                # TODO: process note_dir and generate json file to upload
+                write_file(note_json_file, json.dumps({}, sort_keys=True))
+                note_sources[key] = note_json_file
+
+        return note_sources
 
     def _index_question_files(self, lid, rid, format):
         # TODO: finish this
@@ -452,7 +503,7 @@ class TsV2CatalogHandler:
 
         return usx_sources
 
-    def _prep_upload(self, key, data):
+    def _prep_data_upload(self, key, data):
         """
         Prepares some data for upload to s3
         :param key: 
