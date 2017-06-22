@@ -230,7 +230,7 @@ class Signing(object):
                     if not (already_signed or newly_signed):
                         fully_signed = False
 
-        if was_signed:
+        if was_signed or fully_signed:
             print('[INFO] recording signatures')
             record_keys = {'repo_name': item['repo_name']}
             time.sleep(5)
