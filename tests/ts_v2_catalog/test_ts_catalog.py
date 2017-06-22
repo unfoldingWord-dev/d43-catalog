@@ -116,11 +116,12 @@ class TestTsV2Catalog(TestCase):
         mockS3 = MockS3Handler('ts_bucket')
         urls = {
             'https://test-cdn.door43.org/en/ulb/v7/ulb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip"),
-            'https://test-cdn.door43.org/en/udb/v7/udb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_ulb.zip"),
+            'https://test-cdn.door43.org/en/udb/v7/udb.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_udb.zip"),
             'https://api.door43.org/v3/catalog.json': os.path.join(TestTsV2Catalog.resources_dir, "v3_catalog.json"),
             'https://test-cdn.door43.org/en/obs/v4/obs.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_obs.zip"),
             'https://test-cdn.door43.org/en/tw/v5/tw.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_tw.zip'),
-            'https://test-cdn.door43.org/en/tn/v4/obs-tn.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tn.zip')
+            'https://test-cdn.door43.org/en/tn/v4/obs-tn.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tn.zip'),
+            'https://test-cdn.door43.org/en/tq/v4/obs-tq.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tq.zip')
         }
         mockDb = MockDynamodbHandler()
         mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
@@ -134,7 +135,7 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/resources.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/source.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/notes.json')
-        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/questions.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/questions.json')
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/tw_cat.json')
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/languages.json')
