@@ -161,7 +161,7 @@ class TsV2CatalogHandler:
                             'key': '{}/{}/{}/questions.json'.format(pid, lid, rid),
                             'path': question_sources[question_key]
                         })
-                        del question_sources[question_key]
+                        # del question_sources[question_key]
 
                     # upload tN
                     if pid == 'obs':
@@ -175,7 +175,7 @@ class TsV2CatalogHandler:
                             'key': '{}/{}/{}/notes.json'.format(pid, lid, rid),
                             'path': note_sources[note_key]
                         })
-                        del note_sources[note_key]
+                        # del note_sources[note_key]
 
                     # exclude tw if not in sources
                     if lid not in tw_sources:
@@ -271,7 +271,7 @@ class TsV2CatalogHandler:
         question_sources = {}
 
         format_str = format['format']
-        if (rid == 'obs-tq' or rid == 'tn') and 'type=help' in format_str:
+        if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
             rc_dir = self._retrieve_rc(lid, rid, format['url'])
             if not rc_dir: return {}
 
