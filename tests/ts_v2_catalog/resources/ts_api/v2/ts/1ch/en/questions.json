@@ -1,0 +1,45 @@
+[
+  {
+    "cq": [
+      {
+        "a": "David was the seventh son of Jesse. [2:13-14]",
+        "q": "Who was the seventh son of Jesse?",
+        "ref": [
+          "02-14",
+          "02-13"
+        ]
+      }
+    ],
+    "id": "02"
+  },
+  {
+    "cq": [
+      {
+        "a": "Yes, God granted him his prayer. [4:10]",
+        "q": "Was Jabez's prayer answered?",
+        "ref": [
+          "04-10"
+        ]
+      },
+      {
+        "a": "He prayed that God would bless him, extend his territory, keep him from harm so that he might not have to endure pain. [4:9-10]",
+        "q": "What did Jabez pray to the God of Israel?",
+        "ref": [
+          "04-10"
+        ]
+      },
+      {
+        "a": "They were seeking pasture for their flocks, and they found abundant and good pasture there. [4:39-40]",
+        "q": "Why did some of the sons of Shimei go to Gedor on the east side of the valley?",
+        "ref": [
+          "04-40",
+          "04-39"
+        ]
+      }
+    ],
+    "id": "04"
+  },
+  {
+    "date_modified": "20170412"
+  }
+]
