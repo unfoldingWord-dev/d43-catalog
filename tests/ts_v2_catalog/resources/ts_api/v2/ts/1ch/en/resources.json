@@ -1,6 +1,6 @@
 [
     {
-    "checking_questions": "",
+    "checking_questions": "https://api.unfoldingword.org/ts/txt/2/1ch/en/questions.json?date_modified=20170503",
     "date_modified": "20170502",
     "name": "Unlocked Dynamic Bible",
     "notes": "",

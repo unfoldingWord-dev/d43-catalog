@@ -121,7 +121,8 @@ class TestTsV2Catalog(TestCase):
             'https://test-cdn.door43.org/en/obs/v4/obs.zip': os.path.join(TestTsV2Catalog.resources_dir, "en_obs.zip"),
             'https://test-cdn.door43.org/en/tw/v5/tw.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_tw.zip'),
             'https://test-cdn.door43.org/en/tn/v4/obs-tn.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tn.zip'),
-            'https://test-cdn.door43.org/en/tq/v4/obs-tq.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tq.zip')
+            'https://test-cdn.door43.org/en/tq/v4/obs-tq.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tq.zip'),
+            'https://test-cdn.door43.org/en/tq/v6/tq.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_tq.zip')
         }
         mockDb = MockDynamodbHandler()
         mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
@@ -141,8 +142,9 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/languages.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/resources.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/source.json')
-        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/notes.json')
-        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/questions.json')
-        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/tw_cat.json')
+        # TODO: once tn are in the catalog we'll need to add it to the mock db and enable the below test
+        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/notes.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/questions.json')
+        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/tw_cat.json')
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/bible/en/words.json')
