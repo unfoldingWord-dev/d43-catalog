@@ -3,7 +3,7 @@
 #
 # Class for converting the catalog into a format compatible with the tS v2 api.
 #
-
+import hashlib
 import json
 import yaml
 import os
@@ -86,7 +86,7 @@ class TsV2CatalogHandler:
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
                         usx_sources.update(self._index_usx_files(lid, rid, format))
-                        # TRICKY: bible notes are in the resource
+                        # TRICKY: bible notes and questions are in the resource
                         note_sources.update(self._index_note_files(lid, rid, format))
                         question_sources.update(self._index_question_files(lid, rid, format))
 
@@ -99,8 +99,9 @@ class TsV2CatalogHandler:
                             obs_sources.update(self._index_obs_files(lid, rid, format))
                             if lid not in tw_sources:
                                 tw_sources.update(self._index_words_files(lid, rid, format))
-                            # TRICKY: obs notes are in the project
+                            # TRICKY: obs notes and questions are in the project
                             note_sources.update(self._index_note_files(lid, rid, format))
+                            question_sources.update(self._index_question_files(lid, rid, format))
 
                     if not rc_format:
                         raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
@@ -148,6 +149,21 @@ class TsV2CatalogHandler:
                     source_key = '$'.join([pid, lid, rid])
 
                     # TODO: convert and cache notes, questions, tw.
+                    # upload tQ
+                    if pid == 'obs':
+                        question_key = '$'.join([pid, lid, 'obs-tq'])
+                    else:
+                        question_key = '$'.join([pid, lid, 'tq'])
+                    if question_key not in question_sources:
+                        resource['checking_questions'] = ''
+                    else:
+                        api_uploads.append({
+                            'key': '{}/{}/{}/questions.json'.format(pid, lid, rid),
+                            'path': question_sources[question_key]
+                        })
+                        del question_sources[question_key]
+
+                    # upload tN
                     if pid == 'obs':
                         note_key = '$'.join([pid, lid, 'obs-tn'])
                     else:
@@ -161,6 +177,7 @@ class TsV2CatalogHandler:
                         })
                         del note_sources[note_key]
 
+                    # exclude tw if not in sources
                     if lid not in tw_sources:
                         resource['terms'] = ''
 
@@ -201,33 +218,17 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
-            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
-            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
-            self.download_file(format['url'], zip_file)
+            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            if not rc_dir: return {}
 
-            if not os.path.exists(zip_file):
-                print('ERROR: could not download file {}'.format(format['url']))
-                return {}
-
-            unzip(zip_file, zip_dir)
-            help_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
-
-            try:
-                manifest = yaml.load(read_file(os.path.join(help_dir, 'manifest.yaml')))
-            except Exception as e:
-                print('ERROR: could not read manifest in {}'.format(format['url']))
-                return {}
-
-            # ensure the manifest matches
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
             dc = manifest['dublin_core']
-            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
-                return {}
 
             for project in manifest['projects']:
                 pid = project['identifier']
                 key = '$'.join([pid, lid, rid])
-                note_dir = os.path.normpath(os.path.join(help_dir, project['path']))
-                note_json_file = os.path.normpath(os.path.join(help_dir, project['path'] + '_notes.json'))
+                note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
+                note_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_notes.json'))
                 note_json = []
 
                 chapters = os.listdir(note_dir)
@@ -258,7 +259,6 @@ class TsV2CatalogHandler:
                             'id': '{}-{}'.format(chapter, chunk),
                             'tn': notes
                         })
-                # TODO: process note_dir and generate json file to upload
 
                 note_json.append({'date_modified': dc['modified'].replace('-', '')})
                 write_file(note_json_file, json.dumps(note_json, sort_keys=True))
@@ -267,8 +267,65 @@ class TsV2CatalogHandler:
         return note_sources
 
     def _index_question_files(self, lid, rid, format):
-        # TODO: finish this
-        return {}
+        question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
+        question_sources = {}
+
+        format_str = format['format']
+        if (rid == 'obs-tq' or rid == 'tn') and 'type=help' in format_str:
+            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            if not rc_dir: return {}
+
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+            dc = manifest['dublin_core']
+
+            for project in manifest['projects']:
+                pid = project['identifier']
+                key = '$'.join([pid, lid, rid])
+                question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
+                question_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_questions.json'))
+                question_json = []
+
+                chapters = os.listdir(question_dir)
+                for chapter in chapters:
+                    unique_questions = {}
+                    chapter_dir = os.path.join(question_dir, chapter)
+                    chunks = os.listdir(chapter_dir)
+                    for chunk in chunks:
+                        chunk_file = os.path.join(chapter_dir, chunk)
+                        chunk = chunk.split('.')[0]
+                        chunk_body = read_file(chunk_file)
+
+                        for question in question_re.findall(chunk_body):
+                            hasher = hashlib.md5()
+                            hasher.update(question[1].strip())
+                            question_hash = hasher.hexdigest()
+                            if question_hash not in unique_questions:
+                                # insert unique question
+                                unique_questions[question_hash] = {
+                                    'q': question[0].strip(),
+                                    'a': question[1].strip(),
+                                    'ref': [
+                                        '{}-{}'.format(chapter, chunk)
+                                    ]
+                                }
+                            else:
+                                # append new reference
+                                unique_questions[question_hash]['ref'].append('{}-{}'.format(chapter, chunk))
+
+                    question_array = []
+                    for hash in unique_questions:
+                        question_array.append(unique_questions[hash])
+
+                    question_json.append({
+                        'id': chapter,
+                        'cq': question_array
+                    })
+
+                question_json.append({'date_modified': dc['modified'].replace('-', '')})
+                write_file(question_json_file, json.dumps(question_json, sort_keys=True))
+                question_sources[key] = question_json_file
+
+        return question_sources
 
 
     def _index_words_files(self, lid, rid, format):
@@ -287,32 +344,16 @@ class TsV2CatalogHandler:
         words = []
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
-            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
-            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
-            self.download_file(format['url'], zip_file)
+            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            if not rc_dir: return {}
 
-            if not os.path.exists(zip_file):
-                print('ERROR: could not download file {}'.format(format['url']))
-                return {}
-
-            unzip(zip_file, zip_dir)
-            dict_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
-
-            try:
-                manifest = yaml.load(read_file(os.path.join(dict_dir, 'manifest.yaml')))
-            except Exception as e:
-                print('ERROR: could not read manifest in {}'.format(format['url']))
-                return {}
-
-            # ensure the manifest matches
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
             dc = manifest['dublin_core']
-            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
-                return {}
 
             # TRICKY: there should only be one project
             for project in manifest['projects']:
                 pid = project['identifier']
-                content_dir = os.path.join(dict_dir, project['path'])
+                content_dir = os.path.join(rc_dir, project['path'])
                 categories = os.listdir(content_dir)
                 for cat in categories:
                     cat_dir = os.path.join(content_dir, cat)
@@ -389,37 +430,21 @@ class TsV2CatalogHandler:
         obs_sources = {}
         format_str = format['format']
         if rid == 'obs' and 'type=book' in format_str:
-            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
-            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
-            self.download_file(format['url'], zip_file)
+            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            if not rc_dir: return obs_sources
 
-            if not os.path.exists(zip_file):
-                print('ERROR: could not download file {}'.format(format['url']))
-                return obs_sources
-
-            unzip(zip_file, zip_dir)
-            book_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
-
-            try:
-                manifest = yaml.load(read_file(os.path.join(book_dir, 'manifest.yaml')))
-            except Exception as e:
-                print('ERROR: could not read manifest in {}'.format(format['url']))
-                return obs_sources
-
-            # ensure the manifest matches
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
             dc = manifest['dublin_core']
-            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
-                return obs_sources
 
             for project in manifest['projects']:
                 pid = project['identifier']
-                content_dir = os.path.join(book_dir, project['path'])
+                content_dir = os.path.join(rc_dir, project['path'])
                 key = '$'.join([pid, lid, rid])
                 chapters_json = self._obs_chapters_to_json(os.path.normpath(content_dir))
 
                 # app words
                 app_words = {}
-                app_words_file = os.path.join(book_dir, '.apps', 'uw', 'app_words.json')
+                app_words_file = os.path.join(rc_dir, '.apps', 'uw', 'app_words.json')
                 if os.path.exists(app_words_file):
                     try:
                         app_words = json.loads(read_file(app_words_file))
@@ -448,6 +473,9 @@ class TsV2CatalogHandler:
         obs_image_re = re.compile('.*!\[OBS Image\]\(.*\).*', re.IGNORECASE | re.UNICODE)
         chapters = []
         for chapter_file in os.listdir(dir):
+            if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
+                # TODO: read info from config
+                continue
             chapter_slug = chapter_file.split('.md')[0]
             path = os.path.join(dir, chapter_file)
             if os.path.isfile(path):
@@ -505,30 +533,13 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if 'application/zip' in format_str and 'usfm' in format_str:
-            zip_file = os.path.join(self.temp_dir, format['url'].split('/')[-1])
-            zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
-            self.download_file(format['url'], zip_file)
+            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            if not rc_dir: return usx_sources
 
-            if not os.path.exists(zip_file):
-                print('ERROR: could not download file {}'.format(format['url']))
-                return usx_sources
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
 
-            unzip(zip_file, zip_dir)
-            usfm_bundle_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
-
-            try:
-                manifest = yaml.load(read_file(os.path.join(usfm_bundle_dir, 'manifest.yaml')))
-            except Exception as e:
-                print('ERROR: could not read manifest in {}'.format(format['url']))
-                return usx_sources
-
-            # ensure the manifest matches
-            dc = manifest['dublin_core']
-            if dc['identifier'] != rid or dc['language']['identifier'] != lid:
-                return usx_sources
-
-            usx_path = os.path.join(usfm_bundle_dir, 'usx')
-            UsfmTransform.buildUSX(usfm_bundle_dir, usx_path, '', True)
+            usx_path = os.path.join(rc_dir, 'usx')
+            UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
             for project in manifest['projects']:
                 pid = project['identifier']
                 key = '$'.join([pid, lid, rid])
@@ -875,3 +886,36 @@ class TsV2CatalogHandler:
             },
             'chunks': chunks
         }
+
+    def _retrieve_rc(self, lid, rid, url):
+        """
+        Downloads a resource container from a url, validates it, and prepares it for reading
+        :param lid: the language code of the RC
+        :param rid: the resource code of the RC
+        :param url: the url from which to download the RC
+        :return: the path to the readable RC or None if an error occured.
+        """
+        zip_file = os.path.join(self.temp_dir, url.split('/')[-1])
+        zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
+        self.download_file(url, zip_file)
+
+        if not os.path.exists(zip_file):
+            print('ERROR: could not download file {}'.format(url))
+            return None
+
+        unzip(zip_file, zip_dir)
+        rc_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
+
+        try:
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+        except Exception as e:
+            print('ERROR: could not read manifest in {}'.format(url))
+            return None
+
+        # ensure the manifest matches
+        dc = manifest['dublin_core']
+        if dc['identifier'] != rid or dc['language']['identifier'] != lid:
+            print('ERROR: the downloaded RC does not match the expected language ({}) and resource ({}). Found {}-{} instead'.format(lid, rid, dc['language']['identifier'], dc['identifier']))
+            return None
+
+        return rc_dir
