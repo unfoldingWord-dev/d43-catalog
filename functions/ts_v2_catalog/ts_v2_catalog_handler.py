@@ -158,7 +158,8 @@ class TsV2CatalogHandler:
                         resource['checking_questions'] = ''
                     else:
                         api_uploads.append({
-                            'key': '{}/{}/{}/questions.json'.format(pid, lid, rid),
+                            # TRICKY: questions are organized by project not resource
+                            'key': '{}/{}/questions.json'.format(pid, lid),
                             'path': question_sources[question_key]
                         })
                         # del question_sources[question_key]
@@ -172,7 +173,8 @@ class TsV2CatalogHandler:
                         resource['notes'] = ''
                     else:
                         api_uploads.append({
-                            'key': '{}/{}/{}/notes.json'.format(pid, lid, rid),
+                            # TRICKY: notes are organized by project not resource
+                            'key': '{}/{}/notes.json'.format(pid, lid),
                             'path': note_sources[note_key]
                         })
                         # del note_sources[note_key]

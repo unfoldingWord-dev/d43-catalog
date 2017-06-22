@@ -135,16 +135,16 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/languages.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/resources.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/source.json')
-        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/notes.json')
-        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/obs/questions.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/notes.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/questions.json')
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/obs/en/tw_cat.json')
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/languages.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/resources.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/source.json')
         # TODO: once tn are in the catalog we'll need to add it to the mock db and enable the below test
-        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/notes.json')
-        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/questions.json')
+        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/notes.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/questions.json')
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/tw_cat.json')
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/bible/en/words.json')
