@@ -13,6 +13,6 @@
       ],
       "name": "Open Bible Stories"
     },
-    "res_catalog": "https://api.unfoldingword.org/ts/txt/2/obs/en/resources.json?date_modified=20170315"
+    "res_catalog": "https://api.unfoldingword.org/v2/ts/obs/en/resources.json?date_modified=20170315"
   }
 ]

@@ -85,7 +85,7 @@ class TestTsV2Catalog(TestCase):
         return {
             'stage-variables': {
                 'cdn_bucket': '',
-                'cdn_url': 'https://api.unfoldingword.org/ts/txt/2',
+                'cdn_url': 'https://api.unfoldingword.org/',
                 'catalog_url': 'https://api.door43.org/v3/catalog.json'
             }
         }
@@ -128,7 +128,8 @@ class TestTsV2Catalog(TestCase):
         mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
         mock_get_url = lambda url, catch_exception: TestTsV2Catalog.mock_get_url(urls, url, catch_exception)
         mock_download = lambda url, dest: TestTsV2Catalog.mock_download_file(urls, url, dest)
-        converter = TsV2CatalogHandler(self.make_event(), mockS3, mockDb, mock_get_url, mock_download)
+        event = self.make_event()
+        converter = TsV2CatalogHandler(event, mockS3, mockDb, mock_get_url, mock_download)
         converter.convert_catalog()
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/catalog.json')
@@ -148,3 +149,33 @@ class TestTsV2Catalog(TestCase):
         # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/tw_cat.json')
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/bible/en/words.json')
+
+        # validate urls in generate catalogs match the generated output paths
+        root_url = '{}/'.format(event['stage-variables']['cdn_url'].rstrip('/'))
+        catalog = json.loads(TestTsV2Catalog.read_file(mockS3._uploads['v2/ts/catalog.json']))
+        url_err_msg = 'url in catalog does not match upload path: {}'
+        for project in catalog:
+            lang_catalog_path = project['lang_catalog'].replace(root_url, '').split('?')[0]
+            self.assertIn(lang_catalog_path, mockS3._uploads, url_err_msg.format(lang_catalog_path))
+            lang_catalog = json.loads(TestTsV2Catalog.read_file(mockS3._uploads[lang_catalog_path]))
+            for language in lang_catalog:
+                res_catalog_path = language['res_catalog'].replace(root_url, '').split('?')[0]
+                self.assertIn(res_catalog_path, mockS3._uploads, url_err_msg.format(res_catalog_path))
+                res_catalog = json.loads(TestTsV2Catalog.read_file(mockS3._uploads[res_catalog_path]))
+                for resource in res_catalog:
+                    questions_path = resource['checking_questions'].replace(root_url, '').split('?')[0]
+                    notes_path = resource['notes'].replace(root_url, '').split('?')[0]
+                    source_path = resource['source'].replace(root_url, '').split('?')[0]
+                    terms_path = resource['terms'].replace(root_url, '').split('?')[0]
+                    terms_map_path = resource['tw_cat'].replace(root_url, '').split('?')[0]
+
+                    if questions_path:
+                        self.assertIn(questions_path, mockS3._uploads, url_err_msg.format(questions_path))
+                    if notes_path:
+                        self.assertIn(notes_path, mockS3._uploads, url_err_msg.format(notes_path))
+                    if source_path:
+                        self.assertIn(source_path, mockS3._uploads, url_err_msg.format(source_path))
+                    if terms_path:
+                        self.assertIn(terms_path, mockS3._uploads, url_err_msg.format(terms_path))
+                    # if terms_map_path:
+                    #     self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))

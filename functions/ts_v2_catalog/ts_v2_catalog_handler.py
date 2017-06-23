@@ -22,6 +22,8 @@ import dateutil.parser
 
 class TsV2CatalogHandler:
 
+    cdn_rooth_path = 'v2/ts'
+
     def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
@@ -34,6 +36,7 @@ class TsV2CatalogHandler:
         self.catalog_url = self.retrieve(env_vars, 'catalog_url', 'Environment Vars')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.cdn_url = self.cdn_url.rstrip('/')
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket)
         else:
@@ -211,7 +214,7 @@ class TsV2CatalogHandler:
 
         # upload files
         for upload in api_uploads:
-            self.cdn_handler.upload_file(upload['path'], 'v2/ts/{}'.format(upload['key']))
+            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_rooth_path, upload['key']))
 
     def _index_note_files(self, lid, rid, format):
         note_general_re = re.compile('^([^#]+)', re.UNICODE)
@@ -594,12 +597,16 @@ class TsV2CatalogHandler:
                 res = catalog[pid]['_langs'][lid]['_res'][rid]
                 if 'tn' in resource['identifier']:
                     res.update({
-                        'notes': 'https://api.unfoldingword.org/v2/ts/{0}/{1}/notes.json?date_modified={2}'.format(
+                        'notes': '{}/{}/{}/{}/notes.json?date_modified={}'.format(
+                            self.cdn_url,
+                            TsV2CatalogHandler.cdn_rooth_path,
                             pid, lid, modified)
                     })
                 elif 'tq' in resource['identifier']:
                     res.update({
-                        'checking_questions': 'https://api.unfoldingword.org/v2/ts/{0}/{1}/questions.json?date_modified={2}'.format(
+                        'checking_questions': '{}/{}/{}/{}/questions.json?date_modified={}'.format(
+                            self.cdn_url,
+                            TsV2CatalogHandler.cdn_rooth_path,
                             pid, lid, modified)
                     })
         elif rc_type == 'dict':
@@ -608,12 +615,17 @@ class TsV2CatalogHandler:
                     res = catalog[pid]['_langs'][lid]['_res'][rid]
                     if pid == 'obs':
                         res.update({
-                            'terms': 'https://api.unfoldingword.org/v2/ts/{}/{}/words.json?date_modified={}'.format(
+                            'terms': '{}/{}/{}/{}/words.json?date_modified={}'.format(
+                            self.cdn_url,
+                                TsV2CatalogHandler.cdn_rooth_path,
                                 pid, lid, modified)
                         })
                     else:
                         res.update({
-                            'terms': 'https://api.unfoldingword.org/v2/ts/bible/{}/words.json?date_modified={}'.format(lid, modified)
+                            'terms': '{}/{}/bible/{}/words.json?date_modified={}'.format(
+                                self.cdn_url,
+                                TsV2CatalogHandler.cdn_rooth_path,
+                                lid, modified)
                         })
 
     def _build_catalog_node(self, catalog, language, resource, project, modified):
@@ -648,7 +660,10 @@ class TsV2CatalogHandler:
         # if pid == 'obs':
         #     source_url = 'https://api.unfoldingword.org/v2/ts/{}/{}/source.json?date_modified={}'.format(pid, lid, r_modified)
         # else:
-        source_url = 'https://api.unfoldingword.org/v2/ts/{}/{}/{}/source.json?date_modified={}'.format(pid, lid, rid, r_modified)
+        source_url = '{}/{}/{}/{}/{}/source.json?date_modified={}'.format(
+            self.cdn_url,
+            TsV2CatalogHandler.cdn_rooth_path,
+            pid, lid, rid, r_modified)
         res.update({
             'date_modified': r_modified,
             'name': resource['title'],
@@ -672,13 +687,19 @@ class TsV2CatalogHandler:
         # english projects have tw_cat
         if lid == 'en':
             res.update({
-                'tw_cat': 'https://api.unfoldingword.org/v2/ts/{}/{}/tw_cat.json?date_modified={}'.format(pid, lid, r_modified)
+                'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
+                    self.cdn_url,
+                    TsV2CatalogHandler.cdn_rooth_path,
+                    pid, lid, r_modified)
             })
 
         # bible projects have usfm
         if pid != 'obs':
             res.update({
-                'usfm': 'https://api.unfoldingword.org/v2/ts/{0}/{1}/{2}-{3}.usfm?date_modified={4}'.format(rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
+                'usfm': '{}/{}/{}/{}/{}-{}.usfm?date_modified={}'.format(
+                    self.cdn_url,
+                    TsV2CatalogHandler.cdn_rooth_path,
+                    rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
             })
 
         # language
@@ -698,7 +719,7 @@ class TsV2CatalogHandler:
                 'meta': project['categories'],
                 'name': project['title']
             },
-            'res_catalog': '{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, pid, lid, l_modified)
+            'res_catalog': '{}/{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_rooth_path, pid, lid, l_modified)
         }
         if 'ulb' == rid or 'udb' == rid:
             cat_lang['project']['sort'] = '{}'.format(project['sort'])
@@ -708,7 +729,7 @@ class TsV2CatalogHandler:
         p_modified = self._max_modified(catalog[pid], l_modified)
         catalog[pid].update({
             'date_modified': p_modified,
-            'lang_catalog': '{}/{}/languages.json?date_modified={}'.format(self.cdn_url, pid, p_modified),
+            'lang_catalog': '{}/{}/{}/languages.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_rooth_path, pid, p_modified),
             'meta': project['categories'],
             'slug': pid,
             'sort': '{}'.format(project['sort']).zfill(2)
