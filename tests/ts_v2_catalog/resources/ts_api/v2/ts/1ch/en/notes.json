@@ -1,3 +1,48 @@
 [
-
+  {
+    "id": "02-01",
+    "tn": [
+      {
+        "ref": "General Information:",
+        "text": "All of the names here are names of men. (See: [[rc://en/ta/man/translate/translate-names]])"
+      }
+    ]
+  },
+  {
+    "id": "01-01",
+    "tn": [
+      {
+        "ref": "Enosh ... Kenan ... Mahalalel ... Jared ... Enoch ... Methuselah ... Lamech",
+        "text": "These are all names of men. Each man was the father or ancestor of the next man in the list. If your language has a specific way to mark this kind of list, you can use it here. (See: [[rc://en/ta/man/translate/translate-names]])"
+      },
+      {
+        "ref": "Lamech. The sons of Noah",
+        "text": "If your readers will need to see that Noah was the son of Lamech and your language has a way to mark it, you should use it here."
+      },
+      {
+        "ref": "The sons of Noah were Shem, Ham, and Japheth",
+        "text": "Some versions, including the ULB and UDB, include \"The sons of\" in order to make it clear that Shem, Ham, and Japheth were brothers to each other and sons of Noah. Otherwise, the reader would assume that each person represented one generation farther away from Noah, their ancestor."
+      }
+    ]
+  },
+  {
+    "id": "01-05",
+    "tn": [
+      {
+        "ref": "Gomer ... Magog ... Madai ... Javan ... Tubal ... Meshek ... Tiras ... Ashkenaz ... Riphath ... Togarmah ... Elishah ... Tarshish",
+        "text": "These are all names of men. (See: [[rc://en/ta/man/translate/translate-names]])"
+      },
+      {
+        "ref": "Kittites ... Rodanites",
+        "text": "These are names of people groups. (See: [[rc://en/ta/man/translate/translate-names]])"
+      },
+      {
+        "ref": "Rodanites",
+        "text": "This name is sometimes spelled \"Dodanites.\" (See: [[rc://en/ta/man/translate/translate-textvariants]])"
+      }
+    ]
+  },
+  {
+    "date_modified": "20170619"
+  }
 ]

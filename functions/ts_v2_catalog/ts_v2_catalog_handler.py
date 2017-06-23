@@ -239,9 +239,11 @@ class TsV2CatalogHandler:
 
                 chapters = os.listdir(note_dir)
                 for chapter in chapters:
+                    if chapter == 'front': continue
                     chapter_dir = os.path.join(note_dir, chapter)
                     chunks = os.listdir(chapter_dir)
                     for chunk in chunks:
+                        if chunk == 'intro.md': continue
                         notes = []
                         chunk_file = os.path.join(chapter_dir, chunk)
                         chunk = chunk.split('.')[0]
