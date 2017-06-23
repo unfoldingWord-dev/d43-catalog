@@ -113,6 +113,68 @@
           "title": "translationAcademy",
           "version": "6"
         },
+                {
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": 3
+          },
+          "comment": "",
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "creator": "Wycliffe Associates",
+          "description": "Notes to help translators of the Bible",
+          "formats": [
+            {
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
+              "modified": "2017-06-23T16:44:15Z",
+              "signature": "https://test-cdn.door43.org/en/tn/v6/tn.zip.sig",
+              "size": 8182529,
+              "url": "https://test-cdn.door43.org/en/tn/v6/tn.zip"
+            }
+          ],
+          "identifier": "tn",
+          "issued": "2017-06-07",
+          "modified": "2017-06-19",
+          "projects": [
+            {
+              "categories": [
+
+              ],
+              "identifier": "gen",
+              "sort": 0,
+              "title": "Genesis translationNotes",
+              "versification": ""
+            },
+            {
+              "categories": [
+
+              ],
+              "identifier": "1ch",
+              "sort": 0,
+              "title": "1 Chronicles translationNotes",
+              "versification": ""
+            }
+          ],
+          "publisher": "unfoldingWord",
+          "relation": [
+            "en/ulb",
+            "en/udb"
+          ],
+          "rights": "CC BY-SA 4.0",
+          "source": [
+            {
+              "identifier": "tn",
+              "language": "en",
+              "version": "2"
+            }
+          ],
+          "subject": "Translator Notes",
+          "title": "translationNotes",
+          "version": "6"
+        },
         {
           "checking": {
             "checking_entity": [
