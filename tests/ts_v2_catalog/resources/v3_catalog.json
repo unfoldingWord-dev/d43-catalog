@@ -42,6 +42,85 @@
             ],
             "checking_level": "3"
           },
+          "comment": "",
+          "contributor": [
+            "unfoldingWord",
+            "Wycliffe Associates"
+          ],
+          "creator": "Wycliffe Associates",
+          "description": "",
+          "formats": [
+            {
+              "format": "application/zip; type=man content=text/markdown conformsto=rc0.2",
+              "modified": "2017-05-26T21:02:30Z",
+              "signature": "https://test-cdn.door43.org/en/ta/v6/ta.zip.sig",
+              "size": 482981,
+              "url": "https://test-cdn.door43.org/en/ta/v6/ta.zip"
+            }
+          ],
+          "identifier": "ta",
+          "issued": "2016-04-19",
+          "modified": "2017-04-13",
+          "projects": [
+            {
+              "categories": [
+                "ta"
+              ],
+              "identifier": "intro",
+              "sort": 0,
+              "title": "Introduction to translationAcademy",
+              "versification": null
+            },
+            {
+              "categories": [
+                "ta"
+              ],
+              "identifier": "process",
+              "sort": 1,
+              "title": "Process Manual",
+              "versification": null
+            },
+            {
+              "categories": [
+                "ta"
+              ],
+              "identifier": "translate",
+              "sort": 2,
+              "title": "Translation Manual",
+              "versification": null
+            },
+            {
+              "categories": [
+                "ta"
+              ],
+              "identifier": "checking",
+              "sort": 3,
+              "title": "Checking Manual",
+              "versification": null
+            }
+          ],
+          "publisher": "Door43",
+          "relation": [],
+          "rights": "CC BY-SA 4.0",
+          "source": [
+            {
+              "identifier": "ta",
+              "language": "en",
+              "version": "pre6"
+            }
+          ],
+          "subject": "",
+          "title": "translationAcademy",
+          "version": "6"
+        },
+        {
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -52,9 +131,7 @@
           "modified": "2017-01-03",
           "projects": [
             {
-              "categories": [
-
-              ],
+              "categories": [],
               "formats": [
                 {
                   "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
@@ -89,10 +166,187 @@
         {
           "checking": {
             "checking_entity": [
+              "Distant Shores Media",
               "Wycliffe Associates"
             ],
             "checking_level": "3"
           },
+          "comment": "",
+          "contributor": [
+            "Distant Shores Media",
+            "Wycliffe Associates"
+          ],
+          "creator": "Distant Shores Media",
+          "description": "An unrestricted visual mini-Bible in any language",
+          "identifier": "obs",
+          "issued": "2015-08-26",
+          "modified": "2017-01-10",
+          "projects": [
+            {
+              "categories": [],
+              "formats": [
+                {
+                  "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
+                  "modified": "2017-06-14T19:21:37Z",
+                  "signature": "https://test-cdn.door43.org/en/obs/v4/obs.zip.sig",
+                  "size": 94233,
+                  "url": "https://test-cdn.door43.org/en/obs/v4/obs.zip"
+                }
+              ],
+              "identifier": "obs",
+              "sort": 0,
+              "title": "Open Bible Stories",
+              "versification": null
+            }
+          ],
+          "publisher": "unfoldingWord",
+          "relation": [
+            "en/tw",
+            "en/obs-tq",
+            "en/obs-tn"
+          ],
+          "rights": "CC BY-SA 4.0",
+          "source": [
+            {
+              "identifier": "obs",
+              "language": "en",
+              "version": "4"
+            }
+          ],
+          "subject": "Bible stories",
+          "title": "Open Bible Stories",
+          "version": "4"
+        },
+        {
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "creator": "Wycliffe Associates",
+          "description": "An unrestricted literal Bible",
+          "formats": [
+            {
+              "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
+              "modified": "2017-06-07T01:47:59Z",
+              "signature": "https://test-cdn.door43.org/en/ulb/v7/ulb.zip.sig",
+              "size": 1438229,
+              "url": "https://test-cdn.door43.org/en/ulb/v7/ulb.zip"
+            }
+          ],
+          "identifier": "ulb",
+          "issued": "2016-10-03",
+          "modified": "2016-11-14",
+          "projects": [
+            {
+              "categories": [
+                "bible-ot"
+              ],
+              "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
+              "formats": [
+                {
+                  "format": "text/usfm",
+                  "modified": "2016-11-14",
+                  "signature": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
+                  "size": 118037,
+                  "url": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm"
+                }
+              ],
+              "identifier": "1ch",
+              "sort": 13,
+              "title": "1 Chronicles",
+              "versification": "ufw"
+            }
+          ],
+          "publisher": "unfoldingWord",
+          "relation": [
+            "en/tw",
+            "en/tq",
+            "en/tn"
+          ],
+          "rights": "CC BY-SA 4.0",
+          "source": [
+            {
+              "identifier": "asv",
+              "language": "en",
+              "version": "1901"
+            }
+          ],
+          "subject": "Bible",
+          "title": "Unlocked Literal Bible",
+          "version": "7"
+        },
+        {
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "creator": "Wycliffe Associates",
+          "description": "Comprehension questions for checking Bible translations",
+          "formats": [
+            {
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
+              "modified": "2017-05-03T19:34:05Z",
+              "signature": "https://test-cdn.door43.org/en/tq/v6/tq.zip.sig",
+              "size": 4434519,
+              "url": "https://test-cdn.door43.org/en/tq/v6/tq.zip"
+            }
+          ],
+          "identifier": "tq",
+          "issued": "2016-10-01",
+          "modified": "2017-04-12",
+          "projects": [
+            {
+              "categories": [],
+              "identifier": "1ch",
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null
+            },
+            {
+              "categories": [],
+              "identifier": "gen",
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null
+            }
+          ],
+          "publisher": "unfoldingWord",
+          "relation": [
+            "en/ulb",
+            "en/udb"
+          ],
+          "rights": "CC BY-SA 4.0",
+          "source": [
+            {
+              "identifier": "tq",
+              "language": "en",
+              "version": "5"
+            }
+          ],
+          "subject": "Bible translation comprehension questions",
+          "title": "translationQuestions",
+          "version": "6"
+        },
+        {
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -116,6 +370,15 @@
                 "bible-ot"
               ],
               "chunks_url": "https://test-cdn.door43.org/bible/gen/v3/chunks.json",
+              "formats": [
+                {
+                  "format": "text/usfm",
+                  "modified": "2016-10-03",
+                  "signature": "https://test-cdn.door43.org/en/udb/v7/gen.usfm.sig",
+                  "size": 241714,
+                  "url": "https://test-cdn.door43.org/en/udb/v7/gen.usfm"
+                }
+              ],
               "identifier": "gen",
               "sort": 1,
               "title": "Genesis",
@@ -126,6 +389,15 @@
                 "bible-ot"
               ],
               "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
+              "formats": [
+                {
+                  "format": "text/usfm",
+                  "modified": "2016-10-03",
+                  "signature": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm.sig",
+                  "size": 141366,
+                  "url": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm"
+                }
+              ],
               "identifier": "1ch",
               "sort": 13,
               "title": "1 Chronicles",
@@ -157,6 +429,7 @@
             ],
             "checking_level": "3"
           },
+          "comment": "",
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -167,9 +440,7 @@
           "modified": "2017-04-11",
           "projects": [
             {
-              "categories": [
-
-              ],
+              "categories": [],
               "formats": [
                 {
                   "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2",
@@ -212,6 +483,7 @@
             ],
             "checking_level": "3"
           },
+          "comment": "",
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -222,9 +494,7 @@
           "modified": "2017-04-21",
           "projects": [
             {
-              "categories": [
-
-              ],
+              "categories": [],
               "formats": [
                 {
                   "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
@@ -254,165 +524,6 @@
           ],
           "subject": "Translator Questions",
           "title": "translationQuestions",
-          "version": "4"
-        },
-        {
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "checking": {
-            "checking_entity": [
-              "Wycliffe Associates"
-            ],
-            "checking_level": "3"
-          },
-          "comment": "",
-          "creator": "Wycliffe Associates",
-          "description": "An unrestricted literal Bible",
-          "formats": [
-            {
-              "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
-              "modified": "2017-03-29T00:00:00Z",
-              "signature": "https://test-cdn.door43.org/en/ulb/v7/ulb.zip.sig",
-              "size": 1438229,
-              "url": "https://test-cdn.door43.org/en/ulb/v7/ulb.zip"
-            }
-          ],
-          "identifier": "ulb",
-          "issued": "2016-10-03",
-          "modified": "2016-11-14",
-          "projects": [
-            {
-              "categories": [
-                "bible-ot"
-              ],
-              "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
-              "identifier": "1ch",
-              "sort": 13,
-              "title": "1 Chronicles",
-              "versification": "ufw"
-            }
-          ],
-          "publisher": "unfoldingWord",
-          "relation": [
-            "en/tw",
-            "en/tq",
-            "en/tn"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "asv",
-              "language": "en",
-              "version": "1901"
-            }
-          ],
-          "subject": "Bible",
-          "title": "Unlocked Literal Bible",
-          "version": "7"
-        },
-        {
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "creator": "Wycliffe Associates",
-          "checking": {
-            "checking_entity": [
-              "Jobby Prasannan"
-            ],
-            "checking_level": "3"
-          },
-          "comment": "",
-          "description": "Comprehension questions for checking Bible translations",
-          "formats": [
-            {
-              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
-              "modified": "2017-05-03T19:34:05Z",
-              "signature": "https://test-cdn.door43.org/en/tq/v6/tq.zip.sig",
-              "size": 4434519,
-              "url": "https://test-cdn.door43.org/en/tq/v6/tq.zip"
-            }
-          ],
-          "identifier": "tq",
-          "issued": "2016-10-01",
-          "modified": "2017-04-12",
-          "projects": [
-            {
-              "categories": [],
-              "identifier": "1ch",
-              "sort": 13,
-              "title": "translationQuestions",
-              "versification": null
-            }
-          ],
-          "publisher": "unfoldingWord",
-          "relation": [
-            "en/ulb",
-            "en/udb"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "tq",
-              "language": "en",
-              "version": "5"
-            }
-          ],
-          "subject": "Bible translation comprehension questions",
-          "title": "translationQuestions",
-          "version": "6"
-        },
-        {
-          "contributor": [
-            "Distant Shores Media",
-            "Wycliffe Associates"
-          ],
-          "checking": {
-            "checking_entity": [
-              "Jobby Prasannan"
-            ],
-            "checking_level": "3"
-          },
-          "comment": "",
-          "creator": "Distant Shores Media",
-          "description": "An unrestricted visual mini-Bible in any language",
-          "identifier": "obs",
-          "issued": "2015-08-26",
-          "modified": "2017-03-15T00:38:18Z",
-          "projects": [
-            {
-              "categories": [],
-              "formats": [
-                {
-                  "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
-                  "modified": "2017-03-15T00:38:18Z",
-                  "signature": "https://test-cdn.door43.org/en/obs/v4/obs.zip.sig",
-                  "size": 100416,
-                  "url": "https://test-cdn.door43.org/en/obs/v4/obs.zip"
-                }
-              ],
-              "identifier": "obs",
-              "sort": 0,
-              "title": "Open Bible Stories",
-              "versification": null
-            }
-          ],
-          "publisher": "unfoldingWord",
-          "relation": [
-            "en/tw",
-            "en/obs-tq",
-            "en/obs-tn"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "obs",
-              "language": "en",
-              "version": "4"
-            }
-          ],
-          "subject": "Bible stories",
-          "title": "Open Bible Stories",
           "version": "4"
         }
       ],

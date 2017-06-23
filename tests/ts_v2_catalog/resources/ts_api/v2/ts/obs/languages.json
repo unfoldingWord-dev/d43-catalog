@@ -1,18 +1,16 @@
 [
   {
     "language": {
-      "date_modified": "20170315",
+      "date_modified": "20170614",
       "direction": "ltr",
       "name": "English",
       "slug": "en"
     },
     "project": {
       "desc": "An unrestricted visual mini-Bible in any language",
-      "meta": [
-
-      ],
+      "meta": [],
       "name": "Open Bible Stories"
     },
-    "res_catalog": "https://api.unfoldingword.org/v2/ts/obs/en/resources.json?date_modified=20170315"
+    "res_catalog": "https://api.unfoldingword.org/v2/ts/obs/en/resources.json?date_modified=20170614"
   }
 ]

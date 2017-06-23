@@ -14,7 +14,7 @@ import tempfile
 import time
 import zipfile
 import markdown
-from d43_aws_tools import S3Handler, DynamoDBHandler
+from d43_aws_tools import S3Handler
 from usfm_tools.transform import UsfmTransform
 from tools.file_utils import write_file, read_file, unzip
 from tools.url_utils import download_file, get_url
@@ -24,6 +24,7 @@ class TsV2CatalogHandler:
 
     cdn_rooth_path = 'v2/ts'
 
+# TODO: remove the un-used parameters like dynamodb
     def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog

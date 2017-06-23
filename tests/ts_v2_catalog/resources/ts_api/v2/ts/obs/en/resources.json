@@ -1,13 +1,13 @@
 [
-    {
+  {
     "checking_questions": "https://api.unfoldingword.org/v2/ts/obs/en/questions.json?date_modified=20170503",
-    "date_modified": "20170315",
+    "date_modified": "20170614",
     "name": "Open Bible Stories",
     "notes": "https://api.unfoldingword.org/v2/ts/obs/en/notes.json?date_modified=20170315",
     "slug": "obs",
-    "source": "https://api.unfoldingword.org/v2/ts/obs/en/obs/source.json?date_modified=20170315",
+    "source": "https://api.unfoldingword.org/v2/ts/obs/en/obs/source.json?date_modified=20170614",
     "status": {
-      "checking_entity": "Jobby Prasannan",
+      "checking_entity": "Distant Shores Media, Wycliffe Associates",
       "checking_level": "3",
       "comments": "",
       "contributors": "Distant Shores Media; Wycliffe Associates",
@@ -17,6 +17,6 @@
       "version": "4"
     },
     "terms": "https://api.unfoldingword.org/v2/ts/obs/en/words.json?date_modified=20170518",
-    "tw_cat": "https://api.unfoldingword.org/v2/ts/obs/en/tw_cat.json?date_modified=20170315"
+    "tw_cat": "https://api.unfoldingword.org/v2/ts/obs/en/tw_cat.json?date_modified=20170614"
   }
 ]

@@ -1,5 +1,21 @@
 [
   {
+    "date_modified": "20170607",
+    "lang_catalog": "https://api.unfoldingword.org/v2/ts/1ch/languages.json?date_modified=20170607",
+    "meta": [
+      "bible-ot"
+    ],
+    "slug": "1ch",
+    "sort": "13"
+  },
+  {
+    "date_modified": "20170614",
+    "lang_catalog": "https://api.unfoldingword.org/v2/ts/obs/languages.json?date_modified=20170614",
+    "meta": [],
+    "slug": "obs",
+    "sort": "01"
+  },
+  {
     "date_modified": "20170502",
     "lang_catalog": "https://api.unfoldingword.org/v2/ts/gen/languages.json?date_modified=20170502",
     "meta": [
@@ -7,21 +23,5 @@
     ],
     "slug": "gen",
     "sort": "01"
-  },
-  {
-    "date_modified": "20170315",
-    "lang_catalog": "https://api.unfoldingword.org/v2/ts/obs/languages.json?date_modified=20170315",
-    "meta": [],
-    "slug": "obs",
-    "sort": "01"
-  },
-  {
-    "date_modified": "20170502",
-    "lang_catalog": "https://api.unfoldingword.org/v2/ts/1ch/languages.json?date_modified=20170502",
-    "meta": [
-      "bible-ot"
-    ],
-    "slug": "1ch",
-    "sort": "13"
   }
 ]
