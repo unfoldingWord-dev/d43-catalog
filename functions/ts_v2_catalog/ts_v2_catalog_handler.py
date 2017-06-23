@@ -614,20 +614,13 @@ class TsV2CatalogHandler:
             for pid in catalog:
                 for rid in catalog[pid]['_langs'][lid]['_res']:
                     res = catalog[pid]['_langs'][lid]['_res'][rid]
-                    if pid == 'obs':
-                        res.update({
-                            'terms': '{}/{}/{}/{}/words.json?date_modified={}'.format(
+                    # TRICKY: obs and Bible now use the same words
+                    res.update({
+                        'terms': '{}/{}/bible/{}/words.json?date_modified={}'.format(
                             self.cdn_url,
-                                TsV2CatalogHandler.cdn_rooth_path,
-                                pid, lid, modified)
-                        })
-                    else:
-                        res.update({
-                            'terms': '{}/{}/bible/{}/words.json?date_modified={}'.format(
-                                self.cdn_url,
-                                TsV2CatalogHandler.cdn_rooth_path,
-                                lid, modified)
-                        })
+                            TsV2CatalogHandler.cdn_rooth_path,
+                            lid, modified)
+                    })
 
     def _build_catalog_node(self, catalog, language, resource, project, modified):
         """
