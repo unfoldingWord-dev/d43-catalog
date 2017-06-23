@@ -124,12 +124,12 @@ class TestTsV2Catalog(TestCase):
             'https://test-cdn.door43.org/en/tq/v4/obs-tq.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_obs_tq.zip'),
             'https://test-cdn.door43.org/en/tq/v6/tq.zip': os.path.join(TestTsV2Catalog.resources_dir, 'en_tq.zip')
         }
-        mockDb = MockDynamodbHandler()
-        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
+        # mockDb = MockDynamodbHandler()
+        # mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'db.json'))
         mock_get_url = lambda url, catch_exception: TestTsV2Catalog.mock_get_url(urls, url, catch_exception)
         mock_download = lambda url, dest: TestTsV2Catalog.mock_download_file(urls, url, dest)
         event = self.make_event()
-        converter = TsV2CatalogHandler(event, mockS3, mockDb, mock_get_url, mock_download)
+        converter = TsV2CatalogHandler(event, mockS3, None, mock_get_url, mock_download)
         converter.convert_catalog()
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/catalog.json')
