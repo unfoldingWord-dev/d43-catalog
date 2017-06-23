@@ -593,37 +593,27 @@ class TsV2CatalogHandler:
             for rid in catalog[pid]['_langs'][lid]['_res']:
                 res = catalog[pid]['_langs'][lid]['_res'][rid]
                 if 'tn' in resource['identifier']:
-                    if pid == 'obs':
-                        res.update({
-                            'notes': 'https://api.unfoldingword.org/{0}/txt/1/{1}/tN-{1}.json?date_modified={2}'.format(
-                                pid, lid, modified)
-                        })
-                    else:
-                        res.update({
-                            'notes': 'https://api.unfoldingword.org/ts/txt/2/{}/{}/notes.json?date_modified={}'.format(
-                                pid, lid, modified)
-                        })
+                    res.update({
+                        'notes': 'https://api.unfoldingword.org/v2/ts/{0}/{1}/notes.json?date_modified={2}'.format(
+                            pid, lid, modified)
+                    })
                 elif 'tq' in resource['identifier']:
-                    if pid == 'obs':
-                        res.update({
-                            'checking_questions': 'https://api.unfoldingword.org/{0}/txt/1/{1}/CQ-{1}.json?date_modified={2}'.format(pid, lid,  modified)
-                        })
-                    else:
-                        res.update({
-                            'checking_questions': 'https://api.unfoldingword.org/ts/txt/2/{}/{}/questions.json?date_modified={}'.format(
-                                pid, lid, modified)
-                        })
+                    res.update({
+                        'checking_questions': 'https://api.unfoldingword.org/v2/ts/{0}/{1}/questions.json?date_modified={2}'.format(
+                            pid, lid, modified)
+                    })
         elif rc_type == 'dict':
             for pid in catalog:
                 for rid in catalog[pid]['_langs'][lid]['_res']:
                     res = catalog[pid]['_langs'][lid]['_res'][rid]
                     if pid == 'obs':
                         res.update({
-                            'terms': 'https://api.unfoldingword.org/obs/txt/1/{0}/kt-{0}.json?date_modified={1}'.format(lid, modified)
+                            'terms': 'https://api.unfoldingword.org/v2/ts/{}/{}/words.json?date_modified={}'.format(
+                                pid, lid, modified)
                         })
                     else:
                         res.update({
-                            'terms': 'https://api.unfoldingword.org/ts/txt/2/bible/{}/terms.json?date_modified={}'.format(lid, modified)
+                            'terms': 'https://api.unfoldingword.org/v2/ts/bible/{}/words.json?date_modified={}'.format(lid, modified)
                         })
 
     def _build_catalog_node(self, catalog, language, resource, project, modified):
@@ -655,10 +645,10 @@ class TsV2CatalogHandler:
         r_modified = self._max_modified(res, modified) # TRICKY: dates bubble up from project
         comments = ''  # TRICKY: comments are not officially supported in RCs but we use them if available
         if 'comment' in resource: comments = resource['comment']
-        if pid == 'obs':
-            source_url = 'https://api.unfoldingword.org/obs/txt/1/{0}/obs-{0}.json?date_modified={1}'.format(lid, r_modified)
-        else:
-            source_url = 'https://api.unfoldingword.org/ts/txt/2/{0}/{1}/ulb/source.json?date_modified={2}'.format(pid, lid, r_modified)
+        # if pid == 'obs':
+        #     source_url = 'https://api.unfoldingword.org/v2/ts/{}/{}/source.json?date_modified={}'.format(pid, lid, r_modified)
+        # else:
+        source_url = 'https://api.unfoldingword.org/v2/ts/{}/{}/{}/source.json?date_modified={}'.format(pid, lid, rid, r_modified)
         res.update({
             'date_modified': r_modified,
             'name': resource['title'],
@@ -681,19 +671,14 @@ class TsV2CatalogHandler:
         })
         # english projects have tw_cat
         if lid == 'en':
-            if pid == 'obs':
-                res.update({
-                    'tw_cat': 'https://api.unfoldingword.org/obs/txt/1/{0}/tw_cat-{0}.json?date_modified={1}'.format(lid, r_modified)
-                })
-            else:
-                res.update({
-                    'tw_cat': 'https://api.unfoldingword.org/ts/txt/2/{}/{}/tw_cat.json?date_modified={}'.format(pid, lid, r_modified)
-                })
+            res.update({
+                'tw_cat': 'https://api.unfoldingword.org/v2/ts/{}/{}/tw_cat.json?date_modified={}'.format(pid, lid, r_modified)
+            })
 
         # bible projects have usfm
         if pid != 'obs':
             res.update({
-                'usfm': 'https://api.unfoldingword.org/{0}/txt/1/{0}-{1}/{2}-{3}.usfm?date_modified={4}'.format(rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
+                'usfm': 'https://api.unfoldingword.org/v2/ts/{0}/{1}/{2}-{3}.usfm?date_modified={4}'.format(rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
             })
 
         # language
