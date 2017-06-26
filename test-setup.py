@@ -14,7 +14,7 @@ setup(
     install_requires=[
         'coveralls==1.1',
         'requests==2.13.0',
-        'markdown==2.6.8'
+        'markdown==2.6.8',
         'pyyaml==3.12',
         'gogs_client==1.0.5',
         'usfm-tools==0.0.12',
