@@ -29,7 +29,7 @@ class TestSigning(TestCase):
 
     @staticmethod
     def create_db_item(commit_id=None):
-        item = load_json_object(os.path.join(TestSigning.resources_dir, 'dynamodb_record.json'))
+        item = load_json_object(os.path.join(TestSigning.resources_dir, 'dynamodb_record.json'))[0]
         if commit_id:
             item['commit_id'] = commit_id
         return item
