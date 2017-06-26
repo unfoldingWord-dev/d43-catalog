@@ -18,7 +18,7 @@ setup(
         'pyyaml==3.12',
         'gogs_client==1.0.5',
         'usfm-tools==0.0.12',
-        'd43_aws_tools==1.0.2'
+        'd43_aws_tools==1.0.3'
     ],
     test_suite='tests'
 )
