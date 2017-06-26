@@ -99,6 +99,7 @@ class TsV2CatalogHandler:
                                 # locate rc_format (for single-project RCs)
                                 rc_format = format
                             obs_sources.update(self._index_obs_files(lid, rid, format))
+                            # TRICKY: there should only be a single tW for each language
                             if lid not in tw_sources:
                                 tw_sources.update(self._index_words_files(lid, rid, format))
                             # TRICKY: obs notes and questions are in the project
@@ -405,6 +406,11 @@ class TsV2CatalogHandler:
                             else:
                                 cleaned_blocks.append(block)
                         word_content = '##'.join(cleaned_blocks)
+
+                        # TODO: include see also
+
+                        # convert links
+                        word_content = self._convert_rc_links(word_content)
 
                         words.append({
                             'aliases': [a.strip() for a in title.split(',') if a.strip() != word_id and a.strip() != title.strip()],
@@ -957,7 +963,12 @@ class TsV2CatalogHandler:
                     print('WARNING: volume not found for {} while parsing link {}. Defaulting to vol1'.format(module, link[0]))
                     vol = 'vol1'
                 new_link = ':{}:{}:{}:{}:{}'.format(lid, rid, vol, pid, module)
-
+            if rid == 'ulb':
+                pass
+            if rid == 'udb':
+                pass
+            if rid == 'obs':
+                pass
 
             content = content.replace(link[0], new_link)
         return content
