@@ -10,11 +10,9 @@ import os
 import json
 import tempfile
 import copy
-import time
 import boto3
-import hashlib
-from general_tools.file_utils import write_file
-from general_tools.url_utils import get_url
+from tools.file_utils import write_file
+from tools.url_utils import get_url
 from tools.consistency_checker import ConsistencyChecker
 
 class CatalogHandler:
