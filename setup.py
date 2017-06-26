@@ -21,7 +21,7 @@ setup(
     classifiers=[],
     install_requires=[
         'requests==2.13.0',
-        'markdown==2.6.8'
+        'markdown==2.6.8',
         'pyyaml==3.12',
         'gogs_client==1.0.5',
         'usfm-tools==0.0.12',
