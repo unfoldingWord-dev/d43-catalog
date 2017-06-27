@@ -13,7 +13,6 @@ setup(
     classifiers=[],
     install_requires=[
         'coveralls==1.1',
-        'requests==2.18.1',
         'markdown==2.6.8',
         'pyyaml==3.12',
         'gogs_client==1.0.6',
