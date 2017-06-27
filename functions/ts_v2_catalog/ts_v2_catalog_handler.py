@@ -7,12 +7,10 @@ import hashlib
 import json
 import yaml
 import os
-import datetime
 import codecs
 import re
 import tempfile
 import time
-import zipfile
 import markdown
 from d43_aws_tools import S3Handler
 from usfm_tools.transform import UsfmTransform
