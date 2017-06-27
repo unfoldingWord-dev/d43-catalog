@@ -348,6 +348,7 @@ class TsV2CatalogHandler:
         obs_example_re = re.compile('\_*\[([^\[\]]+)\]\(([^\(\)]+)\)_*(.*)', re.UNICODE | re.IGNORECASE)
         block_re = re.compile('^##', re.MULTILINE | re.UNICODE)
         word_links_re = re.compile('\[([^\[\]]+)\]\(\.\.\/(kt|other)\/([^\(\)]+)\.md\)', re.UNICODE | re.IGNORECASE)
+        ta_html_re = re.compile('(<a\s+href="(:[a-z-_0-9]+:ta:vol\d:[a-z-\_]+:[a-z-\_]+)"\s*>([^<]+)<\/a>)', re.UNICODE | re.IGNORECASE)
 
         words = []
         format_str = format['format']
@@ -410,13 +411,20 @@ class TsV2CatalogHandler:
                         # find all tW links and use them in related words
                         related_words = [w[2] for w in word_links_re.findall(word_content) ]
 
-                        # convert links
+                        # convert links to legacy form. TODO: we should convert links after converting to html so we don't have to do it twice.
                         word_content = self._convert_rc_links(word_content)
+                        word_content = markdown.markdown(word_content)
+                        # convert html links back to dokuwiki links
+                        # TRICKY: we converted the ta urls, but now we need to format them as dokuwiki links
+                        # e.g. [[en:ta:vol1:translate:translate_unknown | How to Translate Unknowns]]
+                        for ta_link in ta_html_re.findall(word_content):
+                            new_link = '[[{} | {}]]'.format(ta_link[1], ta_link[2])
+                            word_content = word_content.replace(ta_link[0], new_link)
 
                         words.append({
                             'aliases': [a.strip() for a in title.split(',') if a.strip() != word_id and a.strip() != title.strip()],
                             'cf': related_words,
-                            'def': markdown.markdown(word_content), # TODO: we may need to preserve links in markdown format
+                            'def': word_content, # TODO: we may need to preserve links in markdown format
                             'def_title': def_title.rstrip(':'),
                             'ex': examples,
                             'id': word_id,
