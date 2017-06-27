@@ -149,7 +149,8 @@ class TsV2CatalogHandler:
                     resource = language['_res'][rid]
                     source_key = '$'.join([pid, lid, rid])
 
-                    # TODO: convert and cache notes, questions, tw.
+                    # TODO: convert tW map
+
                     # upload tQ
                     if pid == 'obs':
                         question_key = '$'.join([pid, lid, 'obs-tq'])
@@ -346,6 +347,7 @@ class TsV2CatalogHandler:
         h2_re = re.compile('^##([^#]*)#*', re.UNICODE)
         obs_example_re = re.compile('\_*\[([^\[\]]+)\]\(([^\(\)]+)\)_*(.*)', re.UNICODE | re.IGNORECASE)
         block_re = re.compile('^##', re.MULTILINE | re.UNICODE)
+        word_links_re = re.compile('\[([^\[\]]+)\]\(\.\.\/(kt|other)\/([^\(\)]+)\.md\)', re.UNICODE | re.IGNORECASE)
 
         words = []
         format_str = format['format']
@@ -405,16 +407,17 @@ class TsV2CatalogHandler:
                                 cleaned_blocks.append(block)
                         word_content = '##'.join(cleaned_blocks)
 
-                        # TODO: include see also
+                        # find all tW links and use them in related words
+                        related_words = [w[2] for w in word_links_re.findall(word_content) ]
 
                         # convert links
                         word_content = self._convert_rc_links(word_content)
 
                         words.append({
                             'aliases': [a.strip() for a in title.split(',') if a.strip() != word_id and a.strip() != title.strip()],
-                            'cf': [], # TODO: add see also ids. search for tw links
+                            'cf': related_words,
                             'def': markdown.markdown(word_content), # TODO: we may need to preserve links in markdown format
-                            'def_title': def_title,
+                            'def_title': def_title.rstrip(':'),
                             'ex': examples,
                             'id': word_id,
                             'sub': '',
