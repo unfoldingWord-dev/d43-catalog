@@ -12,6 +12,7 @@ from aws_decrypt import decrypt_file
 from base64 import b64decode
 from tools.file_utils import write_file
 from tools.url_utils import download_file
+from tools.dict_utils import read_dict
 from subprocess import Popen, PIPE
 
 
@@ -33,7 +34,7 @@ class Signing(object):
         """
         # self.event = event
         self.logger = logger
-        self.cdn_bucket_name = 'test-cdn.door43.org' #self.retrieve(event, 'api_bucket')
+        self.cdn_bucket_name = read_dict(event, 'cdn_bucket', 'Environment Vars')
 
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket_name)

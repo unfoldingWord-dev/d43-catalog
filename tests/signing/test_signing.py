@@ -37,7 +37,9 @@ class TestSigning(TestCase):
     @staticmethod
     def create_event():
 
-        event = {'api_bucket': 'my-bucket'}
+        event = {
+            'cdn_bucket': 'cdn.door43.org'
+        }
 
         return event
 
@@ -52,31 +54,6 @@ class TestSigning(TestCase):
         }
 
         return record
-
-    @unittest.skipIf(Signing.is_travis(), 'Skipping test_decrypt_file on Travis CI.')
-    def test_decrypt_file(self):
-        """
-        This tests the decryption of an encrypted file. The lambda function will use this to decrypt the key file
-        that is used to sign source files
-        :return:
-        """
-
-        encrypted_file = os.path.join(self.resources_dir, 'test.enc')
-        decrypted_file = os.path.join(self.temp_dir, 'test.txt')
-        result = decrypt_file(encrypted_file, decrypted_file)
-
-        # verify the file was decrypted
-        self.assertTrue(result)
-        self.assertTrue(os.path.isfile(decrypted_file))
-
-        # verify the contents
-        with codecs.open(decrypted_file, 'r', encoding='utf-8') as in_file:
-            decrypted_text = in_file.read()
-
-        with codecs.open(os.path.join(self.resources_dir, 'test.txt'), 'r', encoding='utf-8') as in_file:
-            original_text = in_file.read()
-
-        self.assertEqual(decrypted_text, original_text)
 
     def test_sign_file_with_test_certificate(self):
 
