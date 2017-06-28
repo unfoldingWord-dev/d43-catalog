@@ -6,7 +6,7 @@
 
 from __future__ import print_function
 
-from d43_aws_tools.dynamodb_handler import DynamoDBHandler
+from d43_aws_tools import DynamoDBHandler
 import gogs_client as GogsClient
 import boto3
 import json
