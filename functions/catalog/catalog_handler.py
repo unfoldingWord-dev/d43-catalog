@@ -157,15 +157,15 @@ class CatalogHandler:
                             "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
                         }
                     }
-                    # try:
-                    #     print("Triggering build for tS v2 API")
-                    #     client.invoke(
-                    #         FunctionName="d43-catalog_ts_v2_catalog",
-                    #         InvocationType="Event",
-                    #         Payload=json.dumps(payload)
-                    #     )
-                    # except Exception as e:
-                    #     self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
+                    try:
+                        print("Triggering build for tS v2 API")
+                        client.invoke(
+                            FunctionName="d43-catalog_ts_v2_catalog",
+                            InvocationType="Event",
+                            Payload=json.dumps(payload)
+                        )
+                    except Exception as e:
+                        self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
 
                     # TODO: trigger uW build once it's ready
                 except Exception as e:
