@@ -16,6 +16,7 @@ from d43_aws_tools import S3Handler
 from usfm_tools.transform import UsfmTransform
 from tools.file_utils import write_file, read_file, unzip
 from tools.url_utils import download_file, get_url
+from tools.dict_utils import read_dict
 import dateutil.parser
 
 class TsV2CatalogHandler:
@@ -29,10 +30,10 @@ class TsV2CatalogHandler:
         :param url_handler: This is passed in so it can be mocked for unit testing
         :param download_handler: This is passed in so it can be mocked for unit testing
         """
-        env_vars = self.retrieve(event, 'stage-variables', 'payload')
-        self.catalog_url = self.retrieve(env_vars, 'catalog_url', 'Environment Vars')
-        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        env_vars = read_dict(event, 'stage-variables', 'payload')
+        self.catalog_url = read_dict(env_vars, 'catalog_url', 'Environment Vars')
+        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket)
@@ -752,21 +753,6 @@ class TsV2CatalogHandler:
             return date_obj.strftime('%Y%m%d')
         except:
             return None
-
-    @staticmethod
-    def retrieve(dictionary, key, dict_name=None):
-        """
-        Retrieves a value from a dictionary, raising an error message if the
-        specified key is not valid
-        :param dict dictionary:
-        :param any key:
-        :param str|unicode dict_name: name of dictionary, for error message
-        :return: value corresponding to key
-        """
-        if key in dictionary:
-            return dictionary[key]
-        dict_name = "dictionary" if dict_name is None else dict_name
-        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
     def _usx_to_json(self, usx):
         """
