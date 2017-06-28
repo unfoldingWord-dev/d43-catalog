@@ -60,6 +60,7 @@ class TsV2CatalogHandler:
         note_sources = {}
         question_sources = {}
         tw_sources = {}
+        tw_cat_sources = {}
 
         # retrieve the latest catalog
         catalog_content = self.get_url(self.catalog_url, True)
@@ -87,7 +88,9 @@ class TsV2CatalogHandler:
                             rc_format = format
                         usx_sources.update(self._index_usx_files(lid, rid, format))
                         # TRICKY: bible notes and questions are in the resource
-                        note_sources.update(self._index_note_files(lid, rid, format))
+                        (notes, tw_cat) = self._index_note_files(lid, rid, format)
+                        note_sources.update(notes)
+                        tw_cat_sources.update(tw_cat)
                         question_sources.update(self._index_question_files(lid, rid, format))
 
                 for project in resource['projects']:
@@ -101,7 +104,9 @@ class TsV2CatalogHandler:
                             if lid not in tw_sources:
                                 tw_sources.update(self._index_words_files(lid, rid, format))
                             # TRICKY: obs notes and questions are in the project
-                            note_sources.update(self._index_note_files(lid, rid, format))
+                            (notes, tw_cat) = self._index_note_files(lid, rid, format)
+                            note_sources.update(notes)
+                            tw_cat_sources.update(tw_cat)
                             question_sources.update(self._index_question_files(lid, rid, format))
 
                     if not rc_format:
@@ -149,7 +154,20 @@ class TsV2CatalogHandler:
                     resource = language['_res'][rid]
                     source_key = '$'.join([pid, lid, rid])
 
-                    # TODO: convert tW map
+                    # upload tW cat
+                    # TRICKY: tw_cat is read from notes so it uses the same key form as notes
+                    if pid == 'obs':
+                        tw_cat_key = '$'.join([pid, lid, 'obs-tn'])
+                    else:
+                        tw_cat_key = '$'.join([pid, lid, 'tn'])
+                    if tw_cat_key not in tw_cat_sources:
+                        resource['tw_cat'] = ''
+                    else:
+                        api_uploads.append({
+                            # TRICKY: notes are organized by project not resource
+                            'key': '{}/{}/tw_cat.json'.format(pid, lid),
+                            'path': tw_cat_sources[tw_cat_key]
+                        })
 
                     # upload tQ
                     if pid == 'obs':
@@ -216,9 +234,18 @@ class TsV2CatalogHandler:
             self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_rooth_path, upload['key']))
 
     def _index_note_files(self, lid, rid, format):
+        """
+
+        :param lid:
+        :param rid:
+        :param format:
+        :return: a tuple of (notes, tw_cat)
+        """
         note_general_re = re.compile('^([^#]+)', re.UNICODE)
         note_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
         note_sources = {}
+        tw_cat_sources = {}
+        word_link_re = re.compile('\[\[rc:\/\/[a-z0-9\-\_]+\/tw\/dict\/bible\/(kt|other)\/([a-z0-9\-\_]+)\]\]', re.UNICODE | re.IGNORECASE)
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
@@ -233,19 +260,31 @@ class TsV2CatalogHandler:
                 key = '$'.join([pid, lid, rid])
                 note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 note_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_notes.json'))
+                tw_cat_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_words_cat.json'))
                 note_json = []
 
                 chapters = os.listdir(note_dir)
+                tw_chapters = []
                 for chapter in chapters:
                     if chapter == 'front': continue
                     chapter_dir = os.path.join(note_dir, chapter)
                     chunks = os.listdir(chapter_dir)
+                    tw_frames = []
                     for chunk in chunks:
                         if chunk == 'intro.md': continue
                         notes = []
                         chunk_file = os.path.join(chapter_dir, chunk)
                         chunk = chunk.split('.')[0]
                         chunk_body = read_file(chunk_file)
+
+                        # read tW mappings
+                        tw_items = [{ 'id': w[1]} for w in word_link_re.findall(chunk_body)]
+                        if tw_items:
+                            tw_frames.append({
+                                'id': chunk.split('.')[0],
+                                'items': tw_items
+                            })
+
                         chunk_body = self._convert_rc_links(chunk_body)
                         general_notes = note_general_re.search(chunk_body)
 
@@ -257,21 +296,37 @@ class TsV2CatalogHandler:
                             })
 
                         for note in note_re.findall(chunk_body):
-                            notes.append({
-                                'ref': note[0].strip(),
-                                'text': note[1].strip()
-                            })
+                            # TRICKY: do not include translation words in the list of notes
+                            if note[0].strip().lower() != 'translationwords':
+                                notes.append({
+                                    'ref': note[0].strip(),
+                                    'text': note[1].strip()
+                                })
 
                         note_json.append({
                             'id': '{}-{}'.format(chapter, chunk),
                             'tn': notes
                         })
 
+                    if tw_frames:
+                        tw_chapters.append({
+                            'id': chapter,
+                            "frames": tw_frames
+                        })
+
+                if tw_chapters:
+                    tw_cat_json = {
+                        "chapters": tw_chapters,
+                        "date_modified": dc['modified'].replace('-', '')
+                    }
+                    write_file(tw_cat_json_file, json.dumps(tw_cat_json, sort_keys=True))
+                    tw_cat_sources[key] = tw_cat_json_file
+
                 note_json.append({'date_modified': dc['modified'].replace('-', '')})
                 write_file(note_json_file, json.dumps(note_json, sort_keys=True))
                 note_sources[key] = note_json_file
 
-        return note_sources
+        return (note_sources, tw_cat_sources)
 
     def _index_question_files(self, lid, rid, format):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
@@ -402,7 +457,7 @@ class TsV2CatalogHandler:
                                     else:
                                         examples.append({
                                             'ref': link[0].replace(':', '-'),
-                                            'text': markdown.markdown(link[2].strip()) # TODO: we may need to preserve links in markdown format
+                                            'text': markdown.markdown(link[2].strip())
                                         })
                             else:
                                 cleaned_blocks.append(block)
@@ -424,7 +479,7 @@ class TsV2CatalogHandler:
                         words.append({
                             'aliases': [a.strip() for a in title.split(',') if a.strip() != word_id and a.strip() != title.strip()],
                             'cf': related_words,
-                            'def': word_content, # TODO: we may need to preserve links in markdown format
+                            'def': word_content,
                             'def_title': def_title.rstrip(':'),
                             'ex': examples,
                             'id': word_id,

@@ -146,7 +146,7 @@ class TestTsV2Catalog(TestCase):
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/source.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/notes.json')
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/questions.json')
-        # self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/ulb/tw_cat.json')
+        self.assertS3EqualsApiJSON(mockS3, 'v2/ts/1ch/en/tw_cat.json')
 
         self.assertS3EqualsApiJSON(mockS3, 'v2/ts/bible/en/words.json')
 
@@ -177,5 +177,5 @@ class TestTsV2Catalog(TestCase):
                         self.assertIn(source_path, mockS3._uploads, url_err_msg.format(source_path))
                     if terms_path:
                         self.assertIn(terms_path, mockS3._uploads, url_err_msg.format(terms_path))
-                    # if terms_map_path:
-                    #     self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
+                    if terms_map_path:
+                        self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
