@@ -5,9 +5,7 @@
 #
 
 from __future__ import print_function
-from aws_tools.dynamodb_handler import DynamoDBHandler
-from aws_tools.s3_handler import S3Handler
-from tools.ses_handler import SESHandler
+from d43_aws_tools import DynamoDBHandler, S3Handler, SESHandler
 from catalog_handler import CatalogHandler
 
 def handle(event, context):
