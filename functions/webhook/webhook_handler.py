@@ -18,6 +18,7 @@ from tools.url_utils import get_url, download_file
 from tools.file_utils import unzip, read_file, write_file
 from d43_aws_tools import DynamoDBHandler, S3Handler
 from tools.consistency_checker import ConsistencyChecker
+from tools.dict_utils import read_dict
 
 
 class WebhookHandler:
@@ -29,13 +30,13 @@ class WebhookHandler:
         :param dynamodb_handler: provided for unit testing
         :param download_handler: provided for unit testing
         """
-        env_vars = self.retrieve(event, 'stage-variables', 'payload')
-        self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
-        self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
-        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        env_vars = read_dict(event, 'stage-variables', 'payload')
+        self.gogs_url = read_dict(env_vars, 'gogs_url', 'Environment Vars')
+        self.gogs_org = read_dict(env_vars, 'gogs_org', 'Environment Vars')
+        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
 
-        self.repo_commit = self.retrieve(event, 'body-json', 'payload')
+        self.repo_commit = read_dict(event, 'body-json', 'payload')
         self.repo_owner = self.repo_commit['repository']['owner']['username']
         self.repo_name = self.repo_commit['repository']['name']
         self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
@@ -338,18 +339,3 @@ class WebhookHandler:
             unzip(repo_file, repo_dir)
         finally:
             print('finished.')
-
-    @staticmethod
-    def retrieve(dictionary, key, dict_name=None):
-        """
-        Retrieves a value from a dictionary, raising an error message if the
-        specified key is not valid
-        :param dict dictionary:
-        :param any key:
-        :param str|unicode dict_name: name of dictionary, for error message
-        :return: value corresponding to key
-        """
-        if key in dictionary:
-            return dictionary[key]
-        dict_name = "dictionary" if dict_name is None else dict_name
-        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))

@@ -14,6 +14,7 @@ import boto3
 from tools.file_utils import write_file
 from tools.url_utils import get_url
 from tools.consistency_checker import ConsistencyChecker
+from tools.dict_utils import read_dict
 
 class CatalogHandler:
     API_VERSION = 3
@@ -29,12 +30,12 @@ class CatalogHandler:
         :param ses_handler: This is passed in so it can be mocked for unit testing
         :param consistency_checker: This is passed in so it can be mocked for unit testing
         """
-        self.cdn_url = self.retrieve(event, 'cdn_url')
-        self.cdn_bucket = self.retrieve(event, 'cdn_bucket')
-        self.api_bucket = self.retrieve(event, 'api_bucket')
-        # self.api_url = self.retrieve(event, 'api_url')
-        self.to_email = self.retrieve(event, 'to_email')
-        self.from_email = self.retrieve(event, 'from_email')
+        self.cdn_url = read_dict(event, 'cdn_url')
+        self.cdn_bucket = read_dict(event, 'cdn_bucket')
+        self.api_bucket = read_dict(event, 'api_bucket')
+        # self.api_url = read_dict(event, 'api_url')
+        self.to_email = read_dict(event, 'to_email')
+        self.from_email = read_dict(event, 'from_email')
 
         self.progress_table = dynamodb_handler('d43-catalog-in-progress')
         self.production_table = dynamodb_handler('d43-catalog-production')
@@ -67,21 +68,6 @@ class CatalogHandler:
         if 'resources' not in language:
             language['resources'] = []
         return language
-
-    @staticmethod
-    def retrieve(dictionary, key, dict_name=None):
-        """
-        Retrieves a value from a dictionary, raising an error message if the
-        specified key is not valid
-        :param dict dictionary:
-        :param any key:
-        :param str|unicode dict_name: name of dictionary, for error message
-        :return: value corresponding to key
-        """
-        if key in dictionary:
-            return dictionary[key]
-        dict_name = "dictionary" if dict_name is None else dict_name
-        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
     def handle_catalog(self):
         completed_items = 0
