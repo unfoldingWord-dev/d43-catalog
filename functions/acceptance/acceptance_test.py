@@ -59,7 +59,7 @@ class AcceptanceTest(object):
 
         for key in ['catalogs', 'languages']:
             if key not in catalog:
-                self.log_error("{0} doesn't have '{1}'".format(self.catalog_url, key))
+                self.log_error("{} doesn't have '{}'".format(self.catalog_url, key))
         if 'languages' not in catalog:
             return False
 
@@ -83,41 +83,41 @@ class AcceptanceTest(object):
 
             for key in ['title', 'direction']:
                 if key not in language:
-                    self.log_error("{0}: '{0}' does not exist".format(lslug, key))
+                    self.log_error("{}: '{}' does not exist".format(lslug, key))
 
             if 'resources' in language:
                 if not isinstance(language['resources'], list):
-                    self.log_error("{0}: 'resources' is not an array".format(lslug))
+                    self.log_error("{}: 'resources' is not an array".format(lslug))
                 else:
                     for resource in language['resources']:
                         if not isinstance(resource, dict):
-                            self.log_error("{0}: A resource container is not an associative array")
+                            self.log_error("{}: A resource container is not an associative array".format(lslug))
                             continue
 
                         if 'identifier' not in resource:
-                            self.log_error("{0} resources: A resource container exists without an 'identifier'".format(lslug))
+                            self.log_error("{} resources: A resource container exists without an 'identifier'".format(lslug))
                             continue
                         rslug = resource['identifier']
 
                         for key in ['title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
                                     'issued', 'modified', 'version', 'checking', 'formats']:
                             if key not in resource:
-                                self.log_error("{0}: '{1}' does not exist".format(rslug, key))
+                                self.log_error("{}: '{}' does not exist".format(rslug, key))
                         if not isinstance(resource['formats'], list):
-                            self.log_error("{0}: 'formats' is not an array".format(rslug))
+                            self.log_error("{}: 'formats' is not an array".format(rslug))
                         else:
                             for format in resource['formats']:
                                 for key in ["format", "modified", "size", "url", "signature"]:
                                     if key not in format:
-                                        self.log_error("Format container for '{0}' doesn't have '{1}'".format(rslug, key))
+                                        self.log_error("Format container for '{}' doesn't have '{}'".format(rslug, key))
                                 if 'url' not in format or 'signature' not in format:
                                     continue
                                 if not self.url_exists(format['url']):
-                                    self.log_error("{0}: {1} does not exist".format(rslug, format['url']))
+                                    self.log_error("{}: {} does not exist".format(rslug, format['url']))
                                 if not format['signature']:
-                                    self.log_error("{0}: {1} has not been signed yet".format(rslug, format['url']))
+                                    self.log_error("{}: {} has not been signed yet".format(rslug, format['url']))
                                 elif not self.url_exists(format['signature']):
-                                    self.log_error("{0}: {1} does not exist".format(rslug, format['sig']))
+                                    self.log_error("{}: {} does not exist".format(rslug, format['sig']))
 
     def run(self):
         self.test_catalog_structure()

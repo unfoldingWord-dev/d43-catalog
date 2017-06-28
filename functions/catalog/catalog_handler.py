@@ -128,7 +128,7 @@ class CatalogHandler:
 
                     # print('Writing new catalog to production table')
                     # self.production_table.insert_item(data)
-                    print('Uploading catalog.json to CDN')
+                    print('Uploading catalog.json to API')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
 
                     response['success'] = True
