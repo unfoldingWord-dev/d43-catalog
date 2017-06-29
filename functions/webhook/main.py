@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 
 #
-# Webhook client for updating the catalog
+# Lambda function to handle a Gogs' webhook for updating the catalog
 #
 
 from __future__ import print_function
-
-from repo_handler import RepoHandler
+from webhook_handler import WebhookHandler
 
 
 def handle(event, context):
-#    try:
-        RepoHandler(event).run()
-#   except Exception as e:
-#       raise Exception('Bad Request: {0}'.format(e))
+    try:
+        handler = WebhookHandler(event)
+        handler.run()
+    except Exception as e:
+        raise Exception('Bad Request: {0}'.format(e))
 
+    return {
+        "success": True,
+        "message": "Successfully added {0} ({1}) to the catalog".format(handler.repo_name, handler.commit_id)
+    }

@@ -1,0 +1,44 @@
+[
+  {
+    "checking_questions": "https://api.unfoldingword.org/v2/ts/1ch/en/questions.json?date_modified=20170503",
+    "date_modified": "20170607",
+    "name": "Unlocked Literal Bible",
+    "notes": "https://api.unfoldingword.org/v2/ts/1ch/en/notes.json?date_modified=20170623",
+    "slug": "ulb",
+    "source": "https://api.unfoldingword.org/v2/ts/1ch/en/ulb/source.json?date_modified=20170607",
+    "status": {
+      "checking_entity": "Wycliffe Associates",
+      "checking_level": "3",
+      "comments": "",
+      "contributors": "Wycliffe Associates",
+      "publish_date": "2016-10-03",
+      "source_text": "en",
+      "source_text_version": "1901",
+      "version": "7"
+    },
+    "terms": "https://api.unfoldingword.org/v2/ts/bible/en/words.json?date_modified=20170518",
+    "tw_cat": "https://api.unfoldingword.org/v2/ts/1ch/en/tw_cat.json?date_modified=20170607",
+    "usfm": "https://api.unfoldingword.org/v2/ts/ulb/en/13-1CH.usfm?date_modified=20170607"
+  },
+  {
+    "checking_questions": "https://api.unfoldingword.org/v2/ts/1ch/en/questions.json?date_modified=20170503",
+    "date_modified": "20170502",
+    "name": "Unlocked Dynamic Bible",
+    "notes": "https://api.unfoldingword.org/v2/ts/1ch/en/notes.json?date_modified=20170623",
+    "slug": "udb",
+    "source": "https://api.unfoldingword.org/v2/ts/1ch/en/udb/source.json?date_modified=20170502",
+    "status": {
+      "checking_entity": "Wycliffe Associates",
+      "checking_level": "3",
+      "comments": "",
+      "contributors": "Wycliffe Associates",
+      "publish_date": "2015-08-26",
+      "source_text": "en",
+      "source_text_version": "1901",
+      "version": "7"
+    },
+    "terms": "https://api.unfoldingword.org/v2/ts/bible/en/words.json?date_modified=20170518",
+    "tw_cat": "https://api.unfoldingword.org/v2/ts/1ch/en/tw_cat.json?date_modified=20170502",
+    "usfm": "https://api.unfoldingword.org/v2/ts/udb/en/13-1CH.usfm?date_modified=20170502"
+  }
+]

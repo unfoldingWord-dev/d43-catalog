@@ -1,0 +1,19 @@
+[
+  {
+    "language": {
+      "date_modified": "20170607",
+      "direction": "ltr",
+      "name": "English",
+      "slug": "en"
+    },
+    "project": {
+      "desc": "",
+      "meta": [
+        "bible-ot"
+      ],
+      "name": "1 Chronicles",
+      "sort": "13"
+    },
+    "res_catalog": "https://api.unfoldingword.org/v2/ts/1ch/en/resources.json?date_modified=20170607"
+  }
+]

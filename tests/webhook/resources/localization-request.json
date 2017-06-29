@@ -1,0 +1,78 @@
+{
+  "stage-variables": {
+    "gogs_url": "",
+    "gogs_org": "Door43-Catalog",
+    "cdn_bucket": "",
+    "cdn_url": ""
+  },
+  "body-json": {
+    "secret": "",
+    "ref": "refs/heads/master",
+    "before": "03bd2a310aefc25f52521a2226021472948c0991",
+    "after": "d92df527538e96e722ec1f695f4e328d2ca3d731",
+    "compare_url": "https://git.door43.org/Door43-Catalog/localization/compare/03bd2a310aefc25f52521a2226021472948c0991...d92df527538e96e722ec1f695f4e328d2ca3d731",
+    "commits": [
+      {
+        "id": "d92df527538e96e722ec1f695f4e328d2ca3d731",
+        "message": "Add 'Test'\n",
+        "url": "https://git.door43.org/Door43-Catalog/localization/commit/d92df527538e96e722ec1f695f4e328d2ca3d731",
+        "author": {
+          "name": "Joel Lonbeck",
+          "email": "joel@neutrinographics.com",
+          "username": "joel"
+        },
+        "committer": {
+          "name": "Joel Lonbeck",
+          "email": "joel@neutrinographics.com",
+          "username": "joel"
+        },
+        "timestamp": "2017-05-03T21:17:04Z"
+      }
+    ],
+    "repository": {
+      "id": 4710,
+      "owner": {
+        "id": 4598,
+        "username": "Door43-Catalog",
+        "full_name": "Door43 Resource Catalog",
+        "email": "",
+        "avatar_url": "https://git.door43.org/avatars/4598"
+      },
+      "name": "localization",
+      "full_name": "Door43-Catalog/localization",
+      "description": "",
+      "private": false,
+      "fork": false,
+      "html_url": "https://git.door43.org/Door43-Catalog/localization",
+      "ssh_url": "git@git.door43.org:Door43-Catalog/localization.git",
+      "clone_url": "https://git.door43.org/Door43-Catalog/localization.git",
+      "website": "",
+      "stars_count": 0,
+      "forks_count": 1,
+      "watchers_count": 6,
+      "open_issues_count": 0,
+      "default_branch": "master",
+      "created_at": "2016-11-14T20:36:40Z",
+      "updated_at": "2016-11-15T23:39:38Z",
+      "permissions": {
+        "admin": false,
+        "push": false,
+        "pull": false
+      }
+    },
+    "pusher": {
+      "id": 644,
+      "username": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+    },
+    "sender": {
+      "id": 644,
+      "username": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+    }
+  }
+}

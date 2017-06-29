@@ -1,0 +1,45 @@
+---
+
+dublin_core:
+  conformsto: 'rc0.2'
+  contributor:
+    - 'Wycliffe Associates'
+  creator: 'Wycliffe Associates'
+  description: 'An unrestricted dynamic Bible'
+  format: 'text/usfm'
+  identifier: 'udb'
+  issued: '2015-08-26'
+  language:
+    direction: 'ltr'
+    identifier: 'en'
+    title: 'English'
+  modified: '2016-10-03'
+  publisher: 'unfoldingWord'
+  relation:
+    - 'en/tw'
+    - 'en/tq'
+    - 'en/tn'
+  rights: 'CC BY-SA 4.0'
+  source:
+    -
+      identifier: 'asv'
+      language: 'en'
+      version: '1901'
+  subject: 'Bible'
+  title: 'Unlocked Dynamic Bible'
+  type: 'bundle'
+  version: '7'
+
+checking:
+  checking_entity:
+    - 'Wycliffe Associates'
+  checking_level: '3'
+
+projects:
+  -
+    title: '1 Chronicles'
+    versification: 'ufw'
+    identifier: '1ch'
+    sort: 13
+    path: './13-1CH.usfm'
+    categories: [ 'bible-ot' ]

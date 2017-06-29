@@ -1,0 +1,20 @@
+{
+  "d43-catalog-in-progress": [
+    {
+      "commit_id": "d92df52753",
+      "package": "{\"en\": {\"category_labels\": {\"bible-nt\": \"Bible: NT\", \"bible-ot\": \"Bible: OT\", \"ta\": \"translationAcademy\"}, \"check_labels\": {\"keyword\": \"Keyword\", \"metaphor\": \"Metaphor\"}, \"language\": {\"direction\": \"ltr\", \"title\": \"English\", \"identifier\": \"en\"}, \"versification_labels\": {\"kjv\": \"King James Version\", \"mt\": \"Masoretic Text (Hebrew Bible)\"}}, \"es\": {\"category_labels\": {\"bible-nt\": \"Bible: NT\", \"bible-ot\": \"Bible: OT\", \"ta\": \"translationAcademy\"}, \"check_labels\": {\"keyword\": \"Keyword\", \"metaphor\": \"Metaphor\"}, \"language\": {\"direction\": \"ltr\", \"title\": \"Spanish\", \"identifier\": \"es\"}, \"versification_labels\": {\"kjv\": \"King James Version\", \"mt\": \"Masoretic Text (Hebrew Bible)\"}}, \"fr\": {\"category_labels\": {\"bible-nt\": \"Bible: NT\", \"bible-ot\": \"Bible: OT\", \"ta\": \"translationAcademy\"}, \"check_labels\": {\"keyword\": \"Keyword\", \"metaphor\": \"Metaphor\"}, \"language\": {\"direction\": \"ltr\", \"title\": \"French\", \"identifier\": \"fr\"}, \"versification_labels\": {\"kjv\": \"King James Version\", \"mt\": \"Masoretic Text (Hebrew Bible)\"}}}",
+      "repo_name": "localization",
+      "timestamp": "2017-05-03T21:17:04Z"
+    },
+    {
+      "repo_name": "en-obs",
+      "commit_id": "f8a8d8d757",
+      "language": "en",
+      "timestamp": "2017-04-25T21:46:30Z",
+      "package": "{\"checking\": {\"checking_entity\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"checking_level\": \"3\"}, \"dublin_core\": {\"conformsto\": \"rc0.2\", \"contributor\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"creator\": \"Distant Shores Media\", \"description\": \"An unrestricted visual mini-Bible in any language\", \"format\": \"text/markdown\", \"identifier\": \"obs\", \"issued\": \"2015-08-26\", \"language\": {\"direction\": \"ltr\", \"identifier\": \"en\", \"title\": \"English\"}, \"modified\": \"2017-01-10\", \"publisher\": \"unfoldingWord\", \"relation\": [\"en/tw\", \"en/obs-tq\", \"en/obs-tn\"], \"rights\": \"CC BY-SA 4.0\", \"source\": [{\"identifier\": \"obs\", \"language\": \"en\", \"version\": \"4\"}], \"subject\": \"Bible stories\", \"title\": \"Open Bible Stories\", \"type\": \"book\", \"version\": \"4\"}, \"formats\": [{\"format\": \"application/zip; type=book content=text/markdown version=rc0.2\", \"modified\": \"2017-01-10\", \"signature\": \"https://google.com\", \"size\": 100417, \"url\": \"https://google.com\"}], \"projects\": [{\"categories\": null, \"identifier\": \"obs\", \"path\": \"./content\", \"sort\": 0, \"title\": \"Open Bible Stories\", \"versification\": \"ufw\"}]}"
+
+    }
+  ],
+  "d43-catalog-errors": [],
+  "d43-catalog-production": []
+}

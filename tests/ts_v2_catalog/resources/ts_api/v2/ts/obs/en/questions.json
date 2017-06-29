@@ -1,0 +1,69 @@
+[
+  {
+    "id": "01",
+    "cq": [
+      {
+        "q": "Where did everything in the universe come from?",
+        "a": "God created everything.",
+        "ref": [
+          "01-01"
+        ]
+      },
+      {
+        "q": "How long did it take God to create everything?",
+        "a": "Six days.",
+        "ref": [
+          "01-01"
+        ]
+      },
+      {
+        "q": "What was God's usual response to the things he created at the end of each day?",
+        "a": "He said it was good.",
+        "ref": [
+          "01-02",
+          "01-04",
+          "01-05",
+          "01-06",
+          "01-07",
+          "01-08"
+        ]
+      },
+      {
+        "q": "In what way did God make man different than the animals?",
+        "a": "He made man in his image and in his likeness.",
+        "ref": [
+          "01-09"
+        ]
+      },
+      {
+        "q": "What did God say would be the responsibility of the human beings?",
+        "a": "They would have authority over the earth and over the animals to care for them.",
+        "ref": [
+          "01-09"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "02",
+    "cq": [
+      {
+        "q": "Why were Adam and Eve not ashamed that they were naked?",
+        "a": "There was no sin in the world.",
+        "ref": [
+          "02-01"
+        ]
+      },
+      {
+        "q": "What was the snake's first question to Eve?",
+        "a": "\"Did God really tell you not to eat the fruit from any of the trees in the garden?\"",
+        "ref": [
+          "02-02"
+        ]
+      }
+    ]
+  },
+  {
+    "date_modified": "20170421"
+  }
+]
