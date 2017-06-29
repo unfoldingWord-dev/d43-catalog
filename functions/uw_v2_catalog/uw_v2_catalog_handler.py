@@ -5,12 +5,13 @@
 #
 
 import time
-import datetime
+from datetime import datetime
+import pytz
 
 def datestring_to_timestamp(datestring):
     # TRICKY: force all datestamps to PST to normalize unit tests across servers.
-    pst_date = '{} PDT'.format(datestring[:10])
-    return str(int(time.mktime(datetime.datetime.strptime(pst_date, "%Y-%m-%d %Z").timetuple())))
+    tz = pytz.timezone("US/Pacific")
+    return str(int(time.mktime(tz.localize(datetime.strptime(datestring[:10], "%Y-%m-%d")).timetuple())))
 
 class UwV2CatalogHandler:
 
