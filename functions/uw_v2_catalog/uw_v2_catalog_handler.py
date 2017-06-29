@@ -8,7 +8,9 @@ import time
 from datetime import datetime
 
 def datestring_to_timestamp(datestring):
-    return str(int(time.mktime(datetime.strptime(datestring[:10], "%Y-%m-%d").timetuple())))
+    # TRICKY: force all datestamps to PST to normalize unit tests across servers.
+    pst_date = '{} PST'.format(datestring[:10])
+    return str(int(time.mktime(datetime.strptime(pst_date, "%Y-%m-%d %Z").timetuple())))
 
 class UwV2CatalogHandler:
 
