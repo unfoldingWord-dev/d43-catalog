@@ -10,11 +10,11 @@ import os
 import json
 import tempfile
 import copy
-import time
-
-from general_tools.file_utils import write_file
-from general_tools.url_utils import get_url
+import boto3
+from tools.file_utils import write_file
+from tools.url_utils import get_url
 from tools.consistency_checker import ConsistencyChecker
+from tools.dict_utils import read_dict
 
 class CatalogHandler:
     API_VERSION = 3
@@ -30,9 +30,12 @@ class CatalogHandler:
         :param ses_handler: This is passed in so it can be mocked for unit testing
         :param consistency_checker: This is passed in so it can be mocked for unit testing
         """
-        self.api_bucket = self.retrieve(event, 'api_bucket')
-        self.to_email = self.retrieve(event, 'to_email')
-        self.from_email = self.retrieve(event, 'from_email')
+        self.cdn_url = read_dict(event, 'cdn_url')
+        self.cdn_bucket = read_dict(event, 'cdn_bucket')
+        self.api_bucket = read_dict(event, 'api_bucket')
+        # self.api_url = read_dict(event, 'api_url')
+        self.to_email = read_dict(event, 'to_email')
+        self.from_email = read_dict(event, 'from_email')
 
         self.progress_table = dynamodb_handler('d43-catalog-in-progress')
         self.production_table = dynamodb_handler('d43-catalog-production')
@@ -65,21 +68,6 @@ class CatalogHandler:
         if 'resources' not in language:
             language['resources'] = []
         return language
-
-    @staticmethod
-    def retrieve(dictionary, key, dict_name=None):
-        """
-        Retrieves a value from a dictionary, raising an error message if the
-        specified key is not valid
-        :param dict dictionary:
-        :param any key:
-        :param str|unicode dict_name: name of dictionary, for error message
-        :return: value corresponding to key
-        """
-        if key in dictionary:
-            return dictionary[key]
-        dict_name = "dictionary" if dict_name is None else dict_name
-        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
 
     def handle_catalog(self):
         completed_items = 0
@@ -127,20 +115,47 @@ class CatalogHandler:
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
             else:
-                data = {
-                    'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    'catalog': json.dumps(self.catalog, sort_keys=True)
-                }
+                cat_str = json.dumps(self.catalog, sort_keys=True)
+                # data = {
+                #     'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                #     'catalog': cat_str
+                # }
                 try:
-                    self.production_table.insert_item(data)
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
-                    write_file(catalog_path, self.catalog)
+                    write_file(catalog_path, cat_str)
+                    c_stats = os.stat(catalog_path)
+                    print('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
+
+                    # print('Writing new catalog to production table')
+                    # self.production_table.insert_item(data)
+                    print('Uploading catalog.json to API')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
 
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+
+                    # trigger tS api v2 build
+                    client = boto3.client("lambda")
+                    payload = {
+                        "stage-variables": {
+                            "cdn_url": self.cdn_url,
+                            "cdn_bucket": self.cdn_bucket,
+                            "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+                        }
+                    }
+                    try:
+                        print("Triggering build for tS v2 API")
+                        client.invoke(
+                            FunctionName="d43-catalog_ts_v2_catalog",
+                            InvocationType="Event",
+                            Payload=json.dumps(payload)
+                        )
+                    except Exception as e:
+                        self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
+
+                    # TODO: trigger uW build once it's ready
                 except Exception as e:
-                    self.checker.log_error('Unable to save catalog.json: {0}'.format(e))
+                    self.checker.log_error('Unable to save catalog: {0}'.format(e))
         else:
             self.checker.log_error('There were no formats to process')
 
@@ -185,27 +200,46 @@ class CatalogHandler:
             del resource['format']
             del resource['language']
             del resource['type']
+            resource['checking'] = copy.deepcopy(manifest['checking'])
             if not resource['relation']:
                 resource['relation'] = []
 
             # store projects
             for project in manifest['projects']:
+                if 'formats' in project:
+                    for format in project['formats']:
+                       checker.check_format(format, item)
                 if not project['categories']:
                     project['categories'] = []
                 del project['path']
                 resource['projects'].append(project)
 
             # store formats
-            if len(manifest['projects']) == 1:
+            # TRICKY: Bible usfm bundles should always be at the resource level
+            is_bible = dc['identifier'] == 'ulb' or dc['identifier'] == 'udb'
+            if len(manifest['projects']) == 1 and not (is_bible and self.has_usfm_bundle(formats)):
                 # single-project RCs store formats in projects
                 resource['projects'][0]['formats'] = formats
             else:
                 # multi-project RCs store formats in resource
                 resource['formats'] = formats
 
+            if 'comment' not in resource: resource['comment'] = ''
+
             language['resources'].append(resource)
             return True
 
+        return False
+
+    def has_usfm_bundle(self, formats):
+        """
+        Checks if an array of formats contains a format that is a usfm bundle
+        :param formats:
+        :return:
+        """
+        for format in formats:
+            if 'text/usfm' in format['format'] and 'type=bundle' in format['format']:
+                return True
         return False
 
     def _build_versification(self, package, checker):

@@ -6,11 +6,12 @@
 
 from __future__ import print_function
 
-from general_tools.url_utils import get_url
-from aws_tools.dynamodb_handler import DynamoDBHandler
+from d43_aws_tools import DynamoDBHandler
 import gogs_client as GogsClient
 import boto3
 import json
+import time
+from tools.dict_utils import read_dict
 
 class ForkHandler:
     def __init__(self, event, gogs_client=None, dynamodb_handler=None):
@@ -20,12 +21,12 @@ class ForkHandler:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         """
-        gogs_user_token = self.retrieve(event, 'gogs_user_token', 'Environment Vars')
+        gogs_user_token = read_dict(event, 'gogs_user_token', 'Environment Vars')
 
         #  TRICKY: these var must be structured the same as in the webhook
-        self.stage_vars = self.retrieve(event, 'stage-variables', 'Environment Vars')
-        self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')
-        self.gogs_org = self.retrieve(self.stage_vars, 'gogs_org', 'Environment Vars')
+        self.stage_vars = read_dict(event, 'stage-variables', 'Environment Vars')
+        self.gogs_url = read_dict(self.stage_vars, 'gogs_url', 'Environment Vars')
+        self.gogs_org = read_dict(self.stage_vars, 'gogs_org', 'Environment Vars')
 
         if not dynamodb_handler:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
@@ -55,6 +56,7 @@ class ForkHandler:
                     InvocationType="Event",
                     Payload=json.dumps(payload)
                 )
+                time.sleep(5)
             except Exception as e:
                 print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
                 continue
@@ -114,18 +116,3 @@ class ForkHandler:
         for item in array:
             if item[key] == value: return True
         return False
-
-    @staticmethod
-    def retrieve(dictionary, key, dict_name=None):
-        """
-        Retrieves a value from a dictionary, raising an error message if the
-        specified key is not valid
-        :param dict dictionary:
-        :param any key:
-        :param str|unicode dict_name: name of dictionary, for error message
-        :return: value corresponding to key
-        """
-        if key in dictionary:
-            return dictionary[key]
-        dict_name = "dictionary" if dict_name is None else dict_name
-        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
