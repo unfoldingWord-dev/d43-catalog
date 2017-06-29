@@ -46,7 +46,10 @@ class MockDynamodbHandler(object):
         :param path: the path to the test db file
         :return:
         """
-        self.db = load_json_object(path, {})
+        if os.path.isfile(path):
+            self.db = load_json_object(path, {})
+        else:
+            raise Exception('Missing mock database path {}'.format(path))
 
     def insert_item(self, item):
         self.last_inserted_item = item

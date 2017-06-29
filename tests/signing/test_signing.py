@@ -301,6 +301,33 @@ class TestSigning(TestCase):
         result = signer.run()
         self.assertFalse(result)
 
+
+    def test_signing_handler_invalid_manifest(self):
+        # mock a lambda event object
+        event = self.create_event()
+
+        # mock the dynamodb handler
+        dbHandler = MockDynamodbHandler()
+        dbHandler._load_db(os.path.join(self.resources_dir, 'corrupt_manifest_record.json'))
+        item = dbHandler.query_items()[0]
+
+        s3Handler = MockS3Handler('test-cdn_bucket')
+        key = 'temp/{}/{}/test.zip'.format(item['repo_name'], item['commit_id'])
+        s3Handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), key)
+
+        private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if Signing.is_travis() else None
+        public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if Signing.is_travis() else None
+        signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+                         private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+        result = signer.run()
+
+        self.assertTrue(result)
+
+        # test that the expected file was not generated
+        expected_file = os.path.join(s3Handler.temp_dir, 'temp', 'unit_test', 'v1', 'test.zip.sig')
+        self.assertFalse(os.path.isfile(expected_file))
+
+
     def test_signing_handler_text_missing_file(self):
         """
         Signing will continue to run even if a file is missing.
