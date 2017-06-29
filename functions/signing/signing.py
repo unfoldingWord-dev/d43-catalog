@@ -6,15 +6,54 @@ import os
 import shlex
 import shutil
 import tempfile
+import time
+from d43_aws_tools import S3Handler, DynamoDBHandler
 from aws_decrypt import decrypt_file
 from base64 import b64decode
-from general_tools.file_utils import write_file
-from general_tools.url_utils import download_file
+from tools.file_utils import write_file
+from tools.url_utils import download_file
+from tools.dict_utils import read_dict
 from subprocess import Popen, PIPE
 
 
 class Signing(object):
     dynamodb_table_name = 'd43-catalog-in-progress'
+
+    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, private_pem_file=None,
+                                 public_pem_file=None):
+        """
+        Handles the signing of a file on S3
+        :param self:
+        :param dict event:
+        :param logger:
+        :param class s3_handler: This is passed in so it can be mocked for unit testing
+        :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
+        :param string private_pem_file: This is passed in so it can be mocked for unit testing
+        :param string public_pem_file: This is passed in so it can be mocked for unit testing
+        :return: bool
+        """
+        # self.event = event
+        self.logger = logger
+        self.cdn_bucket_name = read_dict(event, 'cdn_bucket', 'Environment Vars')
+
+        if not s3_handler:
+            self.cdn_handler = S3Handler(self.cdn_bucket_name)
+        else:
+            self.cdn_handler = s3_handler
+
+        self.temp_dir = tempfile.mkdtemp(prefix='signing_')
+
+        self.private_pem_file = private_pem_file
+        self.public_pem_file = public_pem_file
+
+        if not dynamodb_handler:
+            self.db_handler = DynamoDBHandler(Signing.dynamodb_table_name)
+        else:
+            self.db_handler = dynamodb_handler
+
+    def __del__(self):
+        if hasattr(self, 'temp_dir') and os.path.isdir(self.temp_dir):
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @staticmethod
     def is_travis():
@@ -134,110 +173,105 @@ class Signing(object):
 
         return pem_file
 
-    @staticmethod
-    def handle_s3_trigger(event, s3_handler, dynamodb_handler, logger, private_pem_file=None, public_pem_file=None):
-        """
-        Handles the signing of a file on S3
-        :param dict event:
-        :param class s3_handler: This is passed in so it can be mocked for unit testing
-        :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
-        :param logger:
-        :param string private_pem_file:
-        :param string public_pem_file:
-        :return: bool
-        """
-
-        # this shouldn't happen, but just in case
-        if 'Records' not in event or not len(event['Records']):
-            if logger:
-                logger.warning('The signing script was triggered but no `Records` were found.')
-            return False
-
-        temp_dir = tempfile.mkdtemp(prefix='signing_')
-
+    def run(self):
+        items = self.db_handler.query_items({
+            'signed': False
+        })
         try:
-            for record in event['Records']:
-
-                # check if this is S3 bucket record
-                if 's3' not in record:
-                    if logger:
-                        logger.warning('The record is not an S3 bucket.')
-                    return False
-
-                bucket_name = record['s3']['bucket']['name']
-                key = record['s3']['object']['key']
-
-                if key.endswith('.sig'):
-                    return False
-
-                # detect test bucket
-                is_test = bucket_name.startswith('test-')
-
-                cdn_bucket_name = ('test-' if is_test else '') + 'cdn.door43.org'
-                cdn_handler = s3_handler(cdn_bucket_name)
-
-                # get the file name
-                base_name = os.path.basename(key)
-
-                # copy the file to a temp directory
-                file_to_sign = os.path.join(temp_dir, base_name)
+            for item in items:
+                repo_name = item['repo_name']
                 try:
-                    cdn_handler.download_file(key, file_to_sign)
+                    package = json.loads(item['package'])
                 except Exception as e:
-                    if logger:
-                        logger.warning('The file "{0}" could not be downloaded'.format(base_name))
-                    return False # removes files here
+                    print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
+                    continue
 
-                # sign the file
-                sig_file = Signing.sign_file(file_to_sign, pem_file=private_pem_file)
-
-                # verify the file
-                try:
-                    Signing.verify_signature(file_to_sign, sig_file, pem_file=public_pem_file)
-
-                except RuntimeError:
-                    if logger:
-                        logger.warning('The signature was not successfully verified.')
-                    return False  # remove files here
-
-                # update the record in DynamoDB
-                key_parts = key.split('/')  # test/repo-name/commit/file.name
-                repo_name = key_parts[1]
-                commit_id = key_parts[2]
-                db_handler = dynamodb_handler(Signing.dynamodb_table_name)
-                record_keys = {'repo_name': repo_name}
-                row = db_handler.get_item(record_keys)
-
-                if not row or row['commit_id'] != commit_id:
-                    return False  # Remove files here
-
-                # verify this is the correct commit
-                if row['commit_id'] != commit_id:
-                    return False
-
-                manifest = json.loads(row['package'])
-                dc = manifest['dublin_core']
-
-                # upload the file and the sig file to the S3 bucket
-                upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
-                                                       dc['identifier'].split('-')[-1],
-                                                       dc['version'],
-                                                       os.path.basename(key))
-                upload_sig_key = '{}.sig'.format(upload_key)
-
-                cdn_handler.upload_file(file_to_sign, upload_key)
-                cdn_handler.upload_file(sig_file, upload_sig_key)
-
-                # add the url of the sig file to the format item
-                for fmt in manifest['formats']:
-                    if not fmt['signature'] and fmt['url'].endswith(upload_key):
-                        fmt['signature'] = '{}.sig'.format(fmt['url'])
-                        break
-
-                db_handler.update_item(record_keys, {'package': json.dumps(manifest, sort_keys=True)})
-
-            return True
-
+                if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
+                    self.process_db_item(item, package)
+            return len(items) > 0
         finally:
-            if os.path.isdir(temp_dir):
-                shutil.rmtree(temp_dir, ignore_errors=True)
+            if os.path.isdir(self.temp_dir):
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+
+    def process_db_item(self, item, package):
+        was_signed = False
+        fully_signed = True
+        print('[INFO] Processing {}'.format(item['repo_name']))
+        if 'formats' in package:
+            for format in package['formats']:
+                # process resource formats
+                (already_signed, newly_signed) = self.process_format(item, package, format)
+                if newly_signed:
+                    was_signed = True
+                if not(already_signed or newly_signed):
+                    fully_signed = False
+        for project in package['projects']:
+            if 'formats' in project:
+                for format in project['formats']:
+                    # process project formats
+                    (already_signed, newly_signed) = self.process_format(item, package, format)
+                    if newly_signed:
+                        was_signed = True
+                    if not (already_signed or newly_signed):
+                        fully_signed = False
+
+        if was_signed or fully_signed:
+            print('[INFO] recording signatures')
+            record_keys = {'repo_name': item['repo_name']}
+            time.sleep(5)
+            self.db_handler.update_item(record_keys, {
+                'package': json.dumps(package, sort_keys=True),
+                'signed': fully_signed
+            })
+
+    def process_format(self, item, package, format):
+        """
+        Signs a format
+        :param item:
+        :param package:
+        :param format:
+        :return: (already_signed, newly_signed)
+        """
+        if 'signature' in format and format['signature']:
+            return (True, False)
+        else:
+            print('[INFO] Signing {}'.format(format['url']))
+
+        base_name = os.path.basename(format['url'])
+        dc = package['dublin_core']
+        upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
+                                               dc['identifier'].split('-')[-1],
+                                               dc['version'],
+                                               base_name)
+        upload_sig_key = '{}.sig'.format(upload_key)
+        key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], base_name)
+
+        # copy the file to a temp directory
+        file_to_sign = os.path.join(self.temp_dir, base_name)
+        try:
+            self.cdn_handler.download_file(key, file_to_sign)
+        except Exception as e:
+            if self.logger:
+                self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, key, e))
+            return (False, False)
+
+        # sign the file
+        sig_file = Signing.sign_file(file_to_sign, pem_file=self.private_pem_file)
+
+        # verify the file
+        try:
+            Signing.verify_signature(file_to_sign, sig_file, pem_file=self.public_pem_file)
+        except RuntimeError:
+            if self.logger:
+                self.logger.warning('The signature was not successfully verified.')
+            return (False, False)
+
+        # upload files
+        self.cdn_handler.upload_file(file_to_sign, upload_key)
+        self.cdn_handler.upload_file(sig_file, upload_sig_key)
+
+        # add the url of the sig file to the format
+        format['signature'] = '{}.sig'.format(format['url'])
+
+        return (False, True)

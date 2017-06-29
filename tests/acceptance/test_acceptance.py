@@ -1,6 +1,6 @@
 import os
 from unittest import TestCase
-from general_tools.file_utils import load_json_object
+from tools.file_utils import load_json_object
 from functions.acceptance.acceptance_test import AcceptanceTest
 import json
 

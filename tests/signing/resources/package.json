@@ -45,5 +45,23 @@
       "url": "https://test-cdn.door43.org/en/unit-test/v1/test.zip"
     }
   ],
-  "projects": []
+  "projects": [
+    {
+      "categories": [],
+      "chunks_url": "",
+      "identifier": "proj",
+      "sort": 0,
+      "title": "Project",
+      "versification": "",
+      "formats": [
+        {
+          "format": "text/usfm",
+          "modified": "2017-05-30T20:08:41Z",
+          "signature": "",
+          "size": 20,
+          "url": "https://test-cdn.door43.org/en/unit-test/v1/proj.usfm"
+        }
+      ]
+    }
+  ]
 }

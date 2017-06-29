@@ -4,8 +4,8 @@ import shutil
 import tempfile
 import copy
 from unittest import TestCase
-from aws_tools.s3_handler import S3Handler
-from general_tools.file_utils import load_json_object
+from d43_aws_tools import S3Handler
+from tools.file_utils import load_json_object
 from tools.consistency_checker import ConsistencyChecker
 
 from functions.catalog.catalog_handler import CatalogHandler
@@ -105,10 +105,12 @@ class TestCatalog(TestCase):
 
         event = {
             'Records': [],
+            'api_url': 'my-api',
             'api_bucket': 'my-bucket',
             'to_email': 'me@example.com',
             'from_email': 'me@example.com',
-
+            'cdn_bucket': 'cdn-bucket',
+            'cdn_url': 'cdn-url'
         }
 
         return event
@@ -139,6 +141,8 @@ class TestCatalog(TestCase):
         self.assertNotIn('formats', response['catalog']['languages'][0]['resources'][0])
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects']))
         self.assertEqual(1, len(response['catalog']['languages'][0]['resources'][0]['projects'][0]['formats']))
+        self.assertIn('checking', response['catalog']['languages'][0]['resources'][0])
+        self.assertIn('comment', response['catalog']['languages'][0]['resources'][0])
 
     def test_catalog_no_sig_content(self):
         self.MockDynamodbHandler.tables_file = 'no_sig_db.json'

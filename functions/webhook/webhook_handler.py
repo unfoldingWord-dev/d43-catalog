@@ -10,18 +10,15 @@ import os
 import tempfile
 import json
 import shutil
-import datetime
 import yaml
 import codecs
 
 from glob import glob
-from stat import *
-from general_tools.url_utils import get_url, download_file
-from general_tools.file_utils import unzip, read_file, get_mime_type, load_json_object
-from aws_tools.dynamodb_handler import DynamoDBHandler
-from aws_tools.s3_handler import S3Handler
+from tools.url_utils import get_url, download_file
+from tools.file_utils import unzip, read_file, write_file
+from d43_aws_tools import DynamoDBHandler, S3Handler
 from tools.consistency_checker import ConsistencyChecker
-from general_tools.file_utils import write_file
+from tools.dict_utils import read_dict
 
 
 class WebhookHandler:
@@ -33,13 +30,13 @@ class WebhookHandler:
         :param dynamodb_handler: provided for unit testing
         :param download_handler: provided for unit testing
         """
-        env_vars = self.retrieve(event, 'stage-variables', 'payload')
-        self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
-        self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
-        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        env_vars = read_dict(event, 'stage-variables', 'payload')
+        self.gogs_url = read_dict(env_vars, 'gogs_url', 'Environment Vars')
+        self.gogs_org = read_dict(env_vars, 'gogs_org', 'Environment Vars')
+        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
 
-        self.repo_commit = self.retrieve(event, 'body-json', 'payload')
+        self.repo_commit = read_dict(event, 'body-json', 'payload')
         self.repo_owner = self.repo_commit['repository']['owner']['username']
         self.repo_name = self.repo_commit['repository']['name']
         self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
@@ -135,11 +132,12 @@ class WebhookHandler:
             raise Exception('Bad Manifest: {0}'.format(e))
 
         stats = os.stat(self.repo_file)
-        url = '{0}/{1}/{2}/v{3}/{4}.zip'.format(self.cdn_url,
+        resource_key = '{}/{}/v{}/{}.zip'.format(
                                                 manifest['dublin_core']['language']['identifier'],
                                                 manifest['dublin_core']['identifier'].split('-')[-1],
                                                 manifest['dublin_core']['version'],
                                                 manifest['dublin_core']['identifier'])
+        url = '{}/{}'.format(self.cdn_url, resource_key)
 
         file_info = {
             'size': stats.st_size,
@@ -153,16 +151,46 @@ class WebhookHandler:
             'signature': ""
         }
         manifest['formats'] = [file_info]
+
+        uploads = [{
+                'key': self.make_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'path': self.repo_file
+            }]
+
+        # split usfm bundles
+        if manifest['dublin_core']['type'] == 'bundle' and manifest['dublin_core']['format'] == 'text/usfm':
+            for project in manifest['projects']:
+                if 'formats' not in project:
+                    project['formats'] = []
+                resource_id = manifest['dublin_core']['identifier'].split('-')[-1]
+                project_key = '{}/{}/v{}/{}.usfm'.format(
+                                                        manifest['dublin_core']['language']['identifier'],
+                                                        resource_id,
+                                                        manifest['dublin_core']['version'],
+                                                        project['identifier'])
+                project_url = '{}/{}'.format(self.cdn_url, project_key)
+                p_file_path = os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
+                p_stats = os.stat(p_file_path)
+                project['formats'].append({
+                    'format': 'text/usfm',
+                    'modified': manifest['dublin_core']['modified'],
+                    'signature': '',
+                    'size': p_stats.st_size,
+                    'url': project_url
+                })
+                uploads.append({
+                    'key': self.make_upload_key('{}.usfm'.format(project['identifier'])),
+                    'path': p_file_path
+                })
+
         return {
             'repo_name': self.repo_name,
             'commit_id': self.commit_id,
             'language': manifest['dublin_core']['language']['identifier'],
             'timestamp': self.timestamp,
             'package': json.dumps(manifest, sort_keys=True),
-            'uploads': [{
-                'key': self.make_temp_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
-                'path': self.repo_file
-            }]
+            'signed': False,
+            'uploads': uploads
         }
 
     def _build_versification(self):
@@ -192,11 +220,13 @@ class WebhookHandler:
                     'chunks': {}
                 })
                 book['chunks'][vrs_id] = book_vrs
+        temp_dir = os.path.join(self.temp_dir, 'versification')
+        if not os.path.isdir:
+            os.mkdir(temp_dir)
         for book in books:
             book = books[book]
 
             # write chunks
-            temp_dir = tempfile.mkdtemp(prefix='versification_')
             chunk_file = os.path.join(temp_dir, book['identifier'] + '.json')
             write_file(chunk_file, json.dumps(book['chunks'], sort_keys=True))
             # for now we bypass signing and upload chunks directly
@@ -254,7 +284,7 @@ class WebhookHandler:
             'package': package
         }
 
-    def make_temp_upload_key(self, path):
+    def make_upload_key(self, path):
         """
         Generates an upload key that conforms to the format `temp/<repo_name>/<commit>/<path>`.
         This allows further processing to associate files with an entry in dynamoDB.
@@ -309,18 +339,3 @@ class WebhookHandler:
             unzip(repo_file, repo_dir)
         finally:
             print('finished.')
-
-    @staticmethod
-    def retrieve(dictionary, key, dict_name=None):
-        """
-        Retrieves a value from a dictionary, raising an error message if the
-        specified key is not valid
-        :param dict dictionary:
-        :param any key:
-        :param str|unicode dict_name: name of dictionary, for error message
-        :return: value corresponding to key
-        """
-        if key in dictionary:
-            return dictionary[key]
-        dict_name = "dictionary" if dict_name is None else dict_name
-        raise Exception('{k} not found in {d}'.format(k=repr(key), d=dict_name))
