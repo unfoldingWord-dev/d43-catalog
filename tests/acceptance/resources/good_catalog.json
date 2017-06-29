@@ -1,0 +1,66 @@
+{
+  "catalogs": [
+
+  ],
+  "languages": [
+    {
+      "direction": "ltr",
+      "identifier": "en",
+      "resources": [
+        {
+          "conformsto": "rc0.2",
+          "publisher": "unfoldingWord",
+          "formats": [
+            {
+              "size": 100417,
+              "url": "https://google.com",
+              "signature": "https://google.com",
+              "modified": "2017-01-10",
+              "format": "application/zip; type=book content=text/markdown version=rc0.2"
+            }
+          ],
+          "description": "An unrestricted visual mini-Bible in any language",
+          "language": {
+            "direction": "ltr",
+            "identifier": "en",
+            "resources": [],
+            "title": "English"
+          },
+          "format": "text/markdown",
+          "issued": "2015-08-26",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-01-10",
+          "source": [
+            {
+              "identifier": "obs",
+              "version": "4",
+              "language": "en"
+            }
+          ],
+          "version": "4",
+          "relation": [
+            "en/tw",
+            "en/obs-tq",
+            "en/obs-tn"
+          ],
+          "type": "book",
+          "contributor": [
+            "Distant Shores Media",
+            "Wycliffe Associates"
+          ],
+          "title": "Open Bible Stories",
+          "identifier": "obs",
+          "creator": "Distant Shores Media",
+          "subject": "Bible stories",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          }
+        }
+      ],
+      "title": "English"
+    }
+  ]
+}

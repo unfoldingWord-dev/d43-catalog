@@ -1,0 +1,53 @@
+{
+  "chapters": [
+    {
+      "frames": [
+        {
+          "id": "01",
+          "items": [
+            {
+              "id": "adam"
+            },
+            {
+              "id": "seth"
+            },
+            {
+              "id": "enoch"
+            },
+            {
+              "id": "lamech"
+            },
+            {
+              "id": "noah"
+            },
+            {
+              "id": "shem"
+            },
+            {
+              "id": "ham"
+            },
+            {
+              "id": "japheth"
+            }
+          ]
+        },
+        {
+          "id": "05",
+          "items": [
+            {
+              "id": "tubal"
+            },
+            {
+              "id": "meshech"
+            },
+            {
+              "id": "tarshish"
+            }
+          ]
+        }
+      ],
+      "id": "01"
+    }
+  ],
+  "date_modified": "20170619"
+}

@@ -1,0 +1,78 @@
+{
+  "stage-variables": {
+    "gogs_url": "",
+    "gogs_org": "Door43-Catalog",
+    "cdn_bucket": "",
+    "cdn_url": ""
+  },
+  "body-json":{
+    "secret": "",
+    "ref": "refs/heads/master",
+    "before": "67390e0dd23ea0ab2a223b45f3937ff38a623f5c",
+    "after": "a4360faec369209224a0b96f86ea115e76407c85",
+    "compare_url": "https://git.door43.org/Door43-Catalog/ne_ulb/compare/67390e0dd23ea0ab2a223b45f3937ff38a623f5c...a4360faec369209224a0b96f86ea115e76407c85",
+    "commits": [
+      {
+        "id": "a4360faec369209224a0b96f86ea115e76407c85",
+        "message": "Update 'Test'\n",
+        "url": "https://git.door43.org/Door43-Catalog/ne_ulb/commit/a4360faec369209224a0b96f86ea115e76407c85",
+        "author": {
+          "name": "Joel Lonbeck",
+          "email": "joel@neutrinographics.com",
+          "username": "joel"
+        },
+        "committer": {
+          "name": "Joel Lonbeck",
+          "email": "joel@neutrinographics.com",
+          "username": "joel"
+        },
+        "timestamp": "2017-04-17T22:38:54Z"
+      }
+    ],
+    "repository": {
+      "id": 5594,
+      "owner": {
+        "id": 4598,
+        "username": "Door43-Catalog",
+        "full_name": "Door43 Resource Catalog",
+        "email": "",
+        "avatar_url": "https://git.door43.org/avatars/4598"
+      },
+      "name": "ne_ulb",
+      "full_name": "Door43-Catalog/ne_ulb",
+      "description": "Unlocked Literal Bible - Nepali",
+      "private": false,
+      "fork": false,
+      "html_url": "https://git.door43.org/Door43-Catalog/ne_ulb",
+      "ssh_url": "git@git.door43.org:Door43-Catalog/ne_ulb.git",
+      "clone_url": "https://git.door43.org/Door43-Catalog/ne_ulb.git",
+      "website": "",
+      "stars_count": 0,
+      "forks_count": 1,
+      "watchers_count": 6,
+      "open_issues_count": 0,
+      "default_branch": "master",
+      "created_at": "2016-12-31T00:50:58Z",
+      "updated_at": "2017-04-17T21:36:28Z",
+      "permissions": {
+        "admin": false,
+        "push": false,
+        "pull": false
+      }
+    },
+    "pusher": {
+      "id": 644,
+      "username": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+    },
+    "sender": {
+      "id": 644,
+      "username": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+    }
+  }
+}

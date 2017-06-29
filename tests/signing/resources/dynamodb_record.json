@@ -1,10 +1,8 @@
-{
+[{
   "repo_name": "unit-test",
   "commit_id": "5193d11b95",
-  "files": [
-    "temp/unit-test/5193d11b95/test.zip"
-  ],
   "language": "en",
   "timestamp": "2016-11-12T16:22:58Z",
-  "data": "{\"formats\": [{\"mime_type\": \"application/zip\", \"modified_at\": \"20161111155100\", \"sig\": \"\", \"size\": 459483, \"url\": \"https://test-cdn.door43.org/en/unit-test/v1/test.zip\"}], \"icon\": \"https://cdn.door43.org/en/ulb/v7/icon.jpg\", \"language\": {\"dir\": \"ltr\", \"name\": \"English\", \"slug\": \"en\"}, \"modified_at\": \"20161111155100\", \"name\": \"Unit Test File\", \"package_version\": 7, \"projects\": [], \"slug\": \"unit-test\", \"status\": {\"checking_entity\": [\"Phil Hopper\"], \"checking_level\": \"3\", \"checks_performed\": [], \"comments\": \"\", \"contributors\": [\"Wycliffe Associates\"], \"license\": \"CC BY-SA 4.0\", \"pub_date\": \"2016-11-11\", \"source_translations\": [{\"language_slug\": \"en\", \"resource_slug\": \"unit-test\", \"version\": \"1\"}], \"translate_mode\": \"all\", \"version\": \"1\"}}"
-}
+  "signed": false,
+  "package": "{\"checking\":{\"checking_entity\":[\"Phil Hopper\"],\"checking_level\":\"3\"},\"dublin_core\":{\"conformsto\":\"rc0.2\",\"contributor\":[\"Wycliffe Associates\"],\"creator\":\"Distant Shores Media\",\"description\":\"An unrestricted visual mini-Bible in any language\",\"format\":\"text/markdown\",\"identifier\":\"unit_test\",\"issued\":\"2015-08-26\",\"language\":{\"direction\":\"ltr\",\"identifier\":\"temp\",\"title\":\"English\"},\"modified\":\"2017-01-10\",\"publisher\":\"unfoldingWord\",\"relation\":[],\"rights\":\"CC BY-SA 4.0\",\"source\":[{\"identifier\":\"unit-test\",\"language\":\"en\",\"version\":\"1\"}],\"subject\":\"Test\",\"title\":\"Unit Test File\",\"type\":\"book\",\"version\":\"1\"},\"formats\":[{\"format\":\"application/zip; type=book content=text/markdown version=rc0.2\",\"modified\":\"2017-01-10\",\"signature\":\"\",\"size\":100542,\"url\":\"https://test-cdn.door43.org/en/unit-test/v1/test.zip\"}],\"projects\":[]}"
+}]

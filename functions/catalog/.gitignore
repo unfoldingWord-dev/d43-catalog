@@ -1,6 +1,7 @@
 *
-!main.py
-!requirements.txt
-!.gitignore
-!.apexignore
+!/main.py
+!/.gitignore
+!/.apexignore
 !/__init__.py
+!/catalog_handler.py
+!/v2_catalog_converter.py
