@@ -45,9 +45,9 @@ class UwV2CatalogHandler:
         for lang in self.latest_catalog['languages']:
             lang_slug = lang['identifier']
             for res in lang['resources']:
-                res_type = res['identifier']
-                print(res_type)
-                key = res_map[res_type] if res_type in res_map else None
+                res_id = res['identifier']
+                print(res_id)
+                key = res_map[res_id] if res_id in res_map else None
 
                 if not key:
                     continue
@@ -57,29 +57,38 @@ class UwV2CatalogHandler:
                 if int(mod) > last_modified:
                     last_modified = int(mod)
 
-                # TODO: use src and sig from v3 api once they are available
-
                 toc = []
                 for proj in res['projects']:
-                    toc.append({
-                        'desc': '',
-                        'media': {
-                            'audio': {},
-                            'video': {}
-                        },
-                        'mod': mod,
-                        'slug': proj['identifier'],
-                        'src': '',
-                        'src_sig': '',
-                        'title': proj['title'],
-                    })
+                    if 'formats' in proj and proj['formats']:
+                        format = proj['formats'][0]
+                        # TRICKY: obs must be converted to json
+                        if res_id == 'obs':
+                            # TODO: generate obs json source
+                            format = {
+                                'url': 'https://test-cdn.door43.org/en/udb/v4/obs.json',
+                                'signature': 'https://test-cdn.door43.org/en/udb/v4/obs.json.sig'
+                            }
+                        toc.append({
+                            'desc': '',
+                            'media': {
+                                'audio': {},
+                                'video': {}
+                            },
+                            'mod': mod,
+                            'slug': proj['identifier'],
+                            'src': format['url'],
+                            'src_sig': format['signature'],
+                            'title': proj['title'],
+                        })
+                    else:
+                        print('WARNING: skipping lang:{} proj:{} because no formats were found'.format(lang_slug, proj['identifier']))
 
                 source = res['source'][0]
                 comment = ''
                 if 'comment' in res:
                     comment = res['comment']
                 res_v2 = {
-                    'slug': res_type,
+                    'slug': res_id,
                     'name': res['title'],
                     'mod': mod,
                     'status': {

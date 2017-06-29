@@ -116,6 +116,15 @@
                 "bible-ot"
               ],
               "chunks_url": "https://test-cdn.door43.org/bible/gen/v3/chunks.json",
+              "formats": [
+                {
+                  "format": "text/usfm",
+                  "modified": "2016-10-03",
+                  "signature": "https://test-cdn.door43.org/en/udb/v7/gen.usfm.sig",
+                  "size": 241714,
+                  "url": "https://test-cdn.door43.org/en/udb/v7/gen.usfm"
+                }
+              ],
               "identifier": "gen",
               "sort": 1,
               "title": "Genesis",
@@ -126,6 +135,15 @@
                 "bible-ot"
               ],
               "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
+              "formats": [
+                {
+                  "format": "text/usfm",
+                  "modified": "2016-10-03",
+                  "signature": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm.sig",
+                  "size": 141366,
+                  "url": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm"
+                }
+              ],
               "identifier": "1ch",
               "sort": 13,
               "title": "1 Chronicles",
@@ -287,6 +305,15 @@
                 "bible-ot"
               ],
               "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
+              "formats": [
+                {
+                  "format": "text/usfm",
+                  "modified": "2016-11-14",
+                  "signature": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
+                  "size": 118037,
+                  "url": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm"
+                }
+              ],
               "identifier": "1ch",
               "sort": 13,
               "title": "1 Chronicles",
