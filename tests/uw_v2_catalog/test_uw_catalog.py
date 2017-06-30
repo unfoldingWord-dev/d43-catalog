@@ -1,7 +1,8 @@
 import os
-import json
 from tools.file_utils import load_json_object
+from tools.mocks import MockS3Handler, MockAPI
 from unittest import TestCase
+from tools.test_utils import assert_s3_equals_api_json
 
 from functions.uw_v2_catalog.uw_v2_catalog_handler import UwV2CatalogHandler
 
@@ -13,37 +14,22 @@ class TestUwV2Catalog(TestCase):
         self.latest_catalog = load_json_object(os.path.join(TestUwV2Catalog.resources_dir, "v3_catalog.json"))
         self.v2_catalog = load_json_object(os.path.join(TestUwV2Catalog.resources_dir, "v2_catalog.json"))
 
-    def assertObjectEqual(self, obj1, obj2):
-        """
-        Checks if two objects are equal after recursively sorting them
-        :param obj1:
-        :param obj2:
-        :return:
-        """
-        self.assertEqual(TestUwV2Catalog.ordered(obj1), TestUwV2Catalog.ordered(obj2))
-
-    @staticmethod
-    def ordered(obj):
-        """
-        Orders the values in an object
-        :param obj:
-        :return:
-        """
-        if isinstance(obj, dict):
-            return sorted((k, TestUwV2Catalog.ordered(v)) for k, v in obj.items())
-        if isinstance(obj, list):
-            return sorted(TestUwV2Catalog.ordered(x) for x in obj)
-        else:
-            return obj
 
     # TODO: re-enable this once we get the timezone normalization working on travis.
     # def test_create_v2_catalog(self):
-    #     converter = UwV2CatalogHandler(self.latest_catalog)
+    #     mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
+    #     mockV2Api = MockAPI(os.path.join(self.resources_dir, 'v2_api'), 'https://test')
+    #     mockS3 = MockS3Handler('uw_bucket')
+    #     mock_get_url = lambda url, catch_exception: mockV3Api.get_url(url, catch_exception)
+    #     mock_download = lambda url, dest: mockV3Api.download_file(url, dest)
+    #     event = {
+    #         'stage-variables': {
+    #             'cdn_bucket': '',
+    #             'cdn_url': 'https://cdn.door43.org/',
+    #             'catalog_url': 'https://api.door43.org/v3/catalog.json'
+    #         }
+    #     }
+    #     converter = UwV2CatalogHandler(event, mockS3, mock_get_url, mock_download)
     #     catalog = converter.convert_catalog()
     #
-    #     # makes reading differences in the logs easier
-    #     catalog_str = json.dumps(catalog)
-    #
-    #     self.assertIsNotNone(catalog)
-    #     self.assertNotEqual(self.latest_catalog, catalog)
-    #     self.assertObjectEqual(self.v2_catalog, json.loads(catalog_str))
+    #     assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')

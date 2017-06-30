@@ -33,8 +33,8 @@
                   },
                   "mod": "1475478000",
                   "slug": "gen",
-                  "src": "https://test-cdn.door43.org/en/udb/v7/gen.usfm",
-                  "src_sig": "https://test-cdn.door43.org/en/udb/v7/gen.usfm.sig",
+                  "src": "https://cdn.door43.org/en/udb/v7/gen.usfm",
+                  "src_sig": "https://cdn.door43.org/en/udb/v7/gen.usfm.sig",
                   "title": "Genesis"
                 },
                 {
@@ -49,8 +49,8 @@
                   },
                   "mod": "1475478000",
                   "slug": "1ch",
-                  "src": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm",
-                  "src_sig": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm.sig",
+                  "src": "https://cdn.door43.org/en/udb/v7/1ch.usfm",
+                  "src_sig": "https://cdn.door43.org/en/udb/v7/1ch.usfm.sig",
                   "title": "1 Chronicles"
                 }
               ]
@@ -82,8 +82,8 @@
                   },
                   "mod": "1479110400",
                   "slug": "1ch",
-                  "src": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm",
-                  "src_sig": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
+                  "src": "https://cdn.door43.org/en/ulb/v7/1ch.usfm",
+                  "src_sig": "https://cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
                   "title": "1 Chronicles"
                 }
               ]
@@ -127,8 +127,8 @@
                   },
                   "mod": "1489561200",
                   "slug": "obs",
-                  "src": "https://test-cdn.door43.org/en/udb/v4/obs.json",
-                  "src_sig": "https://test-cdn.door43.org/en/udb/v4/obs.json.sig",
+                  "src": "https://cdn.door43.org/en/udb/v4/obs.json",
+                  "src_sig": "https://cdn.door43.org/en/udb/v4/obs.json.sig",
                   "title": "Open Bible Stories"
                 }
               ]

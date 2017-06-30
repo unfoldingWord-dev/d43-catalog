@@ -2,7 +2,67 @@ from tools.file_utils import load_json_object
 import shutil
 import tempfile
 import os
+import codecs
 
+class MockAPI(object):
+    """
+    Creates a mock static api
+    """
+
+    def __init__(self, dir, mock_host):
+        self.dir = dir
+        self.host = mock_host.rstrip('/')
+        if not os.path.isdir(dir):
+            raise Exception('MockAPI: api directory not found at {}'.format(dir))
+
+    def get_url(self, url, catch_exception=False):
+        """
+        Reads the contents of the url and returns it
+        :param path:
+        :return:
+        """
+        path = os.path.join(self.dir, self._strip_host(url))
+        if catch_exception:
+            try:
+                with codecs.open(path, 'r', encoding='utf-8-sig') as f:
+                    response = f.read()
+            except:
+                response = False
+        else:
+            if os.path.isfile(path):
+                with codecs.open(path, 'r', encoding='utf-8-sig') as f:
+                    response = f.read()
+            else:
+                raise Exception('404: {}'.format(url))
+
+        # convert bytes to str (Python 3.5)
+        if type(response) is bytes:
+            return response.decode('utf-8')
+        else:
+            return response
+
+    def download_file(self, url, dest):
+        """
+        Downloads the contents of the url to a file
+        :param path:
+        :param dest:
+        :return:
+        """
+        path = os.path.join(self.dir, self._strip_host(url))
+        if os.path.isfile(path):
+            shutil.copyfile(path, dest)
+        else:
+            raise Exception('404: {}'.format(url))
+
+    def _strip_host(self, url):
+        """
+        Removes the host from the api url
+        :param url:
+        :return:
+        """
+        if url.startswith(self.host):
+            return url[len(self.host):].lstrip('/')
+        return url.lstrip('/')
 
 class MockLogger(object):
     @staticmethod

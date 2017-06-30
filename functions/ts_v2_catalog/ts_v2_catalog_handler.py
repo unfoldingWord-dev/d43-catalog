@@ -216,8 +216,6 @@ class TsV2CatalogHandler:
                         source = self._generate_source_from_usx(source_path, resource['date_modified'])
                         # TODO: include app_words and language info
                         api_uploads.append(self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
-                        # TODO: we should probably pull the chunks from the v3 api
-                        api_uploads.append(self._prep_data_upload('{}/{}/{}/chunks.json'.format(pid, lid, rid), source['chunks']))
                         del usx_sources[source_key]
                     res_cat.append(resource)
                 api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
@@ -726,6 +724,12 @@ class TsV2CatalogHandler:
         # if pid == 'obs':
         #     source_url = 'https://api.unfoldingword.org/v2/ts/{}/{}/source.json?date_modified={}'.format(pid, lid, r_modified)
         # else:
+
+        # add chunks to non-obs projects
+        chunks_url = 'https://api.unfoldingword.org/bible/txt/1/{}/chunks.json'.format(pid)
+        if rid == 'obs':
+            chunks_url = ''
+
         source_url = '{}/{}/{}/{}/{}/source.json?date_modified={}'.format(
             self.cdn_url,
             TsV2CatalogHandler.cdn_rooth_path,
@@ -746,6 +750,7 @@ class TsV2CatalogHandler:
                 'version': resource['version']
             },
             'checking_questions': '',
+            'chunks': chunks_url,
             'source': source_url,
             'terms': '',
             'tw_cat': ''
@@ -919,31 +924,18 @@ class TsV2CatalogHandler:
         chapters.append(chp)
         return chapters
 
-    def _read_chunks(self, book):
-        chunks = []
-        verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
-        for c in book:
-            for frame in c['frames']:
-                chunks.append({'id': frame['id'],
-                               'firstvs': verse_re.search(frame['text']).group(1),
-                               'lastvs': frame["lastvs"]
-                               })
-        return chunks
-
     def _generate_source_from_usx(self, path, date_modified):
         # use utf-8-sig to remove the byte order mark
         with codecs.open(path, 'r', encoding='utf-8-sig') as in_file:
             usx = in_file.readlines()
 
         book = self._usx_to_json(usx)
-        chunks = self._read_chunks(book)
 
         return {
             'source': {
                 'chapters': book,
                 'date_modified': date_modified
-            },
-            'chunks': chunks
+            }
         }
 
     def _retrieve_rc(self, lid, rid, url):

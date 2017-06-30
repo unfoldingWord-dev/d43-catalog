@@ -5,6 +5,7 @@
     "name": "Unlocked Literal Bible",
     "notes": "https://api.unfoldingword.org/v2/ts/1ch/en/notes.json?date_modified=20170623",
     "slug": "ulb",
+    "chunks": "https://api.unfoldingword.org/bible/txt/1/1ch/chunks.json",
     "source": "https://api.unfoldingword.org/v2/ts/1ch/en/ulb/source.json?date_modified=20170607",
     "status": {
       "checking_entity": "Wycliffe Associates",
@@ -26,6 +27,7 @@
     "name": "Unlocked Dynamic Bible",
     "notes": "https://api.unfoldingword.org/v2/ts/1ch/en/notes.json?date_modified=20170623",
     "slug": "udb",
+    "chunks": "https://api.unfoldingword.org/bible/txt/1/1ch/chunks.json",
     "source": "https://api.unfoldingword.org/v2/ts/1ch/en/udb/source.json?date_modified=20170502",
     "status": {
       "checking_entity": "Wycliffe Associates",
