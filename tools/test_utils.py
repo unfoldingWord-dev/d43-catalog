@@ -1,0 +1,40 @@
+import json
+from file_utils import read_file
+
+def sort_object(obj):
+    """
+    Sorts the values in an object
+    :param obj:
+    :return:
+    """
+    if isinstance(obj, dict):
+        return sorted((k, sort_object(v)) for k, v in obj.items())
+    if isinstance(obj, list):
+        return sorted(sort_object(x) for x in obj)
+    else:
+        return obj
+
+def assert_object_equals(unit_test, obj1, obj2):
+    """
+    Checks if two objects are equal after recursively sorting them
+    :param unit_test: the object doing the assertions
+    :param obj1:
+    :param obj2:
+    :return:
+    """
+    unit_test.assertEqual(sort_object(obj1), sort_object(obj2))
+
+def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
+    """
+    Asserts that the s3 file identified by the given key matches
+    the equivalent file in the api
+    :param unit_test: an instance of UnitTest
+    :param mock_s3:
+    :param mock_api:
+    :param key: the relative path to the key
+    :return:
+    """
+    unit_test.assertIn(key, mock_s3._uploads)
+    s3_obj = json.loads(read_file(mock_s3._uploads[key]))
+    api_obj = json.loads(mock_api.get_url(key))
+    assert_object_equals(unit_test, s3_obj, api_obj)

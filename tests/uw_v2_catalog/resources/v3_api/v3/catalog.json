@@ -59,9 +59,9 @@
                 {
                   "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
                   "modified": "2017-03-15T12:41:45Z",
-                  "signature": "https://test-cdn.door43.org/en/tn/v4/obs-tn.zip.sig",
+                  "signature": "https://cdn.door43.org/en/tn/v4/obs-tn.zip.sig",
                   "size": 222415,
-                  "url": "https://test-cdn.door43.org/en/tn/v4/obs-tn.zip"
+                  "url": "https://cdn.door43.org/en/tn/v4/obs-tn.zip"
                 }
               ],
               "identifier": "obs",
@@ -102,9 +102,9 @@
             {
               "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
               "modified": "2017-05-02T22:52:23Z",
-              "signature": "https://test-cdn.door43.org/en/udb/v7/udb.zip.sig",
+              "signature": "https://cdn.door43.org/en/udb/v7/udb.zip.sig",
               "size": 1722057,
-              "url": "https://test-cdn.door43.org/en/udb/v7/udb.zip"
+              "url": "https://cdn.door43.org/en/udb/v7/udb.zip"
             }
           ],
           "identifier": "udb",
@@ -115,14 +115,14 @@
               "categories": [
                 "bible-ot"
               ],
-              "chunks_url": "https://test-cdn.door43.org/bible/gen/v3/chunks.json",
+              "chunks_url": "https://cdn.door43.org/bible/gen/v3/chunks.json",
               "formats": [
                 {
                   "format": "text/usfm",
                   "modified": "2016-10-03",
-                  "signature": "https://test-cdn.door43.org/en/udb/v7/gen.usfm.sig",
+                  "signature": "https://cdn.door43.org/en/udb/v7/gen.usfm.sig",
                   "size": 241714,
-                  "url": "https://test-cdn.door43.org/en/udb/v7/gen.usfm"
+                  "url": "https://cdn.door43.org/en/udb/v7/gen.usfm"
                 }
               ],
               "identifier": "gen",
@@ -134,14 +134,14 @@
               "categories": [
                 "bible-ot"
               ],
-              "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
+              "chunks_url": "https://cdn.door43.org/bible/1ch/v3/chunks.json",
               "formats": [
                 {
                   "format": "text/usfm",
                   "modified": "2016-10-03",
-                  "signature": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm.sig",
+                  "signature": "https://cdn.door43.org/en/udb/v7/1ch.usfm.sig",
                   "size": 141366,
-                  "url": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm"
+                  "url": "https://cdn.door43.org/en/udb/v7/1ch.usfm"
                 }
               ],
               "identifier": "1ch",
@@ -192,9 +192,9 @@
                 {
                   "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2",
                   "modified": "2017-05-18T19:20:21Z",
-                  "signature": "https://test-cdn.door43.org/en/tw/v5/tw.zip.sig",
+                  "signature": "https://cdn.door43.org/en/tw/v5/tw.zip.sig",
                   "size": 880814,
-                  "url": "https://test-cdn.door43.org/en/tw/v5/tw.zip"
+                  "url": "https://cdn.door43.org/en/tw/v5/tw.zip"
                 }
               ],
               "identifier": "bible",
@@ -247,9 +247,9 @@
                 {
                   "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
                   "modified": "2017-05-03T21:07:09Z",
-                  "signature": "https://test-cdn.door43.org/en/tq/v4/obs-tq.zip.sig",
+                  "signature": "https://cdn.door43.org/en/tq/v4/obs-tq.zip.sig",
                   "size": 139709,
-                  "url": "https://test-cdn.door43.org/en/tq/v4/obs-tq.zip"
+                  "url": "https://cdn.door43.org/en/tq/v4/obs-tq.zip"
                 }
               ],
               "identifier": "obs",
@@ -291,9 +291,9 @@
             {
               "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
               "modified": "2017-03-29T00:00:00Z",
-              "signature": "https://test-cdn.door43.org/en/ulb/v7/ulb.zip.sig",
+              "signature": "https://cdn.door43.org/en/ulb/v7/ulb.zip.sig",
               "size": 1438229,
-              "url": "https://test-cdn.door43.org/en/ulb/v7/ulb.zip"
+              "url": "https://cdn.door43.org/en/ulb/v7/ulb.zip"
             }
           ],
           "identifier": "ulb",
@@ -304,14 +304,14 @@
               "categories": [
                 "bible-ot"
               ],
-              "chunks_url": "https://test-cdn.door43.org/bible/1ch/v3/chunks.json",
+              "chunks_url": "https://cdn.door43.org/bible/1ch/v3/chunks.json",
               "formats": [
                 {
                   "format": "text/usfm",
                   "modified": "2016-11-14",
-                  "signature": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
+                  "signature": "https://cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
                   "size": 118037,
-                  "url": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm"
+                  "url": "https://cdn.door43.org/en/ulb/v7/1ch.usfm"
                 }
               ],
               "identifier": "1ch",
@@ -355,9 +355,9 @@
             {
               "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
               "modified": "2017-05-03T19:34:05Z",
-              "signature": "https://test-cdn.door43.org/en/tq/v6/tq.zip.sig",
+              "signature": "https://cdn.door43.org/en/tq/v6/tq.zip.sig",
               "size": 4434519,
-              "url": "https://test-cdn.door43.org/en/tq/v6/tq.zip"
+              "url": "https://cdn.door43.org/en/tq/v6/tq.zip"
             }
           ],
           "identifier": "tq",
@@ -413,9 +413,9 @@
                 {
                   "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
                   "modified": "2017-03-15T00:38:18Z",
-                  "signature": "https://test-cdn.door43.org/en/obs/v4/obs.zip.sig",
+                  "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
                   "size": 100416,
-                  "url": "https://test-cdn.door43.org/en/obs/v4/obs.zip"
+                  "url": "https://cdn.door43.org/en/obs/v4/obs.zip"
                 }
               ],
               "identifier": "obs",
