@@ -5,6 +5,7 @@
 #
 import hashlib
 import json
+import shutil
 import yaml
 import os
 import codecs
@@ -48,6 +49,9 @@ class TsV2CatalogHandler:
             self.download_file = download_file
         else:
             self.download_file = download_handler
+
+    def __del__(self):
+        shutil.rmtree(self.temp_dir)
 
     def convert_catalog(self):
         """
@@ -550,7 +554,6 @@ class TsV2CatalogHandler:
         chapters = []
         for chapter_file in os.listdir(dir):
             if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
-                # TODO: read info from config
                 continue
             chapter_slug = chapter_file.split('.md')[0]
             path = os.path.join(dir, chapter_file)

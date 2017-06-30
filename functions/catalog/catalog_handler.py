@@ -10,7 +10,8 @@ import os
 import json
 import tempfile
 import copy
-import boto3
+import time
+# import boto3
 from tools.file_utils import write_file
 from tools.url_utils import get_url
 from tools.consistency_checker import ConsistencyChecker
@@ -30,10 +31,10 @@ class CatalogHandler:
         :param ses_handler: This is passed in so it can be mocked for unit testing
         :param consistency_checker: This is passed in so it can be mocked for unit testing
         """
-        self.cdn_url = read_dict(event, 'cdn_url')
+        self.cdn_url = read_dict(event, 'cdn_url').rstrip('/')
         self.cdn_bucket = read_dict(event, 'cdn_bucket')
         self.api_bucket = read_dict(event, 'api_bucket')
-        # self.api_url = read_dict(event, 'api_url')
+        self.api_url = read_dict(event, 'api_url').rstrip('/')
         self.to_email = read_dict(event, 'to_email')
         self.from_email = read_dict(event, 'from_email')
 
@@ -126,32 +127,44 @@ class CatalogHandler:
                     c_stats = os.stat(catalog_path)
                     print('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
 
-                    # print('Writing new catalog to production table')
-                    # self.production_table.insert_item(data)
                     print('Uploading catalog.json to API')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
 
+                    # TRICKY: the records in this table are used by the legacy API generators
+                    print('Writing deployment record to production table')
+                    try:
+                        self.production_table.delete_item({
+                            'api_version': self.API_VERSION
+                        })
+                    except:
+                        pass
+                    self.production_table.insert_item({
+                        'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION),
+                        'api_version': self.API_VERSION
+                    })
+
                     response['success'] = True
-                    response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+                    response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
 
                     # trigger tS api v2 build
-                    client = boto3.client("lambda")
-                    payload = {
-                        "stage-variables": {
-                            "cdn_url": self.cdn_url,
-                            "cdn_bucket": self.cdn_bucket,
-                            "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-                        }
-                    }
-                    try:
-                        print("Triggering build for tS v2 API")
-                        client.invoke(
-                            FunctionName="d43-catalog_ts_v2_catalog",
-                            InvocationType="Event",
-                            Payload=json.dumps(payload)
-                        )
-                    except Exception as e:
-                        self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
+                    # client = boto3.client("lambda")
+                    # payload = {
+                    #     "stage-variables": {
+                    #         "cdn_url": self.cdn_url,
+                    #         "cdn_bucket": self.cdn_bucket,
+                    #         "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+                    #     }
+                    # }
+                    # try:
+                    #     print("Triggering build for tS v2 API")
+                    #     client.invoke(
+                    #         FunctionName="d43-catalog_ts_v2_catalog",
+                    #         InvocationType="Event",
+                    #         Payload=json.dumps(payload)
+                    #     )
+                    # except Exception as e:
+                    #     self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
 
                     # TODO: trigger uW build once it's ready
                 except Exception as e:
@@ -291,7 +304,7 @@ class CatalogHandler:
         :return: 
         """
         try:
-            catalog_url = 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
+            catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
             current_catalog = json.loads(get_url(catalog_url, True))
             same = current_catalog == catalog
             return not same
