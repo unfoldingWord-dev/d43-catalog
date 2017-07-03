@@ -1,6 +1,6 @@
 import os
 from tools.file_utils import load_json_object
-from tools.mocks import MockS3Handler, MockAPI
+from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler
 from unittest import TestCase
 from tools.test_utils import assert_s3_equals_api_json
 
@@ -16,20 +16,19 @@ class TestUwV2Catalog(TestCase):
 
 
     # TODO: re-enable this once we get the timezone normalization working on travis.
-    # def test_create_v2_catalog(self):
-    #     mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
-    #     mockV2Api = MockAPI(os.path.join(self.resources_dir, 'v2_api'), 'https://test')
-    #     mockS3 = MockS3Handler('uw_bucket')
-    #     mock_get_url = lambda url, catch_exception: mockV3Api.get_url(url, catch_exception)
-    #     mock_download = lambda url, dest: mockV3Api.download_file(url, dest)
-    #     event = {
-    #         'stage-variables': {
-    #             'cdn_bucket': '',
-    #             'cdn_url': 'https://cdn.door43.org/',
-    #             'catalog_url': 'https://api.door43.org/v3/catalog.json'
-    #         }
-    #     }
-    #     converter = UwV2CatalogHandler(event, mockS3, mock_get_url, mock_download)
-    #     catalog = converter.convert_catalog()
-    #
-    #     assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')
+    def test_create_v2_catalog(self):
+        mockDB = MockDynamodbHandler()
+        mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
+        mockV2Api = MockAPI(os.path.join(self.resources_dir, 'v2_api'), 'https://test')
+        mockS3 = MockS3Handler('uw_bucket')
+        event = {
+            'stage-variables': {
+                'cdn_bucket': '',
+                'cdn_url': 'https://cdn.door43.org/',
+                'catalog_url': 'https://api.door43.org/v3/catalog.json'
+            }
+        }
+        converter = UwV2CatalogHandler(event, mockS3, mockDB, mockV3Api.get_url, mockV3Api.download_file)
+        catalog = converter.convert_catalog()
+
+        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')

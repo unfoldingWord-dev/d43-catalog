@@ -39,7 +39,7 @@ class CatalogHandler:
         self.from_email = read_dict(event, 'from_email')
 
         self.progress_table = dynamodb_handler('d43-catalog-in-progress')
-        self.production_table = dynamodb_handler('d43-catalog-production')
+        self.status_table = dynamodb_handler('d43-catalog-status')
         self.errors_table = dynamodb_handler('d43-catalog-errors')
         self.catalog = {
             "languages": []
@@ -133,12 +133,12 @@ class CatalogHandler:
                     # TRICKY: the records in this table are used by the legacy API generators
                     print('Writing deployment record to production table')
                     try:
-                        self.production_table.delete_item({
+                        self.status_table.delete_item({
                             'api_version': self.API_VERSION
                         })
                     except:
                         pass
-                    self.production_table.insert_item({
+                    self.status_table.insert_item({
                         'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                         'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION),
                         'api_version': self.API_VERSION

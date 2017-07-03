@@ -48,7 +48,7 @@ class MockAPI(object):
         :param dest:
         :return:
         """
-        path = os.path.join(self.dir, self._strip_host(url))
+        path = os.path.join(self.dir, self._strip_host(url)).encode('utf-8')
         if os.path.isfile(path):
             shutil.copyfile(path, dest)
         else:

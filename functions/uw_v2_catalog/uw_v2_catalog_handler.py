@@ -85,12 +85,19 @@ class UwV2CatalogHandler:
         last_modified = 0
 
         # retrieve the production record
-        v3_record = self.db_handler.get_item({
+        production_record_keys = {
             'api_version':3
-        })
-        if not v3_record:
+        }
+        production_catalogs = self.db_handler.query_items(production_record_keys)
+        if not production_catalogs:
             print('No production record found')
             return False
+        if len(production_catalogs) > 1:
+            print('WARNING: multiple production catalogs found')
+        # TRICKY: There should only be one result
+        v3_record = production_catalogs[0]
+
+        # read handler state
         if UwV2CatalogHandler.state_id in v3_record and v3_record[UwV2CatalogHandler.state_id]:
             state = v3_record[UwV2CatalogHandler.state_id]
         else:
@@ -146,13 +153,21 @@ class UwV2CatalogHandler:
                                 # TODO: generate the obs json source
                                 # TRICKY: record the state immediately so we maintain state if the lambda times out
                                 # TODO: we may need to update the db_handler so we can set ReturnValues
-                                update = self.db_handler.update_item({'api_version': 3}, {UwV2CatalogHandler.state_id: state})
+                                # TODO: I think this needs a partition key. I created one and need to test with it.
+                                # v3_record[UwV2CatalogHandler.state_id] = state
+                                updated_record = {
+                                    UwV2CatalogHandler.state_id: state,
+
+                                }
+                                update = self.db_handler.update_item(
+                                    production_record_keys,
+                                    updated_record,
+                                    'ALL_NEW')
                                 if update['timestamp'] != v3_record['timestamp']:
-                                    # TRICKY: the catalog was updated so we must resart
+                                    # TRICKY: the catalog was updated so we must restart
                                     print('WARNING: conflicting timestamp detected. Flushing state to maintain stability')
-                                    self.db_handler.update_item(keys={'api_version': 3},
-                                                                data={UwV2CatalogHandler.state_id: None},
-                                                                return_values='ALL_NEW')
+                                    self.db_handler.update_item(production_record_keys,
+                                                                {UwV2CatalogHandler.state_id: None})
                                     return False
 
                             format = {
