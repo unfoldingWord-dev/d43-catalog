@@ -10,6 +10,6 @@ from uw_v2_catalog_handler import UwV2CatalogHandler
 def handle(event, context):
     try:
         catalog = UwV2CatalogHandler(event)
-        return catalog.convert_catalog()
+        return catalog.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

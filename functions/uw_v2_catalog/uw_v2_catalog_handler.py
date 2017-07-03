@@ -43,9 +43,9 @@ class UwV2CatalogHandler:
         else:
             self.cdn_handler = s3_handler
         if not dynamodb_handler:
-            self.db_handler = dynamodb_handler
-        else:
             self.db_handler = DynamoDBHandler('d43-catalog-status')
+        else:
+            self.db_handler = dynamodb_handler
         if not url_handler:
             self.get_url = get_url
         else:
@@ -60,7 +60,7 @@ class UwV2CatalogHandler:
     def __del__(self):
         shutil.rmtree(self.temp_dir)
 
-    def convert_catalog(self):
+    def run(self):
         """
         Generates the v2 catalog
         :return: the v2 form of the catalog
@@ -84,41 +84,16 @@ class UwV2CatalogHandler:
 
         last_modified = 0
 
-        # retrieve the catalog status
-        status_results = self.db_handler.query_items({
-            'api_version': {
-                'condition': 'is_in',
-                'value': ['3', 'uw.2']
-            }
-        })
-        source_status = None
-        status = None
-        for s in status_results:
-            if s['api_version'] == '3':
-                source_status = s
-            elif s['api_version'] == 'uw.2':
-                status = s
-        if not source_status:
-            print('Source catalog status not found')
+        result = self._get_status()
+        if not result:
             return False
-        if source_status['state'] != 'complete':
-            print('Source catalog is not ready for use')
-            return False
-        if not status or status['source_timestamp'] != source_status['timestamp']:
-            # begin or restart process
-            status = {
-                'api_version': 'uw.2',
-                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, UwV2CatalogHandler.cdn_root_path),
-                'source_api': source_status['api_version'],
-                'source_timestamp': source_status['timestamp'],
-                'state': 'in-progress',
-                'processed': []
-            }
+        else:
+            (status, source_status) = result
 
         # check if build is complete
         if status['state'] == 'complete':
             print('Catalog already generated')
-            return False
+            return True
 
         # retrieve the latest catalog
         catalog_content = self.get_url(source_status['catalog_url'], True)
@@ -229,7 +204,6 @@ class UwV2CatalogHandler:
                 'langs': langs
             })
 
-
         uploads.append(self._prep_data_upload('catalog.json', catalog))
 
         # upload files
@@ -241,6 +215,44 @@ class UwV2CatalogHandler:
         self.db_handler.update_item(
             {'api_version': 'uw.2'},
             status)
+
+    def _get_status(self):
+        """
+        Retrieves the catalog status from AWS.
+
+        :return: A tuple containing the status object of the target and source catalogs, or False if the source is not ready
+        """
+        status_results = self.db_handler.query_items({
+            'api_version': {
+                'condition': 'is_in',
+                'value': ['3', 'uw.2']
+            }
+        })
+        source_status = None
+        status = None
+        for s in status_results:
+            if s['api_version'] == '3':
+                source_status = s
+            elif s['api_version'] == 'uw.2':
+                status = s
+        if not source_status:
+            print('Source catalog status not found')
+            return False
+        if source_status['state'] != 'complete':
+            print('Source catalog is not ready for use')
+            return False
+        if not status or status['source_timestamp'] != source_status['timestamp']:
+            # begin or restart process
+            status = {
+                'api_version': 'uw.2',
+                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, UwV2CatalogHandler.cdn_root_path),
+                'source_api': source_status['api_version'],
+                'source_timestamp': source_status['timestamp'],
+                'state': 'in-progress',
+                'processed': []
+            }
+
+        return (status, source_status)
 
     def _prep_data_upload(self, key, data):
         """

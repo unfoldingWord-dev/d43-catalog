@@ -155,7 +155,20 @@ class MockDynamodbHandler(object):
         """
         if not keys: return False
         for key in keys:
-            if key not in obj or obj[key] != keys[key]:
+            if key not in obj:
+                return False
+
+            value = keys[key]
+            if isinstance(value, dict) and 'condition' in value and 'value' in value and isinstance(value['value'], list):
+                if value['condition'] == 'is_in':
+                    was_in = False
+                    for v in value['value']:
+                        if obj[key] == v:
+                            was_in = True
+                            break
+                    if not was_in:
+                        return False
+            elif obj[key] != value:
                 return False
 
         return True
