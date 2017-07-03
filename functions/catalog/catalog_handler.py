@@ -18,7 +18,7 @@ from tools.consistency_checker import ConsistencyChecker
 from tools.dict_utils import read_dict
 
 class CatalogHandler:
-    API_VERSION = 3
+    API_VERSION = '3'
 
     resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
 
@@ -115,12 +115,11 @@ class CatalogHandler:
             if not self._catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
+                # publish the status if not already published
+                if not self._read_status():
+                    self._publish_status()
             else:
                 cat_str = json.dumps(self.catalog, sort_keys=True)
-                # data = {
-                #     'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                #     'catalog': cat_str
-                # }
                 try:
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                     write_file(catalog_path, cat_str)
@@ -129,44 +128,10 @@ class CatalogHandler:
 
                     print('Uploading catalog.json to API')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
-
-                    # TRICKY: the records in this table are used by the legacy API generators
-                    print('Writing deployment record to production table')
-                    try:
-                        self.status_table.delete_item({
-                            'api_version': self.API_VERSION
-                        })
-                    except:
-                        pass
-                    self.status_table.insert_item({
-                        'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                        'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION),
-                        'api_version': self.API_VERSION
-                    })
+                    self._publish_status()
 
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
-
-                    # trigger tS api v2 build
-                    # client = boto3.client("lambda")
-                    # payload = {
-                    #     "stage-variables": {
-                    #         "cdn_url": self.cdn_url,
-                    #         "cdn_bucket": self.cdn_bucket,
-                    #         "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-                    #     }
-                    # }
-                    # try:
-                    #     print("Triggering build for tS v2 API")
-                    #     client.invoke(
-                    #         FunctionName="d43-catalog_ts_v2_catalog",
-                    #         InvocationType="Event",
-                    #         Payload=json.dumps(payload)
-                    #     )
-                    # except Exception as e:
-                    #     self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
-
-                    # TODO: trigger uW build once it's ready
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog: {0}'.format(e))
         else:
@@ -184,6 +149,33 @@ class CatalogHandler:
             print('Catalog was not published due to errors')
 
         return response
+
+    def _read_status(self):
+        """
+        Retrieves the recorded status of the catalog
+        :return:
+        """
+        results = self.status_table.query_items({'api_version': self.API_VERSION})
+        if not results:
+            return None
+        else:
+            return results[0]
+
+    def _publish_status(self, state='complete'):
+        """
+        Updates the catalog status
+        :param state: the state of completion the catalog is in
+        :return:
+        """
+        print('Recording catalog status')
+        self.status_table.update_item(
+            {'api_version': self.API_VERSION},
+            {
+                'state': state,
+                'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
+            }
+        )
 
     def _build_rc(self, item, manifest, checker):
         """

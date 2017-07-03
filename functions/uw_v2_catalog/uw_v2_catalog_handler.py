@@ -45,7 +45,7 @@ class UwV2CatalogHandler:
         if not dynamodb_handler:
             self.db_handler = dynamodb_handler
         else:
-            self.db_handler = DynamoDBHandler('d43-catalog-production')
+            self.db_handler = DynamoDBHandler('d43-catalog-status')
         if not url_handler:
             self.get_url = get_url
         else:
@@ -84,37 +84,46 @@ class UwV2CatalogHandler:
 
         last_modified = 0
 
-        # retrieve the production record
-        production_record_keys = {
-            'api_version':3
-        }
-        production_catalogs = self.db_handler.query_items(production_record_keys)
-        if not production_catalogs:
-            print('No production record found')
+        # retrieve the catalog status
+        status_results = self.db_handler.query_items({
+            'api_version': {
+                'condition': 'is_in',
+                'value': ['3', 'uw.2']
+            }
+        })
+        source_status = None
+        status = None
+        for s in status_results:
+            if s['api_version'] == '3':
+                source_status = s
+            elif s['api_version'] == 'uw.2':
+                status = s
+        if not source_status:
+            print('Source catalog status not found')
             return False
-        if len(production_catalogs) > 1:
-            print('WARNING: multiple production catalogs found')
-        # TRICKY: There should only be one result
-        v3_record = production_catalogs[0]
-
-        # read handler state
-        if UwV2CatalogHandler.state_id in v3_record and v3_record[UwV2CatalogHandler.state_id]:
-            state = v3_record[UwV2CatalogHandler.state_id]
-        else:
-            state = {
-                'status': 'in-progress',
+        if source_status['state'] != 'complete':
+            print('Source catalog is not ready for use')
+            return False
+        if not status or status['source_timestamp'] != source_status['timestamp']:
+            # begin or restart process
+            status = {
+                'api_version': 'uw.2',
+                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, UwV2CatalogHandler.cdn_root_path),
+                'source_api': source_status['api_version'],
+                'source_timestamp': source_status['timestamp'],
+                'state': 'in-progress',
                 'processed': []
             }
 
         # check if build is complete
-        if 'status' in state and state['status'] == 'complete':
+        if status['state'] == 'complete':
             print('Catalog already generated')
             return False
 
         # retrieve the latest catalog
-        catalog_content = self.get_url(v3_record['catalog_url'], True)
+        catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
-            print("ERROR: {0} does not exist".format(v3_record['catalog_url']))
+            print("ERROR: {0} does not exist".format(source_status['catalog_url']))
             return False
         try:
             self.latest_catalog = json.loads(catalog_content)
@@ -146,29 +155,15 @@ class UwV2CatalogHandler:
                         # TRICKY: obs must be converted to json
                         if rid == 'obs':
                             process_id = '_'.join([lid, rid, pid])
-                            if process_id not in state['processed']:
-                                state['processed'].append(process_id)
+                            if process_id not in status['processed']:
+                                status['processed'].append(process_id)
                                 print('TODO: generate the OBS source JSON')
                                 # TODO: we may want another lambda to process the shared data. This would cut the work load in half
                                 # TODO: generate the obs json source
-                                # TRICKY: record the state immediately so we maintain state if the lambda times out
-                                # TODO: we may need to update the db_handler so we can set ReturnValues
-                                # TODO: I think this needs a partition key. I created one and need to test with it.
-                                # v3_record[UwV2CatalogHandler.state_id] = state
-                                updated_record = {
-                                    UwV2CatalogHandler.state_id: state,
-
-                                }
-                                update = self.db_handler.update_item(
-                                    production_record_keys,
-                                    updated_record,
-                                    'ALL_NEW')
-                                if update['timestamp'] != v3_record['timestamp']:
-                                    # TRICKY: the catalog was updated so we must restart
-                                    print('WARNING: conflicting timestamp detected. Flushing state to maintain stability')
-                                    self.db_handler.update_item(production_record_keys,
-                                                                {UwV2CatalogHandler.state_id: None})
-                                    return False
+                                status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                self.db_handler.update_item(
+                                    {'api_version': 'uw.2'},
+                                    status)
 
                             format = {
                                 'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
@@ -240,6 +235,12 @@ class UwV2CatalogHandler:
         # upload files
         for upload in uploads:
             self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key']))
+
+        status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        status['state'] = 'complete'
+        self.db_handler.update_item(
+            {'api_version': 'uw.2'},
+            status)
 
     def _prep_data_upload(self, key, data):
         """
