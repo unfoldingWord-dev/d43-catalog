@@ -119,7 +119,47 @@
                   "desc": "",
                   "media": {
                     "audio": {
-
+                      "contributors": "Narrator: Steve Lossing,\\nChecker: Brad Harrington,\\nEngineer: Brad Harrington",
+                      "rev": "1",
+                      "src_list": [
+                        {
+                          "br": [
+                            {
+                              "bitrate": 64,
+                              "mod": 1444274762,
+                              "size": 2171200
+                            },
+                            {
+                              "bitrate": 32,
+                              "mod": 1444274810,
+                              "size": 1096246
+                            }
+                          ],
+                          "chap": "01",
+                          "length": 268,
+                          "src": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_01_{bitrate}kbps.mp3",
+                          "src_sig": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_01_{bitrate}kbps.sig"
+                        },
+                        {
+                          "br": [
+                            {
+                              "bitrate": 32,
+                              "mod": 1444274810,
+                              "size": 873859
+                            },
+                            {
+                              "bitrate": 64,
+                              "mod": 1444274762,
+                              "size": 1731899
+                            }
+                          ],
+                          "chap": "02",
+                          "length": 214,
+                          "src": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_02_{bitrate}kbps.mp3",
+                          "src_sig": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_02_{bitrate}kbps.sig"
+                        }
+                      ],
+                      "txt_ver": "4"
                     },
                     "video": {
 

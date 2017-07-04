@@ -15,6 +15,7 @@ from tools.file_utils import write_file
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict
 from tools.url_utils import download_file, get_url
+from tools.legacy_utils import index_obs
 
 def datestring_to_timestamp(datestring):
     # TRICKY: force all datestamps to PST to normalize unit tests across servers.
@@ -111,7 +112,6 @@ class UwV2CatalogHandler:
             lid = lang['identifier']
             for res in lang['resources']:
                 rid = res['identifier']
-                print(rid)
                 key = res_map[rid] if rid in res_map else None
 
                 if not key:
@@ -131,10 +131,13 @@ class UwV2CatalogHandler:
                         if rid == 'obs':
                             process_id = '_'.join([lid, rid, pid])
                             if process_id not in status['processed']:
-                                status['processed'].append(process_id)
-                                print('TODO: generate the OBS source JSON')
+                                obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
+                                upload = self._prep_data_upload('{}/{}/source.json'.format(rid, lid), obs_json)
+                                self.cdn_handler.upload_file(upload['path'],
+                                                             '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
+                                                                            upload['key']))
                                 # TODO: we may want another lambda to process the shared data. This would cut the work load in half
-                                # TODO: generate the obs json source
+                                status['processed'].append(process_id)
                                 status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                                 self.db_handler.update_item(
                                     {'api_version': 'uw.2'},

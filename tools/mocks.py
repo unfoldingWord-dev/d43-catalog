@@ -10,10 +10,22 @@ class MockAPI(object):
     """
 
     def __init__(self, dir, mock_host):
-        self.dir = dir
-        self.host = mock_host.rstrip('/')
+        self.hosts = {}
+        self.add_host(dir, mock_host)
+
+    def add_host(self, dir, mock_host):
+        """
+        Adds a new host definition to the mock api
+        :param dir:
+        :param mock_host:
+        :return:
+        """
         if not os.path.isdir(dir):
             raise Exception('MockAPI: api directory not found at {}'.format(dir))
+        if not mock_host.strip():
+            raise Exception('MockAPI: invalid host value')
+
+        self.hosts[mock_host.rstrip('/')] = dir
 
     def get_url(self, url, catch_exception=False):
         """
@@ -21,7 +33,8 @@ class MockAPI(object):
         :param path:
         :return:
         """
-        path = os.path.join(self.dir, self._strip_host(url))
+        host_dir = self._get_host_dir(url)
+        path = os.path.join(host_dir, self._strip_host(url))
         if catch_exception:
             try:
                 with codecs.open(path, 'r', encoding='utf-8-sig') as f:
@@ -48,7 +61,8 @@ class MockAPI(object):
         :param dest:
         :return:
         """
-        path = os.path.join(self.dir, self._strip_host(url)).encode('utf-8')
+        host_dir = self._get_host_dir(url)
+        path = os.path.join(host_dir, self._strip_host(url)).encode('utf-8')
         if os.path.isfile(path):
             shutil.copyfile(path, dest)
         else:
@@ -60,9 +74,26 @@ class MockAPI(object):
         :param url:
         :return:
         """
-        if url.startswith(self.host):
-            return url[len(self.host):].lstrip('/')
+        for host in self.hosts:
+            if url.startswith(host):
+                return url[len(host):].lstrip('/')
         return url.lstrip('/')
+
+    def _get_host_dir(self, url):
+        """
+        Retrieves the host dir that matches the given url
+        :param url:
+        :return:
+        """
+        for host in self.hosts:
+            if url.startswith(host):
+                return self.hosts[host]
+        # default to only host if no prefix is found
+        if not url.startswith('http') and len(self.hosts) == 1:
+            for host in self.hosts:
+                return self.hosts[host]
+
+        raise Exception('MockAPI: No host defined for {}'.format(url))
 
 class MockLogger(object):
     @staticmethod
