@@ -14,7 +14,7 @@ def index_obs(lid, rid, format, temp_dir=None, downloader=None):
     :param format:
     :param temp_dir: The temporary directory where files will be generated
     :param downloader: This is exposed to allow mocking the downloader
-    :return:
+    :return: the obs json blob
     """
     obs_sources = {}
     format_str = format['format']
@@ -44,7 +44,7 @@ def index_obs(lid, rid, format, temp_dir=None, downloader=None):
             return {
                 'app_words': app_words,
                 'chapters': chapters_json,
-                'date_modified': dc['modified'].replace('-', ''),
+                'date_modified': dc['modified'].replace('-', '').split('T')[0],
                 'direction': dc['language']['direction'],
                 'language': dc['language']['identifier']
             }

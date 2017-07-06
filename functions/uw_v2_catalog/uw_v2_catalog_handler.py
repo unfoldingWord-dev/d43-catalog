@@ -25,7 +25,6 @@ def datestring_to_timestamp(datestring):
 class UwV2CatalogHandler:
 
     cdn_root_path = 'v2/uw'
-    state_id = 'v2_uw_status'
 
     def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
@@ -59,7 +58,10 @@ class UwV2CatalogHandler:
         self.temp_dir = tempfile.mkdtemp('', 'uwv2', None)
 
     def __del__(self):
-        shutil.rmtree(self.temp_dir)
+        try:
+            shutil.rmtree(self.temp_dir)
+        finally:
+            pass
 
     def run(self):
         """
@@ -107,7 +109,7 @@ class UwV2CatalogHandler:
             print("ERROR: Failed to load the catalog json: {0}".format(e))
             return False
 
-        # walk catalog
+        # walk v3 catalog
         for lang in self.latest_catalog['languages']:
             lid = lang['identifier']
             for res in lang['resources']:
@@ -136,12 +138,10 @@ class UwV2CatalogHandler:
                                 self.cdn_handler.upload_file(upload['path'],
                                                              '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
                                                                             upload['key']))
-                                # TODO: we may want another lambda to process the shared data. This would cut the work load in half
+
                                 status['processed'].append(process_id)
                                 status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                                self.db_handler.update_item(
-                                    {'api_version': 'uw.2'},
-                                    status)
+                                self.db_handler.update_item({'api_version': 'uw.2'}, status)
 
                             format = {
                                 'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),

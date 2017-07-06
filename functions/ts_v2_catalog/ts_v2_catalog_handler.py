@@ -3,6 +3,7 @@
 #
 # Class for converting the catalog into a format compatible with the tS v2 api.
 #
+
 import hashlib
 import json
 import shutil
@@ -13,9 +14,9 @@ import re
 import tempfile
 import time
 import markdown
-from d43_aws_tools import S3Handler
+from d43_aws_tools import S3Handler, DynamoDBHandler
 from usfm_tools.transform import UsfmTransform
-from tools.file_utils import write_file, read_file
+from tools.file_utils import write_file, read_file, download_rc
 from tools.legacy_utils import index_obs
 from tools.url_utils import download_file, get_url
 from tools.dict_utils import read_dict
@@ -23,9 +24,9 @@ import dateutil.parser
 
 class TsV2CatalogHandler:
 
-    cdn_rooth_path = 'v2/ts'
+    cdn_root_path = 'v2/ts'
 
-    def __init__(self, event, s3_handler=None, url_handler=None, download_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param  s3_handler: This is passed in so it can be mocked for unit testing
@@ -41,7 +42,10 @@ class TsV2CatalogHandler:
             self.cdn_handler = S3Handler(self.cdn_bucket)
         else:
             self.cdn_handler = s3_handler
-        self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
+        if not dynamodb_handler:
+            self.db_handler = DynamoDBHandler('d43-catalog-status')
+        else:
+            self.db_handler = dynamodb_handler
         if not url_handler:
             self.get_url = get_url
         else:
@@ -51,27 +55,41 @@ class TsV2CatalogHandler:
         else:
             self.download_file = download_handler
 
-    def __del__(self):
-        shutil.rmtree(self.temp_dir)
+        self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
 
-    def convert_catalog(self):
+    def __del__(self):
+        try:
+            shutil.rmtree(self.temp_dir)
+        finally:
+            pass
+
+    def run(self):
         """
         Generates the v2 catalog
         :return:
         """
         cat_dict = {}
         supplemental_resources = []
-        usx_sources = {}
-        obs_sources = {}
         note_sources = {}
         question_sources = {}
         tw_sources = {}
         tw_cat_sources = {}
 
+        result = self._get_status()
+        if not result:
+            return False
+        else:
+            (self.status, source_status) = result
+
+        # check if build is complete
+        if self.status['state'] == 'complete':
+            print('Catalog already generated')
+            return True
+
         # retrieve the latest catalog
-        catalog_content = self.get_url(self.catalog_url, True)
+        catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
-            print("ERROR: {0} does not exist".format(self.catalog_url))
+            print("ERROR: {0} does not exist".format(source_status['catalog_url']))
             return False
         try:
             self.latest_catalog = json.loads(catalog_content)
@@ -79,36 +97,53 @@ class TsV2CatalogHandler:
             print("ERROR: Failed to load the catalog json: {0}".format(e))
             return False
 
-        # walk catalog
-        for language in self.latest_catalog['languages']:
-            lid = language['identifier']
-            for resource in language['resources']:
-                rid = resource['identifier']
+        # walk v3 catalog
+        for lang in self.latest_catalog['languages']:
+            lid = lang['identifier']
+            for res in lang['resources']:
+                rid = res['identifier']
 
                 rc_format = None
 
-                if 'formats' in resource:
-                    for format in resource['formats']:
+                if 'formats' in res:
+                    for format in res['formats']:
                         if not rc_format and self._get_rc_type(format):
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
-                        usx_sources.update(self._index_usx_files(lid, rid, format))
-                        # TRICKY: bible notes and questions are in the resource
-                        (notes, tw_cat) = self._index_note_files(lid, rid, format)
-                        note_sources.update(notes)
-                        tw_cat_sources.update(tw_cat)
-                        question_sources.update(self._index_question_files(lid, rid, format))
 
-                for project in resource['projects']:
+                        self._process_usfm(lid, rid, format)
+
+                        # TRICKY: bible notes and questions are in the resource
+                        if rid != 'obs':
+                            (notes, tw_cat) = self._index_note_files(lid, rid, format)
+                            note_sources.update(notes)
+                            tw_cat_sources.update(tw_cat)
+                            question_sources.update(self._index_question_files(lid, rid, format))
+
+                for project in res['projects']:
                     if 'formats' in project:
                         for format in project['formats']:
                             if not rc_format and self._get_rc_type(format):
                                 # locate rc_format (for single-project RCs)
                                 rc_format = format
-                            obs_sources.update(index_obs(lid, rid, format, self.temp_dir, self.download_file))
+
                             # TRICKY: there should only be a single tW for each language
                             if lid not in tw_sources:
                                 tw_sources.update(self._index_words_files(lid, rid, format))
+
+                            if rid == 'obs':
+                                process_id = '_'.join([lid, rid, 'obs'])
+                                if process_id not in self.status['processed']:
+                                    obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
+                                    upload = self._prep_data_upload('{}/{}/{}/source.json'.format('obs', lid, rid),
+                                                                    obs_json)
+                                    self.cdn_handler.upload_file(upload['path'],
+                                                                 '{}/{}'.format(TsV2CatalogHandler.cdn_root_path,
+                                                                                upload['key']))
+                                    self.status['processed'].append(process_id)
+                                    self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
+
                             # TRICKY: obs notes and questions are in the project
                             (notes, tw_cat) = self._index_note_files(lid, rid, format)
                             note_sources.update(notes)
@@ -116,23 +151,23 @@ class TsV2CatalogHandler:
                             question_sources.update(self._index_question_files(lid, rid, format))
 
                     if not rc_format:
-                        raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+                        raise Exception('Could not find a format for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
 
                     modified = self._convert_date(rc_format['modified'])
                     rc_type = self._get_rc_type(rc_format)
 
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
-                        print('#WARNING: Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+                        print('#WARNING: Could not find date_modified for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
                         # raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
-                        self._build_catalog_node(cat_dict, language, resource, project, modified)
+                        self._build_catalog_node(cat_dict, lang, res, project, modified)
                     else:
                         # store supplementary resources for processing after catalog nodes have been fully built
                         supplemental_resources.append({
-                            'language': language,
-                            'resource': resource,
+                            'language': lang,
+                            'resource': res,
                             'project': project,
                             'modified': modified,
                             'rc_type': rc_type
@@ -154,10 +189,10 @@ class TsV2CatalogHandler:
             project = cat_dict[pid]
             lang_cat = []
             for lid in project['_langs']:
-                language = project['_langs'][lid]
+                lang = project['_langs'][lid]
                 res_cat = []
-                for rid in language['_res']:
-                    resource = language['_res'][rid]
+                for rid in lang['_res']:
+                    res = lang['_res'][rid]
                     source_key = '$'.join([pid, lid, rid])
 
                     # upload tW cat
@@ -167,7 +202,7 @@ class TsV2CatalogHandler:
                     else:
                         tw_cat_key = '$'.join([pid, lid, 'tn'])
                     if tw_cat_key not in tw_cat_sources:
-                        resource['tw_cat'] = ''
+                        res['tw_cat'] = ''
                     else:
                         api_uploads.append({
                             # TRICKY: notes are organized by project not resource
@@ -181,7 +216,7 @@ class TsV2CatalogHandler:
                     else:
                         question_key = '$'.join([pid, lid, 'tq'])
                     if question_key not in question_sources:
-                        resource['checking_questions'] = ''
+                        res['checking_questions'] = ''
                     else:
                         api_uploads.append({
                             # TRICKY: questions are organized by project not resource
@@ -196,7 +231,7 @@ class TsV2CatalogHandler:
                     else:
                         note_key = '$'.join([pid, lid, 'tn'])
                     if note_key not in note_sources:
-                        resource['notes'] = ''
+                        res['notes'] = ''
                     else:
                         api_uploads.append({
                             # TRICKY: notes are organized by project not resource
@@ -207,26 +242,13 @@ class TsV2CatalogHandler:
 
                     # exclude tw if not in sources
                     if lid not in tw_sources:
-                        resource['terms'] = ''
+                        res['terms'] = ''
 
-                    # convert obs source files
-                    if rid == 'obs' and source_key in obs_sources:
-                        api_uploads.append(
-                            self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), obs_sources[source_key]))
-                        del obs_sources[source_key]
-
-                    # convert usx source files
-                    if source_key in usx_sources:
-                        source_path = usx_sources[source_key]
-                        source = self._generate_source_from_usx(source_path, resource['date_modified'])
-                        # TODO: include app_words and language info
-                        api_uploads.append(self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
-                        del usx_sources[source_key]
-                    res_cat.append(resource)
+                    res_cat.append(res)
                 api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
-                del language['_res']
-                lang_cat.append(language)
+                del lang['_res']
+                lang_cat.append(lang)
             api_uploads.append(self._prep_data_upload('{}/languages.json'.format(pid), lang_cat))
 
             del  project['_langs']
@@ -235,7 +257,46 @@ class TsV2CatalogHandler:
 
         # upload files
         for upload in api_uploads:
-            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_rooth_path, upload['key']))
+            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
+            # TODO: record status
+
+    def _get_status(self):
+        """
+        Retrieves the catalog status from AWS.
+
+        :return: A tuple containing the status object of the target and source catalogs, or False if the source is not ready
+        """
+        status_results = self.db_handler.query_items({
+            'api_version': {
+                'condition': 'is_in',
+                'value': ['3', 'ts.2']
+            }
+        })
+        source_status = None
+        status = None
+        for s in status_results:
+            if s['api_version'] == '3':
+                source_status = s
+            elif s['api_version'] == 'ts.2':
+                status = s
+        if not source_status:
+            print('Source catalog status not found')
+            return False
+        if source_status['state'] != 'complete':
+            print('Source catalog is not ready for use')
+            return False
+        if not status or status['source_timestamp'] != source_status['timestamp']:
+            # begin or restart process
+            status = {
+                'api_version': 'ts.2',
+                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path),
+                'source_api': source_status['api_version'],
+                'source_timestamp': source_status['timestamp'],
+                'state': 'in-progress',
+                'processed': []
+            }
+
+        return (status, source_status)
 
     def _index_note_files(self, lid, rid, format):
         """
@@ -253,7 +314,7 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
-            rc_dir = self.download_rc(lid, rid, format['url'])
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -338,7 +399,7 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
-            rc_dir = self.download_rc(lid, rid, format['url'])
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -412,7 +473,7 @@ class TsV2CatalogHandler:
         words = []
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
-            rc_dir = self.download_rc(lid, rid, format['url'])
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -499,20 +560,20 @@ class TsV2CatalogHandler:
             }
         return {}
 
-    def _index_usx_files(self, lid, rid, format):
+    def _process_usfm(self, lid, rid, format):
         """
-        Converts a USFM bundle into USX files and returns an array of usx file paths
+        Converts a USFM bundle into usx, loads the data into json and uploads it.
+        Returns an array of usx file paths.
         :param lid:
         :param rid:
         :param format:
-        :return:
+        :return: an array of json blobs
         """
-        usx_sources = {}
 
         format_str = format['format']
         if 'application/zip' in format_str and 'usfm' in format_str:
-            rc_dir = self.download_rc(lid, rid, format['url'])
-            if not rc_dir: return usx_sources
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
+            if not rc_dir: return
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
 
@@ -520,10 +581,18 @@ class TsV2CatalogHandler:
             UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
             for project in manifest['projects']:
                 pid = project['identifier']
-                key = '$'.join([pid, lid, rid])
-                usx_sources[key] = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
+                process_id = '_'.join([lid, rid, lid, pid])
+                path = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
 
-        return usx_sources
+                if process_id not in self.status['processed']:
+                    # convert USX to JSON
+                    source = self._generate_source_from_usx(path, format['modified'])
+                    upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
+                    self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
+
+                    self.status['processed'].append(process_id)
+                    self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
 
     def _prep_data_upload(self, key, data):
         """
@@ -572,14 +641,14 @@ class TsV2CatalogHandler:
                     res.update({
                         'notes': '{}/{}/{}/{}/notes.json?date_modified={}'.format(
                             self.cdn_url,
-                            TsV2CatalogHandler.cdn_rooth_path,
+                            TsV2CatalogHandler.cdn_root_path,
                             pid, lid, modified)
                     })
                 elif 'tq' in resource['identifier']:
                     res.update({
                         'checking_questions': '{}/{}/{}/{}/questions.json?date_modified={}'.format(
                             self.cdn_url,
-                            TsV2CatalogHandler.cdn_rooth_path,
+                            TsV2CatalogHandler.cdn_root_path,
                             pid, lid, modified)
                     })
         elif rc_type == 'dict':
@@ -590,7 +659,7 @@ class TsV2CatalogHandler:
                     res.update({
                         'terms': '{}/{}/bible/{}/words.json?date_modified={}'.format(
                             self.cdn_url,
-                            TsV2CatalogHandler.cdn_rooth_path,
+                            TsV2CatalogHandler.cdn_root_path,
                             lid, modified)
                     })
 
@@ -634,7 +703,7 @@ class TsV2CatalogHandler:
 
         source_url = '{}/{}/{}/{}/{}/source.json?date_modified={}'.format(
             self.cdn_url,
-            TsV2CatalogHandler.cdn_rooth_path,
+            TsV2CatalogHandler.cdn_root_path,
             pid, lid, rid, r_modified)
         res.update({
             'date_modified': r_modified,
@@ -662,7 +731,7 @@ class TsV2CatalogHandler:
             res.update({
                 'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
                     self.cdn_url,
-                    TsV2CatalogHandler.cdn_rooth_path,
+                    TsV2CatalogHandler.cdn_root_path,
                     pid, lid, r_modified)
             })
 
@@ -671,7 +740,7 @@ class TsV2CatalogHandler:
             res.update({
                 'usfm': '{}/{}/{}/{}/{}-{}.usfm?date_modified={}'.format(
                     self.cdn_url,
-                    TsV2CatalogHandler.cdn_rooth_path,
+                    TsV2CatalogHandler.cdn_root_path,
                     rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
             })
 
@@ -692,7 +761,7 @@ class TsV2CatalogHandler:
                 'meta': project['categories'],
                 'name': project['title']
             },
-            'res_catalog': '{}/{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_rooth_path, pid, lid, l_modified)
+            'res_catalog': '{}/{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path, pid, lid, l_modified)
         }
         if 'ulb' == rid or 'udb' == rid:
             cat_lang['project']['sort'] = '{}'.format(project['sort'])
@@ -702,7 +771,7 @@ class TsV2CatalogHandler:
         p_modified = self._max_modified(catalog[pid], l_modified)
         catalog[pid].update({
             'date_modified': p_modified,
-            'lang_catalog': '{}/{}/{}/languages.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_rooth_path, pid, p_modified),
+            'lang_catalog': '{}/{}/{}/languages.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path, pid, p_modified),
             'meta': project['categories'],
             'slug': pid,
             'sort': '{}'.format(project['sort']).zfill(2)
@@ -836,7 +905,7 @@ class TsV2CatalogHandler:
         return {
             'source': {
                 'chapters': book,
-                'date_modified': date_modified
+                'date_modified': date_modified.replace('-', '').split('T')[0]
             }
         }
 

@@ -2,7 +2,7 @@ import os
 import json
 from tools.file_utils import load_json_object, read_file
 from unittest import TestCase
-from tools.mocks import MockS3Handler, MockAPI
+from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler
 from tools.test_utils import assert_s3_equals_api_json
 
 from functions.ts_v2_catalog.ts_v2_catalog_handler import TsV2CatalogHandler
@@ -25,9 +25,11 @@ class TestTsV2Catalog(TestCase):
         }
 
     def test_convert_catalog(self):
-        mockV3Api = MockAPI(self.resources_dir, '')
+        mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
         mockV2Api = MockAPI(os.path.join(self.resources_dir, 'ts_api'), 'https://test')
         mockS3 = MockS3Handler('ts_bucket')
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
         # TRICKY: map the v3 test files to urls so we can have a flat list of test files
         urls = {
             'https://test-cdn.door43.org/en/ulb/v7/ulb.zip': "en_ulb.zip",
@@ -44,8 +46,8 @@ class TestTsV2Catalog(TestCase):
         mock_download = lambda url, dest: mockV3Api.download_file(urls[url], dest)
 
         event = self.make_event()
-        converter = TsV2CatalogHandler(event, mockS3, mock_get_url, mock_download)
-        converter.convert_catalog()
+        converter = TsV2CatalogHandler(event, mockS3, mockDb, mock_get_url, mock_download)
+        converter.run()
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/languages.json')
