@@ -105,12 +105,17 @@ class ForkHandler:
             else:
                 # check if changed
                 # TODO: the branch API is currently broken so this code won't run
-                branch = self.gogs_api.get_branch(None, self.gogs_org, repo_name, 'master')
-                if branch:
-                    commit_id = branch.commit.id[:10]
-                    for item in items:
-                        if item['repo_name'] == repo_name and item['commit_id'] != commit_id:
-                            new_repos.append(repo)
+                try:
+                    branch = self.gogs_api.get_branch(None, self.gogs_org, repo_name, 'master')
+                    if branch:
+                        commit_id = branch.commit.id[:10]
+                        for item in items:
+                            if item['repo_name'] == repo_name and item['commit_id'] != commit_id:
+                                new_repos.append(repo)
+                except Exception as e:
+                    # TRICKY: with the api broken this would create a lot of noise
+                    # print('WARNING: failed to detect changes: {}'.format(e))
+                    pass
 
         return new_repos
 

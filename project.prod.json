@@ -6,6 +6,6 @@
   "role": "arn:aws:iam::002723143144:role/tx_lambda_function",
   "environment": {},
   "hooks": {
-    "build": "pip install --upgrade -r ../../requirements.txt -t . && cp -r ../../tools ."
+    "build": "pip install --upgrade -r ../../requirements.txt -t ."
   }
 }
