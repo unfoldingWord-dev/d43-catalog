@@ -17,11 +17,9 @@ class TestTsV2Catalog(TestCase):
 
     def make_event(self):
         return {
-            'stage-variables': {
-                'cdn_bucket': '',
-                'cdn_url': 'https://api.unfoldingword.org/',
-                'catalog_url': 'https://api.door43.org/v3/catalog.json'
-            }
+            'cdn_bucket': '',
+            'cdn_url': 'https://api.unfoldingword.org/',
+            'catalog_url': 'https://api.door43.org/v3/catalog.json'
         }
 
     def test_convert_catalog(self):
