@@ -18,6 +18,6 @@
       "version": "4"
     },
     "terms": "https://api.unfoldingword.org/v2/ts/bible/en/words.json?date_modified=20170518",
-    "tw_cat": ""
+    "tw_cat": "https://api.unfoldingword.org/v2/ts/obs/en/tw_cat.json?date_modified=20170614"
   }
 ]

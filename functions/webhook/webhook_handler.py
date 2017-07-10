@@ -132,6 +132,8 @@ class WebhookHandler:
             raise Exception('Bad Manifest: {0}'.format(e))
 
         stats = os.stat(self.repo_file)
+        # TODO: if the RC contains a single project we should upload it with the zip file named after the project identifier
+        # This will avoid potential collisions if we host single project RCs in addition to multi-project RCs.
         resource_key = '{}/{}/v{}/{}.zip'.format(
                                                 manifest['dublin_core']['language']['identifier'],
                                                 manifest['dublin_core']['identifier'].split('-')[-1],
