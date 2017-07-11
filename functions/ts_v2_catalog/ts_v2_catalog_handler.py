@@ -543,6 +543,7 @@ class TsV2CatalogHandler:
                 for cat in categories:
                     if cat in ['.', '..']: continue
                     cat_dir = os.path.join(content_dir, cat)
+                    if not os.path.isdir(cat_dir): continue
                     word_files = os.listdir(cat_dir)
                     for word in word_files:
                         if word in ['.', '..']: continue
