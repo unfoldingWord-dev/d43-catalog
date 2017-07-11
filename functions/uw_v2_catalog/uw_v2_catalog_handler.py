@@ -151,6 +151,9 @@ class UwV2CatalogHandler:
                                 'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
                                 'signature': '{}/en/udb/v4/obs.json.sig'.format(self.cdn_url)
                             }
+                        # generate media
+
+                        # build catalog
                         toc.append({
                             'desc': '',
                             'media': {

@@ -131,14 +131,29 @@ class WebhookHandler:
         except Exception as e:
             raise Exception('Bad Manifest: {0}'.format(e))
 
+        # build media formats
+        media_formats = {}
+        media_path = os.path.join(self.repo_dir, 'media.yaml')
+        if os.path.isfile(media_path):
+            try:
+                media = WebhookHandler.load_yaml_object(media_path)
+            except Exception as e:
+                raise Exception('Bad Media: {0}'.format(e))
+            media_formats = self._build_media_formats(media)
+
         stats = os.stat(self.repo_file)
-        # TODO: if the RC contains a single project we should upload it with the zip file named after the project identifier
-        # This will avoid potential collisions if we host single project RCs in addition to multi-project RCs.
+
+        # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
+        if len(manifest['projects']) == 1:
+            zip_name = '{}_{}'.format(manifest['dublin_core']['identifier'], manifest['projects'][0]['identifier'])
+        else:
+            zip_name = manifest['dublin_core']['identifier']
+
         resource_key = '{}/{}/v{}/{}.zip'.format(
                                                 manifest['dublin_core']['language']['identifier'],
                                                 manifest['dublin_core']['identifier'].split('-')[-1],
                                                 manifest['dublin_core']['version'],
-                                                manifest['dublin_core']['identifier'])
+                                                zip_name)
         url = '{}/{}'.format(self.cdn_url, resource_key)
 
         file_info = {
@@ -185,6 +200,11 @@ class WebhookHandler:
                     'path': p_file_path
                 })
 
+        # add media to projects
+        for project in manifest['projects']:
+            if project['identifier'] in media_formats:
+                project['formats'] = project['formats'] + media_formats[project['identifier']]
+
         return {
             'repo_name': self.repo_name,
             'commit_id': self.commit_id,
@@ -194,6 +214,14 @@ class WebhookHandler:
             'signed': False,
             'uploads': uploads
         }
+
+    def _build_media_formats(self, media):
+        """
+        Prepares the media formats
+        :param media:
+        :return:
+        """
+        return {}
 
     def _build_versification(self):
         # we may need to upload multiple files and insert multiple versification entries in the db (one for each book)
