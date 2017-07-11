@@ -142,7 +142,7 @@ class TsV2CatalogHandler:
 
                         # TRICKY: update the finished processes once per format to limit db hits
                         if finished_processes:
-                            self.status['processed'] = self.status['processed'] + finished_processes
+                            self.status['processed'].update(finished_processes)
                             self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                             self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
@@ -157,7 +157,7 @@ class TsV2CatalogHandler:
 
                             # TRICKY: there should only be a single tW for each language
                             if lid not in tw_uploads:
-                                process_id = '_'.format(lid, 'words')
+                                process_id = '_'.join([lid, 'words'])
                                 if process_id not in self.status['processed']:
                                     tw = self._index_words_files(lid, rid, format)
                                     if tw:
@@ -205,7 +205,7 @@ class TsV2CatalogHandler:
 
                             # TRICKY: update the finished processes once per format to limit db hits
                             if finished_processes:
-                                self.status['processed'] = self.status['processed'] + finished_processes
+                                self.status['processed'].update(finished_processes)
                                 self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                                 self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
@@ -347,7 +347,7 @@ class TsV2CatalogHandler:
                 'source_api': source_status['api_version'],
                 'source_timestamp': source_status['timestamp'],
                 'state': 'in-progress',
-                'processed': []
+                'processed': {}
             }
 
         return (status, source_status)
@@ -446,16 +446,6 @@ class TsV2CatalogHandler:
                     tn_uploads[tn_key] = note_upload
 
         return (tn_uploads, tw_cat_uploads)
-
-    def _finish_process(self, process_id):
-        """
-        Inserts the process id into the processed list.
-        :param process_id:
-        :return:
-        """
-        self.status['processed'].append(process_id)
-        self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
     def _index_question_files(self, lid, rid, format):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
@@ -660,7 +650,7 @@ class TsV2CatalogHandler:
                     upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
                     self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
 
-                    self.status['processed'].append(process_id)
+                    self.status['processed'][process_id] = []
                     self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                     self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 

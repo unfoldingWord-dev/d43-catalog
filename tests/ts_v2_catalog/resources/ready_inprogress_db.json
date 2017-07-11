@@ -11,14 +11,13 @@
     "source_timestamp": "2017-07-03T19:41:07Z",
     "state": "in-progress",
     "timestamp": "2017-07-03T12:43:48Z",
-    "processed": [
-      "en_ta_notes",
-      "en_ta_questions",
-      "en_obs-tn_obs_notes",
-      "en_obs-tn_questions",
-      "en_obs_obs",
-      "en_obs_obs_notes",
-      "en_obs_questions"
-    ]
+    "processed": {
+      "en_obs_obs": [],
+      "en_tn_notes": [
+        "en_*_1ch_tw",
+        "en_*_gen_tn",
+        "en_*_1ch_tn"
+      ]
+    }
   }
 ]
