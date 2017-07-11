@@ -68,6 +68,7 @@ class TsV2CatalogHandler:
         Generates the v2 catalog
         :return:
         """
+        cat_keys = [] # en_ulb_gen_source, en_*_gen_tn, en_*_gen_tq, en_*_gen_tw, en_*_gen_chunks, en_*_*_tw
         cat_dict = {}
         supplemental_resources = []
         tn_uploads = {}
@@ -107,7 +108,7 @@ class TsV2CatalogHandler:
 
                 if 'formats' in res:
                     for format in res['formats']:
-                        finished_processes = []
+                        finished_processes = {}
                         if not rc_format and self._get_rc_type(format):
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
@@ -119,20 +120,25 @@ class TsV2CatalogHandler:
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format)
-                                self._upload_all(tw_cat)
-                                self._upload_all(tn)
-                                finished_processes.append(process_id)
-                                # self._finish_process(process_id)
-                                tn_uploads.update(tn)
-                                tw_cat_uploads.update(tw_cat)
+                                if tn or tw_cat:
+                                    self._upload_all(tw_cat)
+                                    self._upload_all(tn)
+                                    finished_processes[process_id] = tw_cat.keys() + tn.keys()
+                                    # self._finish_process(process_id)
+                                    cat_keys = cat_keys + tn.keys() + tw_cat.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
                                 tq = self._index_question_files(lid, rid, format)
-                                self._upload_all(tq)
-                                finished_processes.append(process_id)
-                                # self._finish_process(process_id)
-                                tq_uploads.update(tq)
+                                if tq:
+                                    self._upload_all(tq)
+                                    finished_processes[process_id] = tq.keys()
+                                    # self._finish_process(process_id)
+                                    cat_keys = cat_keys + tq.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
 
                         # TRICKY: update the finished processes once per format to limit db hits
                         if finished_processes:
@@ -144,7 +150,7 @@ class TsV2CatalogHandler:
                     pid = project['identifier']
                     if 'formats' in project:
                         for format in project['formats']:
-                            finished_processes = []
+                            finished_processes = {}
                             if not rc_format and self._get_rc_type(format):
                                 # locate rc_format (for single-project RCs)
                                 rc_format = format
@@ -156,8 +162,10 @@ class TsV2CatalogHandler:
                                     tw = self._index_words_files(lid, rid, format)
                                     if tw:
                                         self._upload_all(tw)
-                                        finished_processes.append(process_id)
-                                        tw_uploads.update(tw)
+                                        finished_processes[process_id] = tw.keys()
+                                        cat_keys = cat_keys + tw.keys()
+                                else:
+                                    cat_keys = cat_keys + self.status['processed'][process_id]
 
                             if rid == 'obs':
                                 process_id = '_'.join([lid, rid, 'obs'])
@@ -166,27 +174,34 @@ class TsV2CatalogHandler:
                                     upload = self._prep_data_upload('{}/{}/{}/source.json'.format('obs', lid, rid),
                                                                     obs_json)
                                     self._upload(upload)
-                                    finished_processes.append(process_id)
+                                    finished_processes[process_id] = []
                                     # self._finish_process(process_id)
+                                else:
+                                    cat_keys = cat_keys + self.status['processed'][process_id]
 
                             # TRICKY: obs notes and questions are in the project
                             process_id = '_'.join([lid, rid, pid, 'notes'])
                             if process_id not in self.status['processed']:
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format)
-                                self._upload_all(tw_cat)
-                                self._upload_all(tn)
-                                finished_processes.append(process_id)
-                                # self._finish_process(process_id)
-                                tn_uploads.update(tn)
-                                tw_cat_uploads.update(tw_cat)
+                                if tn or tw_cat:
+                                    self._upload_all(tw_cat)
+                                    self._upload_all(tn)
+                                    finished_processes[process_id] = tn.keys() + tw_cat.keys()
+                                    # self._finish_process(process_id)
+                                    cat_keys = cat_keys + tn.keys() + tw_cat.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
                                 tq = self._index_question_files(lid, rid, format)
-                                self._upload_all(tq)
-                                finished_processes.append(process_id)
-                                # self._finish_process(process_id)
-                                tq_uploads.update(tq)
+                                if tq:
+                                    self._upload_all(tq)
+                                    finished_processes[process_id] = tq.keys()
+                                    # self._finish_process(process_id)
+                                    cat_keys = cat_keys + tq.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
 
                             # TRICKY: update the finished processes once per format to limit db hits
                             if finished_processes:
@@ -234,34 +249,51 @@ class TsV2CatalogHandler:
                 for rid in lang['_res']:
                     res = lang['_res'][rid]
 
-                    # enable tW
-                    # TRICKY: tw_cat is read from notes so it uses the same key form as notes
-                    if pid == 'obs':
-                        tw_cat_key = '$'.join([pid, lid, 'obs-tn'])
-                    else:
-                        tw_cat_key = '$'.join([pid, lid, 'tn'])
-                    if tw_cat_key not in tw_cat_uploads:
+                    # disable missing catalogs
+
+                    # disable tW catalog
+                    if '_'.join([lid, '*', pid, 'tw']) not in cat_keys:
                         res['tw_cat'] = ''
 
-                    # enable tQ
-                    if pid == 'obs':
-                        question_key = '$'.join([pid, lid, 'obs-tq'])
-                    else:
-                        question_key = '$'.join([pid, lid, 'tq'])
-                    if question_key not in tq_uploads:
-                        res['checking_questions'] = ''
-
-                    # enable tN
-                    if pid == 'obs':
-                        note_key = '$'.join([pid, lid, 'obs-tn'])
-                    else:
-                        note_key = '$'.join([pid, lid, 'tn'])
-                    if note_key not in tn_uploads:
+                    # disable tN
+                    if '_'.join([lid, '*', pid, 'tn']) not in cat_keys:
                         res['notes'] = ''
 
-                    # exclude tw if not in sources
-                    if lid not in tw_uploads:
+                    # disable tQ
+                    if '_'.join([lid, '*', pid, 'tq']) not in cat_keys:
+                        res['checking_questions'] = ''
+
+                    # disable tW
+                    if '_'.join([lid, '*', '*', 'tw']) not in cat_keys:
                         res['terms'] = ''
+
+                    # TRICKY: tw_cat is read from notes so it uses the same key form as notes
+                    # if pid == 'obs':
+                    #     tw_cat_key = '$'.join([pid, lid, 'obs-tn'])
+                    # else:
+                    #     tw_cat_key = '$'.join([pid, lid, 'tn'])
+                    # if tw_cat_key not in tw_cat_uploads:
+                    #     res['tw_cat'] = ''
+
+                    # enable tQ
+                    # if pid == 'obs':
+                    #     question_key = '$'.join([pid, lid, 'obs-tq'])
+                    # else:
+                    #     question_key = '$'.join([pid, lid, 'tq'])
+                    # if question_key not in tq_uploads:
+                    #     res['checking_questions'] = ''
+
+                    # enable tN
+                    # if pid == 'obs':
+                    #     note_key = '$'.join([pid, lid, 'obs-tn'])
+                    # else:
+                    #     note_key = '$'.join([pid, lid, 'tn'])
+                    # if note_key not in tn_uploads:
+                    #     res['notes'] = ''
+
+                    # exclude tw if not in sources
+                    # if lid not in tw_uploads:
+                    #     res['terms'] = ''
 
                     res_cat.append(res)
                 api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
@@ -344,7 +376,6 @@ class TsV2CatalogHandler:
 
             for project in manifest['projects']:
                 pid = project['identifier']
-                key = '$'.join([pid, lid, rid])
                 note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 note_json = []
 
@@ -400,16 +431,19 @@ class TsV2CatalogHandler:
                         })
 
                 if tw_chapters:
+                    tw_cat_key = '_'.join([lid, '*', pid, 'tw'])
                     tw_cat_json = {
                         "chapters": tw_chapters,
                         "date_modified": dc['modified'].replace('-', '')
                     }
                     tw_upload = self._prep_data_upload('{}/{}/tw_cat.json'.format(pid, lid), tw_cat_json)
-                    tw_cat_uploads[key] = tw_upload
+                    tw_cat_uploads[tw_cat_key] = tw_upload
 
-                note_json.append({'date_modified': dc['modified'].replace('-', '')})
-                note_upload = self._prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json)
-                tn_uploads[key] = note_upload
+                if note_json:
+                    tn_key = '_'.join([lid, '*', pid, 'tn'])
+                    note_json.append({'date_modified': dc['modified'].replace('-', '')})
+                    note_upload = self._prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json)
+                    tn_uploads[tn_key] = note_upload
 
         return (tn_uploads, tw_cat_uploads)
 
@@ -437,7 +471,6 @@ class TsV2CatalogHandler:
 
             for project in manifest['projects']:
                 pid = project['identifier']
-                key = '$'.join([pid, lid, rid])
                 question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 question_json = []
 
@@ -471,15 +504,17 @@ class TsV2CatalogHandler:
                     question_array = []
                     for hash in unique_questions:
                         question_array.append(unique_questions[hash])
+                    if question_array:
+                        question_json.append({
+                            'id': chapter,
+                            'cq': question_array
+                        })
 
-                    question_json.append({
-                        'id': chapter,
-                        'cq': question_array
-                    })
-
-                question_json.append({'date_modified': dc['modified'].replace('-', '')})
-                upload = self._prep_data_upload('{}/{}/questions.json'.format(pid, lid), question_json)
-                tq_uploads[key] = upload
+                if question_json:
+                    tq_key = '_'.join([lid, '*', pid, 'tq'])
+                    question_json.append({'date_modified': dc['modified'].replace('-', '')})
+                    upload = self._prep_data_upload('{}/{}/questions.json'.format(pid, lid), question_json)
+                    tq_uploads[tq_key] = upload
 
         return tq_uploads
 
@@ -587,7 +622,7 @@ class TsV2CatalogHandler:
                 })
                 upload = self._prep_data_upload('bible/{}/words.json'.format(lid), words)
                 return {
-                    lid: upload
+                    '_'.join([lid, '*', '*', 'tw']): upload
                 }
         return {}
 
@@ -607,16 +642,20 @@ class TsV2CatalogHandler:
             if not rc_dir: return
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-
             usx_path = os.path.join(rc_dir, 'usx')
-            UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
+            usx_is_built = False
             for project in manifest['projects']:
                 pid = project['identifier']
                 process_id = '_'.join([lid, rid, pid])
-                path = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
 
                 if process_id not in self.status['processed']:
+                    if not usx_is_built:
+                        # TRICKY: build the usx just once only if we need it
+                        UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
+                        usx_is_built = True
+
                     # convert USX to JSON
+                    path = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
                     source = self._generate_source_from_usx(path, format['modified'])
                     upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
                     self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
