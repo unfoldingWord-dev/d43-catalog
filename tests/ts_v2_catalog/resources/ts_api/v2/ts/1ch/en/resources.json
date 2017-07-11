@@ -19,7 +19,7 @@
     },
     "terms": "https://api.unfoldingword.org/v2/ts/bible/en/words.json?date_modified=20170518",
     "tw_cat": "https://api.unfoldingword.org/v2/ts/1ch/en/tw_cat.json?date_modified=20170607",
-    "usfm": "https://api.unfoldingword.org/v2/ts/ulb/en/13-1CH.usfm?date_modified=20170607"
+    "usfm": "https://test-cdn.door43.org/en/ulb/v7/1ch.usfm?date_modified=20170607"
   },
   {
     "checking_questions": "https://api.unfoldingword.org/v2/ts/1ch/en/questions.json?date_modified=20170503",
@@ -41,6 +41,6 @@
     },
     "terms": "https://api.unfoldingword.org/v2/ts/bible/en/words.json?date_modified=20170518",
     "tw_cat": "https://api.unfoldingword.org/v2/ts/1ch/en/tw_cat.json?date_modified=20170502",
-    "usfm": "https://api.unfoldingword.org/v2/ts/udb/en/13-1CH.usfm?date_modified=20170502"
+    "usfm": "https://test-cdn.door43.org/en/udb/v7/1ch.usfm?date_modified=20170502"
   }
 ]

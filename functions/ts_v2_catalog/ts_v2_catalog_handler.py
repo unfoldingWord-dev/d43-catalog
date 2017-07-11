@@ -833,12 +833,12 @@ class TsV2CatalogHandler:
 
         # bible projects have usfm
         if pid != 'obs':
-            res.update({
-                'usfm': '{}/{}/{}/{}/{}-{}.usfm?date_modified={}'.format(
-                    self.cdn_url,
-                    TsV2CatalogHandler.cdn_root_path,
-                    rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
-            })
+            for format in project['formats']:
+                if 'text/usfm' == format['format']:
+                    res.update({
+                        'usfm': '{}?date_modified={}'.format(format['url'], r_modified)
+                    })
+                    break
 
         # language
         lang = catalog[pid]['_langs'][lid]
