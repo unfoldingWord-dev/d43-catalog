@@ -382,12 +382,12 @@ class TsV2CatalogHandler:
                 chapters = os.listdir(note_dir)
                 tw_chapters = []
                 for chapter in chapters:
-                    if chapter == 'front': continue
+                    if chapter in ['.', '..', 'front']: continue
                     chapter_dir = os.path.join(note_dir, chapter)
                     chunks = os.listdir(chapter_dir)
                     tw_frames = []
                     for chunk in chunks:
-                        if chunk == 'intro.md': continue
+                        if chunk in ['.', '..', 'intro.md']: continue
                         notes = []
                         chunk_file = os.path.join(chapter_dir, chunk)
                         chunk = chunk.split('.')[0]
@@ -466,10 +466,12 @@ class TsV2CatalogHandler:
 
                 chapters = os.listdir(question_dir)
                 for chapter in chapters:
+                    if chapter in ['.', '..']: continue
                     unique_questions = {}
                     chapter_dir = os.path.join(question_dir, chapter)
                     chunks = os.listdir(chapter_dir)
                     for chunk in chunks:
+                        if chunk in ['.', '..']: continue
                         chunk_file = os.path.join(chapter_dir, chunk)
                         chunk = chunk.split('.')[0]
                         chunk_body = read_file(chunk_file)
@@ -536,12 +538,14 @@ class TsV2CatalogHandler:
             # TRICKY: there should only be one project
             for project in manifest['projects']:
                 pid = project['identifier']
-                content_dir = os.path.join(rc_dir, project['path'])
+                content_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 categories = os.listdir(content_dir)
                 for cat in categories:
+                    if cat in ['.', '..']: continue
                     cat_dir = os.path.join(content_dir, cat)
                     word_files = os.listdir(cat_dir)
                     for word in word_files:
+                        if word in ['.', '..']: continue
                         word_path = os.path.join(cat_dir, word)
                         word_id = word.split('.md')[0]
                         word_content = read_file(word_path)
@@ -651,6 +655,7 @@ class TsV2CatalogHandler:
                     UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
 
                     # convert USX to JSON
+                    print('INFO: {} to json'.format(pid.upper()))
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
                     source = self._generate_source_from_usx(path, format['modified'])
                     upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
