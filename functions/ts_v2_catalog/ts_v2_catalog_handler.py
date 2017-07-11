@@ -71,10 +71,6 @@ class TsV2CatalogHandler:
         cat_keys = [] # en_ulb_gen_source, en_*_gen_tn, en_*_gen_tq, en_*_gen_tw, en_*_gen_chunks, en_*_*_tw
         cat_dict = {}
         supplemental_resources = []
-        tn_uploads = {}
-        tq_uploads = {}
-        tw_uploads = {}
-        tw_cat_uploads = {}
 
         result = self._get_status()
         if not result:
@@ -124,7 +120,6 @@ class TsV2CatalogHandler:
                                     self._upload_all(tw_cat)
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tw_cat.keys() + tn.keys()
-                                    # self._finish_process(process_id)
                                     cat_keys = cat_keys + tn.keys() + tw_cat.keys()
                             else:
                                 cat_keys = cat_keys + self.status['processed'][process_id]
@@ -135,7 +130,6 @@ class TsV2CatalogHandler:
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
-                                    # self._finish_process(process_id)
                                     cat_keys = cat_keys + tq.keys()
                             else:
                                 cat_keys = cat_keys + self.status['processed'][process_id]
@@ -156,16 +150,15 @@ class TsV2CatalogHandler:
                                 rc_format = format
 
                             # TRICKY: there should only be a single tW for each language
-                            if lid not in tw_uploads:
-                                process_id = '_'.join([lid, 'words'])
-                                if process_id not in self.status['processed']:
-                                    tw = self._index_words_files(lid, rid, format)
-                                    if tw:
-                                        self._upload_all(tw)
-                                        finished_processes[process_id] = tw.keys()
-                                        cat_keys = cat_keys + tw.keys()
-                                else:
-                                    cat_keys = cat_keys + self.status['processed'][process_id]
+                            process_id = '_'.join([lid, 'words'])
+                            if process_id not in self.status['processed']:
+                                tw = self._index_words_files(lid, rid, format)
+                                if tw:
+                                    self._upload_all(tw)
+                                    finished_processes[process_id] = tw.keys()
+                                    cat_keys = cat_keys + tw.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
 
                             if rid == 'obs':
                                 process_id = '_'.join([lid, rid, 'obs'])
@@ -175,7 +168,6 @@ class TsV2CatalogHandler:
                                                                     obs_json)
                                     self._upload(upload)
                                     finished_processes[process_id] = []
-                                    # self._finish_process(process_id)
                                 else:
                                     cat_keys = cat_keys + self.status['processed'][process_id]
 
@@ -187,7 +179,6 @@ class TsV2CatalogHandler:
                                     self._upload_all(tw_cat)
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tn.keys() + tw_cat.keys()
-                                    # self._finish_process(process_id)
                                     cat_keys = cat_keys + tn.keys() + tw_cat.keys()
                             else:
                                 cat_keys = cat_keys + self.status['processed'][process_id]
@@ -198,7 +189,6 @@ class TsV2CatalogHandler:
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
-                                    # self._finish_process(process_id)
                                     cat_keys = cat_keys + tq.keys()
                             else:
                                 cat_keys = cat_keys + self.status['processed'][process_id]
@@ -218,7 +208,6 @@ class TsV2CatalogHandler:
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
                         print('#WARNING: Could not find date_modified for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
-                        # raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         self._build_catalog_node(cat_dict, lang, res, project, modified)
@@ -266,34 +255,6 @@ class TsV2CatalogHandler:
                     # disable tW
                     if '_'.join([lid, '*', '*', 'tw']) not in cat_keys:
                         res['terms'] = ''
-
-                    # TRICKY: tw_cat is read from notes so it uses the same key form as notes
-                    # if pid == 'obs':
-                    #     tw_cat_key = '$'.join([pid, lid, 'obs-tn'])
-                    # else:
-                    #     tw_cat_key = '$'.join([pid, lid, 'tn'])
-                    # if tw_cat_key not in tw_cat_uploads:
-                    #     res['tw_cat'] = ''
-
-                    # enable tQ
-                    # if pid == 'obs':
-                    #     question_key = '$'.join([pid, lid, 'obs-tq'])
-                    # else:
-                    #     question_key = '$'.join([pid, lid, 'tq'])
-                    # if question_key not in tq_uploads:
-                    #     res['checking_questions'] = ''
-
-                    # enable tN
-                    # if pid == 'obs':
-                    #     note_key = '$'.join([pid, lid, 'obs-tn'])
-                    # else:
-                    #     note_key = '$'.join([pid, lid, 'tn'])
-                    # if note_key not in tn_uploads:
-                    #     res['notes'] = ''
-
-                    # exclude tw if not in sources
-                    # if lid not in tw_uploads:
-                    #     res['terms'] = ''
 
                     res_cat.append(res)
                 api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
