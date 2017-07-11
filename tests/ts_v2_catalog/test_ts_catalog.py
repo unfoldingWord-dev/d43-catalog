@@ -50,7 +50,8 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/resources.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/source.json')
+        self.assertNotIn('v2/ts/obs/en/obs/source.json', mockS3._uploads)
+        # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/questions.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/tw_cat.json')
@@ -58,9 +59,11 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/resources.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/source.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/notes.json')
+        self.assertNotIn('v2/ts/1ch/en/notes.json', mockS3._uploads)
+        # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/questions.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/tw_cat.json')
+        self.assertNotIn('v2/ts/1ch/en/tw_cat.json', mockS3._uploads)
+        # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/tw_cat.json')
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
@@ -78,21 +81,21 @@ class TestTsV2Catalog(TestCase):
                 res_catalog = json.loads(read_file(mockS3._uploads[res_catalog_path]))
                 for resource in res_catalog:
                     questions_path = resource['checking_questions'].replace(root_url, '').split('?')[0]
-                    notes_path = resource['notes'].replace(root_url, '').split('?')[0]
-                    source_path = resource['source'].replace(root_url, '').split('?')[0]
+                    # notes_path = resource['notes'].replace(root_url, '').split('?')[0]
+                    # source_path = resource['source'].replace(root_url, '').split('?')[0]
                     terms_path = resource['terms'].replace(root_url, '').split('?')[0]
-                    terms_map_path = resource['tw_cat'].replace(root_url, '').split('?')[0]
+                    # terms_map_path = resource['tw_cat'].replace(root_url, '').split('?')[0]
 
                     if questions_path:
                         self.assertIn(questions_path, mockS3._uploads, url_err_msg.format(questions_path))
-                    if notes_path:
-                        self.assertIn(notes_path, mockS3._uploads, url_err_msg.format(notes_path))
-                    if source_path:
-                        self.assertIn(source_path, mockS3._uploads, url_err_msg.format(source_path))
+                    # if notes_path:
+                        # self.assertIn(notes_path, mockS3._uploads, url_err_msg.format(notes_path))
+                    # if source_path:
+                    #     self.assertIn(source_path, mockS3._uploads, url_err_msg.format(source_path))
                     if terms_path:
                         self.assertIn(terms_path, mockS3._uploads, url_err_msg.format(terms_path))
-                    if terms_map_path:
-                        self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
+                    # if terms_map_path:
+                    #     self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
 
 
     def test_convert_catalog(self):

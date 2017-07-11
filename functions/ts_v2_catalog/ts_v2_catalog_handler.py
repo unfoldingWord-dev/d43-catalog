@@ -632,20 +632,26 @@ class TsV2CatalogHandler:
             if not rc_dir: return
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-            usx_path = os.path.join(rc_dir, 'usx')
+            usx_dir = os.path.join(rc_dir, 'usx')
             usx_is_built = False
             for project in manifest['projects']:
                 pid = project['identifier']
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
-                    if not usx_is_built:
-                        # TRICKY: build the usx just once only if we need it
-                        UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
-                        usx_is_built = True
+                    # copy usfm project file
+                    usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
+                    if not os.path.exists(usfm_dir):
+                        os.makedirs(usfm_dir)
+                    usfm_dest_file = os.path.normpath(os.path.join(usfm_dir, project['path']))
+                    usfm_src_file = os.path.normpath(os.path.join(rc_dir, project['path']))
+                    shutil.copyfile(usfm_src_file, usfm_dest_file)
+
+                    # transform usfm to usx
+                    UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
 
                     # convert USX to JSON
-                    path = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
+                    path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
                     source = self._generate_source_from_usx(path, format['modified'])
                     upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
                     self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
