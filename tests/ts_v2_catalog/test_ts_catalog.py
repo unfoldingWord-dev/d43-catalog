@@ -65,7 +65,7 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
         # validate urls in generate catalogs match the generated output paths
-        root_url = '{}/'.format(event['stage-variables']['cdn_url'].rstrip('/'))
+        root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
         catalog = json.loads(read_file(mockS3._uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:

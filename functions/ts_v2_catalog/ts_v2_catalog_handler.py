@@ -25,6 +25,7 @@ import dateutil.parser
 class TsV2CatalogHandler:
 
     cdn_root_path = 'v2/ts'
+    api_version = 'ts.2'
 
     def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
@@ -137,7 +138,7 @@ class TsV2CatalogHandler:
                         if finished_processes:
                             self.status['processed'] = self.status['processed'] + finished_processes
                             self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                            self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
+                            self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
                 for project in res['projects']:
                     pid = project['identifier']
@@ -191,7 +192,7 @@ class TsV2CatalogHandler:
                             if finished_processes:
                                 self.status['processed'] = self.status['processed'] + finished_processes
                                 self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                                self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
+                                self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
                     if not rc_format:
                         raise Exception('Could not find a format for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
@@ -279,7 +280,7 @@ class TsV2CatalogHandler:
 
         self.status['state'] = 'complete'
         self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
+        self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
     def _get_status(self):
         """
@@ -290,7 +291,7 @@ class TsV2CatalogHandler:
         status_results = self.db_handler.query_items({
             'api_version': {
                 'condition': 'is_in',
-                'value': ['3', 'ts.2']
+                'value': ['3', TsV2CatalogHandler.api_version]
             }
         })
         source_status = None
@@ -298,7 +299,7 @@ class TsV2CatalogHandler:
         for s in status_results:
             if s['api_version'] == '3':
                 source_status = s
-            elif s['api_version'] == 'ts.2':
+            elif s['api_version'] == TsV2CatalogHandler.api_version:
                 status = s
         if not source_status:
             print('Source catalog status not found')
@@ -309,7 +310,7 @@ class TsV2CatalogHandler:
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process
             status = {
-                'api_version': 'ts.2',
+                'api_version': TsV2CatalogHandler.api_version,
                 'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path),
                 'source_api': source_status['api_version'],
                 'source_timestamp': source_status['timestamp'],
@@ -420,7 +421,7 @@ class TsV2CatalogHandler:
         """
         self.status['processed'].append(process_id)
         self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
+        self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
     def _index_question_files(self, lid, rid, format):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
@@ -611,7 +612,7 @@ class TsV2CatalogHandler:
             UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
             for project in manifest['projects']:
                 pid = project['identifier']
-                process_id = '_'.join([lid, rid, lid, pid])
+                process_id = '_'.join([lid, rid, pid])
                 path = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
 
                 if process_id not in self.status['processed']:
@@ -622,7 +623,7 @@ class TsV2CatalogHandler:
 
                     self.status['processed'].append(process_id)
                     self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                    self.db_handler.update_item({'api_version': 'ts.2'}, self.status)
+                    self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
     def _prep_data_upload(self, key, data):
         """
