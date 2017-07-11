@@ -56,10 +56,6 @@ class Signing(object):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @staticmethod
-    def is_travis():
-        return 'TRAVIS' in os.environ and os.environ['TRAVIS'] == 'true'
-
-    @staticmethod
     def sign_file(file_to_sign, pem_file=None):
         """
         Generates a .sig file and returns the full file name of the .sig file

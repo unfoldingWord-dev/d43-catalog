@@ -1,4 +1,5 @@
 import json
+import os
 from file_utils import read_file
 
 def sort_object(obj):
@@ -38,3 +39,10 @@ def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
     s3_obj = json.loads(read_file(mock_s3._uploads[key]))
     api_obj = json.loads(mock_api.get_url(key))
     assert_object_equals(unit_test, s3_obj, api_obj)
+
+def is_travis():
+    """
+    Checks if the current environment is travis
+    :return:
+    """
+    return 'TRAVIS' in os.environ and os.environ['TRAVIS'] == 'true'

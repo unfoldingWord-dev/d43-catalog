@@ -1,9 +1,10 @@
 import os
 import json
 from tools.file_utils import load_json_object, read_file
+import unittest
 from unittest import TestCase
 from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler
-from tools.test_utils import assert_s3_equals_api_json
+from tools.test_utils import assert_s3_equals_api_json, is_travis
 
 from functions.ts_v2_catalog.ts_v2_catalog_handler import TsV2CatalogHandler
 
@@ -169,3 +170,20 @@ class TestTsV2Catalog(TestCase):
                         self.assertIn(terms_path, mockS3._uploads, url_err_msg.format(terms_path))
                     if terms_map_path:
                         self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
+
+    @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
+    def test_everything(self):
+        mockS3 = MockS3Handler('ts_bucket')
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
+
+        event = {
+            'cdn_bucket': 'cdn.door43.org',
+            'cdn_url': 'https://cdn.door43.org/',
+            'catalog_url': 'https://api.door43.org/v3/catalog.json'
+        }
+        converter = TsV2CatalogHandler(event, mockS3, mockDb)
+        converter.run()
+
+        self.assertTrue(True)
+        print('done')

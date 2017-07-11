@@ -478,7 +478,7 @@ class TsV2CatalogHandler:
 
                         for question in question_re.findall(chunk_body):
                             hasher = hashlib.md5()
-                            hasher.update(question[1].strip())
+                            hasher.update(question[1].strip().encode('utf-8'))
                             question_hash = hasher.hexdigest()
                             if question_hash not in unique_questions:
                                 # insert unique question
