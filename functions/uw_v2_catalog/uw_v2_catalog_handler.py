@@ -25,6 +25,7 @@ def datestring_to_timestamp(datestring):
 class UwV2CatalogHandler:
 
     cdn_root_path = 'v2/uw'
+    api_version = 'uw.2'
 
     def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
@@ -68,6 +69,7 @@ class UwV2CatalogHandler:
         Generates the v2 catalog
         :return: the v2 form of the catalog
         """
+        cat_keys = []
         uploads = []
         v2_catalog = {
             'obs': {},
@@ -139,9 +141,11 @@ class UwV2CatalogHandler:
                                                              '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
                                                                             upload['key']))
 
-                                status['processed'].append(process_id)
+                                status['processed'].update({process_id: []})
                                 status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                                self.db_handler.update_item({'api_version': 'uw.2'}, status)
+                                self.db_handler.update_item({'api_version': UwV2CatalogHandler.api_version}, status)
+                            else:
+                                cat_keys = cat_keys + status['processed'][process_id]
 
                             format = {
                                 'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
@@ -216,7 +220,7 @@ class UwV2CatalogHandler:
         status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         status['state'] = 'complete'
         self.db_handler.update_item(
-            {'api_version': 'uw.2'},
+            {'api_version': UwV2CatalogHandler.api_version},
             status)
 
     def _get_status(self):
@@ -228,7 +232,7 @@ class UwV2CatalogHandler:
         status_results = self.db_handler.query_items({
             'api_version': {
                 'condition': 'is_in',
-                'value': ['3', 'uw.2']
+                'value': ['3', UwV2CatalogHandler.api_version]
             }
         })
         source_status = None
@@ -236,7 +240,7 @@ class UwV2CatalogHandler:
         for s in status_results:
             if s['api_version'] == '3':
                 source_status = s
-            elif s['api_version'] == 'uw.2':
+            elif s['api_version'] == UwV2CatalogHandler.api_version:
                 status = s
         if not source_status:
             print('Source catalog status not found')
@@ -247,12 +251,12 @@ class UwV2CatalogHandler:
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process
             status = {
-                'api_version': 'uw.2',
+                'api_version': UwV2CatalogHandler.api_version,
                 'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, UwV2CatalogHandler.cdn_root_path),
                 'source_api': source_status['api_version'],
                 'source_timestamp': source_status['timestamp'],
                 'state': 'in-progress',
-                'processed': []
+                'processed': {}
             }
 
         return (status, source_status)
