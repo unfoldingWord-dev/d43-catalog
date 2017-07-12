@@ -24,8 +24,8 @@ from tools.dict_utils import read_dict
 class WebhookHandler:
     def __init__(self, event, s3_handler=None, dynamodb_handler=None, download_handler=None):
         """
-        
-        :param event: 
+
+        :param event:
         :param s3_handler: provided for unit testing
         :param dynamodb_handler: provided for unit testing
         :param download_handler: provided for unit testing
@@ -116,7 +116,7 @@ class WebhookHandler:
     def _build_rc(self):
         """
         Builds a Resource Container following the RC0.2 spec
-        :return: 
+        :return:
         """
         manifest_path = os.path.join(self.repo_dir, 'manifest.yaml')
         if not os.path.isfile(manifest_path):
@@ -139,7 +139,7 @@ class WebhookHandler:
                 media = WebhookHandler.load_yaml_object(media_path)
             except Exception as e:
                 raise Exception('Bad Media: {0}'.format(e))
-            media_formats = self._build_media_formats(media)
+            media_formats = self._build_media_formats(self.repo_dir, manifest, media)
 
         stats = os.stat(self.repo_file)
 
@@ -203,6 +203,7 @@ class WebhookHandler:
         # add media to projects
         for project in manifest['projects']:
             if project['identifier'] in media_formats:
+                if 'formats' not in project: project['formats'] = []
                 project['formats'] = project['formats'] + media_formats[project['identifier']]
 
         return {
@@ -215,14 +216,98 @@ class WebhookHandler:
             'uploads': uploads
         }
 
-    def _build_media_formats(self, media):
+    def _build_media_formats(self, rc_dir, manifest, media):
         """
         Prepares the media formats
+        :param rc_dir:
+        :param manifest:
         :param media:
         :return:
         """
-        # TODO: read the media and generate the formats
-        return {}
+        formats = {}
+        for project in media['projects']:
+            project_formats = []
+            for media in project['media']:
+                if 'quality' in media and len(media['quality']) > 0:
+                    # build format for each quality
+                    for quality in media['quality']:
+                        format = {
+                            'format': '',
+                            'modified': '',
+                            'size': 0,
+                            'quality': quality,
+                            'contributor': media['contributor'],
+                            'url': media['url'].replace('{quality}', quality),
+                            'signature': ''
+                        }
+                        if 'chapter_url' in media:
+                            chapter_url = media['chapter_url'].replace('{quality}', quality)
+                            chapters = self._build_media_chapters(rc_dir, manifest, project['identifier'], chapter_url)
+                            if chapters:
+                                format['chapters'] = chapters
+
+                        project_formats.append(format)
+
+                else:
+                    # build single format
+                    format = {
+                        'format': '',
+                        'modified': '',
+                        'size': 0,
+                        'quality': None,
+                        'contributor': media['contributor'],
+                        'url': media['url'],
+                        'signature': ''
+                    }
+                    if 'chapter_url' in media:
+                        chapters = self._build_media_chapters(rc_dir, manifest, project['identifier'], media['chapter_url'])
+                        if chapters:
+                            format['chapters'] = chapters
+                        pass
+
+                    project_formats.append(format)
+            formats[project['identifier']] = project_formats
+        return formats
+
+    def _build_media_chapters(self, rc_dir, manifest, pid, chapter_url):
+        """
+        Generates chapters items for a media format
+        :param rc_dir:
+        :param manifest:
+        :param pid:
+        :param chapter_url:
+        :return:
+        """
+        media_chapters = []
+        for project in manifest['projects']:
+            if project['identifier'] == pid:
+                id = '_'.join([manifest['dublin_core']['language']['identifier'],
+                               manifest['dublin_core']['identifier'],
+                               manifest['dublin_core']['type'],
+                               project['identifier']])
+                project_path = os.path.normpath(os.path.join(rc_dir, project['path']))
+                if manifest['dublin_core']['type'] == 'book':
+                    chapters = os.listdir(project_path)
+                    for chapter in chapters:
+                        if chapter in ['.', '..', 'toc.yaml', 'config.yaml']:
+                            continue
+                        chapter = chapter.split('.')[0] # trim extension from files
+                        media_chapters.append({
+                            'size': 0,
+                            'length': 0,
+                            'modified': '',
+                            'identifier': chapter,
+                            'url': chapter_url.replace('{chapter}', chapter),
+                            'signature': ''
+                        })
+                else:
+                    # TODO: add additional support as needed
+                    print(
+                        'WARNING: Failed to generate media chapters. Only book RCs are currently supported. {}'.format(
+                            id))
+                    break
+
+        return media_chapters
 
     def _build_versification(self):
         # we may need to upload multiple files and insert multiple versification entries in the db (one for each book)
@@ -283,7 +368,7 @@ class WebhookHandler:
     def _build_localization(self):
         """
         Builds the localization for various components in the catalog
-        :return: 
+        :return:
         """
         files = sorted(glob(os.path.join(self.repo_dir, '*.json')))
         localization = {}
@@ -304,7 +389,7 @@ class WebhookHandler:
     def _build_catalogs(self):
         """
         Builds the global catalogs
-        :return: 
+        :return:
         """
         catalogs_path = os.path.join(self.repo_dir, 'catalogs.json')
         package = read_file(catalogs_path)
@@ -319,8 +404,8 @@ class WebhookHandler:
         """
         Generates an upload key that conforms to the format `temp/<repo_name>/<commit>/<path>`.
         This allows further processing to associate files with an entry in dynamoDB.
-        :param path: 
-        :return: 
+        :param path:
+        :return:
         """
         return 'temp/{0}/{1}/{2}'.format(self.repo_name, self.commit_id, path)
 
@@ -329,10 +414,10 @@ class WebhookHandler:
         """
         Retrieves a value from a dictionary.
         If the key does not exist it will be created with the default value
-        :param dict dictionary: 
-        :param any key: 
-        :param default: 
-        :return: 
+        :param dict dictionary:
+        :param any key:
+        :param default:
+        :return:
         """
         if  key not in dictionary:
             dictionary[key] = default

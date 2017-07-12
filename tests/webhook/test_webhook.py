@@ -2,6 +2,7 @@ import codecs
 import os
 import json
 from unittest import TestCase
+from tools.mocks import MockAPI
 from functions.webhook.webhook_handler import WebhookHandler
 
 class TestWebhook(TestCase):
@@ -66,9 +67,14 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        urls = {
+            'https://git.door43.org/Door43-Catalog/en_obs/archive/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad.zip': 'en_obs.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler, mock_download)
         handler.run()
 
         entry = self.MockDynamodbHandler.data
@@ -78,7 +84,7 @@ class TestWebhook(TestCase):
         package = json.loads(entry['package'])
         project = package['projects'][0]
         self.assertIn('formats', project)
-        self.assertEqual(3, len(project['formats']))
+        self.assertEqual(4, len(project['formats']))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
