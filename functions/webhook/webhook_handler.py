@@ -221,6 +221,7 @@ class WebhookHandler:
         :param media:
         :return:
         """
+        # TODO: read the media and generate the formats
         return {}
 
     def _build_versification(self):
