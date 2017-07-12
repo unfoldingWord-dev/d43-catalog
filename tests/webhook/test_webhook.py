@@ -3,6 +3,8 @@ import os
 import json
 from unittest import TestCase
 from tools.mocks import MockAPI
+from tools.file_utils import read_file
+from tools.test_utils import assert_object_equals_file
 from functions.webhook.webhook_handler import WebhookHandler
 
 class TestWebhook(TestCase):
@@ -84,7 +86,7 @@ class TestWebhook(TestCase):
         package = json.loads(entry['package'])
         project = package['projects'][0]
         self.assertIn('formats', project)
-        self.assertEqual(4, len(project['formats']))
+        assert_object_equals_file(self, project['formats'], os.path.join(self.resources_dir, 'expected_obs_project_formats.json'))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')

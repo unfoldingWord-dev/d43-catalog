@@ -289,7 +289,7 @@ class WebhookHandler:
                 if manifest['dublin_core']['type'] == 'book':
                     chapters = os.listdir(project_path)
                     for chapter in chapters:
-                        if chapter in ['.', '..', 'toc.yaml', 'config.yaml']:
+                        if chapter in ['.', '..', 'toc.yaml', 'config.yaml', 'back', 'front']:
                             continue
                         chapter = chapter.split('.')[0] # trim extension from files
                         media_chapters.append({

@@ -15,6 +15,17 @@ def sort_object(obj):
     else:
         return obj
 
+def assert_object_equals_file(unit_test, obj, path):
+    """
+    Asserts that an object equals the contents of a json file
+    :param unit_test:
+    :param obj:
+    :param path:
+    :return:
+    """
+    expected_obj = json.loads(read_file(path))
+    assert_object_equals(unit_test, expected_obj, obj)
+
 def assert_object_equals(unit_test, obj1, obj2):
     """
     Checks if two objects are equal after recursively sorting them
