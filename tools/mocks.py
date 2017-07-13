@@ -54,6 +54,16 @@ class MockAPI(object):
         else:
             return response
 
+    def url_exists(self, url):
+        """
+        Checks if a url exists within the mock api
+        :param url:
+        :return:
+        """
+        host_dir = self._get_host_dir(url)
+        path = os.path.join(host_dir, self._strip_host(url))
+        return os.path.exists(path)
+
     def download_file(self, url, dest):
         """
         Downloads the contents of the url to a file
@@ -203,3 +213,6 @@ class MockDynamodbHandler(object):
                 return False
 
         return True
+
+class MockSESHandler(object):
+    pass

@@ -83,10 +83,10 @@ class TestWebhook(TestCase):
         self.assertEqual(1, len(self.MockS3Handler.uploads))
         self.assertIn('/en_obs.zip', self.MockS3Handler.uploads[0]['path'])
         self.assertIn('temp/en_obs/{}/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
-        package = json.loads(entry['package'])
-        project = package['projects'][0]
-        self.assertIn('formats', project)
-        assert_object_equals_file(self, project['formats'], os.path.join(self.resources_dir, 'expected_obs_project_formats.json'))
+        # package = json.loads(entry['package'])
+        # project = package['projects'][0]
+        # self.assertIn('formats', project)
+        assert_object_equals_file(self, entry, os.path.join(self.resources_dir, 'expected_obs_record.json'))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')

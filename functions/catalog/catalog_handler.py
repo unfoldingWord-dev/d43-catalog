@@ -22,7 +22,7 @@ class CatalogHandler:
 
     resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
 
-    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None):
+    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None, url_handler=None, url_exists=None):
         """
         Initializes a catalog handler
         :param event: 
@@ -30,6 +30,7 @@ class CatalogHandler:
         :param dynamodb_handler: This is passed in so it can be mocked for unit testing
         :param ses_handler: This is passed in so it can be mocked for unit testing
         :param consistency_checker: This is passed in so it can be mocked for unit testing
+        :param url_handler: This is passed in so it can be mocked for unit testing
         """
         self.cdn_url = read_dict(event, 'cdn_url').rstrip('/')
         self.cdn_bucket = read_dict(event, 'cdn_bucket')
@@ -50,6 +51,14 @@ class CatalogHandler:
             self.checker = consistency_checker()
         else:
             self.checker = ConsistencyChecker()
+        if not url_handler:
+            self.get_url = get_url
+        else:
+            self.get_url = url_handler
+        if not url_exists:
+            self.url_exists = self.checker.url_exists
+        else:
+            self.url_exists = url_exists
 
     def get_language(self, language):
         """
@@ -260,7 +269,7 @@ class CatalogHandler:
 
         for project in package:
             dict[project['identifier']] = project
-            if not checker.url_exists(project['chunks_url']):
+            if not self.url_exists(project['chunks_url']):
                 checker.log_error('{} does not exist'.format(project['chunks_url']))
                 # for performance's sake we'll fail on a single error
                 return False
@@ -297,7 +306,7 @@ class CatalogHandler:
         """
         try:
             catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
-            current_catalog = json.loads(get_url(catalog_url, True))
+            current_catalog = json.loads(self.get_url(catalog_url, True))
             same = current_catalog == catalog
             return not same
         except Exception:

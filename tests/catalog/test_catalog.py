@@ -7,6 +7,7 @@ from unittest import TestCase
 from d43_aws_tools import S3Handler
 from tools.file_utils import load_json_object
 from tools.consistency_checker import ConsistencyChecker
+from tools.mocks import MockAPI
 
 from functions.catalog.catalog_handler import CatalogHandler
 
@@ -128,8 +129,15 @@ class TestCatalog(TestCase):
         return record
 
     def test_catalog_valid_obs_content(self):
+        mockV3CDN = MockAPI(self.resources_dir, 'https://cdn.door43.org')
         self.MockDynamodbHandler.tables_file = 'valid_db.json'
         event = self.create_event()
+        # urls = [
+        #     'https://cdn.door43.org/en/obs/v4/obs_obs.zip',
+        #     'https://cdn.door43.org/en/obs/v4/obs_obs.zip.sig'
+        # ]
+        # mock_get_url = lambda url, catch_exception: mockV3CDN.get_url(url, catch_exception)
+        # mock_url_exists = lambda url: url in urls
         catalog = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
         response = catalog.handle_catalog()
 
