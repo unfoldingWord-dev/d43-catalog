@@ -9,12 +9,13 @@ from unittest import TestCase
 from datetime import datetime
 from tools.file_utils import load_json_object
 from functions.signing import SigningHandler
-from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger
+from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner
 from tools.test_utils import is_travis
 
 class TestSigningHandler(TestCase):
 
     def setUp(self):
+        self.mock_signer = MockSigner()
         self.resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
         self.temp_dir = tempfile.mkdtemp(prefix='signing_tests_')
         self.s3keys = []
@@ -130,7 +131,7 @@ class TestSigningHandler(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = SigningHandler(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
         self.assertFalse(result)
@@ -151,7 +152,7 @@ class TestSigningHandler(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = SigningHandler(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=s3Handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -184,7 +185,7 @@ class TestSigningHandler(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = SigningHandler(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=s3_handler, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
         self.assertTrue(result)
@@ -218,7 +219,7 @@ class TestSigningHandler(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'alt-private.pem')
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem')
-        signer = SigningHandler(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=s3_handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -263,7 +264,7 @@ class TestSigningHandler(TestCase):
         # do the signing
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = SigningHandler(event, MockLogger(), s3_handler, db_handler, private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler, db_handler, private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
         self.assertTrue(result)
 
@@ -324,7 +325,7 @@ class TestSigningHandler(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = SigningHandler(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=s3Handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -351,7 +352,7 @@ class TestSigningHandler(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = SigningHandler(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -372,8 +373,8 @@ class TestSigningHandler(TestCase):
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
 
-        signer = SigningHandler(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
-                         private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+        signer = SigningHandler(event, MockLogger(), self.mock_signer, s3_handler=None, dynamodb_handler=dbHandler,
+                                private_pem_file=private_pem_file, public_pem_file=public_pem_file)
 
         result = signer.run()
         self.assertTrue(result)
