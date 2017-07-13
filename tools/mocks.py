@@ -216,3 +216,17 @@ class MockDynamodbHandler(object):
 
 class MockSESHandler(object):
     pass
+
+class MockSigner(object):
+
+    def __init__(self, default_pem_file=None):
+        pass
+
+    def sign_file(self, file_to_sign, pem_file=None):
+        file_name_without_extension = os.path.splitext(file_to_sign)[0]
+        sig_file_name = '{}.sig'.format(file_name_without_extension)
+        open(sig_file_name, 'a').close()
+        return sig_file_name
+
+    def verify_signature(self, content_file, sig_file, pem_file=None):
+        return True

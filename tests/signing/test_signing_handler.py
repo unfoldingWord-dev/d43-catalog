@@ -1,5 +1,4 @@
 from __future__ import unicode_literals, print_function
-import codecs
 import json
 import os
 import shutil
@@ -9,17 +8,14 @@ import uuid
 from unittest import TestCase
 from datetime import datetime
 from tools.file_utils import load_json_object
-from functions.signing.aws_decrypt import decrypt_file
-from functions.signing.signing import Signing
+from functions.signing import SigningHandler
 from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger
 from tools.test_utils import is_travis
 
-
-class TestSigning(TestCase):
-
-    resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+class TestSigningHandler(TestCase):
 
     def setUp(self):
+        self.resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
         self.temp_dir = tempfile.mkdtemp(prefix='signing_tests_')
         self.s3keys = []
 
@@ -28,9 +24,8 @@ class TestSigning(TestCase):
         if os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    @staticmethod
-    def create_db_item(commit_id=None):
-        item = load_json_object(os.path.join(TestSigning.resources_dir, 'dynamodb_record.json'))[0]
+    def create_db_item(self, commit_id=None):
+        item = load_json_object(os.path.join(self.resources_dir, 'dynamodb_record.json'))[0]
         if commit_id:
             item['commit_id'] = commit_id
         return item
@@ -43,168 +38,6 @@ class TestSigning(TestCase):
         }
 
         return event
-
-    @staticmethod
-    def create_s3_record(bucket_name, object_key):
-
-        record = {
-            's3': {
-                'bucket': {'name': bucket_name},
-                'object': {'key': object_key}
-            }
-        }
-
-        return record
-
-    def test_sign_file_with_test_certificate(self):
-
-        # initialization
-        source_file = os.path.join(self.temp_dir, 'source.json')
-        sig_file = os.path.join(self.temp_dir, 'source.sig')
-
-        # copy test file to the temp directory
-        shutil.copy(os.path.join(self.resources_dir, 'source.json'), source_file)
-
-        # check that the source file exists in the temp directory
-        self.assertTrue(os.path.isfile(source_file))
-
-        # check that .sig file DOES NOT exist
-        self.assertFalse(os.path.isfile(sig_file))
-
-        # sign the file
-        sig_file_name = Signing.sign_file(source_file,
-                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
-
-        # check that .sig file DOES exist now
-        self.assertEqual(sig_file, sig_file_name)
-        self.assertTrue(os.path.isfile(sig_file))
-
-        # verify the .sig file is correct
-        self.assertTrue(Signing.verify_signature(source_file, sig_file_name,
-                                                 pem_file=os.path.join(self.resources_dir, 'unit-test-public.pem')))
-
-    def test_verify_with_bogus_certificate(self):
-
-        # initialization
-        source_file = os.path.join(self.temp_dir, 'source.json')
-        sig_file = os.path.join(self.temp_dir, 'source.sig')
-
-        # copy test file to the temp directory
-        shutil.copy(os.path.join(self.resources_dir, 'source.json'), source_file)
-
-        # check that the source file exists in the temp directory
-        self.assertTrue(os.path.isfile(source_file))
-
-        # check that .sig file DOES NOT exist
-        self.assertFalse(os.path.isfile(sig_file))
-
-        # sign the file
-        sig_file_name = Signing.sign_file(source_file,
-                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
-
-        # check that .sig file DOES exist now
-        self.assertEqual(sig_file, sig_file_name)
-        self.assertTrue(os.path.isfile(sig_file))
-
-        # this should raise an exception
-        with self.assertRaises(Exception) as context:
-            self.assertTrue(Signing.verify_signature(source_file, sig_file_name,
-                                                     pem_file=os.path.join(self.resources_dir,
-                                                                           'unit-test-private.pem')))
-
-        self.assertIn('key file', str(context.exception))
-
-    def test_verify_with_wrong_certificate(self):
-
-        # initialization
-        source_file = os.path.join(self.temp_dir, 'source.json')
-        sig_file = os.path.join(self.temp_dir, 'source.sig')
-
-        # copy test file to the temp directory
-        shutil.copy(os.path.join(self.resources_dir, 'source.json'), source_file)
-
-        # check that the source file exists in the temp directory
-        self.assertTrue(os.path.isfile(source_file))
-
-        # check that .sig file DOES NOT exist
-        self.assertFalse(os.path.isfile(sig_file))
-
-        # sign the file
-        sig_file_name = Signing.sign_file(source_file,
-                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
-
-        # check that .sig file DOES exist now
-        self.assertEqual(sig_file, sig_file_name)
-        self.assertTrue(os.path.isfile(sig_file))
-
-        # this should raise an exception
-        with self.assertRaises(Exception) as context:
-            self.assertTrue(Signing.verify_signature(source_file, sig_file_name,
-                                                     pem_file=os.path.join(self.resources_dir,
-                                                                           'alt-private.pem')))
-
-        self.assertIn('key file', str(context.exception))
-
-    @unittest.skipIf(is_travis(), 'Skipping test_sign_file_with_live_certificate on Travis CI.')
-    def test_sign_file_with_live_certificate(self):
-
-        # initialization
-        source_file = os.path.join(self.temp_dir, 'source.json')
-        sig_file = os.path.join(self.temp_dir, 'source.sig')
-
-        # copy test file to the temp directory
-        shutil.copy(os.path.join(self.resources_dir, 'source.json'), source_file)
-
-        # check that the source file exists in the temp directory
-        self.assertTrue(os.path.isfile(source_file))
-
-        # check that .sig file DOES NOT exist
-        self.assertFalse(os.path.isfile(sig_file))
-
-        # sign the file
-        sig_file_name = Signing.sign_file(source_file)
-
-        # check that .sig file DOES exist now
-        self.assertEqual(sig_file, sig_file_name)
-        self.assertTrue(os.path.isfile(sig_file))
-
-        # verify the .sig file is correct
-        self.assertTrue(Signing.verify_signature(source_file, sig_file_name))
-
-    def test_get_default_pem_file(self):
-
-        if is_travis():
-            with self.assertRaises(Exception) as context:
-                Signing.get_default_pem_file()
-
-            self.assertIn(str(context.exception), ['Not able to decrypt the pem file.', 'You must specify a region.'])
-
-        else:
-            pem_file = Signing.get_default_pem_file()
-
-            self.assertTrue(pem_file.endswith('uW-sk.pem'))
-            self.assertTrue(os.path.isfile(pem_file))
-
-    def test_openssl_exception_while_signing(self):
-
-        # initialization
-        source_file = os.path.join(self.temp_dir, 'source.json')
-        sig_file = os.path.join(self.temp_dir, 'source.sig')
-
-        # copy test file to the temp directory
-        shutil.copy(os.path.join(self.resources_dir, 'source.json'), source_file)
-
-        # check that the source file exists in the temp directory
-        self.assertTrue(os.path.isfile(source_file))
-
-        # check that .sig file DOES NOT exist
-        self.assertFalse(os.path.isfile(sig_file))
-
-        # sign the file using bogus key
-        with self.assertRaises(Exception) as context:
-            Signing.sign_file(source_file, pem_file=os.path.join(self.resources_dir, 'none.pem'))
-
-        self.assertIn('key file', str(context.exception))
 
     # def test_signing_handler_text(self):
     #     # mock a lambda event object
@@ -297,7 +130,7 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
         self.assertFalse(result)
@@ -318,7 +151,7 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -342,7 +175,7 @@ class TestSigning(TestCase):
 
         # mock the dynamodb handler
         dbHandler = MockDynamodbHandler()
-        item = TestSigning.create_db_item(os.path.basename(self.temp_dir))
+        item = self.create_db_item(os.path.basename(self.temp_dir))
         dbHandler.insert_item(item)
 
         # test that the mock S3 file does not exist
@@ -351,7 +184,7 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
         self.assertTrue(result)
@@ -385,7 +218,7 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'alt-private.pem')
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem')
-        signer = Signing(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=s3_handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -393,7 +226,7 @@ class TestSigning(TestCase):
 
         self.assertNotIn('{}.sig'.format(file_key), s3_handler._uploads)
 
-    # @unittest.skipIf(Signing.is_travis(), 'Skipping test_signing_handler_s3 on Travis CI.')
+    # @unittest.skipIf(SigningHandler.is_travis(), 'Skipping test_signing_handler_s3 on Travis CI.')
     def test_signing_handler_s3(self):
 
         # create test folder on S3
@@ -414,7 +247,7 @@ class TestSigning(TestCase):
         manifest['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
         manifest['projects'][0]['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
         manifest['projects'][0]['formats'][0]['chapters'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
-        db_handler = MockDynamodbHandler(Signing.dynamodb_table_name)
+        db_handler = MockDynamodbHandler(SigningHandler.dynamodb_table_name)
         db_handler.insert_item({
             'repo_name': 'unit_test',
             'commit_id': commit_id,
@@ -430,7 +263,7 @@ class TestSigning(TestCase):
         # do the signing
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler, db_handler, private_pem_file=private_pem_file, public_pem_file=public_pem_file)
+        signer = SigningHandler(event, MockLogger(), s3_handler, db_handler, private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
         self.assertTrue(result)
 
@@ -491,7 +324,7 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=s3Handler, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -518,7 +351,7 @@ class TestSigning(TestCase):
 
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
-        signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                                            private_pem_file=private_pem_file, public_pem_file=public_pem_file)
         result = signer.run()
 
@@ -539,7 +372,7 @@ class TestSigning(TestCase):
         private_pem_file = os.path.join(self.resources_dir, 'unit-test-private.pem') if is_travis() else None
         public_pem_file = os.path.join(self.resources_dir, 'unit-test-public.pem') if is_travis() else None
 
-        signer = Signing(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
+        signer = SigningHandler(event, MockLogger(), s3_handler=None, dynamodb_handler=dbHandler,
                          private_pem_file=private_pem_file, public_pem_file=public_pem_file)
 
         result = signer.run()
