@@ -18,7 +18,7 @@ class Signer(object):
         Initialize a new signer object
         :param string default_pem_path: path to the default pem. This should be encrypted by aws.
         """
-        self.default_pem_path = default_pem_path
+        self.default_enc_pem = default_pem_path
 
     def sign_file(self, file_to_sign, pem_file=None):
         """
@@ -121,13 +121,11 @@ class Signer(object):
         Decrypts the default pem file provided with the lambda and returns the full file name
         :return: str|unicode
         """
-        if not self.default_pem_path:
+        if not self.default_enc_pem:
             raise Exception('No default pem was specified')
 
-        this_dir = os.path.dirname(inspect.stack()[0][1])
-        enc_file = os.path.join(this_dir, 'uW-sk.enc')
         pem_file = os.path.join(tempfile.gettempdir(), 'uW-sk.pem')
-        result = decrypt_file(enc_file, pem_file)
+        result = decrypt_file(self.default_enc_pem, pem_file)
 
         if not result:
             raise Exception('Not able to decrypt the pem file.')
