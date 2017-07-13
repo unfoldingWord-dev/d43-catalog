@@ -118,9 +118,9 @@ class ConsistencyChecker(object):
             return self.errors
         if not self.url_exists(chapter['url']):
             self.log_error("{0}: {1} does not exist".format(repo_name, chapter['url']))
-        if not chapter['signature']:
+        if chapter['signature'] == '':
             self.log_error("{0}: {1} has not been signed yet".format(repo_name, chapter['url']))
-        if not self.url_exists(chapter['signature']):
+        elif not self.url_exists(chapter['signature']):
             self.log_error("{0}: {1} does not exist".format(repo_name, chapter['signature']))
 
     @staticmethod
