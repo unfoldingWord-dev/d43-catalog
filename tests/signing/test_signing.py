@@ -412,6 +412,8 @@ class TestSigning(TestCase):
         manifest = load_json_object(os.path.join(self.resources_dir, 'package.json'))
         manifest['dublin_core']['version'] = commit_id
         manifest['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
+        manifest['projects'][0]['formats'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
+        manifest['projects'][0]['formats'][0]['chapters'][0]['url'] = 'https://test-cdn.door43.org/temp/unit_test/v{}/test.zip'.format(commit_id)
         db_handler = MockDynamodbHandler(Signing.dynamodb_table_name)
         db_handler.insert_item({
             'repo_name': 'unit_test',
@@ -451,6 +453,15 @@ class TestSigning(TestCase):
         package_after = json.loads(row['package'], 'utf-8')
         found_file = [f for f in package_after['formats'] if f['signature'].endswith('test.zip.sig')]
         self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
+
+        # check that media chapters were signed
+        for project in package_after['projects']:
+            found_file = [f for f in project['formats'] if f['signature'].endswith('test.zip.sig')]
+            self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
+            for format in project['formats']:
+                if 'chapters' in format:
+                    found_file = [c for c in format['chapters'] if c['signature'].endswith('test.zip.sig')]
+                    self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource format chapters list.')
 
         self.assertIn('signed', row)
         self.assertTrue('signed', row['signed'])

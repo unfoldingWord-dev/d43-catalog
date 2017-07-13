@@ -59,7 +59,17 @@
           "modified": "2017-05-30T20:08:41Z",
           "signature": "",
           "size": 20,
-          "url": "https://test-cdn.door43.org/en/unit-test/v1/proj.usfm"
+          "url": "https://test-cdn.door43.org/en/unit-test/v1/proj.usfm",
+          "chapters": [
+            {
+              "size": 0,
+              "length": 0,
+              "modified": "",
+              "identifier": "01",
+              "url": "https://test-cdn.door43.org/en/unit-test/v1/proj.usfm",
+              "signature": ""
+            }
+          ]
         }
       ]
     }
