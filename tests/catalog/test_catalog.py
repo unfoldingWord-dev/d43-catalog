@@ -129,7 +129,7 @@ class TestCatalog(TestCase):
         return record
 
     def test_catalog_valid_obs_content(self):
-        mockV3CDN = MockAPI(self.resources_dir, 'https://cdn.door43.org')
+        # mockV3CDN = MockAPI(self.resources_dir, 'https://cdn.door43.org')
         self.MockDynamodbHandler.tables_file = 'valid_db.json'
         event = self.create_event()
         # urls = [

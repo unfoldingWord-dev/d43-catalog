@@ -102,7 +102,26 @@ class ConsistencyChecker(object):
         elif not self.url_exists(format['signature']):
             self.log_error("{0}: {1} does not exist".format(repo_name, format['signature']))
 
+        if 'chapters' in format and len(format['chapters']):
+            # check format chapters
+            for chapter in format['chapters']:
+                self._check_format_chapter(chapter, row)
+
         return self.errors
+
+    def _check_format_chapter(self, chapter, row):
+        repo_name = row['repo_name']
+        for key in ['size', 'length', 'modified', 'identifier', 'url', 'signature']:
+            if key not in chapter:
+                self.log_error("Format chapter container for '{}' doesn't have '{}'".format(repo_name, key))
+        if 'url' not in chapter or 'signature' not in chapter:
+            return self.errors
+        if not self.url_exists(chapter['url']):
+            self.log_error("{0}: {1} does not exist".format(repo_name, chapter['url']))
+        if not chapter['signature']:
+            self.log_error("{0}: {1} has not been signed yet".format(repo_name, chapter['url']))
+        if not self.url_exists(chapter['signature']):
+            self.log_error("{0}: {1} does not exist".format(repo_name, chapter['signature']))
 
     @staticmethod
     def check_manifest(manifest):
