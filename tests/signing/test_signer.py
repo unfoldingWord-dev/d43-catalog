@@ -39,7 +39,7 @@ class TestSigner(TestCase):
 
         # sign the file
         sig_file_name = self.signer.sign_file(source_file,
-                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
+                                              private_pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
 
         # check that .sig file DOES exist now
         self.assertEqual(sig_file, sig_file_name)
@@ -47,7 +47,7 @@ class TestSigner(TestCase):
 
         # verify the .sig file is correct
         self.assertTrue(self.signer.verify_signature(source_file, sig_file_name,
-                                                 pem_file=os.path.join(self.resources_dir, 'unit-test-public.pem')))
+                                                     public_pem_file=os.path.join(self.resources_dir, 'unit-test-public.pem')))
 
     def test_verify_with_bogus_certificate(self):
 
@@ -66,7 +66,7 @@ class TestSigner(TestCase):
 
         # sign the file
         sig_file_name = self.signer.sign_file(source_file,
-                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
+                                              private_pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
 
         # check that .sig file DOES exist now
         self.assertEqual(sig_file, sig_file_name)
@@ -75,7 +75,7 @@ class TestSigner(TestCase):
         # this should raise an exception
         with self.assertRaises(Exception) as context:
             self.assertTrue(self.signer.verify_signature(source_file, sig_file_name,
-                                                     pem_file=os.path.join(self.resources_dir,
+                                                         public_pem_file=os.path.join(self.resources_dir,
                                                                            'unit-test-private.pem')))
 
         self.assertIn('key file', str(context.exception))
@@ -97,7 +97,7 @@ class TestSigner(TestCase):
 
         # sign the file
         sig_file_name = self.signer.sign_file(source_file,
-                                          pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
+                                              private_pem_file=os.path.join(self.resources_dir, 'unit-test-private.pem'))
 
         # check that .sig file DOES exist now
         self.assertEqual(sig_file, sig_file_name)
@@ -106,7 +106,7 @@ class TestSigner(TestCase):
         # this should raise an exception
         with self.assertRaises(Exception) as context:
             self.assertTrue(self.signer.verify_signature(source_file, sig_file_name,
-                                                     pem_file=os.path.join(self.resources_dir,
+                                                         public_pem_file=os.path.join(self.resources_dir,
                                                                            'alt-private.pem')))
 
         self.assertIn('key file', str(context.exception))
@@ -141,12 +141,12 @@ class TestSigner(TestCase):
 
         if is_travis():
             with self.assertRaises(Exception) as context:
-                self.signer._get_default_pem_file()
+                self.signer._default_priv_pem()
 
             self.assertIn(str(context.exception), ['Not able to decrypt the pem file.', 'You must specify a region.'])
 
         else:
-            pem_file = self.signer._get_default_pem_file()
+            pem_file = self.signer._default_priv_pem()
 
             self.assertTrue(pem_file.endswith('uW-sk.pem'))
             self.assertTrue(os.path.isfile(pem_file))
@@ -168,6 +168,6 @@ class TestSigner(TestCase):
 
         # sign the file using bogus key
         with self.assertRaises(Exception) as context:
-            self.signer.sign_file(source_file, pem_file=os.path.join(self.resources_dir, 'none.pem'))
+            self.signer.sign_file(source_file, private_pem_file=os.path.join(self.resources_dir, 'none.pem'))
 
         self.assertIn('key file', str(context.exception))

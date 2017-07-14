@@ -11,8 +11,7 @@ from tools.dict_utils import read_dict
 class SigningHandler(object):
     dynamodb_table_name = 'd43-catalog-in-progress'
 
-    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, private_pem_file=None,
-                                 public_pem_file=None):
+    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None):
         """
         Handles the signing of a file on S3
         :param self:
@@ -21,8 +20,6 @@ class SigningHandler(object):
         :param class signer: This handles all the signer operations
         :param class s3_handler: This is passed in so it can be mocked for unit testing
         :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
-        :param string private_pem_file: This is passed in so it can be mocked for unit testing
-        :param string public_pem_file: This is passed in so it can be mocked for unit testing
         :return: bool
         """
         # self.event = event
@@ -35,9 +32,6 @@ class SigningHandler(object):
             self.cdn_handler = s3_handler
 
         self.temp_dir = tempfile.mkdtemp(prefix='signing_')
-
-        self.private_pem_file = private_pem_file
-        self.public_pem_file = public_pem_file
 
         if not dynamodb_handler:
             self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name)
@@ -145,11 +139,11 @@ class SigningHandler(object):
             return (False, False)
 
         # sign the file
-        sig_file = self.signer.sign_file(file_to_sign, pem_file=self.private_pem_file)
+        sig_file = self.signer.sign_file(file_to_sign)
 
         # verify the file
         try:
-            self.signer.verify_signature(file_to_sign, sig_file, pem_file=self.public_pem_file)
+            self.signer.verify_signature(file_to_sign, sig_file)
         except RuntimeError:
             if self.logger:
                 self.logger.warning('The signature was not successfully verified.')
@@ -201,11 +195,11 @@ class SigningHandler(object):
             return (False, False)
 
         # sign the file
-        sig_file = self.signer.sign_file(file_to_sign, pem_file=self.private_pem_file)
+        sig_file = self.signer.sign_file(file_to_sign)
 
         # verify the file
         try:
-            self.signer.verify_signature(file_to_sign, sig_file, pem_file=self.public_pem_file)
+            self.signer.verify_signature(file_to_sign, sig_file)
         except RuntimeError:
             if self.logger:
                 self.logger.warning('The signature was not successfully verified.')

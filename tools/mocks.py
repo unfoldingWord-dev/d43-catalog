@@ -220,13 +220,41 @@ class MockSESHandler(object):
 class MockSigner(object):
 
     def __init__(self, default_pem_file=None):
-        pass
+        self.__should_fail_signing = False
+        self.__should_fail_verification = False
 
-    def sign_file(self, file_to_sign, pem_file=None):
-        file_name_without_extension = os.path.splitext(file_to_sign)[0]
-        sig_file_name = '{}.sig'.format(file_name_without_extension)
+    def sign_file(self, file_to_sign, private_pem_file=None):
+        if self.__should_fail_signing:
+            raise Exception('Mock signing failed')
+
+        if not os.path.exists(file_to_sign):
+            raise Exception('File does not exist {}'.format(file_to_sign))
+
+        sig_file_name = '{}.sig'.format(file_to_sign)
         open(sig_file_name, 'a').close()
         return sig_file_name
 
-    def verify_signature(self, content_file, sig_file, pem_file=None):
+    def verify_signature(self, content_file, sig_file, public_pem_file=None):
+        if self.__should_fail_verification:
+            raise RuntimeError('Mock verification failed')
+
+        if not os.path.exists(content_file):
+            raise Exception('File does not exist {}'.format(content_file))
+
         return True
+
+    def _fail_signing(self, should_fail=True):
+        """
+        sets whether signing should fail
+        :param should_fail:
+        :return:
+        """
+        self.__should_fail_signing = should_fail
+
+    def _fail_verification(self, should_fail=True):
+        """
+        sets whether verification should fail
+        :param should_fail:
+        :return:
+        """
+        self.__should_fail_verification = should_fail
