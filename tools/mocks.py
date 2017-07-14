@@ -158,6 +158,16 @@ class MockS3Handler:
         else:
             raise Exception('File not found for key: {}'.format(key))
 
+    def delete_file(self, key, catch_exception=True):
+        if catch_exception:
+            try:
+                os.remove(self._uploads[key])
+            except:
+                return False
+        else:
+            os.remove(self._uploads[key])
+            return True
+
 class MockDynamodbHandler(object):
 
     def __init__(self, table_name=None):
