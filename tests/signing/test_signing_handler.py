@@ -141,7 +141,7 @@ class TestSigningHandler(TestCase):
     def test_signing_handler_invalid_manifest(self):
         event = self.create_event()
         mock_db = MockDynamodbHandler()
-        mock_db._load_db(os.path.join(self.resources_dir, 'corrupt_manifest_record.json'))
+        mock_db._load_db(os.path.join(self.resources_dir, 'db/invalid.json'))
 
         mock_s3 = MockS3Handler()
         mock_s3._load_path(os.path.join(self.resources_dir, 'cdn'))
