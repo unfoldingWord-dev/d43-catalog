@@ -69,7 +69,11 @@ class SigningHandler(object):
 
                 if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
                     self.process_db_item(item, package)
-            return len(items) > 0
+
+            found_items = len(items) > 0
+            if not found_items and self.logger:
+                self.logger.warning('No items found for signing')
+            return found_items
         finally:
             if os.path.isdir(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
@@ -103,6 +107,12 @@ class SigningHandler(object):
                         for chapter in format['chapters']:
                             # TRICKY: only process/keep chapters that actually have a valid url
                             if 'url' not in chapter or not self.url_exists(chapter['url']):
+                                if 'url' not in chapter:
+                                    missing_url = 'empty url'
+                                else:
+                                    missing_url = chapter['url']
+                                if self.logger:
+                                    self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
                                 continue
 
                             (already_signed, newly_signed) = self.process_format_chapter(item, chapter)
