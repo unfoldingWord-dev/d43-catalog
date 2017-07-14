@@ -11,9 +11,8 @@ import json
 import tempfile
 import copy
 import time
-# import boto3
 from tools.file_utils import write_file
-from tools.url_utils import get_url
+from tools.url_utils import get_url, url_exists
 from tools.consistency_checker import ConsistencyChecker
 from tools.dict_utils import read_dict
 
@@ -22,7 +21,7 @@ class CatalogHandler:
 
     resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
 
-    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None, url_handler=None, url_exists=None):
+    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None, url_handler=None, url_exists_handler=None):
         """
         Initializes a catalog handler
         :param event: 
@@ -55,10 +54,10 @@ class CatalogHandler:
             self.get_url = get_url
         else:
             self.get_url = url_handler
-        if not url_exists:
-            self.url_exists = self.checker.url_exists
-        else:
+        if not url_exists_handler:
             self.url_exists = url_exists
+        else:
+            self.url_exists = url_exists_handler
 
     def get_language(self, language):
         """

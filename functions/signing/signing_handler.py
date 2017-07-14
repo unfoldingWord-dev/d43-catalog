@@ -6,6 +6,7 @@ import tempfile
 import time
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict
+from tools.url_utils import url_exists
 
 
 class SigningHandler(object):
@@ -87,14 +88,21 @@ class SigningHandler(object):
                         fully_signed = False
 
                     # process format chapters
-                        if 'chapters' in format:
-                            for chapter in format['chapters']:
-                                (already_signed, newly_signed, meta) = self.process_format_chapter(item, package, chapter)
-                                if newly_signed:
-                                    was_signed = True
-                                    chapter.update(meta)
-                                if not (already_signed or newly_signed):
-                                    fully_signed = False
+                    if 'chapters' in format:
+                        sanitized_chapters = []
+                        for chapter in format['chapters']:
+                            (already_signed, newly_signed) = self.process_format_chapter(item, package, chapter)
+
+                            # TRICKY: only keep chapters that actually have a valid url
+                            if 'url' in chapter and url_exists(chapter['url']):
+                                sanitized_chapters.append(chapter)
+
+                            if newly_signed:
+                                was_signed = True
+                            if not (already_signed or newly_signed):
+                                fully_signed = False
+
+                        format['chapters'] = sanitized_chapters
 
 
         if was_signed or fully_signed:
@@ -106,7 +114,7 @@ class SigningHandler(object):
                 'signed': fully_signed
             })
 
-    def process_format_chapter(self, item, package, format):
+    def process_format_chapter(self, item, package, chapter):
         """
         Signs a format chapter
         :param item:
@@ -115,12 +123,12 @@ class SigningHandler(object):
         :return: (already_signed, newly_signed, meta)
         """
         # TODO: this is mostly a copy of process_format
-        if 'signature' in format and format['signature']:
+        if 'signature' in chapter and chapter['signature']:
             return (True, False)
         else:
-            print('[INFO] Signing {}'.format(format['url']))
+            print('[INFO] Signing {}'.format(chapter['url']))
 
-        base_name = os.path.basename(format['url'])
+        base_name = os.path.basename(chapter['url'])
         dc = package['dublin_core']
         upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
                                                dc['identifier'].split('-')[-1],
@@ -154,13 +162,12 @@ class SigningHandler(object):
         self.cdn_handler.upload_file(sig_file, upload_sig_key)
 
         # add the url of the sig file to the format
-        format['signature'] = '{}.sig'.format(format['url'])
+        chapter['signature'] = '{}.sig'.format(chapter['url'])
+        chapter['size'] = os.path.getsize(file_to_sign)
+        chapter['length'] = 0 # TODO: if this is an audio file we need to get the audio length
+        chapter['modified'] = ''
 
-        return (False, True, {
-            "size": os.path.getsize(file_to_sign),
-            "length": 0, # TODO: if this is an audio file we need to get the audio length
-            "modified": ""
-        })
+        return (False, True)
 
 
     def process_format(self, item, package, format):

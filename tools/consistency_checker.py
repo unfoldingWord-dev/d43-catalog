@@ -7,8 +7,7 @@
 from __future__ import print_function
 
 import json
-import httplib
-from urlparse import urlparse
+from tools.url_utils import url_exists
 
 
 class ConsistencyChecker(object):
@@ -23,14 +22,6 @@ class ConsistencyChecker(object):
             print(message)
         self.errors.append(message)
         self.all_errors.append(message)
-
-    @staticmethod
-    def url_exists(url):
-        p = urlparse(url)
-        conn = httplib.HTTPConnection(p.netloc)
-        conn.request('HEAD', p.path)
-        resp = conn.getresponse()
-        return resp.status == 301 or resp.status == 200
 
     def check(self, row):
         """
@@ -95,11 +86,11 @@ class ConsistencyChecker(object):
                 self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
         if 'url' not in format or 'signature' not in format:
             return self.errors
-        if not self.url_exists(format['url']):
+        if not url_exists(format['url']):
             self.log_error("{0}: {1} does not exist".format(repo_name, format['url']))
         if not format['signature']:
             self.log_error("{0}: {1} has not been signed yet".format(repo_name, format['url']))
-        elif not self.url_exists(format['signature']):
+        elif not url_exists(format['signature']):
             self.log_error("{0}: {1} does not exist".format(repo_name, format['signature']))
 
         if 'chapters' in format and len(format['chapters']):
@@ -116,11 +107,11 @@ class ConsistencyChecker(object):
                 self.log_error("Format chapter container for '{}' doesn't have '{}'".format(repo_name, key))
         if 'url' not in chapter or 'signature' not in chapter:
             return self.errors
-        if not self.url_exists(chapter['url']):
+        if not url_exists(chapter['url']):
             self.log_error("{0}: {1} does not exist".format(repo_name, chapter['url']))
         if chapter['signature'] == '':
             self.log_error("{0}: {1} has not been signed yet".format(repo_name, chapter['url']))
-        elif not self.url_exists(chapter['signature']):
+        elif not url_exists(chapter['signature']):
             self.log_error("{0}: {1} does not exist".format(repo_name, chapter['signature']))
 
     @staticmethod

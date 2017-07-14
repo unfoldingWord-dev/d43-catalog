@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 import tempfile
-import unittest
 import uuid
 from unittest import TestCase
 from datetime import datetime
@@ -302,9 +301,11 @@ class TestSigningHandler(TestCase):
             found_file = [f for f in project['formats'] if f['signature'].endswith('test.zip.sig')]
             self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
             for format in project['formats']:
-                if 'chapters' in format:
+                if 'chapters' in format and len(format['chapters']):
                     found_file = [c for c in format['chapters'] if c['signature'].endswith('test.zip.sig')]
                     self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource format chapters list.')
+                elif 'chapters' in format:
+                    raise Exception('Expected some chapters but found none')
 
         self.assertIn('signed', row)
         self.assertTrue('signed', row['signed'])
