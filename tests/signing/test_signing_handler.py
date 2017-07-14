@@ -32,7 +32,8 @@ class TestSigningHandler(TestCase):
     def create_event(self):
 
         event = {
-            'cdn_bucket': 'cdn.door43.org'
+            'cdn_bucket': 'cdn.door43.org',
+            'cdn_url': 'https://cdn.door43.org'
         }
 
         return event
@@ -124,42 +125,41 @@ class TestSigningHandler(TestCase):
 
     def test_signing_handler_text_no_records(self):
         event = self.create_event()
-        dbHandler = MockDynamodbHandler()
+        mock_db = MockDynamodbHandler()
+        mock_s3 = MockS3Handler()
 
         handler = SigningHandler(event,
                                 logger=MockLogger(),
                                 signer=self.mock_signer,
-                                s3_handler=None,
-                                dynamodb_handler=dbHandler)
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db)
         result = handler.run()
         self.assertFalse(result)
 
 
     def test_signing_handler_invalid_manifest(self):
-        # mock a lambda event object
         event = self.create_event()
+        mock_db = MockDynamodbHandler()
+        mock_db._load_db(os.path.join(self.resources_dir, 'corrupt_manifest_record.json'))
 
-        # mock the dynamodb handler
-        dbHandler = MockDynamodbHandler()
-        dbHandler._load_db(os.path.join(self.resources_dir, 'corrupt_manifest_record.json'))
-        item = dbHandler.query_items()[0]
+        mock_s3 = MockS3Handler()
+        mock_s3._load_path(os.path.join(self.resources_dir, 'cdn'))
 
-        s3Handler = MockS3Handler('test-cdn_bucket')
-        key = 'temp/{}/{}/test.zip'.format(item['repo_name'], item['commit_id'])
-        s3Handler.upload_file(os.path.join(self.resources_dir, 'test.zip'), key)
+        mock_logger = MockLogger()
 
         signer = SigningHandler(event,
-                                logger=MockLogger(),
+                                logger=mock_logger,
                                 signer=self.mock_signer,
-                                s3_handler=s3Handler,
-                                dynamodb_handler=dbHandler)
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db)
         result = signer.run()
 
         self.assertTrue(result)
-
-        # test that the expected file was not generated
-        expected_file = os.path.join(s3Handler.temp_dir, 'temp', 'unit_test', 'v1', 'test.zip.sig')
-        self.assertFalse(os.path.isfile(expected_file))
+        for f in mock_s3._uploads:
+            # assert nothing was uploaded to production
+            self.assertTrue(f.startswith('temp/'))
+            self.assertFalse(f.endswith('.sig'))
+        self.assertIn('Skipping unit-test. Bad Manifest: No JSON object could be decoded', mock_logger._messages)
 
 
     def test_signing_handler_text_missing_file(self):
@@ -168,70 +168,51 @@ class TestSigningHandler(TestCase):
         The missing file will just be ignored.
         :return:
         """
-
-        # mock a lambda event object
         event = self.create_event()
-        # event['Records'].append(self.create_s3_record('test-cdn_bucket', test_txt))
 
-        # mock the dynamodb handler
-        dbHandler = MockDynamodbHandler()
-        item = self.create_db_item(os.path.basename(self.temp_dir))
-        dbHandler.insert_item(item)
+        mock_db = MockDynamodbHandler()
+        mock_db._load_db(os.path.join(self.resources_dir, 'db', 'valid_unsigned.json'))
 
-        # test that the mock S3 file does not exist
-        # self.assertFalse(os.path.isfile(test_txt))
-        s3_handler = MockS3Handler('test-cdn_bucket')
+        mock_logger = MockLogger()
+        mock_s3 = MockS3Handler()
 
         signer = SigningHandler(event,
-                                logger=MockLogger(),
+                                logger=mock_logger,
                                 signer=self.mock_signer,
-                                s3_handler=s3_handler,
-                                dynamodb_handler=dbHandler)
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db)
         result = signer.run()
         self.assertTrue(result)
-
-        # test that the expected file was not output
-        expected_file = os.path.join(s3_handler.temp_dir, 'temp', 'unit_test', 'v1', 'test.txt.sig')
-        self.assertFalse(os.path.isfile(expected_file))
+        self.assertEqual(0, len(mock_s3._uploads))
+        self.assertIn('The file "obs.zip" could not be downloaded: File not found for key: temp/en_obs/192c997b07/en/obs/v4/obs.zip', mock_logger._messages)
 
     def test_signing_handler_text_wrong_key(self):
-
-        # copy zip file to temp directory
-        test_txt = os.path.join(self.temp_dir, 'test.txt')
-        shutil.copy(os.path.join(self.resources_dir, 'test.txt'), test_txt)
-
-        # mock a lambda event object
         event = self.create_event()
-        # event['Records'].append(self.create_s3_record('test-cdn_bucket', test_txt))
 
-        # mock the dynamodb handler
-        dbHandler = MockDynamodbHandler()
-        dbHandler._load_db(os.path.join(self.resources_dir, 'db_zip_records.json'))
-        item = dbHandler.query_items()[0]
-        item_file = os.path.basename(json.loads(item['package'])['formats'][0]['url'])
-        file_key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], item_file)
+        mock_db = MockDynamodbHandler()
+        mock_db._load_db(os.path.join(self.resources_dir, 'db', 'valid_unsigned.json'))
 
-        s3_handler = MockS3Handler('mock-s3')
-        s3_handler.upload_file(test_txt, file_key)
+        mock_s3 = MockS3Handler()
+        mock_s3._load_path(os.path.join(self.resources_dir, 'cdn'))
 
-        # test when S3 file exists
-        self.assertTrue(os.path.isfile(test_txt))
+        mock_logger = MockLogger()
 
         # TRICKY: a wrong signing key will result in failed verification
         self.mock_signer._fail_verification()
         signer = SigningHandler(event,
-                                logger=MockLogger(),
+                                logger=mock_logger,
                                 signer=self.mock_signer,
-                                s3_handler=s3_handler,
-                                dynamodb_handler=dbHandler)
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db)
         result = signer.run()
 
         self.assertTrue(result)
+        for f in mock_s3._uploads:
+            # assert nothing was uploaded to production
+            self.assertTrue(f.startswith('temp/'))
+            self.assertFalse(f.endswith('.sig'))
+        self.assertIn('The signature was not successfully verified.', mock_logger._messages)
 
-        # nothing should have been uploaded
-        self.assertEqual(1, len(s3_handler._uploads))
-        self.assertIn(file_key, s3_handler._uploads)
-        # self.assertNotIn('{}.sig'.format(file_key), s3_handler._uploads)
 
     # @unittest.skipIf(SigningHandler.is_travis(), 'Skipping test_signing_handler_s3 on Travis CI.')
     def test_signing_handler_s3(self):

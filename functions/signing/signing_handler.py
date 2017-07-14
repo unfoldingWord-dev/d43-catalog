@@ -6,13 +6,13 @@ import tempfile
 import time
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict
-from tools.url_utils import url_exists
+from tools.url_utils import url_exists, download_file
 
 
 class SigningHandler(object):
     dynamodb_table_name = 'd43-catalog-in-progress'
 
-    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None):
+    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, download_handler=None, url_exists_handler=None):
         """
         Handles the signing of a file on S3
         :param self:
@@ -24,11 +24,13 @@ class SigningHandler(object):
         :return: bool
         """
         # self.event = event
-        self.logger = logger
-        self.cdn_bucket_name = read_dict(event, 'cdn_bucket', 'Environment Vars')
+        self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
 
+        self.logger = logger
+        self.signer = signer
         if not s3_handler:
-            self.cdn_handler = S3Handler(self.cdn_bucket_name)
+            self.cdn_handler = S3Handler(self.cdn_bucket)
         else:
             self.cdn_handler = s3_handler
 
@@ -38,7 +40,14 @@ class SigningHandler(object):
             self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name)
         else:
             self.db_handler = dynamodb_handler
-        self.signer = signer
+        if not download_handler:
+            self.download_file = download_file
+        else:
+            self.download_file = download_handler
+        if not url_exists_handler:
+            self.url_exists = url_exists
+        else:
+            self.url_exists = url_exists_handler
 
     def __del__(self):
         if hasattr(self, 'temp_dir') and os.path.isdir(self.temp_dir):
@@ -54,7 +63,8 @@ class SigningHandler(object):
                 try:
                     package = json.loads(item['package'])
                 except Exception as e:
-                    print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
+                    if self.logger:
+                        self.logger.warning('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
                     continue
 
                 if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
@@ -72,7 +82,7 @@ class SigningHandler(object):
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                (already_signed, newly_signed) = self.process_format(item, package, format)
+                (already_signed, newly_signed, _) = self.process_format(item, format)
                 if newly_signed:
                     was_signed = True
                 if not(already_signed or newly_signed):
@@ -81,7 +91,7 @@ class SigningHandler(object):
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    (already_signed, newly_signed) = self.process_format(item, package, format)
+                    (already_signed, newly_signed, _) = self.process_format(item, format)
                     if newly_signed:
                         was_signed = True
                     if not (already_signed or newly_signed):
@@ -91,12 +101,12 @@ class SigningHandler(object):
                     if 'chapters' in format:
                         sanitized_chapters = []
                         for chapter in format['chapters']:
-                            (already_signed, newly_signed) = self.process_format_chapter(item, package, chapter)
+                            # TRICKY: only process/keep chapters that actually have a valid url
+                            if 'url' not in chapter or not self.url_exists(chapter['url']):
+                                continue
 
-                            # TRICKY: only keep chapters that actually have a valid url
-                            if 'url' in chapter and url_exists(chapter['url']):
-                                sanitized_chapters.append(chapter)
-
+                            (already_signed, newly_signed) = self.process_format_chapter(item, chapter)
+                            sanitized_chapters.append(chapter)
                             if newly_signed:
                                 was_signed = True
                             if not (already_signed or newly_signed):
@@ -114,109 +124,78 @@ class SigningHandler(object):
                 'signed': fully_signed
             })
 
-    def process_format_chapter(self, item, package, chapter):
+    def process_format_chapter(self, item, chapter):
         """
         Signs a format chapter
         :param item:
-        :param package:
         :param chapter:
         :return: (already_signed, newly_signed, meta)
         """
-        # TODO: this is mostly a copy of process_format
-        if 'signature' in chapter and chapter['signature']:
-            return (True, False)
-        else:
-            print('[INFO] Signing {}'.format(chapter['url']))
+        (already_signed, newly_signed, file_to_sign) = self.process_format(item, chapter)
 
-        base_name = os.path.basename(chapter['url'])
-        dc = package['dublin_core']
-        upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
-                                               dc['identifier'].split('-')[-1],
-                                               dc['version'],
-                                               base_name)
-        upload_sig_key = '{}.sig'.format(upload_key)
-        key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], base_name)
+        if not already_signed and newly_signed and file_to_sign:
+            chapter['size'] = os.path.getsize(file_to_sign)
+            chapter['length'] = 0 # TODO: if this is an audio file we need to get the audio length
+            chapter['modified'] = ''
 
-        # copy the file to a temp directory
-        file_to_sign = os.path.join(self.temp_dir, base_name)
-        try:
-            self.cdn_handler.download_file(key, file_to_sign)
-        except Exception as e:
-            if self.logger:
-                self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, key, e))
-            return (False, False)
-
-        # sign the file
-        sig_file = self.signer.sign_file(file_to_sign)
-
-        # verify the file
-        try:
-            self.signer.verify_signature(file_to_sign, sig_file)
-        except RuntimeError:
-            if self.logger:
-                self.logger.warning('The signature was not successfully verified.')
-            return (False, False)
-
-        # upload files
-        self.cdn_handler.upload_file(file_to_sign, upload_key)
-        self.cdn_handler.upload_file(sig_file, upload_sig_key)
-
-        # add the url of the sig file to the format
-        chapter['signature'] = '{}.sig'.format(chapter['url'])
-        chapter['size'] = os.path.getsize(file_to_sign)
-        chapter['length'] = 0 # TODO: if this is an audio file we need to get the audio length
-        chapter['modified'] = ''
-
-        return (False, True)
+        return (already_signed, newly_signed)
 
 
-    def process_format(self, item, package, format):
+    def process_format(self, item, format):
         """
-        Signs a format
+        Performs the signing on the format object.
+        Files outside of the cdn will not be signed
         :param item:
-        :param package:
         :param format:
-        :return: (already_signed, newly_signed)
+        :return: (already_signed, newly_signed, file_to_sign)
         """
         if 'signature' in format and format['signature']:
-            return (True, False)
+            return (True, False, None)
         else:
             print('[INFO] Signing {}'.format(format['url']))
 
         base_name = os.path.basename(format['url'])
-        dc = package['dublin_core']
-        upload_key = '{0}/{1}/v{2}/{3}'.format(dc['language']['identifier'],
-                                               dc['identifier'].split('-')[-1],
-                                               dc['version'],
-                                               base_name)
-        upload_sig_key = '{}.sig'.format(upload_key)
-        key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], base_name)
-
-        # copy the file to a temp directory
         file_to_sign = os.path.join(self.temp_dir, base_name)
+
+        # extract cdn key from url
+        src_key = format['url'][len(self.cdn_url):].lstrip('/')
+        sig_key = '{}.sig'.format(src_key)
+
+        # TRICKY: files to be signed are stored in a temp directory
+        src_temp_key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], src_key)
+
+        # verify url is on cdn
+        if not format['url'].startswith(self.cdn_url):
+            # This allows media to be hosted on third party servers
+            print('WARNING: cannot sign files outside of the cdn. Guessing signature path for '.format(format['url']))
+            format['signature'] = '{}.sig'.format(format['url'])
+            try:
+                self.download_file(format['url'], file_to_sign)
+            except Exception as e:
+                return (True, True, None)
+            return (True, True, file_to_sign)
+
+        # download file
         try:
-            self.cdn_handler.download_file(key, file_to_sign)
+            self.cdn_handler.download_file(src_temp_key, file_to_sign)
         except Exception as e:
             if self.logger:
-                self.logger.warning('The file "{0}" could not be downloaded from {1}: {2}'.format(base_name, key, e))
-            return (False, False)
+                self.logger.warning('The file "{}" could not be downloaded: {}'.format(base_name, e))
+            return (False, False, None)
 
-        # sign the file
         sig_file = self.signer.sign_file(file_to_sign)
-
-        # verify the file
         try:
             self.signer.verify_signature(file_to_sign, sig_file)
         except RuntimeError:
             if self.logger:
                 self.logger.warning('The signature was not successfully verified.')
-            return (False, False)
+            return (False, False, None)
 
         # upload files
-        self.cdn_handler.upload_file(file_to_sign, upload_key)
-        self.cdn_handler.upload_file(sig_file, upload_sig_key)
+        self.cdn_handler.upload_file(file_to_sign, src_key)
+        self.cdn_handler.upload_file(sig_file, sig_key)
 
         # add the url of the sig file to the format
         format['signature'] = '{}.sig'.format(format['url'])
 
-        return (False, True)
+        return (False, True, file_to_sign)

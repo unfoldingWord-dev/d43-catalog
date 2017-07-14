@@ -106,19 +106,42 @@ class MockAPI(object):
         raise Exception('MockAPI: No host defined for {}'.format(url))
 
 class MockLogger(object):
-    @staticmethod
-    def warning(message):
+
+    def __init__(self):
+        self._messages = []
+
+    def warning(self, message):
         print('WARNING: {}'.format(message))
+        self._messages.append(message)
 
 
 class MockS3Handler:
 
-    def __init__(self, bucket):
+    def __init__(self, bucket=None):
         self._uploads = {}
         self.temp_dir = tempfile.mkdtemp()
 
     def __del__(self):
         shutil.rmtree(self.temp_dir)
+
+    def _load_path(self, dir, root=None):
+        """
+        Loads all the files in the path into the mock handler
+        :param dir:
+        :param root: the path that serves at the root of the file space
+        :return:
+        """
+        if not root:
+            root = dir
+
+        files = os.listdir(dir)
+        for f in files:
+            path = os.path.join(dir, f)
+            if os.path.isfile(path):
+                key = path[len(root):].lstrip('/\\')
+                self.upload_file(path, key)
+            else:
+                self._load_path(path, root)
 
     def upload_file(self, path, key):
         upload_path = os.path.join(self.temp_dir, key)
@@ -219,7 +242,7 @@ class MockSESHandler(object):
 
 class MockSigner(object):
 
-    def __init__(self, default_pem_file=None):
+    def __init__(self, priv_pem_path=None, pub_pem_path=None):
         self.__should_fail_signing = False
         self.__should_fail_verification = False
 
