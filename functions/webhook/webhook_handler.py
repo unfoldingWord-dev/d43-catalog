@@ -314,7 +314,7 @@ class WebhookHandler:
         # we may need to combine the versification by book.
         # files = sorted(glob(os.path.join(self.repo_dir, 'bible', '*.json')))
         bible_dir = os.path.join(self.repo_dir, 'bible')
-        versification_dirs = [x[0] for x in os.walk(bible_dir)]
+        versification_dirs = os.listdir(bible_dir)# [x[0] for x in os.walk(bible_dir)]
         books = {}
         package = []
         uploads = []

@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import os
 import codecs
+from consistency_checker import ConsistencyChecker
 
 class MockAPI(object):
     """
@@ -106,21 +107,44 @@ class MockAPI(object):
         raise Exception('MockAPI: No host defined for {}'.format(url))
 
 class MockLogger(object):
-    @staticmethod
-    def warning(message):
+
+    def __init__(self):
+        self._messages = []
+
+    def warning(self, message):
         print('WARNING: {}'.format(message))
+        self._messages.append(message)
 
 
 class MockS3Handler:
 
-    def __init__(self, bucket):
+    def __init__(self, bucket=None):
         self._uploads = {}
         self.temp_dir = tempfile.mkdtemp()
 
     def __del__(self):
         shutil.rmtree(self.temp_dir)
 
-    def upload_file(self, path, key):
+    def _load_path(self, dir, root=None):
+        """
+        Loads all the files in the path into the mock handler
+        :param dir:
+        :param root: the path that serves at the root of the file space
+        :return:
+        """
+        if not root:
+            root = dir
+
+        files = os.listdir(dir)
+        for f in files:
+            path = os.path.join(dir, f)
+            if os.path.isfile(path):
+                key = path[len(root):].lstrip('/\\')
+                self.upload_file(path, key)
+            else:
+                self._load_path(path, root)
+
+    def upload_file(self, path, key, cache_time=600):
         upload_path = os.path.join(self.temp_dir, key)
         parent_dir = os.path.dirname(upload_path)
         if not os.path.isdir(parent_dir):
@@ -135,11 +159,21 @@ class MockS3Handler:
         else:
             raise Exception('File not found for key: {}'.format(key))
 
+    def delete_file(self, key, catch_exception=True):
+        if catch_exception:
+            try:
+                os.remove(self._uploads[key])
+            except:
+                return False
+        else:
+            os.remove(self._uploads[key])
+            return True
+
 class MockDynamodbHandler(object):
 
     def __init__(self, table_name=None):
-        self.last_inserted_item = None
-        self.db = []
+        self._last_inserted_item = None
+        self._db = []
 
     def _load_db(self, path):
         """
@@ -148,23 +182,23 @@ class MockDynamodbHandler(object):
         :return:
         """
         if os.path.isfile(path):
-            self.db = load_json_object(path, {})
+            self._db = load_json_object(path, {})
         else:
             raise Exception('Missing mock database path {}'.format(path))
 
     def insert_item(self, item):
-        self.last_inserted_item = item
-        self.db.append(item)
+        self._last_inserted_item = item
+        self._db.append(item)
 
     def update_item(self, record_keys, row):
-        self.last_inserted_item = row
+        self._last_inserted_item = row
         item = self.get_item(record_keys)
         if not item: return False
         item.update(row)
         return True
 
     def get_item(self, record_keys):
-        for item in self.db:
+        for item in self._db:
             if MockDynamodbHandler._has_keys(item, record_keys):
                 return item
 
@@ -172,7 +206,7 @@ class MockDynamodbHandler(object):
 
     def query_items(self, query=None, only_fields_with_values=True):
         items = []
-        for item in self.db:
+        for item in self._db:
             if not query:
                 items.append(item)
             elif MockDynamodbHandler._has_keys(item, query):
@@ -181,10 +215,10 @@ class MockDynamodbHandler(object):
 
     def delete_item(self, query):
         items = []
-        for item in self.db:
+        for item in self._db:
             if not query or not MockDynamodbHandler._has_keys(item, query):
                 items.append(item)
-        self.db = items
+        self._db = items
 
     @staticmethod
     def _has_keys(obj, keys):
@@ -219,7 +253,7 @@ class MockSESHandler(object):
 
 class MockSigner(object):
 
-    def __init__(self, default_pem_file=None):
+    def __init__(self, priv_pem_path=None, pub_pem_path=None):
         self.__should_fail_signing = False
         self.__should_fail_verification = False
 
@@ -258,3 +292,12 @@ class MockSigner(object):
         :return:
         """
         self.__should_fail_verification = should_fail
+
+class MockChecker(ConsistencyChecker):
+
+    def __init__(self, quiet=False):
+        super(MockChecker, self).__init__(quiet)
+        self._urls_do_exist = True
+
+    def _url_exists(self, url):
+        return self._urls_do_exist

@@ -36,6 +36,16 @@ def assert_object_equals(unit_test, obj1, obj2):
     """
     unit_test.assertEqual(sort_object(obj1), sort_object(obj2))
 
+def assert_object_not_equals(unit_test, obj1, obj2):
+    """
+    Checks if two objects are not equal after recursively sorting them
+    :param unit_test: the object doing the assertions
+    :param obj1:
+    :param obj2:
+    :return:
+    """
+    unit_test.assertNotEqual(sort_object(obj1), sort_object(obj2))
+
 def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
     """
     Asserts that the s3 file identified by the given key matches

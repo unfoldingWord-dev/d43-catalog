@@ -18,12 +18,12 @@ class Signer(object):
         :param string priv_pem_path: path to the default private pem file. If encrypted (has .enc extension) it will be decrypted by aws
         :param string pub_pem_path: path to the default public pem file.
         """
-        self.priv_pem = priv_pem_path
-        self.pub_pem = pub_pem_path
-        self.temp_dir = tempfile.mkdtemp(prefix='signer_')
+        self.__priv_pem = priv_pem_path
+        self.__pub_pem = pub_pem_path
+        self.__temp_dir = tempfile.mkdtemp(prefix='signer_')
 
     def __del__(self):
-        shutil.rmtree(self.temp_dir)
+        shutil.rmtree(self.__temp_dir)
 
     def sign_file(self, file_to_sign, private_pem_file=None):
         """
@@ -122,19 +122,19 @@ class Signer(object):
         If the pem is encrypted (has an extension .enc) it will be decrypted by aws
         :return: str|unicode
         """
-        if not self.priv_pem:
+        if not self.__priv_pem:
             raise Exception('No default private pem was specified')
 
-        if self.priv_pem.endswith('.enc'):
+        if self.__priv_pem.endswith('.enc'):
             # decrypt pem
             pem_file = os.path.join(tempfile.gettempdir(), 'uW-sk.pem')
-            result = decrypt_file(self.priv_pem, pem_file)
+            result = decrypt_file(self.__priv_pem, pem_file)
             if not result:
                 raise Exception('Not able to decrypt the pem file.')
 
             return pem_file
         else:
-            return self.priv_pem
+            return self.__priv_pem
 
     def _default_pub_pem(self):
         """
@@ -142,10 +142,10 @@ class Signer(object):
         If a default has not been manually specified then the aws pem will be downloaded
         :return:
         """
-        if not self.pub_pem:
+        if not self.__pub_pem:
             print('INFO: retrieving public pem from AWS')
-            pem_path = os.path.join(self.temp_dir, 'uW-vk.pem')
+            pem_path = os.path.join(self.__temp_dir, 'uW-vk.pem')
             download_file('https://pki.unfoldingword.org/uW-vk.pem', pem_path)
-            self.pub_pem = pem_path
+            self.__pub_pem = pem_path
 
-        return self.pub_pem
+        return self.__pub_pem
