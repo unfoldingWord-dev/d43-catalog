@@ -107,7 +107,7 @@ class TestWebhook(TestCase):
         entry = self.MockDynamodbHandler.data
         self.assertEqual(67, len(self.MockS3Handler.uploads)) # books and bundle
         self.assertIn('/en_ulb.zip', self.MockS3Handler.uploads[0]['path'])
-        self.assertIn('temp/en_ulb/{}/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+        self.assertIn('temp/en_ulb/{}/en/ulb/v7/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
     def test_webhook_versification(self):
         request_file = os.path.join(self.resources_dir, 'versification-request.json')
