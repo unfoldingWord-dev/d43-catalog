@@ -154,7 +154,29 @@ class TestFork(TestCase):
 
         self.assertEqual(2, len(repos))
         for repo in repos:
-            self.assertNotEqual('Door43-Catalog/hmr-obs', repo.full_name)
+            self.assertNotIn(repo.full_name, ['Door43-Catalog/hmr-obs', 'Door43-Catalog/pt-br-obs'])
+
+    def test_get_dirty_repos(self):
+        event = self.create_event()
+
+        # mock data
+        self.MockGogsClient.MockGogsApi.repos = []
+        self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("hmr-obs"))
+        self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("en-obs"))
+        self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("es-obs"))
+
+        self.MockDynamodbHandler.items = []
+        dirty_record = TestFork.create_db_item("hmr-obs")
+        dirty_record['dirty'] = True
+        self.MockDynamodbHandler.items.append(dirty_record)
+        self.MockDynamodbHandler.items.append(TestFork.create_db_item("pt-br-obs"))
+
+        handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
+        repos = handler.get_new_repos()
+
+        self.assertEqual(3, len(repos))
+        for repo in repos:
+            self.assertNotIn(repo.full_name, ['Door43-Catalog/pt-br-obs'])
 
     def test_make_hook_payload(self):
         event = self.create_event()

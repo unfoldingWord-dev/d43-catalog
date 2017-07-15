@@ -213,6 +213,7 @@ class WebhookHandler:
             'timestamp': self.timestamp,
             'package': json.dumps(manifest, sort_keys=True),
             'signed': False,
+            'dirty': False,
             'uploads': uploads
         }
 
@@ -361,7 +362,8 @@ class WebhookHandler:
             'commit_id': self.commit_id,
             'timestamp': self.timestamp,
             'package': json.dumps(package, sort_keys=True),
-            'uploads': uploads
+            'uploads': uploads,
+            'dirty': False
         }
 
 
@@ -383,7 +385,8 @@ class WebhookHandler:
             'repo_name': self.repo_name,
             'commit_id': self.commit_id,
             'timestamp': self.timestamp,
-            'package': json.dumps(localization, sort_keys=True)
+            'package': json.dumps(localization, sort_keys=True),
+            'dirty': False
         }
 
     def _build_catalogs(self):
@@ -397,7 +400,8 @@ class WebhookHandler:
             'repo_name': self.repo_name,
             'commit_id': self.commit_id,
             'timestamp': self.timestamp,
-            'package': package
+            'package': package,
+            'dirty': False
         }
 
     def make_upload_key(self, path):

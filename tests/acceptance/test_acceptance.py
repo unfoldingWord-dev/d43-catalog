@@ -55,6 +55,18 @@ class TestAcceptance(TestCase):
         self.assertEqual(0, len(errors))
         self.assertIn('was generated', self.MockSESHandler.email['Body']['Text']['Data'])
 
+    def test_complex_good_catalog(self):
+        self.MockSESHandler.email = None
+        self.MockURLHandler.response =  self._load_catalog('complex_good_catalog.json')
+        self.MockHttpConnection.response = self.MockResponse(200)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
+                                    to_email='me@example.com',
+                                    from_email='me@example.com')
+        errors = acceptance.run()
+
+        self.assertEqual(0, len(errors))
+        self.assertIn('was generated', self.MockSESHandler.email['Body']['Text']['Data'])
+
     def test_bad_catalog(self):
         self.MockSESHandler.email = None
         self.MockURLHandler.response =  self._load_catalog('bad_catalog.json')
