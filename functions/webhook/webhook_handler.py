@@ -170,7 +170,7 @@ class WebhookHandler:
         manifest['formats'] = [file_info]
 
         uploads = [{
-                'key': self.make_upload_key('{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'key': self.make_upload_key(resource_key),#'{}.zip'.format(manifest['dublin_core']['identifier'])),
                 'path': self.repo_file
             }]
 
@@ -196,7 +196,7 @@ class WebhookHandler:
                     'url': project_url
                 })
                 uploads.append({
-                    'key': self.make_upload_key('{}.usfm'.format(project['identifier'])),
+                    'key': self.make_upload_key(project_key),#'{}.usfm'.format(project['identifier'])),
                     'path': p_file_path
                 })
 
@@ -322,7 +322,7 @@ class WebhookHandler:
         # group by project
         for vrs_dir in versification_dirs:
             vrs_id = os.path.basename(vrs_dir)
-            book_files = sorted(glob(os.path.join(vrs_dir, 'chunks', '*.json')))
+            book_files = sorted(glob(os.path.join(bible_dir, vrs_dir, 'chunks', '*.json')))
             for b in book_files:
                 print('Reading {0}...'.format(b))
                 identifier = os.path.splitext(os.path.basename(b))[0]

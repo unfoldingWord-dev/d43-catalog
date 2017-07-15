@@ -4,3 +4,4 @@
 !.apexignore
 !webhook_handler.py
 !/__init__.py
+!tools
