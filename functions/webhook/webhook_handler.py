@@ -322,7 +322,7 @@ class WebhookHandler:
         # group by project
         for vrs_dir in versification_dirs:
             vrs_id = os.path.basename(vrs_dir)
-            book_files = sorted(glob(os.path.join(vrs_dir, 'chunks', '*.json')))
+            book_files = sorted(glob(os.path.join(bible_dir, vrs_dir, 'chunks', '*.json')))
             for b in book_files:
                 print('Reading {0}...'.format(b))
                 identifier = os.path.splitext(os.path.basename(b))[0]
