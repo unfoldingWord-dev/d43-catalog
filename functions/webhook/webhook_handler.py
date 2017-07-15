@@ -145,7 +145,7 @@ class WebhookHandler:
 
         # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
         if len(manifest['projects']) == 1:
-            zip_name = '{}_{}'.format(manifest['dublin_core']['identifier'], manifest['projects'][0]['identifier'])
+            zip_name = manifest['projects'][0]['identifier']
         else:
             zip_name = manifest['dublin_core']['identifier']
 
@@ -170,7 +170,7 @@ class WebhookHandler:
         manifest['formats'] = [file_info]
 
         uploads = [{
-                'key': self.make_upload_key(resource_key),#'{}.zip'.format(manifest['dublin_core']['identifier'])),
+                'key': self.make_upload_key(resource_key),
                 'path': self.repo_file
             }]
 
@@ -196,7 +196,7 @@ class WebhookHandler:
                     'url': project_url
                 })
                 uploads.append({
-                    'key': self.make_upload_key(project_key),#'{}.usfm'.format(project['identifier'])),
+                    'key': self.make_upload_key(project_key),
                     'path': p_file_path
                 })
 
@@ -314,7 +314,7 @@ class WebhookHandler:
         # we may need to combine the versification by book.
         # files = sorted(glob(os.path.join(self.repo_dir, 'bible', '*.json')))
         bible_dir = os.path.join(self.repo_dir, 'bible')
-        versification_dirs = os.listdir(bible_dir)# [x[0] for x in os.walk(bible_dir)]
+        versification_dirs = os.listdir(bible_dir)
         books = {}
         package = []
         uploads = []
