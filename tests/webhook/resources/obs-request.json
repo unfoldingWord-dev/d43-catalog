@@ -1,9 +1,9 @@
 {
   "stage-variables": {
-    "gogs_url": "",
+    "gogs_url": "https://git.door43.org",
     "gogs_org": "Door43-Catalog",
-    "cdn_bucket": "",
-    "cdn_url": ""
+    "cdn_bucket": "cdn.door43.org",
+    "cdn_url": "https://cdn.door43.org"
   },
   "body-json": {
     "secret": "",

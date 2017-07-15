@@ -10,18 +10,19 @@ import os
 import json
 import tempfile
 import copy
-import boto3
+import time
 from tools.file_utils import write_file
-from tools.url_utils import get_url
+from tools.url_utils import get_url, url_exists
 from tools.consistency_checker import ConsistencyChecker
 from tools.dict_utils import read_dict
+from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
 
 class CatalogHandler:
-    API_VERSION = 3
+    API_VERSION = '3'
 
     resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
 
-    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, ses_handler=None, consistency_checker=None, url_handler=None, url_exists_handler=None):
         """
         Initializes a catalog handler
         :param event: 
@@ -29,26 +30,47 @@ class CatalogHandler:
         :param dynamodb_handler: This is passed in so it can be mocked for unit testing
         :param ses_handler: This is passed in so it can be mocked for unit testing
         :param consistency_checker: This is passed in so it can be mocked for unit testing
+        :param url_handler: This is passed in so it can be mocked for unit testing
         """
-        self.cdn_url = read_dict(event, 'cdn_url')
+        self.cdn_url = read_dict(event, 'cdn_url').rstrip('/')
         self.cdn_bucket = read_dict(event, 'cdn_bucket')
         self.api_bucket = read_dict(event, 'api_bucket')
-        # self.api_url = read_dict(event, 'api_url')
+        self.api_url = read_dict(event, 'api_url').rstrip('/')
         self.to_email = read_dict(event, 'to_email')
         self.from_email = read_dict(event, 'from_email')
 
-        self.progress_table = dynamodb_handler('d43-catalog-in-progress')
-        self.production_table = dynamodb_handler('d43-catalog-production')
-        self.errors_table = dynamodb_handler('d43-catalog-errors')
+        if dynamodb_handler:
+            self.progress_table = dynamodb_handler('d43-catalog-in-progress')
+            self.status_table = dynamodb_handler('d43-catalog-status')
+            self.errors_table = dynamodb_handler('d43-catalog-errors')
+        else:
+            self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
+            self.status_table = DynamoDBHandler('d43-catalog-status')
+            self.errors_table = DynamoDBHandler('d43-catalog-errors')
+
         self.catalog = {
             "languages": []
         }
-        self.api_handler = s3_handler(self.api_bucket)
-        self.ses_handler = ses_handler()
+        if s3_handler:
+            self.api_handler = s3_handler(self.api_bucket)
+        else:
+            self.api_handler = S3Handler(self.api_bucket)
+        if ses_handler:
+            self.ses_handler = ses_handler()
+        else:
+            self.ses_handler = SESHandler()
         if consistency_checker:
             self.checker = consistency_checker()
         else:
             self.checker = ConsistencyChecker()
+        if not url_handler:
+            self.get_url = get_url
+        else:
+            self.get_url = url_handler
+        if not url_exists_handler:
+            self.url_exists = url_exists
+        else:
+            self.url_exists = url_exists_handler
 
     def get_language(self, language):
         """
@@ -114,46 +136,23 @@ class CatalogHandler:
             if not self._catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
+                # publish the status if not already published
+                if not self._read_status():
+                    self._publish_status()
             else:
                 cat_str = json.dumps(self.catalog, sort_keys=True)
-                # data = {
-                #     'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                #     'catalog': cat_str
-                # }
                 try:
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                     write_file(catalog_path, cat_str)
                     c_stats = os.stat(catalog_path)
                     print('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
 
-                    # print('Writing new catalog to production table')
-                    # self.production_table.insert_item(data)
                     print('Uploading catalog.json to API')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
+                    self._publish_status()
 
                     response['success'] = True
-                    response['message'] = 'Uploaded new catalog to https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-
-                    # trigger tS api v2 build
-                    client = boto3.client("lambda")
-                    payload = {
-                        "stage-variables": {
-                            "cdn_url": self.cdn_url,
-                            "cdn_bucket": self.cdn_bucket,
-                            "catalog_url": 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-                        }
-                    }
-                    try:
-                        print("Triggering build for tS v2 API")
-                        client.invoke(
-                            FunctionName="d43-catalog_ts_v2_catalog",
-                            InvocationType="Event",
-                            Payload=json.dumps(payload)
-                        )
-                    except Exception as e:
-                        self.checker.log_error("Failed to trigger build for tS v2 API: {0}".format(e))
-
-                    # TODO: trigger uW build once it's ready
+                    response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog: {0}'.format(e))
         else:
@@ -171,6 +170,33 @@ class CatalogHandler:
             print('Catalog was not published due to errors')
 
         return response
+
+    def _read_status(self):
+        """
+        Retrieves the recorded status of the catalog
+        :return:
+        """
+        results = self.status_table.query_items({'api_version': self.API_VERSION})
+        if not results:
+            return None
+        else:
+            return results[0]
+
+    def _publish_status(self, state='complete'):
+        """
+        Updates the catalog status
+        :param state: the state of completion the catalog is in
+        :return:
+        """
+        print('Recording catalog status')
+        self.status_table.update_item(
+            {'api_version': self.API_VERSION},
+            {
+                'state': state,
+                'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
+            }
+        )
 
     def _build_rc(self, item, manifest, checker):
         """
@@ -255,7 +281,7 @@ class CatalogHandler:
 
         for project in package:
             dict[project['identifier']] = project
-            if not checker.url_exists(project['chunks_url']):
+            if not self.url_exists(project['chunks_url']):
                 checker.log_error('{} does not exist'.format(project['chunks_url']))
                 # for performance's sake we'll fail on a single error
                 return False
@@ -291,8 +317,8 @@ class CatalogHandler:
         :return: 
         """
         try:
-            catalog_url = 'https://{0}/v{1}/catalog.json'.format(self.api_bucket, self.API_VERSION)
-            current_catalog = json.loads(get_url(catalog_url, True))
+            catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
+            current_catalog = json.loads(self.get_url(catalog_url, True))
             same = current_catalog == catalog
             return not same
         except Exception:

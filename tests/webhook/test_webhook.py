@@ -2,6 +2,9 @@ import codecs
 import os
 import json
 from unittest import TestCase
+from tools.mocks import MockAPI
+from tools.file_utils import read_file
+from tools.test_utils import assert_object_equals_file
 from functions.webhook.webhook_handler import WebhookHandler
 
 class TestWebhook(TestCase):
@@ -66,15 +69,24 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        urls = {
+            'https://git.door43.org/Door43-Catalog/en_obs/archive/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad.zip': 'en_obs.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler, mock_download)
         handler.run()
 
         entry = self.MockDynamodbHandler.data
         self.assertEqual(1, len(self.MockS3Handler.uploads))
         self.assertIn('/en_obs.zip', self.MockS3Handler.uploads[0]['path'])
         self.assertIn('temp/en_obs/{}/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+        # package = json.loads(entry['package'])
+        # project = package['projects'][0]
+        # self.assertIn('formats', project)
+        assert_object_equals_file(self, entry, os.path.join(self.resources_dir, 'expected_obs_record.json'))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')

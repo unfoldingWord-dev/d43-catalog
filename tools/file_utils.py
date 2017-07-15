@@ -5,7 +5,10 @@ import os
 import zipfile
 import sys
 import shutil
+import yaml
 from mimetypes import MimeTypes
+import tempfile
+from tools.url_utils import download_file
 
 # we need this to check for string versus object
 PY3 = sys.version_info[0] == 3
@@ -190,3 +193,44 @@ def remove(file_path, ignore_errors=True):
             pass
     else:
         os.remove(file_path)
+
+def download_rc(lid, rid, url, temp_dir=None, downloader=None):
+    """
+    Downloads a resource container from a url, validates it, and prepares it for reading
+    :param lid: the language code of the RC
+    :param rid: the resource code of the RC
+    :param url: the url from which to download the RC
+    :param temp_dir: the tempdir where we can write stuff
+    :param downloader: This is exposed to allow mocking the downloader.
+    :return: the path to the readable RC or None if an error occurred.
+    """
+    if not temp_dir:
+        temp_dir = tempfile.mkdtemp('', 'temp_rc_files', None)
+
+    zip_file = os.path.join(temp_dir, url.split('/')[-1])
+    zip_dir = os.path.join(temp_dir, lid, rid, 'zip_dir')
+    if not downloader:
+        download_file(url, zip_file)
+    else:
+        downloader(url, zip_file)
+
+    if not os.path.exists(zip_file):
+        print('ERROR: could not download file {}'.format(url))
+        return None
+
+    unzip(zip_file, zip_dir)
+    rc_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
+
+    try:
+        manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+    except Exception as e:
+        print('ERROR: could not read manifest in {}'.format(url))
+        return None
+
+    # ensure the manifest matches
+    dc = manifest['dublin_core']
+    if dc['identifier'] != rid or dc['language']['identifier'] != lid:
+        print('ERROR: the downloaded RC does not match the expected language ({}) and resource ({}). Found {}-{} instead'.format(lid, rid, dc['language']['identifier'], dc['identifier']))
+        return None
+
+    return rc_dir

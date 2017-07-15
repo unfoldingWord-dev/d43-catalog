@@ -1,0 +1,78 @@
+{
+  "languages": [
+    {
+      "category_labels": {
+        "bible-ot": "Bible: OT",
+        "bible-nt": "Bible: NT",
+        "ta": "translationAcademy"
+      },
+      "direction": "ltr",
+      "title": "English",
+      "identifier": "en",
+      "versification_labels": {
+        "mt": "Masoretic Text (Hebrew Bible)",
+        "kjv": "King James Version"
+      },
+      "check_labels": {
+        "metaphor": "Metaphor",
+        "keyword": "Keyword"
+      },
+      "resources": [
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "An unrestricted visual mini-Bible in any language",
+          "checking": {
+            "checking_entity": [
+              "Distant Shores Media",
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2015-08-26",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-01-10",
+          "source": [
+            {
+              "identifier": "obs",
+              "version": "4",
+              "language": "en"
+            }
+          ],
+          "version": "4",
+          "relation": [
+            "en/tw",
+            "en/obs-tq",
+            "en/obs-tn"
+          ],
+          "contributor": [
+            "Distant Shores Media",
+            "Wycliffe Associates"
+          ],
+          "title": "Open Bible Stories",
+          "identifier": "obs",
+          "creator": "Distant Shores Media",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "Open Bible Stories",
+              "formats": [
+                {
+                  "size": 100417,
+                  "url": "https://google.com",
+                  "signature": "https://google.com",
+                  "modified": "2017-01-10",
+                  "format": "application/zip; type=book content=text/markdown version=rc0.2"
+                }
+              ],
+              "versification": "ufw",
+              "identifier": "obs",
+              "categories": []
+            }
+          ],
+          "subject": "Bible stories"
+        }
+      ]
+    }
+  ]
+}

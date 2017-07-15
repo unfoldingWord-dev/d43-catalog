@@ -3,8 +3,10 @@
 #
 # Class for converting the catalog into a format compatible with the tS v2 api.
 #
+
 import hashlib
 import json
+import shutil
 import yaml
 import os
 import codecs
@@ -12,34 +14,38 @@ import re
 import tempfile
 import time
 import markdown
-from d43_aws_tools import S3Handler
+from d43_aws_tools import S3Handler, DynamoDBHandler
 from usfm_tools.transform import UsfmTransform
-from tools.file_utils import write_file, read_file, unzip
+from tools.file_utils import write_file, read_file, download_rc
+from tools.legacy_utils import index_obs
 from tools.url_utils import download_file, get_url
 from tools.dict_utils import read_dict
 import dateutil.parser
 
 class TsV2CatalogHandler:
 
-    cdn_rooth_path = 'v2/ts'
+    cdn_root_path = 'v2/ts'
+    api_version = 'ts.2'
 
-    def __init__(self, event, s3_handler=None, url_handler=None, download_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param  s3_handler: This is passed in so it can be mocked for unit testing
         :param url_handler: This is passed in so it can be mocked for unit testing
         :param download_handler: This is passed in so it can be mocked for unit testing
         """
-        env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.catalog_url = read_dict(env_vars, 'catalog_url', 'Environment Vars')
-        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
+        self.catalog_url = read_dict(event, 'catalog_url', 'Environment Vars')
+        self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket)
         else:
             self.cdn_handler = s3_handler
-        self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
+        if not dynamodb_handler:
+            self.db_handler = DynamoDBHandler('d43-catalog-status')
+        else:
+            self.db_handler = dynamodb_handler
         if not url_handler:
             self.get_url = get_url
         else:
@@ -49,24 +55,38 @@ class TsV2CatalogHandler:
         else:
             self.download_file = download_handler
 
-    def convert_catalog(self):
+        self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
+
+    def __del__(self):
+        try:
+            shutil.rmtree(self.temp_dir)
+        finally:
+            pass
+
+    def run(self):
         """
         Generates the v2 catalog
         :return:
         """
+        cat_keys = [] # en_ulb_gen_source, en_*_gen_tn, en_*_gen_tq, en_*_gen_tw, en_*_gen_chunks, en_*_*_tw
         cat_dict = {}
         supplemental_resources = []
-        usx_sources = {}
-        obs_sources = {}
-        note_sources = {}
-        question_sources = {}
-        tw_sources = {}
-        tw_cat_sources = {}
+
+        result = self._get_status()
+        if not result:
+            return False
+        else:
+            (self.status, source_status) = result
+
+        # check if build is complete
+        if self.status['state'] == 'complete':
+            print('Catalog already generated')
+            return True
 
         # retrieve the latest catalog
-        catalog_content = self.get_url(self.catalog_url, True)
+        catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
-            print("ERROR: {0} does not exist".format(self.catalog_url))
+            print("ERROR: {0} does not exist".format(source_status['catalog_url']))
             return False
         try:
             self.latest_catalog = json.loads(catalog_content)
@@ -74,60 +94,128 @@ class TsV2CatalogHandler:
             print("ERROR: Failed to load the catalog json: {0}".format(e))
             return False
 
-        # walk catalog
-        for language in self.latest_catalog['languages']:
-            lid = language['identifier']
-            for resource in language['resources']:
-                rid = resource['identifier']
+        # walk v3 catalog
+        for lang in self.latest_catalog['languages']:
+            lid = lang['identifier']
+            for res in lang['resources']:
+                rid = res['identifier']
 
                 rc_format = None
 
-                if 'formats' in resource:
-                    for format in resource['formats']:
+                if 'formats' in res:
+                    for format in res['formats']:
+                        finished_processes = {}
                         if not rc_format and self._get_rc_type(format):
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
-                        usx_sources.update(self._index_usx_files(lid, rid, format))
-                        # TRICKY: bible notes and questions are in the resource
-                        (notes, tw_cat) = self._index_note_files(lid, rid, format)
-                        note_sources.update(notes)
-                        tw_cat_sources.update(tw_cat)
-                        question_sources.update(self._index_question_files(lid, rid, format))
 
-                for project in resource['projects']:
+                        self._process_usfm(lid, rid, format)
+
+                        # TRICKY: bible notes and questions are in the resource
+                        if rid != 'obs':
+                            process_id = '_'.join([lid, rid, 'notes'])
+                            if process_id not in self.status['processed']:
+                                (tn, tw_cat) = self._index_note_files(lid, rid, format)
+                                if tn or tw_cat:
+                                    self._upload_all(tw_cat)
+                                    self._upload_all(tn)
+                                    finished_processes[process_id] = tw_cat.keys() + tn.keys()
+                                    cat_keys = cat_keys + tn.keys() + tw_cat.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
+
+                            process_id = '_'.join([lid, rid, 'questions'])
+                            if process_id not in self.status['processed']:
+                                tq = self._index_question_files(lid, rid, format)
+                                if tq:
+                                    self._upload_all(tq)
+                                    finished_processes[process_id] = tq.keys()
+                                    cat_keys = cat_keys + tq.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
+
+                        # TRICKY: update the finished processes once per format to limit db hits
+                        if finished_processes:
+                            self.status['processed'].update(finished_processes)
+                            self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                            self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+
+                for project in res['projects']:
+                    pid = project['identifier']
                     if 'formats' in project:
                         for format in project['formats']:
+                            finished_processes = {}
                             if not rc_format and self._get_rc_type(format):
                                 # locate rc_format (for single-project RCs)
                                 rc_format = format
-                            obs_sources.update(self._index_obs_files(lid, rid, format))
+
                             # TRICKY: there should only be a single tW for each language
-                            if lid not in tw_sources:
-                                tw_sources.update(self._index_words_files(lid, rid, format))
+                            process_id = '_'.join([lid, 'words'])
+                            if process_id not in self.status['processed']:
+                                tw = self._index_words_files(lid, rid, format)
+                                if tw:
+                                    self._upload_all(tw)
+                                    finished_processes[process_id] = tw.keys()
+                                    cat_keys = cat_keys + tw.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
+
+                            if rid == 'obs':
+                                process_id = '_'.join([lid, rid, 'obs'])
+                                if process_id not in self.status['processed']:
+                                    obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
+                                    upload = self._prep_data_upload('{}/{}/{}/source.json'.format('obs', lid, rid),
+                                                                    obs_json)
+                                    self._upload(upload)
+                                    finished_processes[process_id] = []
+                                else:
+                                    cat_keys = cat_keys + self.status['processed'][process_id]
+
                             # TRICKY: obs notes and questions are in the project
-                            (notes, tw_cat) = self._index_note_files(lid, rid, format)
-                            note_sources.update(notes)
-                            tw_cat_sources.update(tw_cat)
-                            question_sources.update(self._index_question_files(lid, rid, format))
+                            process_id = '_'.join([lid, rid, pid, 'notes'])
+                            if process_id not in self.status['processed']:
+                                (tn, tw_cat) = self._index_note_files(lid, rid, format)
+                                if tn or tw_cat:
+                                    self._upload_all(tw_cat)
+                                    self._upload_all(tn)
+                                    finished_processes[process_id] = tn.keys() + tw_cat.keys()
+                                    cat_keys = cat_keys + tn.keys() + tw_cat.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
+
+                            process_id = '_'.join([lid, rid, 'questions'])
+                            if process_id not in self.status['processed']:
+                                tq = self._index_question_files(lid, rid, format)
+                                if tq:
+                                    self._upload_all(tq)
+                                    finished_processes[process_id] = tq.keys()
+                                    cat_keys = cat_keys + tq.keys()
+                            else:
+                                cat_keys = cat_keys + self.status['processed'][process_id]
+
+                            # TRICKY: update the finished processes once per format to limit db hits
+                            if finished_processes:
+                                self.status['processed'].update(finished_processes)
+                                self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
                     if not rc_format:
-                        raise Exception('Could not find a format for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+                        raise Exception('Could not find a format for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
 
                     modified = self._convert_date(rc_format['modified'])
                     rc_type = self._get_rc_type(rc_format)
 
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
-                        print('#WARNING: Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
-                        # raise Exception('Could not find date_modified for {}_{}_{}'.format(language['identifier'], resource['identifier'], project['identifier']))
+                        print('#WARNING: Could not find date_modified for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
-                        self._build_catalog_node(cat_dict, language, resource, project, modified)
+                        self._build_catalog_node(cat_dict, lang, res, project, modified)
                     else:
                         # store supplementary resources for processing after catalog nodes have been fully built
                         supplemental_resources.append({
-                            'language': language,
-                            'resource': resource,
+                            'language': lang,
+                            'resource': res,
                             'project': project,
                             'modified': modified,
                             'rc_type': rc_type
@@ -139,89 +227,40 @@ class TsV2CatalogHandler:
 
         api_uploads = []
 
-        # upload tw
-        for key in tw_sources:
-            api_uploads.append(self._prep_data_upload('bible/{}/words.json'.format(key), tw_sources[key]))
-
         # normalize catalog nodes
         root_cat = []
         for pid in cat_dict:
             project = cat_dict[pid]
             lang_cat = []
             for lid in project['_langs']:
-                language = project['_langs'][lid]
+                lang = project['_langs'][lid]
                 res_cat = []
-                for rid in language['_res']:
-                    resource = language['_res'][rid]
-                    source_key = '$'.join([pid, lid, rid])
+                for rid in lang['_res']:
+                    res = lang['_res'][rid]
 
-                    # upload tW cat
-                    # TRICKY: tw_cat is read from notes so it uses the same key form as notes
-                    if pid == 'obs':
-                        tw_cat_key = '$'.join([pid, lid, 'obs-tn'])
-                    else:
-                        tw_cat_key = '$'.join([pid, lid, 'tn'])
-                    if tw_cat_key not in tw_cat_sources:
-                        resource['tw_cat'] = ''
-                    else:
-                        api_uploads.append({
-                            # TRICKY: notes are organized by project not resource
-                            'key': '{}/{}/tw_cat.json'.format(pid, lid),
-                            'path': tw_cat_sources[tw_cat_key]
-                        })
+                    # disable missing catalogs
 
-                    # upload tQ
-                    if pid == 'obs':
-                        question_key = '$'.join([pid, lid, 'obs-tq'])
-                    else:
-                        question_key = '$'.join([pid, lid, 'tq'])
-                    if question_key not in question_sources:
-                        resource['checking_questions'] = ''
-                    else:
-                        api_uploads.append({
-                            # TRICKY: questions are organized by project not resource
-                            'key': '{}/{}/questions.json'.format(pid, lid),
-                            'path': question_sources[question_key]
-                        })
-                        # del question_sources[question_key]
+                    # disable tW catalog
+                    if '_'.join([lid, '*', pid, 'tw']) not in cat_keys:
+                        res['tw_cat'] = ''
 
-                    # upload tN
-                    if pid == 'obs':
-                        note_key = '$'.join([pid, lid, 'obs-tn'])
-                    else:
-                        note_key = '$'.join([pid, lid, 'tn'])
-                    if note_key not in note_sources:
-                        resource['notes'] = ''
-                    else:
-                        api_uploads.append({
-                            # TRICKY: notes are organized by project not resource
-                            'key': '{}/{}/notes.json'.format(pid, lid),
-                            'path': note_sources[note_key]
-                        })
-                        # del note_sources[note_key]
+                    # disable tN
+                    if '_'.join([lid, '*', pid, 'tn']) not in cat_keys:
+                        res['notes'] = ''
 
-                    # exclude tw if not in sources
-                    if lid not in tw_sources:
-                        resource['terms'] = ''
+                    # disable tQ
+                    if '_'.join([lid, '*', pid, 'tq']) not in cat_keys:
+                        res['checking_questions'] = ''
 
-                    # convert obs source files
-                    if rid == 'obs' and source_key in obs_sources:
-                        api_uploads.append(
-                            self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), obs_sources[source_key]))
-                        del obs_sources[source_key]
+                    # disable tW
+                    if '_'.join([lid, '*', '*', 'tw']) not in cat_keys:
+                        res['terms'] = ''
 
-                    # convert usx source files
-                    if source_key in usx_sources:
-                        source_path = usx_sources[source_key]
-                        source = self._generate_source_from_usx(source_path, resource['date_modified'])
-                        # TODO: include app_words and language info
-                        api_uploads.append(self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source']))
-                        del usx_sources[source_key]
-                    res_cat.append(resource)
+                    res_cat.append(res)
                 api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
-                del language['_res']
-                lang_cat.append(language)
+                del lang['_res']
+                lang_cat.append(lang)
             api_uploads.append(self._prep_data_upload('{}/languages.json'.format(pid), lang_cat))
 
             del  project['_langs']
@@ -230,7 +269,49 @@ class TsV2CatalogHandler:
 
         # upload files
         for upload in api_uploads:
-            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_rooth_path, upload['key']))
+            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
+
+        self.status['state'] = 'complete'
+        self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+
+    def _get_status(self):
+        """
+        Retrieves the catalog status from AWS.
+
+        :return: A tuple containing the status object of the target and source catalogs, or False if the source is not ready
+        """
+        status_results = self.db_handler.query_items({
+            'api_version': {
+                'condition': 'is_in',
+                'value': ['3', TsV2CatalogHandler.api_version]
+            }
+        })
+        source_status = None
+        status = None
+        for s in status_results:
+            if s['api_version'] == '3':
+                source_status = s
+            elif s['api_version'] == TsV2CatalogHandler.api_version:
+                status = s
+        if not source_status:
+            print('Source catalog status not found')
+            return False
+        if source_status['state'] != 'complete':
+            print('Source catalog is not ready for use')
+            return False
+        if not status or status['source_timestamp'] != source_status['timestamp']:
+            # begin or restart process
+            status = {
+                'api_version': TsV2CatalogHandler.api_version,
+                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path),
+                'source_api': source_status['api_version'],
+                'source_timestamp': source_status['timestamp'],
+                'state': 'in-progress',
+                'processed': {}
+            }
+
+        return (status, source_status)
 
     def _index_note_files(self, lid, rid, format):
         """
@@ -238,17 +319,17 @@ class TsV2CatalogHandler:
         :param lid:
         :param rid:
         :param format:
-        :return: a tuple of (notes, tw_cat)
+        :return: a tuple of (note uploads, tw_cat uploads)
         """
         note_general_re = re.compile('^([^#]+)', re.UNICODE)
         note_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
-        note_sources = {}
-        tw_cat_sources = {}
+        tn_uploads = {}
+        tw_cat_uploads = {}
         word_link_re = re.compile('\[\[rc:\/\/[a-z0-9\-\_]+\/tw\/dict\/bible\/(kt|other)\/([a-z0-9\-\_]+)\]\]', re.UNICODE | re.IGNORECASE)
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
-            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -256,21 +337,18 @@ class TsV2CatalogHandler:
 
             for project in manifest['projects']:
                 pid = project['identifier']
-                key = '$'.join([pid, lid, rid])
                 note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
-                note_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_notes.json'))
-                tw_cat_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_words_cat.json'))
                 note_json = []
 
                 chapters = os.listdir(note_dir)
                 tw_chapters = []
                 for chapter in chapters:
-                    if chapter == 'front': continue
+                    if chapter in ['.', '..', 'front']: continue
                     chapter_dir = os.path.join(note_dir, chapter)
                     chunks = os.listdir(chapter_dir)
                     tw_frames = []
                     for chunk in chunks:
-                        if chunk == 'intro.md': continue
+                        if chunk in ['.', '..', 'intro.md']: continue
                         notes = []
                         chunk_file = os.path.join(chapter_dir, chunk)
                         chunk = chunk.split('.')[0]
@@ -314,26 +392,29 @@ class TsV2CatalogHandler:
                         })
 
                 if tw_chapters:
+                    tw_cat_key = '_'.join([lid, '*', pid, 'tw'])
                     tw_cat_json = {
                         "chapters": tw_chapters,
                         "date_modified": dc['modified'].replace('-', '')
                     }
-                    write_file(tw_cat_json_file, json.dumps(tw_cat_json, sort_keys=True))
-                    tw_cat_sources[key] = tw_cat_json_file
+                    tw_upload = self._prep_data_upload('{}/{}/tw_cat.json'.format(pid, lid), tw_cat_json)
+                    tw_cat_uploads[tw_cat_key] = tw_upload
 
-                note_json.append({'date_modified': dc['modified'].replace('-', '')})
-                write_file(note_json_file, json.dumps(note_json, sort_keys=True))
-                note_sources[key] = note_json_file
+                if note_json:
+                    tn_key = '_'.join([lid, '*', pid, 'tn'])
+                    note_json.append({'date_modified': dc['modified'].replace('-', '')})
+                    note_upload = self._prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json)
+                    tn_uploads[tn_key] = note_upload
 
-        return (note_sources, tw_cat_sources)
+        return (tn_uploads, tw_cat_uploads)
 
     def _index_question_files(self, lid, rid, format):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
-        question_sources = {}
+        tq_uploads = {}
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
-            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -341,24 +422,24 @@ class TsV2CatalogHandler:
 
             for project in manifest['projects']:
                 pid = project['identifier']
-                key = '$'.join([pid, lid, rid])
                 question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
-                question_json_file = os.path.normpath(os.path.join(rc_dir, project['path'] + '_questions.json'))
                 question_json = []
 
                 chapters = os.listdir(question_dir)
                 for chapter in chapters:
+                    if chapter in ['.', '..']: continue
                     unique_questions = {}
                     chapter_dir = os.path.join(question_dir, chapter)
                     chunks = os.listdir(chapter_dir)
                     for chunk in chunks:
+                        if chunk in ['.', '..']: continue
                         chunk_file = os.path.join(chapter_dir, chunk)
                         chunk = chunk.split('.')[0]
                         chunk_body = read_file(chunk_file)
 
                         for question in question_re.findall(chunk_body):
                             hasher = hashlib.md5()
-                            hasher.update(question[1].strip())
+                            hasher.update(question[1].strip().encode('utf-8'))
                             question_hash = hasher.hexdigest()
                             if question_hash not in unique_questions:
                                 # insert unique question
@@ -376,17 +457,19 @@ class TsV2CatalogHandler:
                     question_array = []
                     for hash in unique_questions:
                         question_array.append(unique_questions[hash])
+                    if question_array:
+                        question_json.append({
+                            'id': chapter,
+                            'cq': question_array
+                        })
 
-                    question_json.append({
-                        'id': chapter,
-                        'cq': question_array
-                    })
+                if question_json:
+                    tq_key = '_'.join([lid, '*', pid, 'tq'])
+                    question_json.append({'date_modified': dc['modified'].replace('-', '')})
+                    upload = self._prep_data_upload('{}/{}/questions.json'.format(pid, lid), question_json)
+                    tq_uploads[tq_key] = upload
 
-                question_json.append({'date_modified': dc['modified'].replace('-', '')})
-                write_file(question_json_file, json.dumps(question_json, sort_keys=True))
-                question_sources[key] = question_json_file
-
-        return question_sources
+        return tq_uploads
 
 
     def _index_words_files(self, lid, rid, format):
@@ -407,7 +490,7 @@ class TsV2CatalogHandler:
         words = []
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
-            rc_dir = self._retrieve_rc(lid, rid, format['url'])
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -416,12 +499,15 @@ class TsV2CatalogHandler:
             # TRICKY: there should only be one project
             for project in manifest['projects']:
                 pid = project['identifier']
-                content_dir = os.path.join(rc_dir, project['path'])
+                content_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 categories = os.listdir(content_dir)
                 for cat in categories:
+                    if cat in ['.', '..']: continue
                     cat_dir = os.path.join(content_dir, cat)
+                    if not os.path.isdir(cat_dir): continue
                     word_files = os.listdir(cat_dir)
                     for word in word_files:
+                        if word in ['.', '..']: continue
                         word_path = os.path.join(cat_dir, word)
                         word_id = word.split('.md')[0]
                         word_content = read_file(word_path)
@@ -486,142 +572,60 @@ class TsV2CatalogHandler:
                             'term': title.strip()
                         })
 
-            words.append({
-                'date_modified': dc['modified'].replace('-', '')
-            })
-            return {
-                lid: words
-            }
+            if words:
+                words.append({
+                    'date_modified': dc['modified'].replace('-', '').split('T')[0]
+                })
+                upload = self._prep_data_upload('bible/{}/words.json'.format(lid), words)
+                return {
+                    '_'.join([lid, '*', '*', 'tw']): upload
+                }
         return {}
 
-    def _index_obs_files(self, lid, rid, format):
+    def _process_usfm(self, lid, rid, format):
         """
-        Returns an array of markdown files found in a OBS book.
-        This should contain a single file per chapter
+        Converts a USFM bundle into usx, loads the data into json and uploads it.
+        Returns an array of usx file paths.
         :param lid:
         :param rid:
         :param format:
-        :return:
+        :return: an array of json blobs
         """
-        obs_sources = {}
-        format_str = format['format']
-        if rid == 'obs' and 'type=book' in format_str:
-            rc_dir = self._retrieve_rc(lid, rid, format['url'])
-            if not rc_dir: return obs_sources
-
-            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-            dc = manifest['dublin_core']
-
-            for project in manifest['projects']:
-                pid = project['identifier']
-                content_dir = os.path.join(rc_dir, project['path'])
-                key = '$'.join([pid, lid, rid])
-                chapters_json = self._obs_chapters_to_json(os.path.normpath(content_dir))
-
-                # app words
-                app_words = {}
-                app_words_file = os.path.join(rc_dir, '.apps', 'uw', 'app_words.json')
-                if os.path.exists(app_words_file):
-                    try:
-                        app_words = json.loads(read_file(app_words_file))
-                    except Exception as e:
-                        print('ERROR: failed to load app words: {}'.format(e))
-
-                obs_sources[key] = {
-                    'app_words': app_words,
-                    'chapters': chapters_json,
-                    'date_modified': dc['modified'].replace('-', ''),
-                    'direction': dc['language']['direction'],
-                    'language': dc['language']['identifier']
-                }
-
-        return obs_sources
-
-    def _obs_chapters_to_json(self, dir):
-        """
-
-        :param dir: the obs book content directory
-        :param date_modified:
-        :return:
-        """
-        obs_title_re = re.compile('^\s*#+\s*(.*)', re.UNICODE)
-        obs_footer_re = re.compile('\_+([^\_]*)\_+$', re.UNICODE)
-        obs_image_re = re.compile('.*!\[OBS Image\]\(.*\).*', re.IGNORECASE | re.UNICODE)
-        chapters = []
-        for chapter_file in os.listdir(dir):
-            if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
-                # TODO: read info from config
-                continue
-            chapter_slug = chapter_file.split('.md')[0]
-            path = os.path.join(dir, chapter_file)
-            if os.path.isfile(path):
-                chapter_file = os.path.join(dir, path)
-                chapter_str = read_file(chapter_file).strip()
-
-                title_match = obs_title_re.match(chapter_str)
-                if title_match:
-                    title = title_match.group(1)
-                else:
-                    print('ERROR: missing title in {}'.format(chapter_file))
-                    continue
-                chapter_str = obs_title_re.sub('', chapter_str).strip()
-                lines = chapter_str.split('\n')
-                reference_match = obs_footer_re.match(lines[-1])
-                if reference_match:
-                    reference = reference_match.group(1)
-                else:
-                    print('ERROR: missing reference in {}'.format(chapter_file))
-                    continue
-                chapter_str = '\n'.join(lines[0:-1]).strip()
-                chunks = obs_image_re.split(chapter_str)
-
-                frames = []
-                chunk_index = 0
-                for chunk in chunks:
-                    chunk = chunk.strip()
-                    if not chunk:
-                        continue
-                    chunk_index += 1
-                    id = '{}-{}'.format(chapter_slug, '{}'.format(chunk_index).zfill(2))
-                    frames.append({
-                        'id': id,
-                        'img': 'https://cdn.door43.org/obs/jpg/360px/obs-en-{}.jpg'.format(id),
-                        'text': chunk
-                    })
-                chapters.append({
-                    'frames': frames,
-                    'number': chapter_slug,
-                    'ref': reference,
-                    'title': title
-                })
-
-        return chapters
-
-    def _index_usx_files(self, lid, rid, format):
-        """
-        Converts a USFM bundle into USX files and returns an array of usx file paths
-        :param lid:
-        :param rid:
-        :param format:
-        :return:
-        """
-        usx_sources = {}
 
         format_str = format['format']
         if 'application/zip' in format_str and 'usfm' in format_str:
-            rc_dir = self._retrieve_rc(lid, rid, format['url'])
-            if not rc_dir: return usx_sources
+            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
+            if not rc_dir: return
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-
-            usx_path = os.path.join(rc_dir, 'usx')
-            UsfmTransform.buildUSX(rc_dir, usx_path, '', True)
+            usx_dir = os.path.join(rc_dir, 'usx')
+            usx_is_built = False
             for project in manifest['projects']:
                 pid = project['identifier']
-                key = '$'.join([pid, lid, rid])
-                usx_sources[key] = os.path.normpath(os.path.join(usx_path, '{}.usx'.format(pid.upper())))
+                process_id = '_'.join([lid, rid, pid])
 
-        return usx_sources
+                if process_id not in self.status['processed']:
+                    # copy usfm project file
+                    usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
+                    if not os.path.exists(usfm_dir):
+                        os.makedirs(usfm_dir)
+                    usfm_dest_file = os.path.normpath(os.path.join(usfm_dir, project['path']))
+                    usfm_src_file = os.path.normpath(os.path.join(rc_dir, project['path']))
+                    shutil.copyfile(usfm_src_file, usfm_dest_file)
+
+                    # transform usfm to usx
+                    UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
+
+                    # convert USX to JSON
+                    print('INFO: {} to json'.format(pid.upper()))
+                    path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
+                    source = self._generate_source_from_usx(path, format['modified'])
+                    upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
+                    self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
+
+                    self.status['processed'][process_id] = []
+                    self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
     def _prep_data_upload(self, key, data):
         """
@@ -636,6 +640,30 @@ class TsV2CatalogHandler:
             'key': key,
             'path': temp_file
         }
+
+    def _upload_all(self, uploads):
+        """
+        Uploads an array or object of uploads
+        :param uploads:
+        :return:
+        """
+        for upload in uploads:
+            if isinstance(upload, dict):
+                self._upload(upload)
+            elif upload in uploads and isinstance(uploads[upload], dict):
+                self._upload(uploads[upload])
+            else:
+                raise Exception('invalid upload object')
+
+    def _upload(self, upload):
+        """
+        Uploads an upload
+        :param upload:
+        :return:
+        """
+        self.cdn_handler.upload_file(upload['path'],
+                                     '{}/{}'.format(TsV2CatalogHandler.cdn_root_path,
+                                                    upload['key']))
 
     def _get_rc_type(self, format):
         """
@@ -670,14 +698,14 @@ class TsV2CatalogHandler:
                     res.update({
                         'notes': '{}/{}/{}/{}/notes.json?date_modified={}'.format(
                             self.cdn_url,
-                            TsV2CatalogHandler.cdn_rooth_path,
+                            TsV2CatalogHandler.cdn_root_path,
                             pid, lid, modified)
                     })
                 elif 'tq' in resource['identifier']:
                     res.update({
                         'checking_questions': '{}/{}/{}/{}/questions.json?date_modified={}'.format(
                             self.cdn_url,
-                            TsV2CatalogHandler.cdn_rooth_path,
+                            TsV2CatalogHandler.cdn_root_path,
                             pid, lid, modified)
                     })
         elif rc_type == 'dict':
@@ -688,7 +716,7 @@ class TsV2CatalogHandler:
                     res.update({
                         'terms': '{}/{}/bible/{}/words.json?date_modified={}'.format(
                             self.cdn_url,
-                            TsV2CatalogHandler.cdn_rooth_path,
+                            TsV2CatalogHandler.cdn_root_path,
                             lid, modified)
                     })
 
@@ -732,7 +760,7 @@ class TsV2CatalogHandler:
 
         source_url = '{}/{}/{}/{}/{}/source.json?date_modified={}'.format(
             self.cdn_url,
-            TsV2CatalogHandler.cdn_rooth_path,
+            TsV2CatalogHandler.cdn_root_path,
             pid, lid, rid, r_modified)
         res.update({
             'date_modified': r_modified,
@@ -760,18 +788,18 @@ class TsV2CatalogHandler:
             res.update({
                 'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
                     self.cdn_url,
-                    TsV2CatalogHandler.cdn_rooth_path,
+                    TsV2CatalogHandler.cdn_root_path,
                     pid, lid, r_modified)
             })
 
         # bible projects have usfm
         if pid != 'obs':
-            res.update({
-                'usfm': '{}/{}/{}/{}/{}-{}.usfm?date_modified={}'.format(
-                    self.cdn_url,
-                    TsV2CatalogHandler.cdn_rooth_path,
-                    rid, lid, '{}'.format(project['sort']).zfill(2), pid.upper(), r_modified)
-            })
+            for format in project['formats']:
+                if 'text/usfm' == format['format']:
+                    res.update({
+                        'usfm': '{}?date_modified={}'.format(format['url'], r_modified)
+                    })
+                    break
 
         # language
         lang = catalog[pid]['_langs'][lid]
@@ -790,7 +818,7 @@ class TsV2CatalogHandler:
                 'meta': project['categories'],
                 'name': project['title']
             },
-            'res_catalog': '{}/{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_rooth_path, pid, lid, l_modified)
+            'res_catalog': '{}/{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path, pid, lid, l_modified)
         }
         if 'ulb' == rid or 'udb' == rid:
             cat_lang['project']['sort'] = '{}'.format(project['sort'])
@@ -800,7 +828,7 @@ class TsV2CatalogHandler:
         p_modified = self._max_modified(catalog[pid], l_modified)
         catalog[pid].update({
             'date_modified': p_modified,
-            'lang_catalog': '{}/{}/{}/languages.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_rooth_path, pid, p_modified),
+            'lang_catalog': '{}/{}/{}/languages.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path, pid, p_modified),
             'meta': project['categories'],
             'slug': pid,
             'sort': '{}'.format(project['sort']).zfill(2)
@@ -934,42 +962,9 @@ class TsV2CatalogHandler:
         return {
             'source': {
                 'chapters': book,
-                'date_modified': date_modified
+                'date_modified': date_modified.replace('-', '').split('T')[0]
             }
         }
-
-    def _retrieve_rc(self, lid, rid, url):
-        """
-        Downloads a resource container from a url, validates it, and prepares it for reading
-        :param lid: the language code of the RC
-        :param rid: the resource code of the RC
-        :param url: the url from which to download the RC
-        :return: the path to the readable RC or None if an error occured.
-        """
-        zip_file = os.path.join(self.temp_dir, url.split('/')[-1])
-        zip_dir = os.path.join(self.temp_dir, lid, rid, 'zip_dir')
-        self.download_file(url, zip_file)
-
-        if not os.path.exists(zip_file):
-            print('ERROR: could not download file {}'.format(url))
-            return None
-
-        unzip(zip_file, zip_dir)
-        rc_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
-
-        try:
-            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-        except Exception as e:
-            print('ERROR: could not read manifest in {}'.format(url))
-            return None
-
-        # ensure the manifest matches
-        dc = manifest['dublin_core']
-        if dc['identifier'] != rid or dc['language']['identifier'] != lid:
-            print('ERROR: the downloaded RC does not match the expected language ({}) and resource ({}). Found {}-{} instead'.format(lid, rid, dc['language']['identifier'], dc['identifier']))
-            return None
-
-        return rc_dir
 
     def _convert_rc_links(self, content):
         """
