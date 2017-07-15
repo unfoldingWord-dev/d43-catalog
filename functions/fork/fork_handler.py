@@ -100,7 +100,8 @@ class ForkHandler:
         new_repos = []
         for repo in org_repos:
             repo_name = repo.full_name.split("/")[-1]
-            if not self.value_in_obj_array('repo_name', repo_name, items):
+            matching_item = self.__get_obj_in_array('repo_name', repo_name, items)
+            if not matching_item or ('dirty' in matching_item and matching_item['dirty']):
                 new_repos.append(repo)
             else:
                 # check if changed
@@ -119,14 +120,14 @@ class ForkHandler:
 
         return new_repos
 
-    def value_in_obj_array(self, key, value, array):
+    def __get_obj_in_array(self, key, value, array):
         """
-        Checks if an object in the array contains a key value pair
-        :param key: the key to look up
-        :param value: the value to match
-        :param array: the array to search
-        :return: True if a match is found
+        Retrieves the first item in an array if the key matches the value
+        :param key:
+        :param value:
+        :param array:
+        :return:
         """
         for item in array:
-            if item[key] == value: return True
-        return False
+            if item[key] == value: return item
+        return None
