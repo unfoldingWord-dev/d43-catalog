@@ -2,93 +2,16 @@ from __future__ import unicode_literals, print_function
 import os
 import shutil
 import tempfile
-import json
-import copy
 from unittest import TestCase
 from d43_aws_tools import S3Handler
-from tools.file_utils import load_json_object
 from tools.test_utils import assert_object_equals_file
-from tools.mocks import MockAPI, MockLogger, MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler
+from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler
 
 from functions.catalog.catalog_handler import CatalogHandler
 
 class TestCatalog(TestCase):
 
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
-
-    # class MockS3Handler(object):
-    #     temp_dir = ''
-    #
-    #     def __init__(self, bucket_name):
-    #         self.bucket_name = bucket_name
-    #
-    #     @staticmethod
-    #     def download_file(key, local_file):
-    #         shutil.copy(key, local_file)
-    #
-    #     @staticmethod
-    #     def upload_file(path, key, cache_time=1):
-    #         out_path = os.path.join(TestCatalog.MockS3Handler.temp_dir, key)
-    #         parent_dir = os.path.dirname(out_path)
-    #         if not os.path.isdir(parent_dir):
-    #             os.makedirs(parent_dir)
-    #
-    #         shutil.copy(path, out_path)
-
-    # class MockDynamodbHandler(object):
-    #     tables_file = 'valid_db.json'
-    #     commit_id = ''
-    #
-    #     def __init__(self, table_name):
-    #         self.table_name = table_name
-    #         self.table = self._get_table(table_name)
-    #
-    #     def _get_table(self, table_name):
-    #         tables = load_json_object(os.path.join(TestCatalog.resources_dir, self.tables_file))
-    #         return tables[table_name]
-    #
-    #     # noinspection PyUnusedLocal
-    #     def insert_item(self, data):
-    #         self.table.append(data)
-    #         return len(self.table) - 1
-    #
-    #     # noinspection PyUnusedLocal
-    #     def get_item(self, record_keys):
-    #         try:
-    #             return copy.deepcopy(self.table[record_keys['id']])
-    #         except Exception:
-    #             return None
-    #
-    #     # noinspection PyUnusedLocal
-    #     def update_item(self, record_keys, row):
-    #         try:
-    #             self.table[record_keys['id']].update(row)
-    #         except Exception:
-    #             return False
-    #         return True
-    #
-    #     # noinspection PyUnusedLocal
-    #     def query_items(self):
-    #         return list(self.table)
-
-    # class MockSESHandler(object):
-    #     pass
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp(prefix='unitTest_')
-        # self.MockS3Handler.temp_dir = self.temp_dir
-        self.s3keys = []
-
-    def tearDown(self):
-        # clean up local temp files
-        if os.path.isdir(self.temp_dir):
-            shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-        # clean up temp files on S3
-        if len(self.s3keys) > 0:
-            s3_handler = S3Handler('test-cdn.door43.org')
-            for s3key in self.s3keys:
-                s3_handler.delete_file(s3key)
 
     @staticmethod
     def create_event():
@@ -183,7 +106,7 @@ class TestCatalog(TestCase):
         self.assertTrue(response['success'])
         self.assertFalse(response['incomplete'])
         self.assertIn('Uploaded new catalog', response['message'])
-        assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog.json'))
+        assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_obs.json'))
         self.assertEqual(0, len(mock_errors_db._db))
         self.assertEqual(1, len(mock_progress_db._db))
 
@@ -208,7 +131,7 @@ class TestCatalog(TestCase):
         self.assertIn('Uploaded new catalog', response['message'])
         self.assertTrue(response['incomplete'])
         # we expect the invalid record to be skipped
-        assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog.json'))
+        assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_obs.json'))
 
     def test_catalog_invalid_manifest(self):
         state = self.run_with_db('invalid_manifest.json')
@@ -282,14 +205,4 @@ class TestCatalog(TestCase):
         """
         state = self.run_with_db('complex.json')
 
-        print('done')
-        # self.MockDynamodbHandler.tables_file = 'complex_db.json'
-        # event = self.create_event()
-        # handler = CatalogHandler(event, self.MockS3Handler, self.MockDynamodbHandler, self.MockSESHandler)
-        # response = handler.handle_catalog()
-        # catalog = response['catalog']
-
-        # TODO: we need to run tests to ensure complex data is handled correctly.
-        # e.g. one repo provides resource formats and another provide a project format for that resource
-        # two repos with the same resource provide formats at the same level (conflict resource formats, conflicting projects formats)
-        #
+        assert_object_equals_file(self, state['response']['catalog'], os.path.join(self.resources_dir, 'v3_catalog_complex.json'))
