@@ -15,13 +15,14 @@ from tools.file_utils import write_file
 from tools.url_utils import get_url, url_exists
 from tools.consistency_checker import ConsistencyChecker
 from tools.dict_utils import read_dict
+from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
 
 class CatalogHandler:
     API_VERSION = '3'
 
     resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
 
-    def __init__(self, event, s3_handler, dynamodb_handler, ses_handler, consistency_checker=None, url_handler=None, url_exists_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, ses_handler=None, consistency_checker=None, url_handler=None, url_exists_handler=None):
         """
         Initializes a catalog handler
         :param event: 
@@ -38,14 +39,26 @@ class CatalogHandler:
         self.to_email = read_dict(event, 'to_email')
         self.from_email = read_dict(event, 'from_email')
 
-        self.progress_table = dynamodb_handler('d43-catalog-in-progress')
-        self.status_table = dynamodb_handler('d43-catalog-status')
-        self.errors_table = dynamodb_handler('d43-catalog-errors')
+        if dynamodb_handler:
+            self.progress_table = dynamodb_handler('d43-catalog-in-progress')
+            self.status_table = dynamodb_handler('d43-catalog-status')
+            self.errors_table = dynamodb_handler('d43-catalog-errors')
+        else:
+            self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
+            self.status_table = DynamoDBHandler('d43-catalog-status')
+            self.errors_table = DynamoDBHandler('d43-catalog-errors')
+
         self.catalog = {
             "languages": []
         }
-        self.api_handler = s3_handler(self.api_bucket)
-        self.ses_handler = ses_handler()
+        if s3_handler:
+            self.api_handler = s3_handler(self.api_bucket)
+        else:
+            self.api_handler = S3Handler(self.api_bucket)
+        if ses_handler:
+            self.ses_handler = ses_handler()
+        else:
+            self.ses_handler = SESHandler()
         if consistency_checker:
             self.checker = consistency_checker()
         else:

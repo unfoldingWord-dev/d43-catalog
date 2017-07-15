@@ -1,0 +1,42 @@
+[
+  {
+    "repo_name": "en-tw",
+    "commit_id": "f8a8d8d757",
+    "language": "en",
+    "timestamp": "2017-04-25T21:46:30Z",
+    "package": "{\"checking\": {\"checking_entity\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"checking_level\": \"3\"}, \"dublin_core\": {\"conformsto\": \"rc0.2\", \"contributor\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"creator\": \"Distant Shores Media\", \"description\": \"An unrestricted visual mini-Bible in any language\", \"format\": \"text/markdown\", \"identifier\": \"obs\", \"issued\": \"2015-08-26\", \"language\": {\"direction\": \"ltr\", \"identifier\": \"en\", \"title\": \"English\"}, \"modified\": \"2017-01-10\", \"publisher\": \"unfoldingWord\", \"relation\": [\"en/tw\", \"en/obs-tq\", \"en/obs-tn\"], \"rights\": \"CC BY-SA 4.0\", \"source\": [{\"identifier\": \"obs\", \"language\": \"en\", \"version\": \"4\"}], \"subject\": \"Bible stories\", \"title\": \"Open Bible Stories\", \"type\": \"book\", \"version\": \"4\"}, \"formats\": [{\"format\": \"application/zip; type=book content=text/markdown version=rc0.2\", \"modified\": \"2017-01-10\", \"signature\": \"https://google.com\", \"size\": 100417, \"url\": \"https://google.com\"}], \"projects\": [{\"categories\": null, \"identifier\": \"obs\", \"path\": \"./content\", \"sort\": 0, \"title\": \"Open Bible Stories\", \"versification\": \"ufw\"}]}"
+
+  },
+  {
+    "repo_name": "en-ta",
+    "commit_id": "f8a8d8d757",
+    "language": "en",
+    "timestamp": "2017-04-25T21:46:30Z",
+    "package": "{\"checking\": {\"checking_entity\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"checking_level\": \"3\"}, \"dublin_core\": {\"conformsto\": \"rc0.2\", \"contributor\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"creator\": \"Distant Shores Media\", \"description\": \"An unrestricted visual mini-Bible in any language\", \"format\": \"text/markdown\", \"identifier\": \"obs\", \"issued\": \"2015-08-26\", \"language\": {\"direction\": \"ltr\", \"identifier\": \"en\", \"title\": \"English\"}, \"modified\": \"2017-01-10\", \"publisher\": \"unfoldingWord\", \"relation\": [\"en/tw\", \"en/obs-tq\", \"en/obs-tn\"], \"rights\": \"CC BY-SA 4.0\", \"source\": [{\"identifier\": \"obs\", \"language\": \"en\", \"version\": \"4\"}], \"subject\": \"Bible stories\", \"title\": \"Open Bible Stories\", \"type\": \"book\", \"version\": \"4\"}, \"formats\": [{\"format\": \"application/zip; type=book content=text/markdown version=rc0.2\", \"modified\": \"2017-01-10\", \"signature\": \"https://google.com\", \"size\": 100417, \"url\": \"https://google.com\"}], \"projects\": [{\"categories\": null, \"identifier\": \"obs\", \"path\": \"./content\", \"sort\": 0, \"title\": \"Open Bible Stories\", \"versification\": \"ufw\"}]}"
+
+  },
+  {
+    "repo_name": "en-obs-tq",
+    "commit_id": "f8a8d8d757",
+    "language": "en",
+    "timestamp": "2017-04-25T21:46:30Z",
+    "package": "{\"checking\": {\"checking_entity\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"checking_level\": \"3\"}, \"dublin_core\": {\"conformsto\": \"rc0.2\", \"contributor\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"creator\": \"Distant Shores Media\", \"description\": \"An unrestricted visual mini-Bible in any language\", \"format\": \"text/markdown\", \"identifier\": \"obs\", \"issued\": \"2015-08-26\", \"language\": {\"direction\": \"ltr\", \"identifier\": \"en\", \"title\": \"English\"}, \"modified\": \"2017-01-10\", \"publisher\": \"unfoldingWord\", \"relation\": [\"en/tw\", \"en/obs-tq\", \"en/obs-tn\"], \"rights\": \"CC BY-SA 4.0\", \"source\": [{\"identifier\": \"obs\", \"language\": \"en\", \"version\": \"4\"}], \"subject\": \"Bible stories\", \"title\": \"Open Bible Stories\", \"type\": \"book\", \"version\": \"4\"}, \"formats\": [{\"format\": \"application/zip; type=book content=text/markdown version=rc0.2\", \"modified\": \"2017-01-10\", \"signature\": \"https://google.com\", \"size\": 100417, \"url\": \"https://google.com\"}], \"projects\": [{\"categories\": null, \"identifier\": \"obs\", \"path\": \"./content\", \"sort\": 0, \"title\": \"Open Bible Stories\", \"versification\": \"ufw\"}]}"
+
+  },
+  {
+    "repo_name": "en-tq",
+    "commit_id": "f8a8d8d757",
+    "language": "en",
+    "timestamp": "2017-04-25T21:46:30Z",
+    "package": "{\"checking\": {\"checking_entity\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"checking_level\": \"3\"}, \"dublin_core\": {\"conformsto\": \"rc0.2\", \"contributor\": [\"Distant Shores Media\", \"Wycliffe Associates\"], \"creator\": \"Distant Shores Media\", \"description\": \"An unrestricted visual mini-Bible in any language\", \"format\": \"text/markdown\", \"identifier\": \"obs\", \"issued\": \"2015-08-26\", \"language\": {\"direction\": \"ltr\", \"identifier\": \"en\", \"title\": \"English\"}, \"modified\": \"2017-01-10\", \"publisher\": \"unfoldingWord\", \"relation\": [\"en/tw\", \"en/obs-tq\", \"en/obs-tn\"], \"rights\": \"CC BY-SA 4.0\", \"source\": [{\"identifier\": \"obs\", \"language\": \"en\", \"version\": \"4\"}], \"subject\": \"Bible stories\", \"title\": \"Open Bible Stories\", \"type\": \"book\", \"version\": \"4\"}, \"formats\": [{\"format\": \"application/zip; type=book content=text/markdown version=rc0.2\", \"modified\": \"2017-01-10\", \"signature\": \"https://google.com\", \"size\": 100417, \"url\": \"https://google.com\"}], \"projects\": [{\"categories\": null, \"identifier\": \"obs\", \"path\": \"./content\", \"sort\": 0, \"title\": \"Open Bible Stories\", \"versification\": \"ufw\"}]}"
+
+  },
+  {
+    "commit_id": "a97c519d08",
+    "language": "es",
+    "package": "{\"checking\": {\"checking_entity\": [\"translation team\"], \"checking_level\": \"1\"}, \"dublin_core\": {\"comment\": \"Level 1 check cleared via email to Tim Jore by translation team.\", \"conformsto\": \"rc0.2\", \"contributor\": [\"ljbadiola\", \"natilatina\"], \"creator\": \"Distant Shores Media\", \"description\": \"una mini Biblia visual sin restricciones en cualquier idioma\", \"format\": \"text/markdown\", \"identifier\": \"obs\", \"issued\": \"2015-04-08\", \"language\": {\"direction\": \"ltr\", \"identifier\": \"es\", \"title\": \"espa\\u00f1ol\"}, \"modified\": \"2015-04-08T00:00:00.000Z\", \"publisher\": \"unfoldingWord\", \"relation\": [], \"rights\": \"CC BY-SA 4.0\", \"source\": [{\"identifier\": \"obs\", \"language\": \"en\", \"version\": \"3.1\"}], \"subject\": \"Bible stories\", \"title\": \"HISTORIAS B\\u00cdBLICAS LIBRES\", \"type\": \"book\", \"version\": \"3.2.1\"}, \"formats\": [{\"format\": \"application/zip; type=book content=text/markdown conformsto=rc0.2\", \"modified\": \"2017-05-17T21:11:27Z\", \"signature\": \"https://cdn.door43.org/es/obs/v3.2.1/obs.zip.sig\", \"size\": 87136, \"url\": \"https://cdn.door43.org/es/obs/v3.2.1/obs.zip\"}], \"projects\": [{\"categories\": [], \"identifier\": \"obs\", \"path\": \"./content\", \"sort\": 0, \"title\": \"HISTORIAS B\\u00cdBLICAS LIBRES\", \"versification\": \"ufw\"}]}",
+    "repo_name": "es_obs",
+    "signed": true,
+    "timestamp": "2017-05-17T21:11:27Z"
+  }
+]
