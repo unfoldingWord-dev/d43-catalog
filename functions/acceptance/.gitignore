@@ -5,3 +5,4 @@
 !.apexignore
 !/__init__.py
 !acceptance_test.py
+!tools

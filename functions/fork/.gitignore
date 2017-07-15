@@ -4,3 +4,4 @@
 !.apexignore
 !fork_handler.py
 !/__init__.py
+!tools

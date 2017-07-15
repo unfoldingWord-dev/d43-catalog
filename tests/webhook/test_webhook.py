@@ -82,7 +82,7 @@ class TestWebhook(TestCase):
         entry = self.MockDynamodbHandler.data
         self.assertEqual(1, len(self.MockS3Handler.uploads))
         self.assertIn('/en_obs.zip', self.MockS3Handler.uploads[0]['path'])
-        self.assertIn('temp/en_obs/{}/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+        self.assertIn('temp/en_obs/{}/en/obs/v4/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
         # package = json.loads(entry['package'])
         # project = package['projects'][0]
         # self.assertIn('formats', project)
