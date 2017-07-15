@@ -8,25 +8,16 @@
       "identifier": "en",
       "resources": [
         {
-          "conformsto": "rc0.2",
+          "comment": "",
           "publisher": "unfoldingWord",
-          "formats": [
-            {
-              "size": 100417,
-              "url": "https://google.com",
-              "signature": "https://google.com",
-              "modified": "2017-01-10",
-              "format": "application/zip; type=book content=text/markdown version=rc0.2"
-            }
-          ],
           "description": "An unrestricted visual mini-Bible in any language",
-          "language": {
-            "direction": "ltr",
-            "identifier": "en",
-            "resources": [],
-            "title": "English"
+          "checking": {
+            "checking_entity": [
+              "Distant Shores Media",
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
           },
-          "format": "text/markdown",
           "issued": "2015-08-26",
           "rights": "CC BY-SA 4.0",
           "modified": "2017-01-10",
@@ -43,7 +34,6 @@
             "en/obs-tq",
             "en/obs-tn"
           ],
-          "type": "book",
           "contributor": [
             "Distant Shores Media",
             "Wycliffe Associates"
@@ -51,13 +41,25 @@
           "title": "Open Bible Stories",
           "identifier": "obs",
           "creator": "Distant Shores Media",
-          "subject": "Bible stories",
-          "checking": {
-            "checking_entity": [
-              "Wycliffe Associates"
-            ],
-            "checking_level": "3"
-          }
+          "projects": [
+            {
+              "sort": 0,
+              "title": "Open Bible Stories",
+              "formats": [
+                {
+                  "size": 94233,
+                  "url": "https://cdn.door43.org/en/obs/v4/obs.zip",
+                  "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
+                  "modified": "2017-06-14T19:21:37Z",
+                  "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
+                }
+              ],
+              "versification": null,
+              "identifier": "obs",
+              "categories": []
+            }
+          ],
+          "subject": "Bible stories"
         }
       ],
       "title": "English"
