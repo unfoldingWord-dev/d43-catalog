@@ -4,9 +4,13 @@ import os
 import shutil
 import tempfile
 import time
+
+import datetime
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict
 from tools.url_utils import url_exists, download_file
+from mutagen.mp3 import MP3
+from mutagen.mp4 import MP4
 
 
 class SigningHandler(object):
@@ -144,12 +148,22 @@ class SigningHandler(object):
         (already_signed, newly_signed, file_to_sign) = self.process_format(item, chapter)
 
         if not already_signed and newly_signed and file_to_sign:
-            chapter['size'] = os.path.getsize(file_to_sign)
-            chapter['length'] = 0 # TODO: if this is an audio file we need to get the audio length
-            chapter['modified'] = ''
+            stats = os.stat(file_to_sign)
+            mdate = datetime.datetime.fromtimestamp(stats.st_mtime)
+            _, ext = os.path.splitext(file_to_sign)
+
+            chapter['size'] = stats.st_size
+            chapter['modified'] = mdate.isoformat()
+
+            # retrieve playback time from multimedia files
+            if ext == '.mp3':
+                audio = MP3(file_to_sign)
+                chapter['length'] = audio.info.length
+            elif ext == '.mp4':
+                video = MP4(file_to_sign)
+                chapter['length'] = video.info.length
 
         return (already_signed, newly_signed)
-
 
     def process_format(self, item, format):
         """

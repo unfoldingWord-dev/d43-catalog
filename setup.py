@@ -20,6 +20,7 @@ setup(
     long_description='Publishing door43-catalog organization.',
     classifiers=[],
     install_requires=[
+        'mutagen==1.38',
         'markdown==2.6.8',
         'pyyaml==3.12',
         'gogs_client==1.0.6',

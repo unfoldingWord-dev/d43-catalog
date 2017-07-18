@@ -252,7 +252,6 @@ class TestSigningHandler(TestCase):
         updated_item = mock_db.get_item({'repo_name': 'en_obs'}).copy()
         assert_object_not_equals(self, updated_item, original_item)
 
-
         # check for the .sig in resource formats
         manifest = json.loads(updated_item['package'], 'utf-8')
         found_file = [f for f in manifest['formats'] if f['signature'].endswith('.sig')]
@@ -273,9 +272,13 @@ class TestSigningHandler(TestCase):
 
                     for chapter in format['chapters']:
                         self.assertTrue(chapter['signature'].endswith('.sig'))
+                        self.assertNotEqual('', chapter['modified'])
+                        self.assertNotEqual(0, chapter['length'])
+                        self.assertNotEqual(0, chapter['size'])
+
                         # check that we don't have the skipped chapter
                         ch_quality = '{}_{}'.format(chapter['identifier'], format['quality'])
-                        self.assertNotEqual(ch_quality, '01_32kbps') # skipped chapter one audio because it was missing
+                        self.assertNotEqual(ch_quality, '01_32kbps')  # skipped chapter one audio because it was missing
 
                     found_file = [c for c in format['chapters'] if c['signature'].endswith('.sig')]
                     self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource format chapters list.')
