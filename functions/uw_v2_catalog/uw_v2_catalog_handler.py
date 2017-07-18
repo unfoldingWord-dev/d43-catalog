@@ -17,10 +17,12 @@ from tools.dict_utils import read_dict
 from tools.url_utils import download_file, get_url
 from tools.legacy_utils import index_obs
 
+
 def datestring_to_timestamp(datestring):
     # TRICKY: force all datestamps to PST to normalize unit tests across servers.
     tz = pytz.timezone("US/Pacific")
     return str(int(time.mktime(tz.localize(datetime.strptime(datestring[:10], "%Y-%m-%d")).timetuple())))
+
 
 class UwV2CatalogHandler:
 

@@ -17,6 +17,7 @@ from tools.consistency_checker import ConsistencyChecker
 from tools.dict_utils import read_dict
 from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
 
+
 class CatalogHandler:
     API_VERSION = '3'
 

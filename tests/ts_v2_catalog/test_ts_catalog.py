@@ -1,12 +1,14 @@
 import os
 import json
 from tools.file_utils import load_json_object, read_file
-import unittest
 from unittest import TestCase
 from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler
-from tools.test_utils import assert_s3_equals_api_json, is_travis
-
+from tools.test_utils import assert_s3_equals_api_json
 from functions.ts_v2_catalog.ts_v2_catalog_handler import TsV2CatalogHandler
+
+# This is here to test importing main
+from functions.ts_v2_catalog import main
+
 
 class TestTsV2Catalog(TestCase):
 

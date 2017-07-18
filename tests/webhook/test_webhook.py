@@ -3,9 +3,12 @@ import os
 import json
 from unittest import TestCase
 from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler
-from tools.file_utils import read_file
 from tools.test_utils import assert_object_equals_file
 from functions.webhook.webhook_handler import WebhookHandler
+
+# This is here to test importing main
+from functions.webhook import main
+
 
 class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')

@@ -3,13 +3,15 @@ import json
 import os
 import shutil
 import tempfile
-import uuid
 from unittest import TestCase
-from datetime import datetime
 from tools.file_utils import load_json_object
 from functions.signing import SigningHandler
 from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner, MockAPI
 from tools.test_utils import assert_object_not_equals
+
+# This is here to test importing main
+from functions.signing import main
+
 
 class TestSigningHandler(TestCase):
 
