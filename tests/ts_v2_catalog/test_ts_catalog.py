@@ -53,7 +53,7 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/resources.json')
-        self.assertNotIn('v2/ts/obs/en/obs/source.json', mockS3._uploads)
+        self.assertNotIn('v2/ts/obs/en/obs/source.json', mockS3._recent_uploads)
         # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/questions.json')
@@ -62,26 +62,26 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/resources.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/source.json')
-        self.assertNotIn('v2/ts/1ch/en/notes.json', mockS3._uploads)
+        self.assertNotIn('v2/ts/1ch/en/notes.json', mockS3._recent_uploads)
         # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/questions.json')
-        self.assertNotIn('v2/ts/1ch/en/tw_cat.json', mockS3._uploads)
+        self.assertNotIn('v2/ts/1ch/en/tw_cat.json', mockS3._recent_uploads)
         # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/tw_cat.json')
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
         # validate urls in generate catalogs match the generated output paths
         root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
-        catalog = json.loads(read_file(mockS3._uploads['v2/ts/catalog.json']))
+        catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:
             lang_catalog_path = project['lang_catalog'].replace(root_url, '').split('?')[0]
-            self.assertIn(lang_catalog_path, mockS3._uploads, url_err_msg.format(lang_catalog_path))
-            lang_catalog = json.loads(read_file(mockS3._uploads[lang_catalog_path]))
+            self.assertIn(lang_catalog_path, mockS3._recent_uploads, url_err_msg.format(lang_catalog_path))
+            lang_catalog = json.loads(read_file(mockS3._recent_uploads[lang_catalog_path]))
             for language in lang_catalog:
                 res_catalog_path = language['res_catalog'].replace(root_url, '').split('?')[0]
-                self.assertIn(res_catalog_path, mockS3._uploads, url_err_msg.format(res_catalog_path))
-                res_catalog = json.loads(read_file(mockS3._uploads[res_catalog_path]))
+                self.assertIn(res_catalog_path, mockS3._recent_uploads, url_err_msg.format(res_catalog_path))
+                res_catalog = json.loads(read_file(mockS3._recent_uploads[res_catalog_path]))
                 for resource in res_catalog:
                     questions_path = resource['checking_questions'].replace(root_url, '').split('?')[0]
                     # notes_path = resource['notes'].replace(root_url, '').split('?')[0]
@@ -90,13 +90,13 @@ class TestTsV2Catalog(TestCase):
                     # terms_map_path = resource['tw_cat'].replace(root_url, '').split('?')[0]
 
                     if questions_path:
-                        self.assertIn(questions_path, mockS3._uploads, url_err_msg.format(questions_path))
+                        self.assertIn(questions_path, mockS3._recent_uploads, url_err_msg.format(questions_path))
                     # if notes_path:
                         # self.assertIn(notes_path, mockS3._uploads, url_err_msg.format(notes_path))
                     # if source_path:
                     #     self.assertIn(source_path, mockS3._uploads, url_err_msg.format(source_path))
                     if terms_path:
-                        self.assertIn(terms_path, mockS3._uploads, url_err_msg.format(terms_path))
+                        self.assertIn(terms_path, mockS3._recent_uploads, url_err_msg.format(terms_path))
                     # if terms_map_path:
                     #     self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
 
@@ -145,16 +145,16 @@ class TestTsV2Catalog(TestCase):
 
         # validate urls in generate catalogs match the generated output paths
         root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
-        catalog = json.loads(read_file(mockS3._uploads['v2/ts/catalog.json']))
+        catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:
             lang_catalog_path = project['lang_catalog'].replace(root_url, '').split('?')[0]
-            self.assertIn(lang_catalog_path, mockS3._uploads, url_err_msg.format(lang_catalog_path))
-            lang_catalog = json.loads(read_file(mockS3._uploads[lang_catalog_path]))
+            self.assertIn(lang_catalog_path, mockS3._recent_uploads, url_err_msg.format(lang_catalog_path))
+            lang_catalog = json.loads(read_file(mockS3._recent_uploads[lang_catalog_path]))
             for language in lang_catalog:
                 res_catalog_path = language['res_catalog'].replace(root_url, '').split('?')[0]
-                self.assertIn(res_catalog_path, mockS3._uploads, url_err_msg.format(res_catalog_path))
-                res_catalog = json.loads(read_file(mockS3._uploads[res_catalog_path]))
+                self.assertIn(res_catalog_path, mockS3._recent_uploads, url_err_msg.format(res_catalog_path))
+                res_catalog = json.loads(read_file(mockS3._recent_uploads[res_catalog_path]))
                 for resource in res_catalog:
                     questions_path = resource['checking_questions'].replace(root_url, '').split('?')[0]
                     notes_path = resource['notes'].replace(root_url, '').split('?')[0]
@@ -163,15 +163,15 @@ class TestTsV2Catalog(TestCase):
                     terms_map_path = resource['tw_cat'].replace(root_url, '').split('?')[0]
 
                     if questions_path:
-                        self.assertIn(questions_path, mockS3._uploads, url_err_msg.format(questions_path))
+                        self.assertIn(questions_path, mockS3._recent_uploads, url_err_msg.format(questions_path))
                     if notes_path:
-                        self.assertIn(notes_path, mockS3._uploads, url_err_msg.format(notes_path))
+                        self.assertIn(notes_path, mockS3._recent_uploads, url_err_msg.format(notes_path))
                     if source_path:
-                        self.assertIn(source_path, mockS3._uploads, url_err_msg.format(source_path))
+                        self.assertIn(source_path, mockS3._recent_uploads, url_err_msg.format(source_path))
                     if terms_path:
-                        self.assertIn(terms_path, mockS3._uploads, url_err_msg.format(terms_path))
+                        self.assertIn(terms_path, mockS3._recent_uploads, url_err_msg.format(terms_path))
                     if terms_map_path:
-                        self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
+                        self.assertIn(terms_map_path, mockS3._recent_uploads, url_err_msg.format(terms_map_path))
 
     # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
     # def test_everything(self):

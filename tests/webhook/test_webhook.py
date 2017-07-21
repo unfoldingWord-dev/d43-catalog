@@ -133,7 +133,7 @@ class TestWebhook(TestCase):
                     download_handler=lambda url, dest: mock_api.download_file(urls[url], dest))
         handler.run()
 
-        self.assertEqual(66, len(mock_s3._uploads))
+        self.assertEqual(66, len(mock_s3._recent_uploads))
         data = mock_db._last_inserted_item
         self.assertTrue(len(data['package']) > 0)
         package = json.loads(data['package'])
@@ -141,8 +141,8 @@ class TestWebhook(TestCase):
         self.assertIn('https://cdn.door43.org/bible/', package[0]['chunks_url'])
         self.assertIn('identifier', package[0])
         self.assertNotIn('chunks', package[0])
-        for key in mock_s3._uploads:
-            dest = mock_s3._uploads[key]
+        for key in mock_s3._recent_uploads:
+            dest = mock_s3._recent_uploads[key]
             # for now we are bypassing signing and uploading directly
             self.assertIn('bible/'.format(data['commit_id']), dest)
             #self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
