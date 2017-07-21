@@ -236,10 +236,14 @@ class WebhookHandler:
                             'format': '',
                             'modified': '',
                             'size': 0,
+                            'is_media': True,  # let the signer know this is a media file
                             'quality': quality,
                             'contributor': media['contributor'],
                             'url': media['url'].replace('{quality}', quality),
-                            'signature': ''
+                            'signature': '',
+                            'build_rules': [
+                                'signing.sign_given_url'
+                            ]
                         }
                         if 'chapter_url' in media:
                             chapter_url = media['chapter_url'].replace('{quality}', quality)
@@ -255,10 +259,14 @@ class WebhookHandler:
                         'format': '',
                         'modified': '',
                         'size': 0,
+                        'is_media': True,  # let the signer know this is a media file
                         'quality': None,
                         'contributor': media['contributor'],
                         'url': media['url'],
-                        'signature': ''
+                        'signature': '',
+                        'build_rules': [
+                            'signing.sign_given_url'
+                        ]
                     }
                     if 'chapter_url' in media:
                         chapters = self._build_media_chapters(rc_dir, manifest, project['identifier'], media['chapter_url'])
@@ -295,11 +303,15 @@ class WebhookHandler:
                         chapter = chapter.split('.')[0] # trim extension from files
                         media_chapters.append({
                             'size': 0,
+                            'is_media': True,  # let the signer know this is a media file
                             'length': 0,
                             'modified': '',
                             'identifier': chapter,
                             'url': chapter_url.replace('{chapter}', chapter),
-                            'signature': ''
+                            'signature': '',
+                            'build_rules': [
+                                'signing.sign_given_url'
+                            ]
                         })
                 else:
                     # TODO: add additional support as needed
