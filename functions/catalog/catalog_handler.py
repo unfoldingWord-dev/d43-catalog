@@ -218,7 +218,7 @@ class CatalogHandler:
         for format in manifest['formats']:
             errors = checker.check_format(format, item)
             if not errors:
-                formats.append(format)
+                formats.append(format) # TODO: remove build_rules
 
         if len(formats) > 0:
             resource = copy.deepcopy(dc)
@@ -246,6 +246,8 @@ class CatalogHandler:
             is_bible = dc['identifier'] == 'ulb' or dc['identifier'] == 'udb'
             if len(manifest['projects']) == 1 and not (is_bible and self.has_usfm_bundle(formats)):
                 # single-project RCs store formats in projects
+                if 'formats' in resource['projects'][0]:
+                    formats = formats + resource['projects'][0]['formats']
                 resource['projects'][0]['formats'] = formats
             else:
                 # multi-project RCs store formats in resource

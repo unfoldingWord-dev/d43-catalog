@@ -87,7 +87,6 @@ class TestSigningHandler(TestCase):
             self.assertFalse(f.endswith('.sig'))
         self.assertIn('Skipping unit-test. Bad Manifest: No JSON object could be decoded', mock_logger._messages)
 
-
     def test_signing_handler_text_missing_file(self):
         """
         Signing will continue to run even if a file is missing.
