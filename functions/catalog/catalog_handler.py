@@ -215,10 +215,11 @@ class CatalogHandler:
         language = self.get_language(language)  # gets the existing language container or creates a new one
 
         formats = []
-        for format in manifest['formats']:
-            errors = checker.check_format(format, item)
+        for fmt in manifest['formats']:
+            errors = checker.check_format(fmt, item)
             if not errors:
-                formats.append(format) # TODO: remove build_rules
+                self.__strip_build_rules(fmt)
+                formats.append(fmt)
 
         if len(formats) > 0:
             resource = copy.deepcopy(dc)
@@ -234,8 +235,9 @@ class CatalogHandler:
             # store projects
             for project in manifest['projects']:
                 if 'formats' in project:
-                    for format in project['formats']:
-                       checker.check_format(format, item)
+                    for fmt in project['formats']:
+                        self.__strip_build_rules(fmt)
+                        checker.check_format(fmt, item)
                 if not project['categories']:
                     project['categories'] = []
                 del project['path']
@@ -259,6 +261,17 @@ class CatalogHandler:
             return True
 
         return False
+
+    def __strip_build_rules(self, obj):
+        if 'build_rules' in obj:
+            del obj['build_rules']
+        elif 'formats' in obj:
+            for format in obj:
+                self.__strip_build_rules(format)
+        elif 'chapters' in obj:
+            for chapter in obj:
+                self.__strip_build_rules(chapter)
+
 
     def has_usfm_bundle(self, formats):
         """
