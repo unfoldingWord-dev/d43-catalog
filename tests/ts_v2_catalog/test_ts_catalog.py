@@ -20,8 +20,8 @@ class TestTsV2Catalog(TestCase):
 
     def make_event(self):
         return {
-            'cdn_bucket': '',
-            'cdn_url': 'https://api.unfoldingword.org/',
+            'cdn_bucket': 'cdn.door43.org',
+            'cdn_url': 'https://cdn.door43.org',
             'catalog_url': 'https://api.door43.org/v3/catalog.json'
         }
 
@@ -171,6 +171,10 @@ class TestTsV2Catalog(TestCase):
                     source_path = resource['source'].replace(root_url, '').split('?')[0]
                     terms_path = resource['terms'].replace(root_url, '').split('?')[0]
                     terms_map_path = resource['tw_cat'].replace(root_url, '').split('?')[0]
+
+                    self.assertNotIn('door43.org', resource['chunks'])
+                    if resource['slug'] != 'obs':
+                        self.assertIn('api.unfoldingword.org', resource['chunks'])
 
                     if questions_path:
                         self.assertIn(questions_path, mockS3._recent_uploads, url_err_msg.format(questions_path))

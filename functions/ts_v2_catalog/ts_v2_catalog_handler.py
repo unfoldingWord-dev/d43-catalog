@@ -754,9 +754,6 @@ class TsV2CatalogHandler:
         r_modified = self._max_modified(res, modified) # TRICKY: dates bubble up from project
         comments = ''  # TRICKY: comments are not officially supported in RCs but we use them if available
         if 'comment' in resource: comments = resource['comment']
-        # if pid == 'obs':
-        #     source_url = 'https://api.unfoldingword.org/v2/ts/{}/{}/source.json?date_modified={}'.format(pid, lid, r_modified)
-        # else:
 
         # add chunks to non-obs projects
         chunks_url = ''
