@@ -91,7 +91,7 @@ class SigningHandler(object):
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                (already_signed, newly_signed, _) = self.process_format(item, format)
+                (already_signed, newly_signed) = self.process_format(item, format)
                 if newly_signed:
                     was_signed = True
                 if not(already_signed or newly_signed):
@@ -100,7 +100,7 @@ class SigningHandler(object):
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    (already_signed, newly_signed, _) = self.process_format(item, format)
+                    (already_signed, newly_signed) = self.process_format(item, format)
                     if newly_signed:
                         was_signed = True
                     if not (already_signed or newly_signed):
@@ -120,7 +120,7 @@ class SigningHandler(object):
                                     self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
                                 continue
 
-                            (already_signed, newly_signed) = self.process_format_chapter(item, chapter)
+                            (already_signed, newly_signed) = self.process_format(item, chapter)
                             sanitized_chapters.append(chapter)
                             if newly_signed:
                                 was_signed = True
@@ -128,7 +128,12 @@ class SigningHandler(object):
                                 fully_signed = False
 
                         format['chapters'] = sanitized_chapters
-
+                        # update format
+                        if sanitized_chapters and not 'content=' in format['format'] and format['url'].endswith('zip'):
+                            if format['chapters'][0]['url'].endswith('.mp3'):
+                                format['format'] = 'application/zip; content=audio/mp3'
+                            if format['chapters'][0]['url'].endswith('.mp4'):
+                                format['format'] = 'application/zip; content=video/mp4'
 
         if was_signed or fully_signed:
             print('[INFO] recording signatures')
@@ -139,33 +144,6 @@ class SigningHandler(object):
                 'signed': fully_signed
             })
 
-    def process_format_chapter(self, item, chapter):
-        """
-        Signs a format chapter
-        :param item:
-        :param chapter:
-        :return: (already_signed, newly_signed, meta)
-        """
-        (already_signed, newly_signed, file_to_sign) = self.process_format(item, chapter)
-
-        if not already_signed and newly_signed and file_to_sign:
-            stats = os.stat(file_to_sign)
-            mdate = datetime.datetime.fromtimestamp(stats.st_mtime)
-            _, ext = os.path.splitext(file_to_sign)
-
-            chapter['size'] = stats.st_size
-            chapter['modified'] = mdate.isoformat()
-
-            # retrieve playback time from multimedia files
-            if ext == '.mp3':
-                audio = MP3(file_to_sign)
-                chapter['length'] = audio.info.length
-            elif ext == '.mp4':
-                video = MP4(file_to_sign)
-                chapter['length'] = video.info.length
-
-        return (already_signed, newly_signed)
-
     def process_format(self, item, format):
         """
         Performs the signing on the format object.
@@ -175,7 +153,7 @@ class SigningHandler(object):
         :return: (already_signed, newly_signed, file_to_sign)
         """
         if 'signature' in format and format['signature']:
-            return (True, False, None)
+            return (True, False)
         else:
             print('[INFO] Signing {}'.format(format['url']))
 
@@ -194,8 +172,8 @@ class SigningHandler(object):
             try:
                 self.download_file(format['url'], file_to_sign)
             except Exception as e:
-                return (True, True, None)
-            return (True, True, file_to_sign)
+                return (True, True)
+            return (True, True)
 
         # download file
         build_rules = get_build_rules(format, 'signing')
@@ -209,7 +187,7 @@ class SigningHandler(object):
         except Exception as e:
             if self.logger:
                 self.logger.warning('The file "{}" could not be downloaded: {}'.format(base_name, e))
-            return (False, False, None)
+            return (False, False)
 
         sig_file = self.signer.sign_file(file_to_sign)
         try:
@@ -217,7 +195,7 @@ class SigningHandler(object):
         except RuntimeError:
             if self.logger:
                 self.logger.warning('The signature was not successfully verified.')
-            return (False, False, None)
+            return (False, False)
 
         # upload files
         if 'sign_given_url' in build_rules:
@@ -228,4 +206,30 @@ class SigningHandler(object):
         # add the url of the sig file to the format
         format['signature'] = '{}.sig'.format(format['url'])
 
-        return (False, True, file_to_sign)
+        # read modified date from file
+        stats = os.stat(file_to_sign)
+        mdate = datetime.datetime.fromtimestamp(stats.st_mtime)
+        format['modified'] = mdate.isoformat()
+        format['size'] = stats.st_size
+
+        # retrieve playback time from multimedia files
+        _, ext = os.path.splitext(file_to_sign)
+        if ext == '.mp3':
+            audio = MP3(file_to_sign)
+            format['length'] = audio.info.length
+        elif ext == '.mp4':
+            video = MP4(file_to_sign)
+            format['length'] = video.info.length
+
+        # add file format
+        if not 'format' in format or not format['format']:
+            if ext == '.mp3':
+                format['format'] = 'audio/mp3'
+            elif ext == '.mp4':
+                format['format'] = 'video/mp4'
+            elif ext == '.zip':
+                format['format'] = 'application/zip'
+            elif self.logger:
+                self.logger.warning('Unknown file format {}'.format(file_to_sign))
+
+        return (False, True)

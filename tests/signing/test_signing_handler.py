@@ -193,6 +193,7 @@ class TestSigningHandler(TestCase):
         for project in manifest['projects']:
             found_file = [f for f in project['formats'] if f['signature'].endswith('.sig')]
             self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
+
             # check for .sig in chapter formats
             for format in project['formats']:
                 if 'chapters' in format and len(format['chapters']):
@@ -202,7 +203,21 @@ class TestSigningHandler(TestCase):
                     else:
                         self.assertTrue(len(format['chapters']) > 1)
 
+                    # check zip format
+                    self.assertTrue(format['url'].endswith('zip'))
+                    if format['chapters'][0]['url'].endswith('.mp3'):
+                        self.assertEqual('application/zip; content=audio/mp3', format['format'])
+                    elif format['chapters'][0]['url'].endswith('.mp4'):
+                        self.assertEqual('application/zip; content=video/mp4', format['format'])
+                    else:
+                        raise Exception('Un-deterministic format')
+
                     for chapter in format['chapters']:
+                        if chapter['url'].endswith('.mp3'):
+                            self.assertEqual('audio/mp3', chapter['format'])
+                        if chapter['url'].endswith('.mp4'):
+                            self.assertEqual('video/mp4', chapter['format'])
+
                         self.assertTrue(chapter['signature'].endswith('.sig'))
                         self.assertNotEqual('', chapter['modified'])
                         self.assertNotEqual(0, chapter['length'])
