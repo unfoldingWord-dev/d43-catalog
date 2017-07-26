@@ -18,7 +18,7 @@ from d43_aws_tools import S3Handler, DynamoDBHandler
 from usfm_tools.transform import UsfmTransform
 from tools.file_utils import write_file, read_file, download_rc
 from tools.legacy_utils import index_obs
-from tools.url_utils import download_file, get_url
+from tools.url_utils import download_file, get_url, url_exists
 from tools.dict_utils import read_dict
 import dateutil.parser
 
@@ -28,7 +28,7 @@ class TsV2CatalogHandler:
     cdn_root_path = 'v2/ts'
     api_version = 'ts.2'
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, url_exists_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param  s3_handler: This is passed in so it can be mocked for unit testing
@@ -55,6 +55,10 @@ class TsV2CatalogHandler:
             self.download_file = download_file
         else:
             self.download_file = download_handler
+        if not url_exists_handler:
+            self.url_exists = url_exists
+        else:
+            self.url_exists = url_exists_handler
 
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
 
@@ -724,10 +728,10 @@ class TsV2CatalogHandler:
     def _build_catalog_node(self, catalog, language, resource, project, modified):
         """
         Creates/updates a node in the catalog
-        :param catalog: 
-        :param language: 
-        :param resource: 
-        :param project: 
+        :param catalog: the v2 catalog dictionary
+        :param language: the v3 language catalog object
+        :param resource: the v3 resource catalog object
+        :param project: the v3 project catalog object
         :param modified: 
         :return: 
         """
@@ -755,9 +759,12 @@ class TsV2CatalogHandler:
         # else:
 
         # add chunks to non-obs projects
-        chunks_url = 'https://api.unfoldingword.org/bible/txt/1/{}/chunks.json'.format(pid)
-        if rid == 'obs':
-            chunks_url = ''
+        chunks_url = ''
+        if rid != 'obs':
+            chunks_url = 'https://api.unfoldingword.org/bible/txt/1/{}/chunks.json'.format(pid)
+            if not self.url_exists(chunks_url) and 'chunks_url' in project:
+                # Use the v3 api chunks url if the legacy version cannot be found
+                chunks_url = project['chunks_url']
 
         source_url = '{}/{}/{}/{}/{}/source.json?date_modified={}'.format(
             self.cdn_url,

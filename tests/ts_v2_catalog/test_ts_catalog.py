@@ -47,7 +47,12 @@ class TestTsV2Catalog(TestCase):
         mock_download = lambda url, dest: mockV3Api.download_file(urls[url], dest)
 
         event = self.make_event()
-        converter = TsV2CatalogHandler(event, mockS3, mockDb, mock_get_url, mock_download)
+        converter = TsV2CatalogHandler(event=event,
+                                       s3_handler=mockS3,
+                                       dynamodb_handler=mockDb,
+                                       url_handler=mock_get_url,
+                                       download_handler=mock_download,
+                                       url_exists_handler=lambda url: True)
         converter.run()
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/catalog.json')
@@ -123,7 +128,12 @@ class TestTsV2Catalog(TestCase):
         mock_download = lambda url, dest: mockV3Api.download_file(urls[url], dest)
 
         event = self.make_event()
-        converter = TsV2CatalogHandler(event, mockS3, mockDb, mock_get_url, mock_download)
+        converter = TsV2CatalogHandler(event=event,
+                                       s3_handler=mockS3,
+                                       dynamodb_handler=mockDb,
+                                       url_handler=mock_get_url,
+                                       download_handler=mock_download,
+                                       url_exists_handler=lambda url: True)
         converter.run()
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/catalog.json')
