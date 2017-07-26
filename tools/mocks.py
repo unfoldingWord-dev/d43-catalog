@@ -119,7 +119,10 @@ class MockLogger(object):
 class MockS3Handler:
 
     def __init__(self, bucket=None):
-        self._uploads = {}
+        self.__uploads = {}
+        """a list of files available in the mock"""
+        self._recent_uploads = {}
+        """a list of files that have been recently uploaded. You should usually use this in tests"""
         self.temp_dir = tempfile.mkdtemp()
 
     def __del__(self):
@@ -127,11 +130,13 @@ class MockS3Handler:
 
     def _load_path(self, dir, root=None):
         """
-        Loads all the files in the path into the mock handler
+        Loads all the files in the path into the mock handler.
+        Files loaded int his way way will not appear in the list of recently uploaded files. a.k.a. won't influence tests
         :param dir:
         :param root: the path that serves at the root of the file space
         :return:
         """
+        upload_history = self._recent_uploads.copy()
         if not root:
             root = dir
 
@@ -143,6 +148,7 @@ class MockS3Handler:
                 self.upload_file(path, key)
             else:
                 self._load_path(path, root)
+        self._recent_uploads = upload_history
 
     def upload_file(self, path, key, cache_time=600):
         upload_path = os.path.join(self.temp_dir, key)
@@ -151,22 +157,23 @@ class MockS3Handler:
             os.makedirs(parent_dir)
 
         shutil.copy(path, upload_path)
-        self._uploads[key] = upload_path
+        self.__uploads[key] = upload_path
+        self._recent_uploads[key] = upload_path
 
     def download_file(self, key, path):
-        if key in self._uploads:
-            shutil.copy(self._uploads[key], path)
+        if key in self.__uploads:
+            shutil.copy(self.__uploads[key], path)
         else:
             raise Exception('File not found for key: {}'.format(key))
 
     def delete_file(self, key, catch_exception=True):
         if catch_exception:
             try:
-                os.remove(self._uploads[key])
+                os.remove(self.__uploads[key])
             except:
                 return False
         else:
-            os.remove(self._uploads[key])
+            os.remove(self.__uploads[key])
             return True
 
 class MockDynamodbHandler(object):

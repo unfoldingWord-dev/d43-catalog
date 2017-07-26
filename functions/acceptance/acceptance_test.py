@@ -11,7 +11,6 @@ import json
 from urlparse import urlparse
 
 
-
 class AcceptanceTest(object):
     def __init__(self, catalog_url, URLHandler, HTTPConnection, SESHandler, to_email=None, from_email=None, quiet=False, ):
         """

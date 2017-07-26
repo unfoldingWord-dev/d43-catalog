@@ -17,6 +17,7 @@ from tools.consistency_checker import ConsistencyChecker
 from tools.dict_utils import read_dict
 from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
 
+
 class CatalogHandler:
     API_VERSION = '3'
 
@@ -214,10 +215,11 @@ class CatalogHandler:
         language = self.get_language(language)  # gets the existing language container or creates a new one
 
         formats = []
-        for format in manifest['formats']:
-            errors = checker.check_format(format, item)
+        for fmt in manifest['formats']:
+            errors = checker.check_format(fmt, item)
             if not errors:
-                formats.append(format)
+                self.__strip_build_rules(fmt)
+                formats.append(fmt)
 
         if len(formats) > 0:
             resource = copy.deepcopy(dc)
@@ -233,8 +235,9 @@ class CatalogHandler:
             # store projects
             for project in manifest['projects']:
                 if 'formats' in project:
-                    for format in project['formats']:
-                       checker.check_format(format, item)
+                    for fmt in project['formats']:
+                        self.__strip_build_rules(fmt)
+                        checker.check_format(fmt, item)
                 if not project['categories']:
                     project['categories'] = []
                 del project['path']
@@ -245,6 +248,8 @@ class CatalogHandler:
             is_bible = dc['identifier'] == 'ulb' or dc['identifier'] == 'udb'
             if len(manifest['projects']) == 1 and not (is_bible and self.has_usfm_bundle(formats)):
                 # single-project RCs store formats in projects
+                if 'formats' in resource['projects'][0]:
+                    formats = formats + resource['projects'][0]['formats']
                 resource['projects'][0]['formats'] = formats
             else:
                 # multi-project RCs store formats in resource
@@ -256,6 +261,17 @@ class CatalogHandler:
             return True
 
         return False
+
+    def __strip_build_rules(self, obj):
+        if 'build_rules' in obj:
+            del obj['build_rules']
+        elif 'formats' in obj:
+            for format in obj:
+                self.__strip_build_rules(format)
+        elif 'chapters' in obj:
+            for chapter in obj:
+                self.__strip_build_rules(chapter)
+
 
     def has_usfm_bundle(self, formats):
         """

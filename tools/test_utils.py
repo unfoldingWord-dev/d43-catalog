@@ -2,6 +2,7 @@ import json
 import os
 from file_utils import read_file
 
+
 def sort_object(obj):
     """
     Sorts the values in an object
@@ -15,6 +16,7 @@ def sort_object(obj):
     else:
         return obj
 
+
 def assert_object_equals_file(unit_test, obj, path):
     """
     Asserts that an object equals the contents of a json file
@@ -26,6 +28,7 @@ def assert_object_equals_file(unit_test, obj, path):
     expected_obj = json.loads(read_file(path))
     assert_object_equals(unit_test, expected_obj, obj)
 
+
 def assert_object_equals(unit_test, obj1, obj2):
     """
     Checks if two objects are equal after recursively sorting them
@@ -35,6 +38,7 @@ def assert_object_equals(unit_test, obj1, obj2):
     :return:
     """
     unit_test.assertEqual(sort_object(obj1), sort_object(obj2))
+
 
 def assert_object_not_equals(unit_test, obj1, obj2):
     """
@@ -46,6 +50,7 @@ def assert_object_not_equals(unit_test, obj1, obj2):
     """
     unit_test.assertNotEqual(sort_object(obj1), sort_object(obj2))
 
+
 def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
     """
     Asserts that the s3 file identified by the given key matches
@@ -56,10 +61,11 @@ def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
     :param key: the relative path to the key
     :return:
     """
-    unit_test.assertIn(key, mock_s3._uploads)
-    s3_obj = json.loads(read_file(mock_s3._uploads[key]))
+    unit_test.assertIn(key, mock_s3._recent_uploads)
+    s3_obj = json.loads(read_file(mock_s3._recent_uploads[key]))
     api_obj = json.loads(mock_api.get_url(key))
     assert_object_equals(unit_test, s3_obj, api_obj)
+
 
 def is_travis():
     """

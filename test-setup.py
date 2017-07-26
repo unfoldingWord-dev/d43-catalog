@@ -12,6 +12,7 @@ setup(
     long_description='Unit test setup file',
     classifiers=[],
     install_requires=[
+        'mutagen==1.38',
         'coveralls==1.1',
         'markdown==2.6.8',
         'pyyaml==3.12',

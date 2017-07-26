@@ -13,6 +13,7 @@ import json
 import time
 from tools.dict_utils import read_dict
 
+
 class ForkHandler:
     def __init__(self, event, gogs_client=None, dynamodb_handler=None):
         """

@@ -10,6 +10,7 @@ from base64 import b64decode
 from subprocess import Popen, PIPE
 from aws_decrypt import decrypt_file
 
+
 class Signer(object):
 
     def __init__(self, priv_pem_path=None, pub_pem_path=None):

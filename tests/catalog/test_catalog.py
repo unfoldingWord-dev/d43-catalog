@@ -1,13 +1,13 @@
 from __future__ import unicode_literals, print_function
 import os
-import shutil
-import tempfile
 from unittest import TestCase
-from d43_aws_tools import S3Handler
 from tools.test_utils import assert_object_equals_file
 from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler
-
 from functions.catalog.catalog_handler import CatalogHandler
+
+# This is here to test importing main
+from functions.catalog import main
+
 
 class TestCatalog(TestCase):
 

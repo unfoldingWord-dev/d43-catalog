@@ -22,6 +22,7 @@ from tools.url_utils import download_file, get_url
 from tools.dict_utils import read_dict
 import dateutil.parser
 
+
 class TsV2CatalogHandler:
 
     cdn_root_path = 'v2/ts'

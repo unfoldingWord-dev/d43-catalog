@@ -7,6 +7,7 @@
 from __future__ import print_function
 from ts_v2_catalog_handler import TsV2CatalogHandler
 
+
 def handle(event, context):
     try:
         catalog = TsV2CatalogHandler(event)

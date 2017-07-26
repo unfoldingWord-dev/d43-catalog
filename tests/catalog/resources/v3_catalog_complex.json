@@ -1229,6 +1229,9 @@
                   "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
                   "modified": "2017-06-14T19:21:37Z",
                   "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
+                },
+                {
+
                 }
               ],
               "versification": null,
