@@ -28,7 +28,6 @@ class SigningHandler(object):
         :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
         :return: bool
         """
-        # self.event = event
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
 
@@ -55,8 +54,7 @@ class SigningHandler(object):
             self.url_exists = url_exists_handler
 
     def __del__(self):
-        if hasattr(self, 'temp_dir') and os.path.isdir(self.temp_dir):
-            shutil.rmtree(self.temp_dir, ignore_errors=True)
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def run(self):
         items = self.db_handler.query_items({

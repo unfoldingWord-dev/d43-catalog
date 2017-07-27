@@ -7,9 +7,11 @@
 
 from __future__ import print_function
 from fork_handler import ForkHandler
+from tools.file_utils import wipe_temp
 
 
 def handle(event, context):
+    wipe_temp(True)
     try:
         handler = ForkHandler(event)
         handler.run()

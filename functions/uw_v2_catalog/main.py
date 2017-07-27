@@ -6,9 +6,11 @@
 
 from __future__ import print_function
 from uw_v2_catalog_handler import UwV2CatalogHandler
+from tools.file_utils import wipe_temp
 
 
 def handle(event, context):
+    wipe_temp(True)
     try:
         catalog = UwV2CatalogHandler(event)
         return catalog.run()

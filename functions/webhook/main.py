@@ -6,9 +6,11 @@
 
 from __future__ import print_function
 from webhook_handler import WebhookHandler
+from tools.file_utils import wipe_temp
 
 
 def handle(event, context):
+    wipe_temp(True)
     try:
         handler = WebhookHandler(event)
         handler.run()

@@ -6,9 +6,11 @@
 
 from __future__ import print_function
 from ts_v2_catalog_handler import TsV2CatalogHandler
+from tools.file_utils import wipe_temp
 
 
 def handle(event, context):
+    wipe_temp(True)
     try:
         catalog = TsV2CatalogHandler(event)
         return catalog.run()

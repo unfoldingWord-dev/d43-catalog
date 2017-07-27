@@ -7,7 +7,7 @@ import httplib
 from acceptance_test import AcceptanceTest
 from d43_aws_tools import SESHandler
 from tools.url_utils import get_url
-
+from tools.file_utils import wipe_temp
 
 class URLHandler(object):
     """
@@ -19,6 +19,7 @@ class URLHandler(object):
 
 def handle(event, context):
     # this shouldn't happen, but just in case
+    wipe_temp(True)
     if 'Records' not in event:
         return False
     for record in event['Records']:
