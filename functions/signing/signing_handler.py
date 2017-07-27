@@ -196,7 +196,7 @@ class SigningHandler(object):
             return (False, False)
 
         # upload files
-        if 'sign_given_url' in build_rules:
+        if 'sign_given_url' not in build_rules:
             # TRICKY: upload temp files to production
             self.cdn_handler.upload_file(file_to_sign, src_key)
         self.cdn_handler.upload_file(sig_file, sig_key)
@@ -229,5 +229,8 @@ class SigningHandler(object):
                 format['format'] = 'application/zip'
             elif self.logger:
                 self.logger.warning('Unknown file format {}'.format(file_to_sign))
+
+        # clean up disk space
+        os.remove(file_to_sign)
 
         return (False, True)
