@@ -263,13 +263,21 @@ class CatalogHandler:
         return False
 
     def __strip_build_rules(self, obj):
+        """
+        Recursively removes 'build_tools' from an object
+        :param obj:
+        :return:
+        """
         if 'build_rules' in obj:
             del obj['build_rules']
-        elif 'formats' in obj:
-            for format in obj:
+        if 'projects' in obj:
+            for project in obj['projects']:
+                self.__strip_build_rules(project)
+        if 'formats' in obj:
+            for format in obj['formats']:
                 self.__strip_build_rules(format)
-        elif 'chapters' in obj:
-            for chapter in obj:
+        if 'chapters' in obj:
+            for chapter in obj['chapters']:
                 self.__strip_build_rules(chapter)
 
 

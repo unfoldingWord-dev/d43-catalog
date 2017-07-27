@@ -236,7 +236,6 @@ class WebhookHandler:
                             'format': '',
                             'modified': '',
                             'size': 0,
-                            'is_media': True,  # let the signer know this is a media file
                             'quality': quality,
                             'contributor': media['contributor'],
                             'url': media['url'].replace('{quality}', quality),
@@ -259,7 +258,6 @@ class WebhookHandler:
                         'format': '',
                         'modified': '',
                         'size': 0,
-                        'is_media': True,  # let the signer know this is a media file
                         'quality': None,
                         'contributor': media['contributor'],
                         'url': media['url'],
@@ -303,7 +301,6 @@ class WebhookHandler:
                         chapter = chapter.split('.')[0] # trim extension from files
                         media_chapters.append({
                             'size': 0,
-                            'is_media': True,  # let the signer know this is a media file
                             'length': 0,
                             'modified': '',
                             'identifier': chapter,
