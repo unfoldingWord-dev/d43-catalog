@@ -3,11 +3,12 @@ import json
 import os
 import shutil
 import tempfile
+import unittest
 from unittest import TestCase
 from tools.file_utils import load_json_object
-from functions.signing import SigningHandler
+from functions.signing import SigningHandler, Signer
 from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner, MockAPI
-from tools.test_utils import assert_object_not_equals
+from tools.test_utils import assert_object_not_equals, is_travis
 
 # This is here to test importing main
 from functions.signing import main
@@ -377,3 +378,44 @@ class TestSigningHandler(TestCase):
         self.assertNotIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
         self.assertTrue(newly_signed)
+
+    @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
+    def test_manually_sign(self):
+        """
+        This is used to manually sign large media files.
+        You shouldn't actually run this test unless you want to use the signature
+        :return:
+        """
+        mock_s3 = MockS3Handler()
+        mock_db = MockDynamodbHandler()
+        mock_logger = MockLogger()
+        event = self.create_event()
+        item = {
+            'repo_name': 'repo_name',
+            'commit_id': 'commitid'
+        }
+        quality = '720p'
+        key = 'en/obs/v4/{0}/en_obs_{0}.zip'.format(quality)
+        format = {
+            "build_rules": [
+                "signing.sign_given_url"
+            ],
+            "format": "",
+            "modified": "",
+            "signature": "",
+            "size": 0,
+            "url": "https://cdn.door43.org/{}".format(key)
+        }
+
+        pem_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../functions/signing/uW-sk.enc')
+        signer = Signer(pem_file)
+
+        signing_handler = SigningHandler(event,
+                                logger=mock_logger,
+                                s3_handler=mock_s3,
+                                signer=signer,
+                                dynamodb_handler=mock_db,
+                                url_size_handler=lambda url: 1)
+        (already_signed, newly_signed) = signing_handler.process_format(item, format)
+        self.assertTrue(newly_signed)
+        mock_s3.download_file('{}.sig'.format(key), os.path.expanduser('~/{}.sig'.format(os.path.basename(key))))

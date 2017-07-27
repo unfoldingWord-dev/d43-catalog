@@ -182,6 +182,8 @@ class SigningHandler(object):
             # TODO: we need to sign these large files but for now this is breaking lambda functions due to limited disk space
             # For now we are adding a signature url so the catalog builds.
             # We could manually add these signatures since they shouldn't change much.
+            format['size'] = size
+            format['modified'] = datetime.datetime.now().isoformat()
             format['signature'] = '{}.sig'.format(format['url'])
             return (False, True)
 
