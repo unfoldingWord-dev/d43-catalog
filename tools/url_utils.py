@@ -11,6 +11,18 @@ try:
 except ImportError:
     import urllib2
 
+def get_url_size(url):
+    """
+    Returns the file size of the url in bytes
+    :param url:
+    :return:
+    """
+    p = urlparse(url)
+    conn = httplib.HTTPConnection(p.netloc)
+    conn.request('HEAD', p.path)
+    resp = conn.getresponse()
+    return resp.getheader('content-length', 0)
+
 def url_exists(url):
     """
     Checks if a url exists

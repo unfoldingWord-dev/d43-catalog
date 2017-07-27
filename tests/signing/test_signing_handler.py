@@ -284,3 +284,95 @@ class TestSigningHandler(TestCase):
         updated_record = mock_db.get_item({'repo_name': 'en_obs'}).copy()
         self.assertTrue(updated_record['signed'])
 
+    def test_skip_signing_large_file(self):
+        """
+        Ensure that large files are not signed.
+        Because lambda functions have limited disk space.
+        :return:
+        """
+        mock_s3 = MockS3Handler()
+        mock_db = MockDynamodbHandler()
+        mock_logger = MockLogger()
+        mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org/')
+        event = self.create_event()
+        item = {
+            'repo_name': 'repo_name',
+            'commit_id': 'commitid'
+        }
+        format = {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [],
+          "contributor": [
+            "Narrator: Steve Lossing",
+            "Checker: Brad Harrington",
+            "Engineer: Brad Harrington"
+          ],
+          "format": "",
+          "modified": "",
+          "quality": "64kbps",
+          "signature": "",
+          "size": 0,
+          "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
+        }
+
+        signer = SigningHandler(event,
+                                logger=mock_logger,
+                                signer=self.mock_signer,
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db,
+                                url_exists_handler=mock_api.url_exists,
+                                download_handler=mock_api.download_file,
+                                url_size_handler=lambda url: SigningHandler.max_file_size + 1)
+        (already_signed, newly_signed) = signer.process_format(item, format)
+        self.assertEqual('', format['signature'])
+        self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
+        self.assertFalse(already_signed)
+        self.assertFalse(newly_signed)
+
+    def test_signing_small_file(self):
+        """
+        Ensure that small files are signed properly
+        :return:
+        """
+        mock_s3 = MockS3Handler()
+        mock_db = MockDynamodbHandler()
+        mock_logger = MockLogger()
+        mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org/')
+        event = self.create_event()
+        item = {
+            'repo_name': 'repo_name',
+            'commit_id': 'commitid'
+        }
+        format = {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [],
+          "contributor": [
+            "Narrator: Steve Lossing",
+            "Checker: Brad Harrington",
+            "Engineer: Brad Harrington"
+          ],
+          "format": "",
+          "modified": "",
+          "quality": "64kbps",
+          "signature": "",
+          "size": 0,
+          "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
+        }
+
+        signer = SigningHandler(event,
+                                logger=mock_logger,
+                                signer=self.mock_signer,
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db,
+                                url_exists_handler=mock_api.url_exists,
+                                download_handler=mock_api.download_file,
+                                url_size_handler=lambda url: 1)
+        (already_signed, newly_signed) = signer.process_format(item, format)
+        self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
+        self.assertNotIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
+        self.assertFalse(already_signed)
+        self.assertTrue(newly_signed)

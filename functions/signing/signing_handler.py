@@ -8,7 +8,7 @@ import time
 import datetime
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict
-from tools.url_utils import url_exists, download_file
+from tools.url_utils import url_exists, download_file, get_url_size
 from tools.build_utils import get_build_rules
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
@@ -16,8 +16,9 @@ from mutagen.mp4 import MP4
 
 class SigningHandler(object):
     dynamodb_table_name = 'd43-catalog-in-progress'
+    max_file_size = 400000000  # 400mb
 
-    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, download_handler=None, url_exists_handler=None):
+    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, download_handler=None, url_exists_handler=None, url_size_handler=None):
         """
         Handles the signing of a file on S3
         :param self:
@@ -30,7 +31,6 @@ class SigningHandler(object):
         """
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
-
         self.logger = logger
         self.signer = signer
         if not s3_handler:
@@ -52,6 +52,10 @@ class SigningHandler(object):
             self.url_exists = url_exists
         else:
             self.url_exists = url_exists_handler
+        if not url_size_handler:
+            self.url_size = get_url_size
+        else:
+            self.url_size = url_size_handler
 
     def __del__(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
@@ -148,7 +152,7 @@ class SigningHandler(object):
         Files outside of the cdn will not be signed
         :param item:
         :param format:
-        :return: (already_signed, newly_signed, file_to_sign)
+        :return: (already_signed, newly_signed)
         """
         if 'signature' in format and format['signature']:
             return (True, False)
@@ -165,13 +169,18 @@ class SigningHandler(object):
         # verify url is on the cdn
         if not format['url'].startswith(self.cdn_url):
             # This allows media to be hosted on third party servers
-            print('WARNING: cannot sign files outside of the cdn. Guessing signature path for '.format(format['url']))
             format['signature'] = '{}.sig'.format(format['url'])
-            try:
-                self.download_file(format['url'], file_to_sign)
-            except Exception as e:
-                return (True, True)
+            print('WARNING: cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
             return (True, True)
+
+        # skip files that are too large
+        size = int(self.url_size(format['url']))
+        if size > SigningHandler.max_file_size:
+            if self.logger:
+                self.logger.warning('File is too large to sign {}'.format(format['url']))
+            # return (False, False)
+            # TODO: we need to sign these large files but for now this is breaking lambda functions
+            return (False, True)
 
         # download file
         build_rules = get_build_rules(format, 'signing')
