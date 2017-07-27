@@ -19,18 +19,22 @@ else:
     # noinspection PyCompatibility
     string_types = basestring,
 
-def wipe_temp(ignore_errors=False):
+def wipe_temp(tmp_dir=None, ignore_errors=False):
     """
     This will delete everything in the /tmp directory.
     Lambda instances may be reused and if a lambda timed out the temp files may not have been removed.
     Running this method will remove all temp files on the instance
-    :param ignore_errors:
+    :param string tmp_dir:
+    :param bool ignore_errors:
     :return:
     """
-    tmp_dir = tempfile.gettempdir()
+    if not tmp_dir:
+        tmp_dir = tempfile.gettempdir()
+
+    # TRICKY: gettempdir() could return None
     if tmp_dir:
         print('Emptying temp dir {}'.format(tmp_dir))
-        files = os.walk(tmp_dir)
+        files = os.listdir(tmp_dir)
         for f in files:
             if f in ['.', '..']: continue
 

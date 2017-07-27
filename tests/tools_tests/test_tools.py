@@ -1,8 +1,20 @@
 from unittest import TestCase
 from tools.build_utils import get_build_rules
+from tools.file_utils import wipe_temp
+import tempfile
+import os
+import shutil
 
 
 class TestTools(TestCase):
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp(prefix='test_tools_')
+
+    def tearDown(self):
+        # clean up local temp files
+        if os.path.isdir(self.temp_dir):
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_build_tools(self):
         self.assertEqual([], get_build_rules({}))
@@ -15,3 +27,23 @@ class TestTools(TestCase):
         self.assertEqual(obj['build_rules'], get_build_rules(obj))
         self.assertEqual(['test_rule'], get_build_rules(obj, 'test'))
         self.assertEqual(['default_rule'], get_build_rules(obj, 'default'))
+
+    def test_wipe_temp_empty(self):
+        files_before = [name for name in os.listdir(self.temp_dir) if os.path.isfile(name)]
+        self.assertEqual(0, len(files_before))
+
+        wipe_temp(tmp_dir=self.temp_dir)
+
+        files_after = [name for name in os.listdir(self.temp_dir) if os.path.isfile(name)]
+        self.assertTrue(os.path.exists(self.temp_dir))
+        self.assertEqual(0, len(files_after))
+
+    def test_wipe_temp_full(self):
+        files_before = [name for name in os.listdir(self.temp_dir) if os.path.isfile(name)]
+        self.assertEqual(0, len(files_before))
+
+        wipe_temp(tmp_dir=self.temp_dir)
+
+        files_after = [name for name in os.listdir(self.temp_dir) if os.path.isfile(name)]
+        self.assertTrue(os.path.exists(self.temp_dir))
+        self.assertEqual(0, len(files_after))

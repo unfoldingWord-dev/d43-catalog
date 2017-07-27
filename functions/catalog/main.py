@@ -9,7 +9,7 @@ from catalog_handler import CatalogHandler
 from tools.file_utils import wipe_temp
 
 def handle(event, context):
-    wipe_temp(True)
+    wipe_temp(ignore_errors=True)
     try:
         catalog = CatalogHandler(event=event)
         return catalog.handle_catalog()

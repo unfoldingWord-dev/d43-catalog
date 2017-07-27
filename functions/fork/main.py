@@ -11,7 +11,7 @@ from tools.file_utils import wipe_temp
 
 
 def handle(event, context):
-    wipe_temp(True)
+    wipe_temp(ignore_errors=True)
     try:
         handler = ForkHandler(event)
         handler.run()

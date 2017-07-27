@@ -19,7 +19,7 @@ class URLHandler(object):
 
 def handle(event, context):
     # this shouldn't happen, but just in case
-    wipe_temp(True)
+    wipe_temp(ignore_errors=True)
     if 'Records' not in event:
         return False
     for record in event['Records']:

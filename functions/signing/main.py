@@ -16,7 +16,7 @@ def handle(event, context):
     :param dict event:
     :param context:
     """
-    wipe_temp(True)
+    wipe_temp(ignore_errors=True)
     global logger
     pem_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'uW-sk.enc')
     signer = Signer(pem_file)
