@@ -326,10 +326,11 @@ class TestSigningHandler(TestCase):
                                 download_handler=mock_api.download_file,
                                 url_size_handler=lambda url: SigningHandler.max_file_size + 1)
         (already_signed, newly_signed) = signer.process_format(item, format)
-        self.assertEqual('', format['signature'])
         self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
-        self.assertFalse(newly_signed)
+        # TRICKY: for now we are faking the signature so the catalog can build.
+        self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
+        self.assertTrue(newly_signed)
 
     def test_signing_small_file(self):
         """

@@ -179,9 +179,10 @@ class SigningHandler(object):
             if self.logger:
                 self.logger.warning('File is too large to sign {}'.format(format['url']))
             # return (False, False)
-            # TODO: we need to sign these large files but for now this is breaking lambda functions.
-            # We could stub out the signature url like we do for external files and require these large files to be
-            # signed manually
+            # TODO: we need to sign these large files but for now this is breaking lambda functions due to limited disk space
+            # For now we are adding a signature url so the catalog builds.
+            # We could manually add these signatures since they shouldn't change much.
+            format['signature'] = '{}.sig'.format(format['url'])
             return (False, True)
 
         # download file
