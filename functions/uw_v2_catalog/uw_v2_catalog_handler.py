@@ -206,11 +206,14 @@ class UwV2CatalogHandler:
                         # build catalog
                         if not source:
                             raise Exception('Missing source text for {}_{}'.format(lid, pid))
-                        for key in media:
+                        media_keys = media.keys()
+                        for key in media_keys:
                             if media[key]['src_dict']:
                                 media[key]['src_list'] = [media[key]['src_dict'][k] for k in media[key]['src_dict']]
-                            del media[key]['src_dict']
-                        toc.append({
+                                del media[key]['src_dict']
+                            else:
+                                del media[key]
+                        toc_item = {
                             'desc': '',
                             'media': media,
                             'mod': mod,
@@ -218,7 +221,10 @@ class UwV2CatalogHandler:
                             'src': source['url'],
                             'src_sig': source['signature'],
                             'title': proj['title'],
-                        })
+                        }
+                        if not media:
+                            del toc_item['media']
+                        toc.append(toc_item)
                     else:
                         print('WARNING: skipping lang:{} proj:{} because no formats were found'.format(lid, proj['identifier']))
 

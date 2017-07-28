@@ -23,14 +23,6 @@
               "toc": [
                 {
                   "desc": "",
-                  "media": {
-                    "audio": {
-
-                    },
-                    "video": {
-
-                    }
-                  },
                   "mod": "1475478000",
                   "slug": "gen",
                   "src": "https://cdn.door43.org/en/udb/v7/gen.usfm",
@@ -39,14 +31,6 @@
                 },
                 {
                   "desc": "",
-                  "media": {
-                    "audio": {
-
-                    },
-                    "video": {
-
-                    }
-                  },
                   "mod": "1475478000",
                   "slug": "1ch",
                   "src": "https://cdn.door43.org/en/udb/v7/1ch.usfm",
@@ -72,14 +56,6 @@
               "toc": [
                 {
                   "desc": "",
-                  "media": {
-                    "audio": {
-
-                    },
-                    "video": {
-
-                    }
-                  },
                   "mod": "1479110400",
                   "slug": "1ch",
                   "src": "https://cdn.door43.org/en/ulb/v7/1ch.usfm",
@@ -155,9 +131,6 @@
                         }
                       ],
                       "txt_ver": "4"
-                    },
-                    "video": {
-
                     }
                   },
                   "mod": "1484035200",
