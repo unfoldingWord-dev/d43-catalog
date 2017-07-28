@@ -98,10 +98,10 @@
       "langs": [
         {
           "lc": "en",
-          "mod": "1489561200",
+          "mod": "1484035200",
           "vers": [
             {
-              "mod": "1489561200",
+              "mod": "1484035200",
               "name": "Open Bible Stories",
               "slug": "obs",
               "status": {
@@ -123,40 +123,35 @@
                       "rev": "1",
                       "src_list": [
                         {
+                          "src": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_01_{bitrate}kbps.mp3",
+                          "chap": "01",
+                          "src_sig": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_01_{bitrate}kbps.mp3.sig",
+                          "length": 1,
                           "br": [
                             {
-                              "bitrate": 64,
-                              "mod": 1444274762,
-                              "size": 2171200
-                            },
-                            {
-                              "bitrate": 32,
-                              "mod": 1444274810,
-                              "size": 1096246
+                              "size": 6891,
+                              "bitrate": "64",
+                              "mod": 1501052400
                             }
-                          ],
-                          "chap": "01",
-                          "length": 268,
-                          "src": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_01_{bitrate}kbps.mp3",
-                          "src_sig": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_01_{bitrate}kbps.sig"
+                          ]
                         },
                         {
+                          "src": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_02_{bitrate}kbps.mp3",
+                          "chap": "02",
+                          "src_sig": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_02_{bitrate}kbps.mp3.sig",
+                          "length": 1,
                           "br": [
                             {
-                              "bitrate": 32,
-                              "mod": 1444274810,
-                              "size": 873859
+                              "size": 5870,
+                              "bitrate": "64",
+                              "mod": 1501052400
                             },
                             {
-                              "bitrate": 64,
-                              "mod": 1444274762,
-                              "size": 1731899
+                              "size": 2749,
+                              "bitrate": "32",
+                              "mod": 1501052400
                             }
-                          ],
-                          "chap": "02",
-                          "length": 214,
-                          "src": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_02_{bitrate}kbps.mp3",
-                          "src_sig": "https://api.unfoldingword.org/obs/mp3/1/en/en-obs-v4/en_obs_02_{bitrate}kbps.sig"
+                          ]
                         }
                       ],
                       "txt_ver": "4"
@@ -165,7 +160,7 @@
 
                     }
                   },
-                  "mod": "1489561200",
+                  "mod": "1484035200",
                   "slug": "obs",
                   "src": "https://cdn.door43.org/en/udb/v4/obs.json",
                   "src_sig": "https://cdn.door43.org/en/udb/v4/obs.json.sig",
@@ -180,5 +175,5 @@
       "title": "Open Bible Stories"
     }
   ],
-  "mod": 1489561200
+  "mod": 1484035200
 }

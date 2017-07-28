@@ -117,7 +117,7 @@ class TestUwV2Catalog(TestCase):
         mockV2Api = MockAPI(os.path.join(self.resources_dir, 'v2_api'), 'https://test')
         mockS3 = MockS3Handler('uw_bucket')
         converter = UwV2CatalogHandler(self._make_event(), mockS3, mockDB, mockV3Api.get_url, mockV3Api.download_file)
-        catalog = converter.run()
+        converter.run()
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/obs/en/source.json')

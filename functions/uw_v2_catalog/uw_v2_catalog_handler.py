@@ -13,9 +13,10 @@ import tempfile
 import os
 from tools.file_utils import write_file
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from tools.dict_utils import read_dict
+from tools.dict_utils import read_dict, merge_dict
 from tools.url_utils import download_file, get_url
 from tools.legacy_utils import index_obs
+import math
 
 
 def datestring_to_timestamp(datestring):
@@ -118,9 +119,9 @@ class UwV2CatalogHandler:
             lid = lang['identifier']
             for res in lang['resources']:
                 rid = res['identifier']
-                key = res_map[rid] if rid in res_map else None
+                langs_group_key = res_map[rid] if rid in res_map else None
 
-                if not key:
+                if not langs_group_key:
                     continue
 
                 mod = datestring_to_timestamp(res['modified'])
@@ -134,8 +135,12 @@ class UwV2CatalogHandler:
                     if 'formats' in proj and proj['formats']:
                         source = None
                         media = {
-                            'audio': {},
-                            'video': {}
+                            'audio': {
+                                'src_dict': {}
+                            },
+                            'video': {
+                                'src_dict': {}
+                            }
                         }
                         for format in proj['formats']:
                             if rid == 'obs' and 'type=book' in format['format']:
@@ -161,25 +166,34 @@ class UwV2CatalogHandler:
                             elif rid != 'obs' and format['format'] == 'text/usfm':
                                 # process bible
                                 source = format
-                            elif 'content=audio/mp3' in format['format']:
-                                # process audio media
-                                media['audio'].update({
-                                    'contributors': ',\\n'.join(format['contributor']),
-                                    'rev': format['version'],
-                                    'txt_ver': format['source_version'],
-                                    'src_list': []
-                                    # TODO: compile source list
-                                })
+                            elif 'content=audio/mp3' in format['format'] or 'content=video/mp4' in format['format']:
+                                # process media
+                                if 'content=audio/mp3' in format['format']:
+                                    media_container = media['audio']
+                                else:
+                                    media_container = media['video']
 
-                                pass
-                            elif 'content=video/mp4' in format['format']:
-                                # process video media
-                                media['audio'].update({
+                                # build chapter src
+                                src_dict = {}
+                                if 'chapters' in format:
+                                    for chapter in format['chapters']:
+                                        src_dict[chapter['identifier']] = {
+                                            'br': [{
+                                                'bitrate': format['quality'].rstrip('kbps'),
+                                                'mod': int(datestring_to_timestamp(chapter['modified'])),
+                                                'size': chapter['size']
+                                            }],
+                                            'chap': chapter['identifier'],
+                                            'length': int(math.ceil(chapter['length'])),
+                                            'src': chapter['url'].replace(format['quality'], '{bitrate}kbps'),
+                                            'src_sig': chapter['signature'].replace(format['quality'], '{bitrate}kbps')
+                                        }
+
+                                merge_dict(media_container, {
                                     'contributors': ',\\n'.join(format['contributor']),
                                     'rev': format['version'],
                                     'txt_ver': format['source_version'],
-                                    'src_list': []
-                                    # TODO: compile source list
+                                    'src_dict': src_dict
                                 })
                             else:
                                 print('NOTICE: skipping unsupported format "{}" in {}_{}'.format(format['format'], lid, rid))
@@ -187,6 +201,10 @@ class UwV2CatalogHandler:
                         # build catalog
                         if not source:
                             raise Exception('Missing source text for {}_{}'.format(lid, pid))
+                        for key in media:
+                            if media[key]['src_dict']:
+                                media[key]['src_list'] = [media[key]['src_dict'][k] for k in media[key]['src_dict']]
+                            del media[key]['src_dict']
                         toc.append({
                             'desc': '',
                             'media': media,
@@ -220,13 +238,13 @@ class UwV2CatalogHandler:
                     'toc': toc
                 }
 
-                if not lid in v2_catalog[key]:
-                    v2_catalog[key][lid] = {
+                if not lid in v2_catalog[langs_group_key]:
+                    v2_catalog[langs_group_key][lid] = {
                         'lc': lid,
                         'mod': mod,
                         'vers': []
                     }
-                v2_catalog[key][lid]['vers'].append(res_v2)
+                v2_catalog[langs_group_key][lid]['vers'].append(res_v2)
 
         # condense catalog
         catalog = {
