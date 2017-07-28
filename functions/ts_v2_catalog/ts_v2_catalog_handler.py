@@ -35,7 +35,6 @@ class TsV2CatalogHandler:
         :param url_handler: This is passed in so it can be mocked for unit testing
         :param download_handler: This is passed in so it can be mocked for unit testing
         """
-        self.catalog_url = read_dict(event, 'catalog_url', 'Environment Vars')
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')

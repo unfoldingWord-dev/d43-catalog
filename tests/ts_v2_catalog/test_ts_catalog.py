@@ -21,8 +21,7 @@ class TestTsV2Catalog(TestCase):
     def make_event(self):
         return {
             'cdn_bucket': 'cdn.door43.org',
-            'cdn_url': 'https://cdn.door43.org',
-            'catalog_url': 'https://api.door43.org/v3/catalog.json'
+            'cdn_url': 'https://cdn.door43.org'
         }
 
     def test_inprogress(self):
