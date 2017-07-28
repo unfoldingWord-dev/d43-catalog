@@ -132,40 +132,68 @@ class UwV2CatalogHandler:
                 for proj in res['projects']:
                     pid = proj['identifier']
                     if 'formats' in proj and proj['formats']:
-                        format = proj['formats'][0]
-                        # TRICKY: obs must be converted to json
-                        if rid == 'obs':
-                            process_id = '_'.join([lid, rid, pid])
-                            if process_id not in status['processed']:
-                                obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
-                                upload = self._prep_data_upload('{}/{}/source.json'.format(rid, lid), obs_json)
-                                self.cdn_handler.upload_file(upload['path'],
-                                                             '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
-                                                                            upload['key']))
+                        source = None
+                        media = {
+                            'audio': {},
+                            'video': {}
+                        }
+                        for format in proj['formats']:
+                            if rid == 'obs' and 'type=book' in format['format']:
+                                # TRICKY: obs must be converted to json
+                                process_id = '_'.join([lid, rid, pid])
+                                if process_id not in status['processed']:
+                                    obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
+                                    upload = self._prep_data_upload('{}/{}/source.json'.format(rid, lid), obs_json)
+                                    self.cdn_handler.upload_file(upload['path'],
+                                                                 '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
+                                                                                upload['key']))
 
-                                status['processed'].update({process_id: []})
-                                status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                                self.db_handler.update_item({'api_version': UwV2CatalogHandler.api_version}, status)
+                                    status['processed'].update({process_id: []})
+                                    status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    self.db_handler.update_item({'api_version': UwV2CatalogHandler.api_version}, status)
+                                else:
+                                    cat_keys = cat_keys + status['processed'][process_id]
+
+                                source = {
+                                    'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
+                                    'signature': '{}/en/udb/v4/obs.json.sig'.format(self.cdn_url)
+                                }
+                            elif rid != 'obs' and format['format'] == 'text/usfm':
+                                # process bible
+                                source = format
+                            elif 'content=audio/mp3' in format['format']:
+                                # process audio media
+                                media['audio'].update({
+                                    'contributors': ',\\n'.join(format['contributor']),
+                                    'rev': format['version'],
+                                    'txt_ver': format['source_version'],
+                                    'src_list': []
+                                    # TODO: compile source list
+                                })
+
+                                pass
+                            elif 'content=video/mp4' in format['format']:
+                                # process video media
+                                media['audio'].update({
+                                    'contributors': ',\\n'.join(format['contributor']),
+                                    'rev': format['version'],
+                                    'txt_ver': format['source_version'],
+                                    'src_list': []
+                                    # TODO: compile source list
+                                })
                             else:
-                                cat_keys = cat_keys + status['processed'][process_id]
-
-                            format = {
-                                'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
-                                'signature': '{}/en/udb/v4/obs.json.sig'.format(self.cdn_url)
-                            }
-                        # generate media
+                                print('NOTICE: skipping unsupported format "{}" in {}_{}'.format(format['format'], lid, rid))
 
                         # build catalog
+                        if not source:
+                            raise Exception('Missing source text for {}_{}'.format(lid, pid))
                         toc.append({
                             'desc': '',
-                            'media': {
-                                'audio': {},
-                                'video': {}
-                            },
+                            'media': media,
                             'mod': mod,
                             'slug': proj['identifier'],
-                            'src': format['url'],
-                            'src_sig': format['signature'],
+                            'src': source['url'],
+                            'src_sig': source['signature'],
                             'title': proj['title'],
                         })
                     else:
