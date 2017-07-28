@@ -101,32 +101,32 @@ class AcceptanceTest(object):
                         for key in ['title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
                                     'issued', 'modified', 'version', 'checking', 'projects']:
                             if key not in resource:
-                                self.log_error("{}: '{}' does not exist".format(rslug, key))
+                                self.log_error("{}_{}: '{}' does not exist".format(lslug, rslug, key))
 
                         if 'projects' in resource:
                             if not isinstance(resource['projects'], list):
                                 self.log_error("{}: 'projects' is not an array".format(rslug))
                             elif len(resource['projects']) > 1 and 'formats' not in resource:
-                                self.log_error("{}: 'formats' does not exist in multi-project resource".format(rslug))
+                                self.log_error("{}_{}: 'formats' does not exist in multi-project resource".format(lslug, rslug))
                             elif len(resource['projects']) == 1 and 'formats' in resource:
-                                self.log_error("{}: 'formats' found in single-project resource".format(rslug))
+                                self.log_error("{}_{}: 'formats' found in single-project resource".format(lslug, rslug))
 
                         if 'formats' in resource:
                             if not isinstance(resource['formats'], list):
-                                self.log_error("{}: 'formats' is not an array".format(rslug))
+                                self.log_error("{}_{}: 'formats' is not an array".format(lslug, rslug))
                             else:
                                 for format in resource['formats']:
                                     for key in ["format", "modified", "size", "url", "signature"]:
                                         if key not in format:
-                                            self.log_error("Format container for '{}' doesn't have '{}'".format(rslug, key))
+                                            self.log_error("Format container for '{}_{}' doesn't have '{}'".format(lslug, rslug, key))
                                     if 'url' not in format or 'signature' not in format:
                                         continue
                                     if not self.url_exists(format['url']):
-                                        self.log_error("{}: {} does not exist".format(rslug, format['url']))
+                                        self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['url']))
                                     if not format['signature']:
-                                        self.log_error("{}: {} has not been signed yet".format(rslug, format['url']))
+                                        self.log_error("{}_{}: {} has not been signed yet".format(lslug, rslug, format['url']))
                                     elif not self.url_exists(format['signature']):
-                                        self.log_error("{}: {} does not exist".format(rslug, format['sig']))
+                                        self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['sig']))
 
     def run(self):
         self.test_catalog_structure()
