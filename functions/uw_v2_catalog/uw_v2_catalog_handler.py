@@ -168,25 +168,30 @@ class UwV2CatalogHandler:
                                 source = format
                             elif 'content=audio/mp3' in format['format'] or 'content=video/mp4' in format['format']:
                                 # process media
+                                quality_value, quality_suffix = self.__parse_media_quality(format['quality'])
                                 if 'content=audio/mp3' in format['format']:
                                     media_container = media['audio']
+                                    quality_key = 'bitrate'
+                                    quality_short_key = 'br'
                                 else:
                                     media_container = media['video']
+                                    quality_key = 'resolution'
+                                    quality_short_key = 'res'
 
                                 # build chapter src
                                 src_dict = {}
                                 if 'chapters' in format:
                                     for chapter in format['chapters']:
                                         src_dict[chapter['identifier']] = {
-                                            'br': [{
-                                                'bitrate': format['quality'].rstrip('kbps'),
+                                            quality_short_key: [{
+                                                quality_key: quality_value,
                                                 'mod': int(datestring_to_timestamp(chapter['modified'])),
                                                 'size': chapter['size']
                                             }],
                                             'chap': chapter['identifier'],
                                             'length': int(math.ceil(chapter['length'])),
-                                            'src': chapter['url'].replace(format['quality'], '{bitrate}kbps'),
-                                            'src_sig': chapter['signature'].replace(format['quality'], '{bitrate}kbps')
+                                            'src': chapter['url'].replace(format['quality'], '{bitrate}' + quality_suffix),
+                                            'src_sig': chapter['signature'].replace(format['quality'], '{bitrate}' + quality_suffix)
                                         }
 
                                 merge_dict(media_container, {
@@ -325,3 +330,14 @@ class UwV2CatalogHandler:
             'key': key,
             'path': temp_file
         }
+
+    def __parse_media_quality(self, quality):
+        """
+        Returns the value and suffix from the quality
+        :param quality:
+        :return:
+        """
+        abc = 'abcdefghijklmnopqrstufwxyz'
+        value = quality.rstrip('{}{}'.format(abc, abc.upper()))
+        suffix = quality[len(value):]
+        return value, suffix
