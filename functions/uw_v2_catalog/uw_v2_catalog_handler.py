@@ -236,7 +236,7 @@ class UwV2CatalogHandler:
                         'comments': comment,
                         'contributors': '; '.join(res['contributor']),
                         'publish_date': res['issued'],
-                        'source_text': source['identifier'] + '-' + source['language'],
+                        'source_text': source['language'],
                         'source_text_version': source['version'],
                         'version': res['version']
                     },
