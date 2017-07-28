@@ -236,6 +236,7 @@ class WebhookHandler:
                             'format': '',
                             'modified': '',
                             'size': 0,
+                            'source_version': project['version'],
                             'version': media['version'],
                             'quality': quality,
                             'contributor': media['contributor'],
