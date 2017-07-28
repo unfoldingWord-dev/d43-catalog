@@ -386,6 +386,7 @@ class TestSigningHandler(TestCase):
         You shouldn't actually run this test unless you want to use the signature
         :return:
         """
+        return # This takes a long time so you don't usually want to do this
         mock_s3 = MockS3Handler()
         mock_db = MockDynamodbHandler()
         mock_logger = MockLogger()
