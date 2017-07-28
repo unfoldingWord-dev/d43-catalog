@@ -16,7 +16,7 @@
                 "comments": "",
                 "contributors": "Wycliffe Associates",
                 "publish_date": "2015-08-26",
-                "source_text": "asv-en",
+                "source_text": "en",
                 "source_text_version": "1901",
                 "version": "7"
               },
@@ -65,7 +65,7 @@
                 "comments": "",
                 "contributors": "Wycliffe Associates",
                 "publish_date": "2016-10-03",
-                "source_text": "asv-en",
+                "source_text": "en",
                 "source_text_version": "1901",
                 "version": "7"
               },
@@ -110,7 +110,7 @@
                 "comments": "",
                 "contributors": "Distant Shores Media; Wycliffe Associates",
                 "publish_date": "2015-08-26",
-                "source_text": "obs-en",
+                "source_text": "en",
                 "source_text_version": "4",
                 "version": "4"
               },
@@ -130,7 +130,7 @@
                           "br": [
                             {
                               "size": 6891,
-                              "bitrate": "64",
+                              "bitrate": 64,
                               "mod": 1501052400
                             }
                           ]
@@ -143,12 +143,12 @@
                           "br": [
                             {
                               "size": 5870,
-                              "bitrate": "64",
+                              "bitrate": 64,
                               "mod": 1501052400
                             },
                             {
                               "size": 2749,
-                              "bitrate": "32",
+                              "bitrate": 32,
                               "mod": 1501052400
                             }
                           ]

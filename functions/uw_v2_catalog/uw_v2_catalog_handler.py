@@ -184,7 +184,7 @@ class UwV2CatalogHandler:
                                     for chapter in format['chapters']:
                                         src_dict[chapter['identifier']] = {
                                             quality_short_key: [{
-                                                quality_key: quality_value,
+                                                quality_key: int(quality_value),
                                                 'mod': int(datestring_to_timestamp(chapter['modified'])),
                                                 'size': chapter['size']
                                             }],
