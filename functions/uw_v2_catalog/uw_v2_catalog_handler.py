@@ -119,10 +119,10 @@ class UwV2CatalogHandler:
             lid = lang['identifier']
             for res in lang['resources']:
                 rid = res['identifier']
-                langs_group_key = res_map[rid] if rid in res_map else None
-
-                if not langs_group_key:
-                    continue
+                if rid == 'obs':
+                    cat_key = 'obs'
+                else:
+                    cat_key = 'bible'
 
                 mod = datestring_to_timestamp(res['modified'])
 
@@ -200,12 +200,12 @@ class UwV2CatalogHandler:
                                     'txt_ver': format['source_version'],
                                     'src_dict': src_dict
                                 })
-                            else:
-                                print('NOTICE: skipping unsupported format "{}" in {}_{}'.format(format['format'], lid, rid))
 
                         # build catalog
                         if not source:
-                            raise Exception('Missing source text for {}_{}'.format(lid, pid))
+                            print('NOTICE: No book text found in {}_{}_{}'.format(lid, rid, pid))
+                            continue
+
                         media_keys = media.keys()
                         for key in media_keys:
                             if media[key]['src_dict']:
@@ -225,8 +225,9 @@ class UwV2CatalogHandler:
                         if not media:
                             del toc_item['media']
                         toc.append(toc_item)
-                    else:
-                        print('WARNING: skipping lang:{} proj:{} because no formats were found'.format(lid, proj['identifier']))
+
+                if not toc:
+                    continue
 
                 source = res['source'][0]
                 comment = ''
@@ -249,13 +250,13 @@ class UwV2CatalogHandler:
                     'toc': toc
                 }
 
-                if not lid in v2_catalog[langs_group_key]:
-                    v2_catalog[langs_group_key][lid] = {
+                if not lid in v2_catalog[cat_key]:
+                    v2_catalog[cat_key][lid] = {
                         'lc': lid,
                         'mod': mod,
                         'vers': []
                     }
-                v2_catalog[langs_group_key][lid]['vers'].append(res_v2)
+                v2_catalog[cat_key][lid]['vers'].append(res_v2)
 
         # condense catalog
         catalog = {
