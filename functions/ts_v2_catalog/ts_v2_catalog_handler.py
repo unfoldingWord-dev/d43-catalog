@@ -211,7 +211,7 @@ class TsV2CatalogHandler:
 
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
-                        print('#WARNING: Could not find date_modified for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
+                        print('WARNING: Could not find date_modified for {}_{}_{} from "{}"'.format(lang['identifier'], res['identifier'], project['identifier'], rc_format['modified']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         self._build_catalog_node(cat_dict, lang, res, project, modified)
@@ -976,7 +976,7 @@ class TsV2CatalogHandler:
         :param content:
         :return:
         """
-        rc_titled_link_re = re.compile('\[[^\[\]]+\]\((rc\:\/\/([^\[\]]+))\)')
+        rc_titled_link_re = re.compile('\[[^\[\]]+\]\((rc\:\/\/([^\(\)]+))\)')
         rc_link_re = re.compile('\[\[(rc\:\/\/([^\[\]]+))\]\]')
 
         # find links
