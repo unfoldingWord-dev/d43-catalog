@@ -3,7 +3,7 @@ import os
 from unittest import TestCase
 from tools.test_utils import assert_object_equals_file
 from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler
-from functions.catalog.catalog_handler import CatalogHandler
+from functions.catalog import CatalogHandler
 import json
 
 # This is here to test importing main

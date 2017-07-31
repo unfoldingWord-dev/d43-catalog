@@ -3,7 +3,7 @@ from tools.file_utils import load_json_object
 from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler
 from unittest import TestCase
 from tools.test_utils import assert_s3_equals_api_json
-from functions.uw_v2_catalog.uw_v2_catalog_handler import UwV2CatalogHandler
+from functions.uw_v2_catalog import UwV2CatalogHandler
 
 # This is here to test importing main
 from functions.uw_v2_catalog import main

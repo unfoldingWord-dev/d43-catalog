@@ -4,7 +4,7 @@ import json
 from unittest import TestCase
 from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler
 from tools.test_utils import assert_object_equals_file
-from functions.webhook.webhook_handler import WebhookHandler
+from functions.webhook import WebhookHandler
 
 # This is here to test importing main
 from functions.webhook import main

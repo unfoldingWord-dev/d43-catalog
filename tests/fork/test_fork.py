@@ -4,8 +4,8 @@ from unittest import TestCase
 import gogs_client as GogsClient
 from shutil import copyfile
 from tools.mocks import MockS3Handler, MockDynamodbHandler
-from functions.fork.fork_handler import ForkHandler
-from functions.webhook.webhook_handler import WebhookHandler
+from functions.fork import ForkHandler
+from functions.webhook import WebhookHandler
 
 # This is here to test importing main
 from functions.fork import main

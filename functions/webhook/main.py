@@ -5,7 +5,7 @@
 #
 
 from __future__ import print_function
-from webhook_handler import WebhookHandler
+from handler import WebhookHandler
 from tools.file_utils import wipe_temp
 
 

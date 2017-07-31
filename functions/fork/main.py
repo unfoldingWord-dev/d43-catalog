@@ -6,7 +6,7 @@
 #
 
 from __future__ import print_function
-from fork_handler import ForkHandler
+from handler import ForkHandler
 from tools.file_utils import wipe_temp
 
 

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import logging
 import os
-from signing_handler import SigningHandler
+from handler import SigningHandler
 from signer import Signer
 from tools.file_utils import wipe_temp
 

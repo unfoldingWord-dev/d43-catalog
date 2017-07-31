@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import httplib
 
-from acceptance_test import AcceptanceTest
+from handler import AcceptanceTest
 from d43_aws_tools import SESHandler
 from tools.url_utils import get_url
 from tools.file_utils import wipe_temp

@@ -1,10 +1,4 @@
 [run]
 include=
-    functions/acceptance/acceptance_test.py
-    functions/catalog/catalog_handler.py
-    functions/fork/fork_handler.py
+    functions/**/handler.py
     functions/signing/signer.py
-    functions/signing/signing_handler.py
-    functions/ts_v2_catalog/ts_v2_catalog_handler.py
-    functions/uw_v2_catalog/uw_v2_catalog_handler.py
-    functions/webhook/webhook_handler.py

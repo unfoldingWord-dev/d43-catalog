@@ -2,10 +2,11 @@
 !/main.py
 !/.gitignore
 !/.apexignore
+!/__init__.py
+!/handler.py
+!/tools
+
 !/README.md
 !/signer.py
-!/signing_handler.py
 !/aws_decrypt.py
-!/__init__.py
 !/uW-sk.enc
-!tools

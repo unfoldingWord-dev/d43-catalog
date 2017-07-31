@@ -3,5 +3,5 @@
 !/.gitignore
 !/.apexignore
 !/__init__.py
-!/uw_v2_catalog_handler.py
-!tools
+!/handler.py
+!/tools

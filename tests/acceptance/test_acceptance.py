@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 from tools.file_utils import load_json_object
-from functions.acceptance.acceptance_test import AcceptanceTest
+from functions.acceptance import AcceptanceTest
 import json
 
 # This is here to test importing main

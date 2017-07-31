@@ -5,7 +5,7 @@
 #
 
 from __future__ import print_function
-from catalog_handler import CatalogHandler
+from handler import CatalogHandler
 from tools.file_utils import wipe_temp
 
 def handle(event, context):
