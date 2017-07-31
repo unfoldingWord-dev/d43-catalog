@@ -33,15 +33,15 @@
           "formats": [
             {
               "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
-              "modified": "2017-05-02T22:52:23Z",
+              "modified": "2017-05-02T22:52:23-05:00",
               "signature": "https://cdn.door43.org/en/udb/v7/udb.zip.sig",
               "size": 1722057,
               "url": "https://cdn.door43.org/en/udb/v7/udb.zip"
             }
           ],
           "identifier": "udb",
-          "issued": "2015-08-26",
-          "modified": "2016-10-03",
+          "issued": "2015-08-26T22:52:23-05:00",
+          "modified": "2016-10-03T22:52:23-05:00",
           "projects": [
             {
               "categories": [
@@ -51,7 +51,7 @@
               "formats": [
                 {
                   "format": "text/usfm",
-                  "modified": "2016-10-03",
+                  "modified": "2016-10-03T22:52:23-05:00",
                   "signature": "https://cdn.door43.org/en/udb/v7/gen.usfm.sig",
                   "size": 241714,
                   "url": "https://cdn.door43.org/en/udb/v7/gen.usfm"
@@ -70,7 +70,7 @@
               "formats": [
                 {
                   "format": "text/usfm",
-                  "modified": "2016-10-03",
+                  "modified": "2016-10-03T22:52:23-05:00",
                   "signature": "https://cdn.door43.org/en/udb/v7/1ch.usfm.sig",
                   "size": 141366,
                   "url": "https://cdn.door43.org/en/udb/v7/1ch.usfm"
@@ -116,15 +116,15 @@
           "formats": [
             {
               "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
-              "modified": "2017-03-29T00:00:00Z",
+              "modified": "2017-03-29T22:52:23-05:00",
               "signature": "https://cdn.door43.org/en/ulb/v7/ulb.zip.sig",
               "size": 1438229,
               "url": "https://cdn.door43.org/en/ulb/v7/ulb.zip"
             }
           ],
           "identifier": "ulb",
-          "issued": "2016-10-03",
-          "modified": "2016-11-14",
+          "issued": "2016-10-03T22:52:23-05:00",
+          "modified": "2016-11-14T22:52:23-05:00",
           "projects": [
             {
               "categories": [
@@ -134,7 +134,7 @@
               "formats": [
                 {
                   "format": "text/usfm",
-                  "modified": "2016-11-14",
+                  "modified": "2016-11-14T22:52:23-05:00",
                   "signature": "https://cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
                   "size": 118037,
                   "url": "https://cdn.door43.org/en/ulb/v7/1ch.usfm"
@@ -174,9 +174,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2017-07-05",
+          "issued": "2017-07-05T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-07-05",
+          "modified": "2017-07-05T22:52:23-05:00",
           "source": [
             {
               "identifier": "tn",
@@ -194,7 +194,7 @@
               "size": 8994735,
               "url": "https://cdn.door43.org/en/tn/v8/tn.zip",
               "signature": "https://cdn.door43.org/en/tn/v8/tn.zip.sig",
-              "modified": "2017-07-05T23:57:07Z",
+              "modified": "2017-07-05T22:52:23-05:00",
               "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
             }
           ],
@@ -680,9 +680,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2017-07-06",
+          "issued": "2017-07-06T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-07-06",
+          "modified": "2017-07-06T22:52:23-05:00",
           "source": [
             {
               "identifier": "tw",
@@ -713,7 +713,7 @@
                   "size": 1021146,
                   "url": "https://cdn.door43.org/en/tw/v6/tw.zip",
                   "signature": "https://cdn.door43.org/en/tw/v6/tw.zip.sig",
-                  "modified": "2017-07-06T16:01:52Z",
+                  "modified": "2017-07-06T22:52:23-05:00",
                   "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2"
                 }
               ],
@@ -734,9 +734,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2015-08-26",
+          "issued": "2015-08-26T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-01-03",
+          "modified": "2017-01-03T22:52:23-05:00",
           "source": [
             {
               "identifier": "obs-tn",
@@ -763,7 +763,7 @@
                   "size": 222415,
                   "url": "https://cdn.door43.org/en/tn/v4/obs-tn.zip",
                   "signature": "https://cdn.door43.org/en/tn/v4/obs-tn.zip.sig",
-                  "modified": "2017-03-15T12:41:45Z",
+                  "modified": "2017-03-15T22:52:23-05:00",
                   "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
                 }
               ],
@@ -784,9 +784,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2016-10-01",
+          "issued": "2016-10-01T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-04-21",
+          "modified": "2017-04-21T22:52:23-05:00",
           "source": [
             {
               "identifier": "obs-tq",
@@ -813,7 +813,7 @@
                   "size": 139709,
                   "url": "https://cdn.door43.org/en/tq/v4/obs-tq.zip",
                   "signature": "https://cdn.door43.org/en/tq/v4/obs-tq.zip.sig",
-                  "modified": "2017-05-03T21:07:09Z",
+                  "modified": "2017-05-03T22:52:23-05:00",
                   "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
                 }
               ],
@@ -834,9 +834,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2017-07-05",
+          "issued": "2017-07-05T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-07-05",
+          "modified": "2017-07-05T22:52:23-05:00",
           "source": [
             {
               "identifier": "tq",
@@ -854,7 +854,7 @@
               "size": 4262783,
               "url": "https://cdn.door43.org/en/tq/v7/tq.zip",
               "signature": "https://cdn.door43.org/en/tq/v7/tq.zip.sig",
-              "modified": "2017-07-05T22:15:47Z",
+              "modified": "2017-07-05T22:52:23-05:00",
               "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
             }
           ],
@@ -1341,9 +1341,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2015-08-26",
+          "issued": "2015-08-26T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-01-10",
+          "modified": "2017-01-10T22:52:23-05:00",
           "source": [
             {
               "identifier": "obs",
@@ -1373,18 +1373,18 @@
                   "size": 128,
                   "url": "https://cdn.door43.org/en/obs/v4/obs.zip",
                   "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
-                  "modified": "2017-07-26T16:39:59.812712",
+                  "modified": "2017-07-26T22:52:23-05:00",
                   "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
                 },
                 {
                   "format": "application/zip; content=audio/mp3",
                   "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip",
-                  "modified": "2017-07-26T16:39:59.812712",
+                  "modified": "2017-07-26T22:52:23-05:00",
                   "chapters": [
                     {
                       "format": "audio/mp3",
                       "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3",
-                      "modified": "2017-07-26T16:39:59.812712",
+                      "modified": "2017-07-26T22:52:23-05:00",
                       "length": 0.6090476190476191,
                       "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3.sig",
                       "identifier": "02",
@@ -1393,7 +1393,7 @@
                     {
                       "format": "audio/mp3",
                       "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3",
-                      "modified": "2017-07-26T16:39:59.820712",
+                      "modified": "2017-07-26T22:52:23-05:00",
                       "length": 0.7499092970521541,
                       "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3.sig",
                       "identifier": "01",
@@ -1414,12 +1414,12 @@
                 {
                   "format": "application/zip; content=audio/mp3",
                   "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip",
-                  "modified": "2017-07-26T16:39:59.820712",
+                  "modified": "2017-07-26T22:52:23-05:00",
                   "chapters": [
                     {
                       "format": "audio/mp3",
                       "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3",
-                      "modified": "2017-07-26T16:39:59.820712",
+                      "modified": "2017-07-26T22:52:23-05:00",
                       "length": 0.57475,
                       "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3.sig",
                       "identifier": "02",
@@ -1455,9 +1455,9 @@
             ],
             "checking_level": "3"
           },
-          "issued": "2017-07-06",
+          "issued": "2017-07-06T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
-          "modified": "2017-07-06",
+          "modified": "2017-07-06T22:52:23-05:00",
           "source": [
             {
               "identifier": "ta",
@@ -1472,7 +1472,7 @@
               "size": 479004,
               "url": "https://cdn.door43.org/en/ta/v7/ta.zip",
               "signature": "https://cdn.door43.org/en/ta/v7/ta.zip.sig",
-              "modified": "2017-07-06T15:16:59Z",
+              "modified": "2017-07-06T22:52:23-05:00",
               "format": "application/zip; type=man content=text/markdown conformsto=rc0.2"
             }
           ],
@@ -1530,22 +1530,22 @@
     {
       "url": "https://td.unfoldingword.org/exports/langnames.json",
       "identifier": "langnames",
-      "modified": "2016-10-03"
+      "modified": "2016-10-03T22:52:23-05:00"
     },
     {
       "url": "https://td.unfoldingword.org/api/templanguages/",
       "identifier": "temp-langnames",
-      "modified": "2016-10-03"
+      "modified": "2016-10-03T22:52:23-05:00"
     },
     {
       "url": "https://td.unfoldingword.org/api/templanguages/assignment/changed/",
       "identifier": "approved-temp-langnames",
-      "modified": "2016-10-03"
+      "modified": "2016-10-03T22:52:23-05:00"
     },
     {
       "url": "https://td.unfoldingword.org/api/questionnaire/",
       "identifier": "new-language-questions",
-      "modified": "2016-10-03"
+      "modified": "2016-10-03T22:52:23-05:00"
     }
   ]
 }

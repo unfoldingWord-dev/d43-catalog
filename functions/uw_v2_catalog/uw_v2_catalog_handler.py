@@ -17,13 +17,16 @@ from tools.dict_utils import read_dict, merge_dict
 from tools.url_utils import download_file, get_url
 from tools.legacy_utils import index_obs
 import math
+import arrow
 
 
 def datestring_to_timestamp(datestring):
-    # TRICKY: force all datestamps to PST to normalize unit tests across servers.
-    tz = pytz.timezone("US/Pacific")
-    return str(int(time.mktime(tz.localize(datetime.strptime(datestring[:10], "%Y-%m-%d")).timetuple())))
-
+    """
+    Converts a datetime string to a unix timestamp
+    :param datestring: a datetime string formatted according to ISO 8601
+    :return:
+    """
+    return str(int(time.mktime(arrow.get(datestring).datetime.timetuple())))
 
 class UwV2CatalogHandler:
 
