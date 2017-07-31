@@ -12,6 +12,7 @@ setup(
     long_description='Unit test setup file',
     classifiers=[],
     install_requires=[
+        'arrow==0.10.0',
         'mutagen==1.38',
         'coveralls==1.1',
         'markdown==2.6.8',

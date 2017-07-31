@@ -20,6 +20,7 @@ setup(
     long_description='Publishing door43-catalog organization.',
     classifiers=[],
     install_requires=[
+        'arrow==0.10.0',
         'mutagen==1.38',
         'markdown==2.6.8',
         'pyyaml==3.12',
