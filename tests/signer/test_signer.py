@@ -137,7 +137,25 @@ class TestSigner(TestCase):
         # verify the .sig file is correct
         self.assertTrue(self.signer.verify_signature(source_file, sig_file_name))
 
-    def test_get_default_pem_file(self):
+    def test_get_missing_default_priv_pem(self):
+        signer = Signer()
+        with self.assertRaises(Exception) as context:
+            signer._default_priv_pem()
+        self.assertEqual(str(context.exception), 'No default private pem was specified')
+
+    @unittest.skipIf(is_travis(), 'Skipping test_get_missing_default_pub_pem on Travis CI.')
+    def test_get_missing_default_pub_pem(self):
+        signer = Signer()
+        pem = signer._default_pub_pem()
+        self.assertIsNotNone(pem)
+
+    def test_get_default_pub_pem(self):
+        expected_pub_pem = 'pub_pem'
+        signer = Signer(pub_pem_path=expected_pub_pem)
+        pem = signer._default_pub_pem()
+        self.assertEqual(expected_pub_pem, pem)
+
+    def test_get_default_priv_pem_file(self):
 
         if is_travis():
             with self.assertRaises(Exception) as context:
@@ -150,6 +168,12 @@ class TestSigner(TestCase):
 
             self.assertTrue(pem_file.endswith('uW-sk.pem'))
             self.assertTrue(os.path.isfile(pem_file))
+
+    def test_get_unencrypted_default_priv_pem(self):
+        expected_priv_pem = 'priv_pem'
+        signer = Signer(expected_priv_pem)
+        pem = signer._default_priv_pem()
+        self.assertEqual(expected_priv_pem, pem)
 
     def test_openssl_exception_while_signing(self):
 
