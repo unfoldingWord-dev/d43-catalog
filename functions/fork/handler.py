@@ -15,12 +15,13 @@ from tools.dict_utils import read_dict
 
 
 class ForkHandler:
-    def __init__(self, event, gogs_client=None, dynamodb_handler=None):
+    def __init__(self, event, gogs_client=None, dynamodb_handler=None, boto_handler=None):
         """
         
         :param event: 
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
+        :param boto_handler: Passed in for unit testing
         """
         gogs_user_token = read_dict(event, 'gogs_user_token', 'Environment Vars')
 
@@ -37,12 +38,16 @@ class ForkHandler:
             self.gogs_client = GogsClient
         else:
             self.gogs_client = gogs_client
+        if not boto_handler:
+            self.boto = boto3
+        else:
+            self.boto = boto_handler
 
         self.gogs_api = self.gogs_client.GogsApi(self.gogs_url)
         self.gogs_auth = self.gogs_client.Token(gogs_user_token)
 
     def run(self):
-        client = boto3.client("lambda")
+        client = self.boto.client("lambda")
         repos = self.get_new_repos()
         for repo in repos:
             try:

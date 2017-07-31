@@ -62,15 +62,19 @@ class AcceptanceTest(object):
         if 'languages' not in catalog:
             return False
 
-        if len(catalog['languages']) < 1:
-            self.log_error("There needs to be at least one language in the catalog")
-            return False
+        self._test_languages(catalog['languages'])
 
-        if not isinstance(catalog['languages'], list):
+
+    def _test_languages(self, languages):
+        if not isinstance(languages, list):
             self.log_error("'languages' is not an array")
             return False
 
-        for language in catalog['languages']:
+        if len(languages) < 1:
+            self.log_error("There needs to be at least one language in the catalog")
+            return False
+
+        for language in languages:
             if not isinstance(language, dict):
                 self.log_error("languages: Found a language container that is not an associative array")
                 continue
@@ -85,48 +89,57 @@ class AcceptanceTest(object):
                     self.log_error("{}: '{}' does not exist".format(lslug, key))
 
             if 'resources' in language:
-                if not isinstance(language['resources'], list):
-                    self.log_error("{}: 'resources' is not an array".format(lslug))
-                else:
-                    for resource in language['resources']:
-                        if not isinstance(resource, dict):
-                            self.log_error("{}: A resource container is not an associative array".format(lslug))
-                            continue
+                self._test_resources(lslug, language['resources'])
 
-                        if 'identifier' not in resource:
-                            self.log_error("{} resources: A resource container exists without an 'identifier'".format(lslug))
-                            continue
-                        rslug = resource['identifier']
+    def _test_resources(self, lslug, resources):
+        if not isinstance(resources, list):
+            self.log_error("{}: 'resources' is not an array".format(lslug))
+        else:
+            for resource in resources:
+                if not isinstance(resource, dict):
+                    self.log_error("{}: Found a resource container that is not an associative array".format(lslug))
+                    continue
 
-                        for key in ['title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
-                                    'issued', 'modified', 'version', 'checking', 'projects']:
-                            if key not in resource:
-                                self.log_error("{}_{}: '{}' does not exist".format(lslug, rslug, key))
+                if 'identifier' not in resource:
+                    self.log_error("{} resources: A resource container exists without an 'identifier'".format(lslug))
+                    continue
+                rslug = resource['identifier']
 
-                        if 'projects' in resource:
-                            if not isinstance(resource['projects'], list):
-                                self.log_error("{}: 'projects' is not an array".format(rslug))
-                            elif len(resource['projects']) > 1 and 'formats' not in resource:
-                                self.log_error("{}_{}: 'formats' does not exist in multi-project resource".format(lslug, rslug))
-                            elif len(resource['projects']) == 1 and 'formats' in resource:
-                                self.log_error("{}_{}: 'formats' found in single-project resource".format(lslug, rslug))
+                for key in ['title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
+                            'issued', 'modified', 'version', 'checking', 'projects']:
+                    if key not in resource:
+                        self.log_error("{}_{}: '{}' does not exist".format(lslug, rslug, key))
 
-                        if 'formats' in resource:
-                            if not isinstance(resource['formats'], list):
-                                self.log_error("{}_{}: 'formats' is not an array".format(lslug, rslug))
-                            else:
-                                for format in resource['formats']:
-                                    for key in ["format", "modified", "size", "url", "signature"]:
-                                        if key not in format:
-                                            self.log_error("Format container for '{}_{}' doesn't have '{}'".format(lslug, rslug, key))
-                                    if 'url' not in format or 'signature' not in format:
-                                        continue
-                                    if not self.url_exists(format['url']):
-                                        self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['url']))
-                                    if not format['signature']:
-                                        self.log_error("{}_{}: {} has not been signed yet".format(lslug, rslug, format['url']))
-                                    elif not self.url_exists(format['signature']):
-                                        self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['sig']))
+                if 'projects' in resource:
+                    self._test_projects(lslug, rslug, resource)
+
+                if 'formats' in resource:
+                    self._test_formats(lslug, rslug, resource['formats'])
+
+    def _test_projects(self, lslug, rslug, resource):
+        if not isinstance(resource['projects'], list):
+            self.log_error("{}_{}: 'projects' is not an array".format(lslug, rslug))
+        elif len(resource['projects']) > 1 and 'formats' not in resource:
+            self.log_error("{}_{}: 'formats' does not exist in multi-project resource".format(lslug, rslug))
+        elif len(resource['projects']) == 1 and 'formats' in resource:
+            self.log_error("{}_{}: 'formats' found in single-project resource".format(lslug, rslug))
+
+    def _test_formats(self, lslug, rslug, formats):
+        if not isinstance(formats, list):
+            self.log_error("{}_{}: 'formats' is not an array".format(lslug, rslug))
+        else:
+            for format in formats:
+                for key in ["format", "modified", "size", "url", "signature"]:
+                    if key not in format:
+                        self.log_error("Format container for '{}_{}' doesn't have '{}'".format(lslug, rslug, key))
+                if 'url' not in format or 'signature' not in format:
+                    continue
+                if not self.url_exists(format['url']):
+                    self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['url']))
+                if not format['signature']:
+                    self.log_error("{}_{}: {} has not been signed yet".format(lslug, rslug, format['url']))
+                elif not self.url_exists(format['signature']):
+                    self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['sig']))
 
     def run(self):
         self.test_catalog_structure()
