@@ -27,8 +27,8 @@ def datestring_to_timestamp(datestring):
     :param datestring: a datetime string formatted according to ISO 8601
     :return:
     """
-    d = arrow.get(datestring).datetime
-    d = d.astimezone(tz.gettz('Etc/UTC'))
+    # TRICKY: time.mktime expects local time so we convert to local tz
+    d = arrow.get(datestring).to('local').datetime
     return str(int(time.mktime(d.timetuple())))
 
 class UwV2CatalogHandler:
