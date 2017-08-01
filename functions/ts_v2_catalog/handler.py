@@ -111,7 +111,7 @@ class TsV2CatalogHandler:
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
 
-                        self._process_usfm(lid, rid, format)
+                        self._process_usfm(lid, rid, res, format)
 
                         # TRICKY: bible notes and questions are in the resource
                         if rid != 'obs':
@@ -166,7 +166,7 @@ class TsV2CatalogHandler:
                                 process_id = '_'.join([lid, rid, 'obs'])
                                 if process_id not in self.status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
-                                    upload = self._prep_data_upload('{}/{}/{}/{}/source.json'.format(pid, lid, rid, res['version']),
+                                    upload = self._prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
                                                                     obs_json)
                                     self._upload(upload)
                                     finished_processes[process_id] = []
@@ -584,7 +584,7 @@ class TsV2CatalogHandler:
                 }
         return {}
 
-    def _process_usfm(self, lid, rid, format):
+    def _process_usfm(self, lid, rid, resource, format):
         """
         Converts a USFM bundle into usx, loads the data into json and uploads it.
         Returns an array of usx file paths.
@@ -622,7 +622,7 @@ class TsV2CatalogHandler:
                     self.logger.info('{} to json'.format(pid.upper()))
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
                     source = self._generate_source_from_usx(path, format['modified'])
-                    upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
+                    upload = self._prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, resource['version']), source['source'])
                     self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
 
                     self.status['processed'][process_id] = []
@@ -760,10 +760,10 @@ class TsV2CatalogHandler:
                 # Use the v3 api chunks url if the legacy version cannot be found
                 chunks_url = project['chunks_url']
 
-        source_url = '{}/{}/{}/{}/{}/source.json?date_modified={}'.format(
+        source_url = '{}/{}/{}/{}/{}/v{}/source.json?date_modified={}'.format(
             self.cdn_url,
             TsV2CatalogHandler.cdn_root_path,
-            pid, lid, rid, r_modified)
+            pid, lid, rid, resource['version'], r_modified)
         res.update({
             'date_modified': r_modified,
             'name': resource['title'],
