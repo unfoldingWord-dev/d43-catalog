@@ -105,7 +105,7 @@ class TestCatalog(TestCase):
         :return: an object containing the result and related mocks
         """
         state = self.make_handler_instance(progress_db)
-        response = state['handler'].handle_catalog()
+        response = state['handler'].run()
         state.update({
             'response':response
         })
