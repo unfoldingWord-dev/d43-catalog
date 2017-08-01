@@ -152,7 +152,7 @@ class UwV2CatalogHandler:
                             if rid == 'obs' and 'type=book' in format['format']:
                                 # TRICKY: obs must be converted to json
                                 process_id = '_'.join([lid, rid, pid])
-                                obs_key = '{}/{}/{}/v{}/{}.json'.format(self.cdn_root_path, lid, rid, res['version'], pid)
+                                obs_key = '{}/{}/{}/{}/v{}/source.json'.format(self.cdn_root_path, pid, lid, rid, res['version'])
                                 if process_id not in status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
                                     upload = self._prep_data_upload(obs_key, obs_json)

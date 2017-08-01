@@ -135,8 +135,8 @@
                   },
                   "mod": "1484106743",
                   "slug": "obs",
-                  "src": "https://cdn.door43.org/v2/uw/en/obs/v4/obs.json",
-                  "src_sig": "https://cdn.door43.org/v2/uw/en/obs/v4/obs.json.sig",
+                  "src": "https://cdn.door43.org/v2/uw/obs/en/obs/v4/source.json",
+                  "src_sig": "https://cdn.door43.org/v2/uw/obs/en/obs/v4/source.json.sig",
                   "title": "Open Bible Stories"
                 }
               ]
