@@ -34,26 +34,26 @@ class SigningHandler(object):
         self.logger = logger
         self.signer = signer
         if not s3_handler:
-            self.cdn_handler = S3Handler(self.cdn_bucket)
+            self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
         else:
             self.cdn_handler = s3_handler
 
         self.temp_dir = tempfile.mkdtemp(prefix='signing_')
 
         if not dynamodb_handler:
-            self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name)
+            self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name) # pragma: no cover
         else:
             self.db_handler = dynamodb_handler
         if not download_handler:
-            self.download_file = download_file
+            self.download_file = download_file # pragma: no cover
         else:
             self.download_file = download_handler
         if not url_exists_handler:
-            self.url_exists = url_exists
+            self.url_exists = url_exists # pragma: no cover
         else:
             self.url_exists = url_exists_handler
         if not url_size_handler:
-            self.url_size = get_url_size
+            self.url_size = get_url_size # pragma: no cover
         else:
             self.url_size = url_size_handler
 

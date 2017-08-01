@@ -23,7 +23,7 @@ class CatalogHandler:
 
     resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, ses_handler=None, consistency_checker=None, url_handler=None, url_exists_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, ses_handler=None, consistency_checker=None, get_url_handler=None, url_exists_handler=None):
         """
         Initializes a catalog handler
         :param event: 
@@ -31,7 +31,8 @@ class CatalogHandler:
         :param dynamodb_handler: This is passed in so it can be mocked for unit testing
         :param ses_handler: This is passed in so it can be mocked for unit testing
         :param consistency_checker: This is passed in so it can be mocked for unit testing
-        :param url_handler: This is passed in so it can be mocked for unit testing
+        :param get_url_handler: This is passed in so it can be mocked for unit testing
+        :param url_exists_handler: This is passed in so it can be mocked for unit testing
         """
         self.cdn_url = read_dict(event, 'cdn_url').rstrip('/')
         self.cdn_bucket = read_dict(event, 'cdn_bucket')
@@ -45,9 +46,9 @@ class CatalogHandler:
             self.status_table = dynamodb_handler('d43-catalog-status')
             self.errors_table = dynamodb_handler('d43-catalog-errors')
         else:
-            self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
-            self.status_table = DynamoDBHandler('d43-catalog-status')
-            self.errors_table = DynamoDBHandler('d43-catalog-errors')
+            self.progress_table = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
+            self.status_table = DynamoDBHandler('d43-catalog-status') # pragma: no cover
+            self.errors_table = DynamoDBHandler('d43-catalog-errors') # pragma: no cover
 
         self.catalog = {
             "languages": []
@@ -55,21 +56,21 @@ class CatalogHandler:
         if s3_handler:
             self.api_handler = s3_handler(self.api_bucket)
         else:
-            self.api_handler = S3Handler(self.api_bucket)
+            self.api_handler = S3Handler(self.api_bucket) # pragma: no cover
         if ses_handler:
             self.ses_handler = ses_handler()
         else:
-            self.ses_handler = SESHandler()
+            self.ses_handler = SESHandler() # pragma: no cover
         if consistency_checker:
             self.checker = consistency_checker()
         else:
-            self.checker = ConsistencyChecker()
-        if not url_handler:
-            self.get_url = get_url
+            self.checker = ConsistencyChecker() # pragma: no cover
+        if not get_url_handler:
+            self.get_url = get_url # pragma: no cover
         else:
-            self.get_url = url_handler
+            self.get_url = get_url_handler
         if not url_exists_handler:
-            self.url_exists = url_exists
+            self.url_exists = url_exists # pragma: no cover
         else:
             self.url_exists = url_exists_handler
 
@@ -155,7 +156,7 @@ class CatalogHandler:
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
                 except Exception as e:
-                    self.checker.log_error('Unable to save catalog: {0}'.format(e))
+                    self.checker.log_error('Unable to save catalog: {0}'.format(e)) # pragma: no cover
         else:
             self.checker.log_error('There were no formats to process')
 
@@ -218,7 +219,7 @@ class CatalogHandler:
         for fmt in manifest['formats']:
             errors = checker.check_format(fmt, item)
             if not errors:
-                self.__strip_build_rules(fmt)
+                self._strip_build_rules(fmt)
                 formats.append(fmt)
 
         if len(formats) > 0:
@@ -236,7 +237,7 @@ class CatalogHandler:
             for project in manifest['projects']:
                 if 'formats' in project:
                     for fmt in project['formats']:
-                        self.__strip_build_rules(fmt)
+                        self._strip_build_rules(fmt)
                         checker.check_format(fmt, item)
                 if not project['categories']:
                     project['categories'] = []
@@ -262,7 +263,7 @@ class CatalogHandler:
 
         return False
 
-    def __strip_build_rules(self, obj):
+    def _strip_build_rules(self, obj):
         """
         Recursively removes 'build_tools' from an object
         :param obj:
@@ -272,13 +273,13 @@ class CatalogHandler:
             del obj['build_rules']
         if 'projects' in obj:
             for project in obj['projects']:
-                self.__strip_build_rules(project)
+                self._strip_build_rules(project)
         if 'formats' in obj:
             for format in obj['formats']:
-                self.__strip_build_rules(format)
+                self._strip_build_rules(format)
         if 'chapters' in obj:
             for chapter in obj['chapters']:
-                self.__strip_build_rules(chapter)
+                self._strip_build_rules(chapter)
 
 
     def has_usfm_bundle(self, formats):
@@ -345,7 +346,7 @@ class CatalogHandler:
             current_catalog = json.loads(self.get_url(catalog_url, True))
             same = current_catalog == catalog
             return not same
-        except Exception:
+        except Exception as e:
             return True
 
     def _handle_errors(self, checker):
@@ -364,7 +365,7 @@ class CatalogHandler:
             count = 0
 
         self.errors_table.update_item({'id': 1}, {'count': count, 'errors': checker.all_errors})
-        if count > 4:
+        if count > 4: # pragma: no cover
             print("ALERT! FAILED MORE THAN 4 TIMES!")
             try:
                 self.ses_handler.send_email(
@@ -391,5 +392,5 @@ class CatalogHandler:
                         }
                     }
                 )
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 print("ALERT! FAILED TO SEND EMAIL: {}".format(e))

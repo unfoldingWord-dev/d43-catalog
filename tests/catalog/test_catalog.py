@@ -1,8 +1,8 @@
 from __future__ import unicode_literals, print_function
 import os
 from unittest import TestCase
-from tools.test_utils import assert_object_equals_file
-from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler
+from tools.test_utils import assert_object_equals_file, assert_object_equals
+from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI
 from functions.catalog import CatalogHandler
 import json
 
@@ -45,11 +45,11 @@ class TestCatalog(TestCase):
 
         return record
 
-    def run_with_db(self, progress_db):
+    def make_handler_instance(self, progress_db):
         """
-        Runs the catalog handler with all the proper mocks
-        :param progress_db: the progress database file to use
-        :return: an object containing the result and related mocks
+        Generates a new handler instance for testing
+        :param progress_db:
+        :return:
         """
         progress_db_file = os.path.join(self.resources_dir, 'progress_db/{}'.format(progress_db))
         self.assertTrue(os.path.isfile(progress_db_file))
@@ -69,21 +69,21 @@ class TestCatalog(TestCase):
         mock_ses = MockSESHandler()
         mock_s3 = MockS3Handler()
         mock_checker = MockChecker()
+        mock_api = MockAPI(os.path.join(self.resources_dir), '/')
 
         mock_ses_handler = lambda: mock_ses
         mock_s3_handler = lambda bucket: mock_s3
         mock_dbs_handler = lambda bucket: dbs[bucket]
         mock_checker_handler = lambda: mock_checker
-        catalog = CatalogHandler(event,
+        handler = CatalogHandler(event,
                                  s3_handler=mock_s3_handler,
                                  dynamodb_handler=mock_dbs_handler,
                                  ses_handler=mock_ses_handler,
                                  consistency_checker=mock_checker_handler,
-                                 url_exists_handler=lambda url: True)
-        response = catalog.handle_catalog()
-
+                                 url_exists_handler=lambda url: True,
+                                 get_url_handler=mock_api.get_url)
         return {
-            'response': response,
+            'handler': handler,
             'event': event,
             'mocks': {
                 'db': {
@@ -91,11 +91,25 @@ class TestCatalog(TestCase):
                     'status': mock_status_db,
                     'errors': mock_errors_db
                 },
+                'api': mock_api,
                 'ses': mock_ses,
                 's3': mock_s3,
                 'checker': mock_checker
             }
         }
+
+    def run_with_db(self, progress_db):
+        """
+        Runs the catalog handler with all the proper mocks
+        :param progress_db: the progress database file to use
+        :return: an object containing the result and related mocks
+        """
+        state = self.make_handler_instance(progress_db)
+        response = state['handler'].handle_catalog()
+        state.update({
+            'response':response
+        })
+        return state
 
     def test_catalog_valid_obs_content(self):
         state = self.run_with_db('valid.json')
@@ -207,3 +221,79 @@ class TestCatalog(TestCase):
         state = self.run_with_db('complex.json')
 
         assert_object_equals_file(self, state['response']['catalog'], os.path.join(self.resources_dir, 'v3_catalog_complex.json'))
+
+    def test_read_none_status(self):
+        state = self.make_handler_instance('valid.json')
+        status = state['handler']._read_status()
+        self.assertIsNone(status)
+
+    def test_read_status(self):
+        state = self.make_handler_instance('valid.json')
+        state['mocks']['db']['status'].insert_item({
+            'api_version': CatalogHandler.API_VERSION
+        })
+        status = state['handler']._read_status()
+        self.assertIsNotNone(status)
+
+    def test_has_usfm_bundle(self):
+        state = self.make_handler_instance('valid.json')
+        result = state['handler'].has_usfm_bundle([{
+            'format': 'application/zip; content=text/usfm type=bundle'
+        }])
+        self.assertTrue(result)
+
+    def test_strip_build_rules(self):
+        state = self.make_handler_instance('valid.json')
+        obj = {
+            'build_rules': [],
+            'id': 'obj',
+            'projects': [
+                {
+                    'build_rules':[],
+                    'id':'proj',
+                    'formats': [
+                        {
+                            'build_rules': [],
+                            'id': 'fmt',
+                            'chapters': [
+                                {
+                                    'id': 'chp',
+                                    'build_rules': []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            'formats': [
+                {
+                    'build_rules':[],
+                    'id':'fmt'
+                }
+            ]
+        }
+        expected = {
+            'id': 'obj',
+            'projects': [
+                {
+                    'id':'proj',
+                    'formats': [
+                        {
+                            'id': 'fmt',
+                            'chapters': [
+                                {
+                                    'id': 'chp'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            'formats': [
+                {
+                    'id':'fmt'
+                }
+            ]
+        }
+        state['handler']._strip_build_rules(obj)
+        assert_object_equals(self, expected, obj)

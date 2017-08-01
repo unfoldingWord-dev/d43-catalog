@@ -31,15 +31,15 @@ class ForkHandler:
         self.gogs_org = read_dict(self.stage_vars, 'gogs_org', 'Environment Vars')
 
         if not dynamodb_handler:
-            self.progress_table = DynamoDBHandler('d43-catalog-in-progress')
+            self.progress_table = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
         else:
             self.progress_table = dynamodb_handler
         if not gogs_client:
-            self.gogs_client = GogsClient
+            self.gogs_client = GogsClient # pragma: no cover
         else:
             self.gogs_client = gogs_client
         if not boto_handler:
-            self.boto = boto3
+            self.boto = boto3 # pragma: no cover
         else:
             self.boto = boto_handler
 
@@ -122,7 +122,7 @@ class ForkHandler:
                 except Exception as e:
                     # TRICKY: with the api broken this would create a lot of noise
                     # print('WARNING: failed to detect changes: {}'.format(e))
-                    pass
+                    pass # pragma: no cover
 
         return new_repos
 

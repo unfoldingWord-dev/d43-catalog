@@ -56,12 +56,12 @@ class WebhookHandler:
         if not dynamodb_handler:
             self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
         else:
-            self.db_handler = dynamodb_handler
+            self.db_handler = dynamodb_handler # pragma: no cover
 
         if not s3_handler:
             self.s3_handler = S3Handler(self.cdn_bucket)
         else:
-            self.s3_handler = s3_handler
+            self.s3_handler = s3_handler # pragma: no cover
 
         if not download_handler:
             self.download_file = download_file
@@ -70,10 +70,10 @@ class WebhookHandler:
 
     def run(self):
         if not self.commit_url.startswith(self.gogs_url):
-            raise Exception('Only accepting webhooks from {0} but found {1}'.format(self.gogs_url, self.commit_url))
+            raise Exception('Only accepting webhooks from {0} but found {1}'.format(self.gogs_url, self.commit_url)) # pragma: no cover
 
         if self.repo_owner.lower() != self.gogs_org.lower():
-            raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org))
+            raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org)) # pragma: no cover
 
         try:
             # build catalog entry
@@ -99,7 +99,7 @@ class WebhookHandler:
         self.unzip_repo_file(self.repo_file, self.temp_dir)
 
         if not os.path.isdir(self.repo_dir):
-            raise Exception('Was not able to find {0}'.format(self.repo_dir))
+            raise Exception('Was not able to find {0}'.format(self.repo_dir)) # pragma: no cover
 
         data = {}
         if self.repo_name == 'localization':

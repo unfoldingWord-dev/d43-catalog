@@ -49,19 +49,19 @@ class UwV2CatalogHandler:
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         if not s3_handler:
-            self.cdn_handler = S3Handler(self.cdn_bucket)
+            self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
         else:
             self.cdn_handler = s3_handler
         if not dynamodb_handler:
-            self.db_handler = DynamoDBHandler('d43-catalog-status')
+            self.db_handler = DynamoDBHandler('d43-catalog-status') # pragma: no cover
         else:
             self.db_handler = dynamodb_handler
         if not url_handler:
-            self.get_url = get_url
+            self.get_url = get_url # pragma: no cover
         else:
             self.get_url = url_handler
         if not download_handler:
-            self.download_file = download_file
+            self.download_file = download_file # pragma: no cover
         else:
             self.download_file = download_handler
 

@@ -10,9 +10,10 @@ class MockAPI(object):
     Creates a mock static api
     """
 
-    def __init__(self, dir, mock_host):
+    def __init__(self, dir=None, mock_host=None):
         self.hosts = {}
-        self.add_host(dir, mock_host)
+        if  dir and mock_host:
+            self.add_host(dir, mock_host)
 
     def add_host(self, dir, mock_host):
         """
