@@ -1,6 +1,7 @@
 *
-!main.py
-!.gitignore
-!.apexignore
-!webhook_handler.py
+!/main.py
+!/.gitignore
+!/.apexignore
 !/__init__.py
+!/handler.py
+!/tools

@@ -5,12 +5,13 @@
 #
 
 from __future__ import print_function
-from d43_aws_tools import DynamoDBHandler, S3Handler, SESHandler
-from catalog_handler import CatalogHandler
+from handler import CatalogHandler
+from tools.file_utils import wipe_temp
 
 def handle(event, context):
+    wipe_temp(ignore_errors=True)
     try:
-        catalog = CatalogHandler(event=event, s3_handler=S3Handler, dynamodb_handler=DynamoDBHandler, ses_handler=SESHandler)
+        catalog = CatalogHandler(event=event)
         return catalog.handle_catalog()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

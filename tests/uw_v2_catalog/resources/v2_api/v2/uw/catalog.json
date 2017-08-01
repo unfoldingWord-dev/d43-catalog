@@ -4,10 +4,10 @@
       "langs": [
         {
           "lc": "en",
-          "mod": "1475478000",
+          "mod": "1475553143",
           "vers": [
             {
-              "mod": "1475478000",
+              "mod": "1475553143",
               "name": "Unlocked Dynamic Bible",
               "slug": "udb",
               "status": {
@@ -15,23 +15,15 @@
                 "checking_level": "3",
                 "comments": "",
                 "contributors": "Wycliffe Associates",
-                "publish_date": "2015-08-26",
-                "source_text": "asv-en",
+                "publish_date": "2015-08-26T22:52:23-05:00",
+                "source_text": "en",
                 "source_text_version": "1901",
                 "version": "7"
               },
               "toc": [
                 {
                   "desc": "",
-                  "media": {
-                    "audio": {
-
-                    },
-                    "video": {
-
-                    }
-                  },
-                  "mod": "1475478000",
+                  "mod": "1475553143",
                   "slug": "gen",
                   "src": "https://cdn.door43.org/en/udb/v7/gen.usfm",
                   "src_sig": "https://cdn.door43.org/en/udb/v7/gen.usfm.sig",
@@ -39,15 +31,7 @@
                 },
                 {
                   "desc": "",
-                  "media": {
-                    "audio": {
-
-                    },
-                    "video": {
-
-                    }
-                  },
-                  "mod": "1475478000",
+                  "mod": "1475553143",
                   "slug": "1ch",
                   "src": "https://cdn.door43.org/en/udb/v7/1ch.usfm",
                   "src_sig": "https://cdn.door43.org/en/udb/v7/1ch.usfm.sig",
@@ -56,7 +40,7 @@
               ]
             },
             {
-              "mod": "1479110400",
+              "mod": "1479181943",
               "slug": "ulb",
               "name": "Unlocked Literal Bible",
               "status": {
@@ -64,23 +48,15 @@
                 "checking_level": "3",
                 "comments": "",
                 "contributors": "Wycliffe Associates",
-                "publish_date": "2016-10-03",
-                "source_text": "asv-en",
+                "publish_date": "2016-10-03T22:52:23-05:00",
+                "source_text": "en",
                 "source_text_version": "1901",
                 "version": "7"
               },
               "toc": [
                 {
                   "desc": "",
-                  "media": {
-                    "audio": {
-
-                    },
-                    "video": {
-
-                    }
-                  },
-                  "mod": "1479110400",
+                  "mod": "1479181943",
                   "slug": "1ch",
                   "src": "https://cdn.door43.org/en/ulb/v7/1ch.usfm",
                   "src_sig": "https://cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
@@ -98,19 +74,19 @@
       "langs": [
         {
           "lc": "en",
-          "mod": "1489561200",
+          "mod": "1484106743",
           "vers": [
             {
-              "mod": "1489561200",
+              "mod": "1484106743",
               "name": "Open Bible Stories",
               "slug": "obs",
               "status": {
                 "checking_entity": "Distant Shores Media; Wycliffe Associates",
                 "checking_level": "3",
                 "comments": "",
-                "contributors": "Distant Shores Media",
-                "publish_date": "2015-08-26",
-                "source_text": "obs-en",
+                "contributors": "Distant Shores Media; Wycliffe Associates",
+                "publish_date": "2015-08-26T22:52:23-05:00",
+                "source_text": "en",
                 "source_text_version": "4",
                 "version": "4"
               },
@@ -119,13 +95,45 @@
                   "desc": "",
                   "media": {
                     "audio": {
-
-                    },
-                    "video": {
-
+                      "contributors": "Narrator: Steve Lossing,\\nChecker: Brad Harrington,\\nEngineer: Brad Harrington",
+                      "rev": "1",
+                      "src_list": [
+                        {
+                          "src": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_01_{bitrate}kbps.mp3",
+                          "chap": "01",
+                          "src_sig": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_01_{bitrate}kbps.mp3.sig",
+                          "length": 1,
+                          "br": [
+                            {
+                              "size": 6891,
+                              "bitrate": 64,
+                              "mod": 1501127543
+                            }
+                          ]
+                        },
+                        {
+                          "src": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_02_{bitrate}kbps.mp3",
+                          "chap": "02",
+                          "src_sig": "https://cdn.door43.org/en/obs/v4/{bitrate}kbps/en_obs_02_{bitrate}kbps.mp3.sig",
+                          "length": 1,
+                          "br": [
+                            {
+                              "size": 5870,
+                              "bitrate": 64,
+                              "mod": 1501127543
+                            },
+                            {
+                              "size": 2749,
+                              "bitrate": 32,
+                              "mod": 1501127543
+                            }
+                          ]
+                        }
+                      ],
+                      "txt_ver": "4"
                     }
                   },
-                  "mod": "1489561200",
+                  "mod": "1484106743",
                   "slug": "obs",
                   "src": "https://cdn.door43.org/en/udb/v4/obs.json",
                   "src_sig": "https://cdn.door43.org/en/udb/v4/obs.json.sig",
@@ -140,5 +148,5 @@
       "title": "Open Bible Stories"
     }
   ],
-  "mod": 1489561200
+  "mod": 1499399543
 }

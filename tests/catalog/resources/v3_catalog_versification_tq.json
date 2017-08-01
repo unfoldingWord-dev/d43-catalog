@@ -1,0 +1,517 @@
+{
+  "languages": [
+    {
+      "direction": "ltr",
+      "identifier": "en",
+      "resources": [
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "Comprehension questions for checking Bible translations",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2016-10-01",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-04-12",
+          "source": [
+            {
+              "identifier": "tq",
+              "version": "5",
+              "language": "en"
+            }
+          ],
+          "version": "6",
+          "relation": [
+            "en/ulb",
+            "en/udb"
+          ],
+          "formats": [
+            {
+              "size": 4434519,
+              "url": "https://test-cdn.door43.org/en/tq/v6/tq.zip",
+              "signature": "https://test-cdn.door43.org/en/tq/v6/tq.zip.sig",
+              "modified": "2017-05-03T19:34:05Z",
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+            }
+          ],
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "title": "translationQuestions",
+          "identifier": "tq",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1ch",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1co",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1ki",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1pe",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1sa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1th",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1ti",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2ch",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2co",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2ki",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2pe",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2sa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2th",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2ti",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "3jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "act",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "amo",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "col",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "dan",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "deu",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "ecc",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "eph",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "est",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "exo",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "ezk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "ezr",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "gal",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "gen",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "hab",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "hag",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "heb",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "hos",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "isa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jas",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jdg",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jer",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jhn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "job",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jol",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jon",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jos",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jud",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "lam",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "lev",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "luk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mal",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mat",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mic",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mrk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "nam",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "neh",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "num",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "oba",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "phm",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "php",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "pro",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "psa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "rev",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "rom",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "rut",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "sng",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "tit",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "zec",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "zep",
+              "categories": []
+            }
+          ],
+          "subject": "Bible translation comprehension questions"
+        }
+      ],
+      "title": "English"
+    }
+  ]
+}

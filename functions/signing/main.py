@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 import logging
-from signing import Signing
+import os
+from handler import SigningHandler
+from signer import Signer
+from tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,6 +16,9 @@ def handle(event, context):
     :param dict event:
     :param context:
     """
+    wipe_temp(ignore_errors=True)
     global logger
-    signer = Signing(event, logger)
-    signer.run()
+    pem_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'uW-sk.enc')
+    signer = Signer(pem_file)
+    handler = SigningHandler(event, logger, signer)
+    handler.run()

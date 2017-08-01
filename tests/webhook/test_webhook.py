@@ -2,7 +2,13 @@ import codecs
 import os
 import json
 from unittest import TestCase
-from functions.webhook.webhook_handler import WebhookHandler
+from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler
+from tools.test_utils import assert_object_equals_file
+from functions.webhook import WebhookHandler
+
+# This is here to test importing main
+from functions.webhook import main
+
 
 class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
@@ -66,15 +72,22 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        urls = {
+            'https://git.door43.org/Door43-Catalog/en_obs/archive/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad.zip': 'en_obs.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
+        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler, mock_download)
         handler.run()
 
         entry = self.MockDynamodbHandler.data
         self.assertEqual(1, len(self.MockS3Handler.uploads))
         self.assertIn('/en_obs.zip', self.MockS3Handler.uploads[0]['path'])
-        self.assertIn('temp/en_obs/{}/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+        self.assertIn('temp/en_obs/{}/en/obs/v4/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+
+        assert_object_equals_file(self, entry, os.path.join(self.resources_dir, 'expected_obs_record.json'))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
@@ -95,7 +108,7 @@ class TestWebhook(TestCase):
         entry = self.MockDynamodbHandler.data
         self.assertEqual(67, len(self.MockS3Handler.uploads)) # books and bundle
         self.assertIn('/en_ulb.zip', self.MockS3Handler.uploads[0]['path'])
-        self.assertIn('temp/en_ulb/{}/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+        self.assertIn('temp/en_ulb/{}/en/ulb/v7/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
     def test_webhook_versification(self):
         request_file = os.path.join(self.resources_dir, 'versification-request.json')
@@ -103,26 +116,33 @@ class TestWebhook(TestCase):
             request_text = in_file.read()
             # convert Windows line endings to Linux line endings
             content = request_text.replace('\r\n', '\n')
-
-            # deserialized object
             request_json = json.loads(content)
 
-        self.MockDynamodbHandler.data = None
-        self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        urls = {
+            'https://git.door43.org/Door43-Catalog/versification/archive/c7e936e4dcc103560987c8475db69e292aa66dca.zip': 'versification.zip'
+        }
+
+        mock_api = MockAPI(self.resources_dir, 'https://git.door43.org')
+        mock_db = MockDynamodbHandler()
+        mock_s3 = MockS3Handler()
+        handler = WebhookHandler(request_json,
+                    s3_handler=mock_s3,
+                    dynamodb_handler=mock_db,
+                    download_handler=lambda url, dest: mock_api.download_file(urls[url], dest))
         handler.run()
 
-        self.assertEqual(66, len(self.MockS3Handler.uploads))
-        data = self.MockDynamodbHandler.data
+        self.assertEqual(66, len(mock_s3._recent_uploads))
+        data = mock_db._last_inserted_item
         self.assertTrue(len(data['package']) > 0)
         package = json.loads(data['package'])
         self.assertIn('chunks_url', package[0])
         self.assertIn('https://cdn.door43.org/bible/', package[0]['chunks_url'])
         self.assertIn('identifier', package[0])
         self.assertNotIn('chunks', package[0])
-        for upload in self.MockS3Handler.uploads:
+        for key in mock_s3._recent_uploads:
+            dest = mock_s3._recent_uploads[key]
             # for now we are bypassing signing and uploading directly
-            self.assertIn('bible/'.format(data['commit_id']), upload['key'])
+            self.assertIn('bible/'.format(data['commit_id']), dest)
             #self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
 
     def test_webhook_localization(self):

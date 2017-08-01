@@ -10,7 +10,9 @@ develop:
 
 These are the AWS Lambda functions for generating the [API v3 catalog endpoint](https://api.door43.org/v3/catalog) from the [Door43 Resource Catalog](https://git.door43.org/Door43-Catalog) organization in our Door43 Git Service.
 
-Requires the [tx-manager library](https://github.com/unfoldingWord-dev/tx-manager).
+
+## Requirements
+* Python 2.7
 
 ## How it Works
 

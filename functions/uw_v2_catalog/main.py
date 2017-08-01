@@ -5,12 +5,14 @@
 #
 
 from __future__ import print_function
-from d43_aws_tools import DynamoDBHandler, S3Handler, SESHandler
-from uw_v2_catalog_handler import UwV2CatalogHandler
+from handler import UwV2CatalogHandler
+from tools.file_utils import wipe_temp
+
 
 def handle(event, context):
+    wipe_temp(ignore_errors=True)
     try:
-        catalog = UwV2CatalogHandler(event, S3Handler, DynamoDBHandler, SESHandler)
-        return catalog.convert_catalog()
+        catalog = UwV2CatalogHandler(event)
+        return catalog.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

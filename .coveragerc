@@ -1,10 +1,4 @@
 [run]
-source =
-    functions/signing
-
-omit =
-    */__init__.py
-    */six.py
-    functions/signing/**/*.*
-    functions/signing/main.py
-    functions/signing/aws_decrypt.py
+include=
+    functions/**/handler.py
+    functions/signing/signer.py

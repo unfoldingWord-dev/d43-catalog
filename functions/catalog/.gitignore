@@ -3,5 +3,5 @@
 !/.gitignore
 !/.apexignore
 !/__init__.py
-!/catalog_handler.py
-!/v2_catalog_converter.py
+!/handler.py
+!/tools

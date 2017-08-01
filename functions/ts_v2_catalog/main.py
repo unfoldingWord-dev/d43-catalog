@@ -5,11 +5,17 @@
 #
 
 from __future__ import print_function
-from ts_v2_catalog_handler import TsV2CatalogHandler
+from handler import TsV2CatalogHandler
+from tools.file_utils import wipe_temp
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def handle(event, context):
+    wipe_temp(ignore_errors=True)
     try:
-        catalog = TsV2CatalogHandler(event)
-        return catalog.convert_catalog()
+        catalog = TsV2CatalogHandler(event, logger)
+        return catalog.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

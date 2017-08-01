@@ -2,28 +2,29 @@ import os
 from unittest import TestCase
 
 import gogs_client as GogsClient
-import json
 from shutil import copyfile
-from tools.mocks import MockS3Handler, MockDynamodbHandler
-from functions.fork.fork_handler import ForkHandler
-from functions.webhook.webhook_handler import WebhookHandler
+from tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
+from functions.fork import ForkHandler
+from functions.webhook import WebhookHandler
+
+# This is here to test importing main
+from functions.fork import main
+
 
 class TestFork(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
     mock_download = None
 
-    class MockDynamodbHandler(object):
-        data = None
-        items = []
+    class MockBotoClient(object):
 
-        @staticmethod
-        def insert_item(data):
-            TestFork.MockDynamodbHandler.data = data
-            TestFork.MockDynamodbHandler.items.append(data)
+        def invoke(self, FunctionName, InvocationType, Payload):
+            pass
 
-        @staticmethod
-        def query_items():
-            return TestFork.MockDynamodbHandler.items
+    class MockGogsRepo(object):
+        def __init__(self):
+            self.full_name = ''
+            self.name = '',
+            self.default_branch = ''
 
     class MockGogsClient(object):
 
@@ -145,24 +146,58 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("en-obs"))
         self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("es-obs"))
 
-        self.MockDynamodbHandler.items = []
-        self.MockDynamodbHandler.items.append(TestFork.create_db_item("hmr-obs"))
-        self.MockDynamodbHandler.items.append(TestFork.create_db_item("pt-br-obs"))
+        mockBoto = self.MockBotoClient()
+        mockDb = MockDynamodbHandler()
+        mockDb.insert_item(TestFork.create_db_item("hmr-obs"))
+        mockDb.insert_item(TestFork.create_db_item("pt-br-obs"))
+        mockLog = MockLogger()
 
-        handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb,
+                              boto_handler=mockBoto)
         repos = handler.get_new_repos()
 
         self.assertEqual(2, len(repos))
         for repo in repos:
-            self.assertNotEqual('Door43-Catalog/hmr-obs', repo.full_name)
+            self.assertNotIn(repo.full_name, ['Door43-Catalog/hmr-obs', 'Door43-Catalog/pt-br-obs'])
 
-    def test_make_hook_payload(self):
+    def test_get_dirty_repos(self):
         event = self.create_event()
 
         # mock data
-        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        self.MockGogsClient.MockGogsApi.repos = []
+        self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("hmr-obs"))
+        self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("en-obs"))
+        self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("es-obs"))
 
-        handler = ForkHandler(event, self.MockGogsClient, self.MockDynamodbHandler)
+        mockBoto = self.MockBotoClient()
+        dirty_record = TestFork.create_db_item("hmr-obs")
+        dirty_record['dirty'] = True
+        mockDb = MockDynamodbHandler()
+        mockDb.insert_item(dirty_record)
+        mockDb.insert_item(TestFork.create_db_item("pt-br-obs"))
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb,
+                              boto_handler=mockBoto)
+        repos = handler.get_new_repos()
+
+        self.assertEqual(3, len(repos))
+        for repo in repos:
+            self.assertNotIn(repo.full_name, ['Door43-Catalog/pt-br-obs'])
+
+    def test_make_hook_payload(self):
+        event = self.create_event()
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
         repo = TestFork.create_repo("en_obs")
         payload = handler.make_hook_payload(repo)
         self.assertIn('body-json', payload)
@@ -175,3 +210,29 @@ class TestFork(TestCase):
         dbHandler = MockDynamodbHandler()
         webhook_handler = WebhookHandler(payload, s3Handler, dbHandler, TestFork.mock_download_file)
         webhook_handler.run()
+
+    def test_trigger_hook_with_repos(self):
+        event = self.create_event()
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        mockClient = self.MockBotoClient()
+        mockRepo = self.MockGogsRepo()
+        mockRepo.full_name = 'my_repo'
+        handler._trigger_webhook(mockClient, [mockRepo])
+
+        self.assertIn('Simulating Webhook for my_repo', mockLog._messages)
+
+    def test_trigger_hook_no_repos(self):
+        event = self.create_event()
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        mockClient = self.MockBotoClient()
+        handler._trigger_webhook(mockClient, [])
+
+        self.assertIn('No new repositories found', mockLog._messages)

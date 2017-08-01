@@ -3,12 +3,37 @@ from contextlib import closing
 import json
 import shutil
 import sys
+import httplib
+from urlparse import urlparse
 
 try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
 
+def get_url_size(url):
+    """
+    Returns the file size of the url in bytes
+    :param url:
+    :return:
+    """
+    p = urlparse(url)
+    conn = httplib.HTTPConnection(p.netloc)
+    conn.request('HEAD', p.path)
+    resp = conn.getresponse()
+    return resp.getheader('content-length', 0)
+
+def url_exists(url):
+    """
+    Checks if a url exists
+    :param url:
+    :return:
+    """
+    p = urlparse(url)
+    conn = httplib.HTTPConnection(p.netloc)
+    conn.request('HEAD', p.path)
+    resp = conn.getresponse()
+    return resp.status == 301 or resp.status == 200
 
 def get_url(url, catch_exception=False):
     """
