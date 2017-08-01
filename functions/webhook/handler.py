@@ -54,17 +54,17 @@ class WebhookHandler:
         self.commit_id = self.commit_id[:10]
         self.resource_id = None # set in self._build
         if not dynamodb_handler:
-            self.db_handler = DynamoDBHandler('d43-catalog-in-progress')
+            self.db_handler = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
         else:
             self.db_handler = dynamodb_handler # pragma: no cover
 
         if not s3_handler:
-            self.s3_handler = S3Handler(self.cdn_bucket)
+            self.s3_handler = S3Handler(self.cdn_bucket) # pragma: no cover
         else:
             self.s3_handler = s3_handler # pragma: no cover
 
         if not download_handler:
-            self.download_file = download_file
+            self.download_file = download_file # pragma: no cover
         else:
             self.download_file = download_handler
 
