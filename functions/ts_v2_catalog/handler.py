@@ -78,7 +78,11 @@ class TsV2CatalogHandler:
         cat_dict = {}
         supplemental_resources = []
 
-        (self.status, source_status) = self._get_status()
+        result = self._get_status()
+        if not result:
+            return False
+        else:
+            (self.status, source_status) = result
 
         # check if build is complete
         if self.status['state'] == 'complete':
