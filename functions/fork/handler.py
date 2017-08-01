@@ -10,15 +10,17 @@ from d43_aws_tools import DynamoDBHandler
 import gogs_client as GogsClient
 import boto3
 import json
+import logging
 import time
 from tools.dict_utils import read_dict
 
 
 class ForkHandler:
-    def __init__(self, event, gogs_client=None, dynamodb_handler=None, boto_handler=None):
+    def __init__(self, event, logger, gogs_client=None, dynamodb_handler=None, boto_handler=None):
         """
         
-        :param event: 
+        :param event:
+        :param logger:
         :param gogs_client: Passed in for unit testing
         :param dynamodb_handler: Passed in for unit testing
         :param boto_handler: Passed in for unit testing
@@ -29,7 +31,7 @@ class ForkHandler:
         self.stage_vars = read_dict(event, 'stage-variables', 'Environment Vars')
         self.gogs_url = read_dict(self.stage_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = read_dict(self.stage_vars, 'gogs_org', 'Environment Vars')
-
+        self.logger = logger # type: logging._loggerClass
         if not dynamodb_handler:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
         else:
@@ -49,14 +51,26 @@ class ForkHandler:
     def run(self):
         client = self.boto.client("lambda")
         repos = self.get_new_repos()
+        self._trigger_webhook(client, repos)
+
+    def _trigger_webhook(self, client, repos):
+        """
+        Triggers the webhook in each repo in the list
+        :param client boto3.client('lambda'): the lambda client
+        :param repos list: an array of repos
+        :return:
+        """
+        if not repos:
+            self.logger.info('No new repositories found')
+            return
         for repo in repos:
             try:
                 payload = self.make_hook_payload(repo)
             except Exception as e:
-                print("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
+                self.logger.error("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
                 continue
             try:
-                print("Simulating Webhook for {}".format(repo.full_name))
+                self.logger.info("Simulating Webhook for {}".format(repo.full_name))
                 client.invoke(
                     FunctionName="d43-catalog_webhook",
                     InvocationType="Event",
@@ -64,7 +78,7 @@ class ForkHandler:
                 )
                 time.sleep(5)
             except Exception as e:
-                print("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
+                self.logger.error("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
                 continue
 
     def make_hook_payload(self, repo):
