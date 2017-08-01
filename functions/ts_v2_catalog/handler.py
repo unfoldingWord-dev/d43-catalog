@@ -166,7 +166,7 @@ class TsV2CatalogHandler:
                                 process_id = '_'.join([lid, rid, 'obs'])
                                 if process_id not in self.status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
-                                    upload = self._prep_data_upload('{}/{}/{}/source.json'.format('obs', lid, rid),
+                                    upload = self._prep_data_upload('{}/{}/{}/{}/source.json'.format(pid, lid, rid, res['version']),
                                                                     obs_json)
                                     self._upload(upload)
                                     finished_processes[process_id] = []

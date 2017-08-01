@@ -152,12 +152,11 @@ class UwV2CatalogHandler:
                             if rid == 'obs' and 'type=book' in format['format']:
                                 # TRICKY: obs must be converted to json
                                 process_id = '_'.join([lid, rid, pid])
+                                obs_key = '{}/{}/{}/v{}/{}.json'.format(self.cdn_root_path, lid, rid, res['version'], pid)
                                 if process_id not in status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
-                                    upload = self._prep_data_upload('{}/{}/source.json'.format(rid, lid), obs_json)
-                                    self.cdn_handler.upload_file(upload['path'],
-                                                                 '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
-                                                                                upload['key']))
+                                    upload = self._prep_data_upload(obs_key, obs_json)
+                                    self.cdn_handler.upload_file(upload['path'], upload['key'])
 
                                     status['processed'].update({process_id: []})
                                     status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -166,8 +165,8 @@ class UwV2CatalogHandler:
                                     cat_keys = cat_keys + status['processed'][process_id]
 
                                 source = {
-                                    'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
-                                    'signature': '{}/en/udb/v4/obs.json.sig'.format(self.cdn_url)
+                                    'url': '{}/{}'.format(self.cdn_url, obs_key),
+                                    'signature': '{}/{}.sig'.format(self.cdn_url, obs_key)
                                 }
                             elif rid != 'obs' and format['format'] == 'text/usfm':
                                 # process bible

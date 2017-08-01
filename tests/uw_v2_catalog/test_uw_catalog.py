@@ -117,4 +117,4 @@ class TestUwV2Catalog(TestCase):
         converter.run()
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/obs/en/source.json')
+        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/en/obs/v4/obs.json')
