@@ -15,6 +15,7 @@ from tools.file_utils import write_file
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict, merge_dict
 from tools.url_utils import download_file, get_url
+from tools.signer import Signer, ENC_PRIV_PEM_PATH
 from tools.legacy_utils import index_obs
 import math
 import arrow
@@ -36,7 +37,7 @@ class UwV2CatalogHandler:
     cdn_root_path = 'v2/uw'
     api_version = 'uw.2'
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
+    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, signing_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param event:
@@ -66,6 +67,10 @@ class UwV2CatalogHandler:
             self.download_file = download_handler
 
         self.temp_dir = tempfile.mkdtemp('', 'uwv2', None)
+        if not signing_handler:
+            self.signer = Signer(ENC_PRIV_PEM_PATH) # pragma: no cover
+        else:
+            self.signer = signing_handler
 
     def __del__(self):
         try:
@@ -83,12 +88,6 @@ class UwV2CatalogHandler:
         v2_catalog = {
             'obs': {},
             'bible': {}
-        }
-
-        res_map = {
-            'ulb': 'bible',
-            'udb': 'bible',
-            'obs': 'obs'
         }
 
         title_map = {
@@ -157,6 +156,15 @@ class UwV2CatalogHandler:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
                                     upload = self._prep_data_upload(obs_key, obs_json)
                                     self.cdn_handler.upload_file(upload['path'], upload['key'])
+
+                                    # sign obs file.
+                                    # TRICKY: we only need to sign obs so we do so now.
+                                    sig_file = self.signer.sign_file(upload['path'])
+                                    try:
+                                        self.signer.verify_signature(upload['path'], sig_file)
+                                        self.cdn_handler.upload_file(sig_file, '{}.sig'.format(upload['key']))
+                                    except RuntimeError:
+                                        print('WARNING: Could not verify signature {}'.format(sig_file))
 
                                     status['processed'].update({process_id: []})
                                     status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")

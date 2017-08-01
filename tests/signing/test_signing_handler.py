@@ -6,7 +6,8 @@ import tempfile
 import unittest
 from unittest import TestCase
 from tools.file_utils import load_json_object
-from functions.signing import SigningHandler, Signer
+from functions.signing import SigningHandler
+from tools.signer import Signer
 from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner, MockAPI
 from tools.test_utils import assert_object_not_equals, is_travis
 
