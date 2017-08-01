@@ -21,14 +21,14 @@ from tools.legacy_utils import index_obs
 from tools.url_utils import download_file, get_url, url_exists
 from tools.dict_utils import read_dict
 import dateutil.parser
-
+import logging
 
 class TsV2CatalogHandler:
 
     cdn_root_path = 'v2/ts'
     api_version = 'ts.2'
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, url_exists_handler=None):
+    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, url_exists_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param  s3_handler: This is passed in so it can be mocked for unit testing
@@ -38,26 +38,28 @@ class TsV2CatalogHandler:
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
+        self.logger = logger # type: logging._loggerClass
         if not s3_handler:
-            self.cdn_handler = S3Handler(self.cdn_bucket)
+            self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
         else:
             self.cdn_handler = s3_handler
         if not dynamodb_handler:
-            self.db_handler = DynamoDBHandler('d43-catalog-status')
+            self.db_handler = DynamoDBHandler('d43-catalog-status') # pragma: no cover
         else:
             self.db_handler = dynamodb_handler
         if not url_handler:
-            self.get_url = get_url
+            self.get_url = get_url # pragma: no cover
         else:
             self.get_url = url_handler
         if not download_handler:
-            self.download_file = download_file
+            self.download_file = download_file # pragma: no cover
         else:
             self.download_file = download_handler
         if not url_exists_handler:
-            self.url_exists = url_exists
+            self.url_exists = url_exists # pragma: no cover
         else:
             self.url_exists = url_exists_handler
+
 
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
 
@@ -72,30 +74,26 @@ class TsV2CatalogHandler:
         Generates the v2 catalog
         :return:
         """
-        cat_keys = [] # en_ulb_gen_source, en_*_gen_tn, en_*_gen_tq, en_*_gen_tw, en_*_gen_chunks, en_*_*_tw
+        cat_keys = []
         cat_dict = {}
         supplemental_resources = []
 
-        result = self._get_status()
-        if not result:
-            return False
-        else:
-            (self.status, source_status) = result
+        (self.status, source_status) = self._get_status()
 
         # check if build is complete
         if self.status['state'] == 'complete':
-            print('Catalog already generated')
+            self.logger.info('Catalog already generated')
             return True
 
         # retrieve the latest catalog
         catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
-            print("ERROR: {0} does not exist".format(source_status['catalog_url']))
+            self.logger.error("{0} does not exist".format(source_status['catalog_url']))
             return False
         try:
             self.latest_catalog = json.loads(catalog_content)
         except Exception as e:
-            print("ERROR: Failed to load the catalog json: {0}".format(e))
+            self.logger.error("Failed to load the catalog json: {0}".format(e))
             return False
 
         # walk v3 catalog
@@ -211,7 +209,7 @@ class TsV2CatalogHandler:
 
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
-                        print('WARNING: Could not find date_modified for {}_{}_{} from "{}"'.format(lang['identifier'], res['identifier'], project['identifier'], rc_format['modified']))
+                        self.logger.warning('Could not find date_modified for {}_{}_{} from "{}"'.format(lang['identifier'], res['identifier'], project['identifier'], rc_format['modified']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         self._build_catalog_node(cat_dict, lang, res, project, modified)
@@ -281,7 +279,7 @@ class TsV2CatalogHandler:
 
     def _get_status(self):
         """
-        Retrieves the catalog status from AWS.
+        Retrieves the catalog status from AWS or generates a new status object
 
         :return: A tuple containing the status object of the target and source catalogs, or False if the source is not ready
         """
@@ -299,10 +297,10 @@ class TsV2CatalogHandler:
             elif s['api_version'] == TsV2CatalogHandler.api_version:
                 status = s
         if not source_status:
-            print('Source catalog status not found')
+            self.logger.warning('Source catalog status not found')
             return False
         if source_status['state'] != 'complete':
-            print('Source catalog is not ready for use')
+            self.logger.info('Source catalog is not ready for use')
             return False
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process
@@ -521,7 +519,7 @@ class TsV2CatalogHandler:
                         if title_match:
                             title = title_match.group(1)
                         else:
-                            print('ERROR: missing title in {}'.format(word_path))
+                            self.logger.error('missing title in {}'.format(word_path))
                             continue
                         word_content = word_title_re.sub('', word_content).strip()
 
@@ -532,7 +530,7 @@ class TsV2CatalogHandler:
                             def_title = def_title_match.group(1).strip()
                             word_content = h2_re.sub('', word_content).strip()
                         else:
-                            print('ERROR: missing definition title in {}'.format(word_path))
+                            self.logger.error('missing definition title in {}'.format(word_path))
 
                         # find obs examples
                         blocks = block_re.split(word_content)
@@ -542,7 +540,7 @@ class TsV2CatalogHandler:
                             if 'examples from the bible stories' in block.lower():
                                 for link in obs_example_re.findall(block):
                                     if 'obs' not in link[1]:
-                                        print('ERROR: non-obs link found in passage examples: {}'.format(link[1]))
+                                        self.logger.error('non-obs link found in passage examples: {}'.format(link[1]))
                                     else:
                                         examples.append({
                                             'ref': link[0].replace(':', '-'),
@@ -621,7 +619,7 @@ class TsV2CatalogHandler:
                     UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
 
                     # convert USX to JSON
-                    print('INFO: {} to json'.format(pid.upper()))
+                    self.logger.info('{} to json'.format(pid.upper()))
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
                     source = self._generate_source_from_usx(path, format['modified'])
                     upload = self._prep_data_upload('{}/{}/{}/source.json'.format(pid, lid, rid), source['source'])
@@ -891,8 +889,7 @@ class TsV2CatalogHandler:
                         try:
                             first_vs = verse_re.search(fr_text).group(1)
                         except AttributeError:
-                            print('myError, chp {0}'.format(chp_num))
-                            print('Text: {0}'.format(fr_text))
+                            self.logger.error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
                             continue
                         chp['frames'].append({'id': '{0}-{1}'.format(
                             str(chp_num).zfill(2), first_vs.zfill(2)),
@@ -928,8 +925,7 @@ class TsV2CatalogHandler:
                     try:
                         first_vs = verse_re.search(fr_text).group(1)
                     except AttributeError as e:
-                        print('Error, chp {0}'.format(chp_num))
-                        print('Text: {0}'.format(fr_text))
+                        self.logger.error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
                         raise e
 
                     chp['frames'].append({'id': '{0}-{1}'.format(
@@ -1001,7 +997,7 @@ class TsV2CatalogHandler:
                     vol = TsV2CatalogHandler.ta_volume_map[module]
                 else:
                     # TRICKY: new modules added since the legacy ta won't have a volume in the map
-                    print('WARNING: volume not found for {} while parsing link {}. Defaulting to vol1'.format(module, link[0]))
+                    self.logger.warning('volume not found for {} while parsing link {}. Defaulting to vol1'.format(module, link[0]))
                     vol = 'vol1'
                 new_link = ':{}:{}:{}:{}:{}'.format(lid, rid, vol, pid, module)
             if rid == 'ulb':

@@ -12,6 +12,7 @@ from tools.url_utils import url_exists, download_file, get_url_size
 from tools.build_utils import get_build_rules
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
+import logging
 
 
 class SigningHandler(object):
@@ -31,7 +32,7 @@ class SigningHandler(object):
         """
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
-        self.logger = logger
+        self.logger = logger # type: logging._loggerClass
         self.signer = signer
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover

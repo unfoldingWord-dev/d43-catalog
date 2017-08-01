@@ -2,7 +2,7 @@ import os
 import json
 from tools.file_utils import load_json_object, read_file
 from unittest import TestCase
-from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler
+from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 from tools.test_utils import assert_s3_equals_api_json
 from functions.ts_v2_catalog import TsV2CatalogHandler
 
@@ -44,9 +44,10 @@ class TestTsV2Catalog(TestCase):
         }
         mock_get_url = lambda url, catch_exception: mockV3Api.get_url(urls[url], catch_exception)
         mock_download = lambda url, dest: mockV3Api.download_file(urls[url], dest)
-
+        mockLog = MockLogger()
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
                                        url_handler=mock_get_url,
@@ -125,9 +126,10 @@ class TestTsV2Catalog(TestCase):
         }
         mock_get_url = lambda url, catch_exception: mockV3Api.get_url(urls[url], catch_exception)
         mock_download = lambda url, dest: mockV3Api.download_file(urls[url], dest)
-
+        mockLog = MockLogger()
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
                                        url_handler=mock_get_url,
@@ -186,7 +188,75 @@ class TestTsV2Catalog(TestCase):
                     if terms_map_path:
                         self.assertIn(terms_map_path, mockS3._recent_uploads, url_err_msg.format(terms_map_path))
 
-    # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
+    def test_complete_status(self):
+        mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
+        mockS3 = MockS3Handler('ts_bucket')
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'complete_db.json'))
+        mockLog = MockLogger()
+        mock_get_url = lambda url, catch_exception: mockV3Api.get_url(url, catch_exception)
+        mock_download = lambda url, dest: mockV3Api.download_file(url, dest)
+
+        event = self.make_event()
+        converter = TsV2CatalogHandler(event=event,
+                                       logger=mockLog,
+                                       s3_handler=mockS3,
+                                       dynamodb_handler=mockDb,
+                                       url_handler=mock_get_url,
+                                       download_handler=mock_download,
+                                       url_exists_handler=lambda url: True)
+        result = converter.run()
+        self.assertTrue(result)
+        self.assertEqual(0, len(mockS3._recent_uploads))
+        self.assertIn('Catalog already generated', mockLog._messages)
+
+    def test_missing_catalog(self):
+        mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
+        mockV3Api.add_host(self.resources_dir, 'https://api.door43.org/')
+        mockS3 = MockS3Handler('ts_bucket')
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
+        mockLog = MockLogger()
+        mock_get_url = lambda url, catch_exception: mockV3Api.get_url(url, catch_exception)
+        mock_download = lambda url, dest: mockV3Api.download_file(url, dest)
+
+        event = self.make_event()
+        converter = TsV2CatalogHandler(event=event,
+                                       logger=mockLog,
+                                       s3_handler=mockS3,
+                                       dynamodb_handler=mockDb,
+                                       url_handler=mock_get_url,
+                                       download_handler=mock_download,
+                                       url_exists_handler=lambda url: False)
+        result = converter.run()
+        self.assertFalse(result)
+        self.assertIn('https://api.door43.org/v3/catalog.json does not exist', mockLog._messages)
+
+    def test_broken_catalog(self):
+        mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
+        mockV3Api.add_host(os.path.join(self.resources_dir, 'broken_api'), 'https://api.door43.org/')
+        mockS3 = MockS3Handler('ts_bucket')
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
+        mockLog = MockLogger()
+        mock_get_url = lambda url, catch_exception: mockV3Api.get_url(url, catch_exception)
+        mock_download = lambda url, dest: mockV3Api.download_file(url, dest)
+
+        event = self.make_event()
+        converter = TsV2CatalogHandler(event=event,
+                                       logger=mockLog,
+                                       s3_handler=mockS3,
+                                       dynamodb_handler=mockDb,
+                                       url_handler=mock_get_url,
+                                       download_handler=mock_download,
+                                       url_exists_handler=lambda url: False)
+        result = converter.run()
+        self.assertFalse(result)
+        self.assertIn('Failed to load the catalog json: No JSON object could be decoded', mockLog._messages)
+
+
+
+            # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
     # def test_everything(self):
     #     mockS3 = MockS3Handler('ts_bucket')
     #     mockDb = MockDynamodbHandler()
