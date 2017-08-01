@@ -338,7 +338,7 @@ class UwV2CatalogHandler:
             # begin or restart process
             status = {
                 'api_version': UwV2CatalogHandler.api_version,
-                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, UwV2CatalogHandler.cdn_root_path),
+                'catalog_url': '{}/uw/txt/2/catalog.json'.format(self.cdn_url),
                 'source_api': source_status['api_version'],
                 'source_timestamp': source_status['timestamp'],
                 'state': 'in-progress',
