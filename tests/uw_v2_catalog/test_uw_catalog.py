@@ -163,3 +163,4 @@ class TestUwV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/obs/en/obs/v4/source.json')
         self.assertIn('v2/uw/obs/en/obs/v4/source.json.sig', mockS3._recent_uploads)
+        self.assertIn('uw/txt/2/catalog.json', mockS3._recent_uploads)

@@ -154,6 +154,8 @@ class TestTsV2Catalog(TestCase):
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
+        self.assertIn('ts/txt/2/catalog.json', mockS3._recent_uploads)
+
         # validate urls in generate catalogs match the generated output paths
         root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
         catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))

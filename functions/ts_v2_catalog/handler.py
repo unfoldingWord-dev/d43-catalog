@@ -267,11 +267,21 @@ class TsV2CatalogHandler:
 
             del  project['_langs']
             root_cat.append(project)
-        api_uploads.append(self._prep_data_upload('catalog.json', root_cat))
+        catalog_upload = self._prep_data_upload('catalog.json', root_cat)
+        api_uploads.append(catalog_upload)
+        # TRICKY: also upload to legacy path for backwards compatibility
+        api_uploads.append({
+            'key':'/ts/txt/2/catalog.json',
+            'path':catalog_upload['path']
+        })
 
         # upload files
         for upload in api_uploads:
-            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
+            if not upload['key'].startswith('/'):
+                key = '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key'])
+            else:
+                key = upload['key'].lstrip('/')
+            self.cdn_handler.upload_file(upload['path'], key)
 
         self.status['state'] = 'complete'
         self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")

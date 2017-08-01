@@ -287,11 +287,21 @@ class UwV2CatalogHandler:
                 'langs': langs
             })
 
-        uploads.append(self._prep_data_upload('catalog.json', catalog))
+        catalog_upload = self._prep_data_upload('catalog.json', catalog)
+        uploads.append(catalog_upload)
+        # TRICKY: also upload to legacy path for backwards compatibility
+        uploads.append({
+            'key': '/uw/txt/2/catalog.json',
+            'path': catalog_upload['path']
+        })
 
         # upload files
         for upload in uploads:
-            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key']))
+            if not upload['key'].startswith('/'):
+                key = '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key'])
+            else:
+                key = upload['key'].lstrip('/')
+            self.cdn_handler.upload_file(upload['path'], key)
 
         status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         status['state'] = 'complete'
