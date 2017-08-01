@@ -146,12 +146,17 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("en-obs"))
         self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("es-obs"))
 
+        mockBoto = self.MockBotoClient()
         mockDb = MockDynamodbHandler()
         mockDb.insert_item(TestFork.create_db_item("hmr-obs"))
         mockDb.insert_item(TestFork.create_db_item("pt-br-obs"))
         mockLog = MockLogger()
 
-        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb,
+                              boto_handler=mockBoto)
         repos = handler.get_new_repos()
 
         self.assertEqual(2, len(repos))
@@ -167,7 +172,7 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("en-obs"))
         self.MockGogsClient.MockGogsApi.repos.append(TestFork.create_repo("es-obs"))
 
-        # self.MockDynamodbHandler.items = []
+        mockBoto = self.MockBotoClient()
         dirty_record = TestFork.create_db_item("hmr-obs")
         dirty_record['dirty'] = True
         mockDb = MockDynamodbHandler()
@@ -175,7 +180,11 @@ class TestFork(TestCase):
         mockDb.insert_item(TestFork.create_db_item("pt-br-obs"))
         mockLog = MockLogger()
 
-        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb,
+                              boto_handler=mockBoto)
         repos = handler.get_new_repos()
 
         self.assertEqual(3, len(repos))

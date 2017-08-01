@@ -49,9 +49,9 @@ class ForkHandler:
         self.gogs_auth = self.gogs_client.Token(gogs_user_token)
 
     def run(self):
-        client = self.boto.client("lambda")
-        repos = self.get_new_repos()
-        self._trigger_webhook(client, repos)
+        client = self.boto.client("lambda") # pragma: no cover
+        repos = self.get_new_repos() # pragma: no cover
+        self._trigger_webhook(client, repos) # pragma: no cover
 
     def _trigger_webhook(self, client, repos):
         """
