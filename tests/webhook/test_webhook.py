@@ -87,7 +87,13 @@ class TestWebhook(TestCase):
         self.assertIn('/en_obs.zip', self.MockS3Handler.uploads[0]['path'])
         self.assertIn('temp/en_obs/{}/en/obs/v4/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
-        assert_object_equals_file(self, entry, os.path.join(self.resources_dir, 'expected_obs_record.json'))
+        self.assertEqual('f8a8d8d757', entry['commit_id'])
+        self.assertEqual(False, entry['dirty'])
+        self.assertEqual('en', entry['language'])
+        self.assertEqual('2017-04-25T21:46:30Z', entry['timestamp'])
+        self.assertEqual(False, entry['signed'])
+        self.assertEqual('en_obs', entry['repo_name'])
+        assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package.json'))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
@@ -100,15 +106,32 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
+        urls = {
+            'https://git.door43.org/Door43-Catalog/en_ulb/archive/2fbfd081f46487e48e49090a95c48d45e04e6bed.zip': 'en_ulb.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler = WebhookHandler(event=request_json,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler,
+                                 download_handler=mock_download)
         handler.run()
 
         entry = self.MockDynamodbHandler.data
-        self.assertEqual(67, len(self.MockS3Handler.uploads)) # books and bundle
+        self.assertEqual(4, len(self.MockS3Handler.uploads)) # books and bundle
         self.assertIn('/en_ulb.zip', self.MockS3Handler.uploads[0]['path'])
+
+        self.assertEqual('2fbfd081f4', entry['commit_id'])
+        self.assertEqual(False, entry['dirty'])
+        self.assertEqual('en', entry['language'])
+        self.assertEqual('2017-05-02T22:52:04Z', entry['timestamp'])
+        self.assertEqual(False, entry['signed'])
+        self.assertEqual('en_ulb', entry['repo_name'])
         self.assertIn('temp/en_ulb/{}/en/ulb/v7/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+
+        assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_ulb_package.json'))
 
     def test_webhook_versification(self):
         request_file = os.path.join(self.resources_dir, 'versification-request.json')

@@ -5,8 +5,6 @@
 #
 
 import time
-from datetime import datetime
-import pytz
 import json
 import shutil
 import tempfile
@@ -16,21 +14,10 @@ from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict, merge_dict
 from tools.url_utils import download_file, get_url
 from tools.signer import Signer, ENC_PRIV_PEM_PATH
+from tools.date_utils import str_to_unix_time
 from tools.legacy_utils import index_obs
 import math
-import arrow
-from dateutil import tz
 
-
-def datestring_to_timestamp(datestring):
-    """
-    Converts a datetime string to a unix timestamp
-    :param datestring: a datetime string formatted according to ISO 8601
-    :return:
-    """
-    # TRICKY: time.mktime expects local time so we convert to local tz
-    d = arrow.get(datestring).to('local').datetime
-    return str(int(time.mktime(d.timetuple())))
 
 class UwV2CatalogHandler:
 
@@ -129,7 +116,7 @@ class UwV2CatalogHandler:
                 else:
                     cat_key = 'bible'
 
-                mod = datestring_to_timestamp(res['modified'])
+                mod = str_to_unix_time(res['modified'])
 
                 if int(mod) > last_modified:
                     last_modified = int(mod)
@@ -198,7 +185,7 @@ class UwV2CatalogHandler:
                                         src_dict[chapter['identifier']] = {
                                             quality_short_key: [{
                                                 quality_key: int(quality_value),
-                                                'mod': int(datestring_to_timestamp(chapter['modified'])),
+                                                'mod': int(str_to_unix_time(chapter['modified'])),
                                                 'size': chapter['size']
                                             }],
                                             'chap': chapter['identifier'],

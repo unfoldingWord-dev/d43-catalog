@@ -261,7 +261,6 @@ class WebhookHandler:
                         'modified': '',
                         'size': 0,
                         'version': media['version'],
-                        'quality': None,
                         'contributor': media['contributor'],
                         'url': media['url'],
                         'signature': '',

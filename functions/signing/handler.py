@@ -8,8 +8,9 @@ import time
 import datetime
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict
-from tools.url_utils import url_exists, download_file, get_url_size
+from tools.url_utils import url_exists, download_file, url_headers
 from tools.build_utils import get_build_rules
+from tools.date_utils import unix_to_timestamp, str_to_timestamp
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
 import logging
@@ -19,7 +20,7 @@ class SigningHandler(object):
     dynamodb_table_name = 'd43-catalog-in-progress'
     max_file_size = 400000000  # 400mb
 
-    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, download_handler=None, url_exists_handler=None, url_size_handler=None):
+    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, download_handler=None, url_exists_handler=None, url_headers_handler=None):
         """
         Handles the signing of a file on S3
         :param self:
@@ -53,10 +54,10 @@ class SigningHandler(object):
             self.url_exists = url_exists # pragma: no cover
         else:
             self.url_exists = url_exists_handler
-        if not url_size_handler:
-            self.url_size = get_url_size # pragma: no cover
+        if not url_headers_handler:
+            self.url_headers = url_headers # pragma: no cover
         else:
-            self.url_size = url_size_handler
+            self.url_headers = url_headers_handler
 
     def __del__(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
@@ -90,7 +91,8 @@ class SigningHandler(object):
     def process_db_item(self, item, package):
         was_signed = False
         fully_signed = True
-        print('[INFO] Processing {}'.format(item['repo_name']))
+        if self.logger:
+            self.logger.info('Processing {}'.format(item['repo_name']))
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
@@ -139,7 +141,8 @@ class SigningHandler(object):
                                 format['format'] = 'application/zip; content=video/mp4'
 
         if was_signed or fully_signed:
-            print('[INFO] recording signatures')
+            if self.logger:
+                self.logger.info('recording signatures')
             record_keys = {'repo_name': item['repo_name']}
             time.sleep(5)
             self.db_handler.update_item(record_keys, {
@@ -157,8 +160,8 @@ class SigningHandler(object):
         """
         if 'signature' in format and format['signature']:
             return (True, False)
-        else:
-            print('[INFO] Signing {}'.format(format['url']))
+        elif self.logger:
+            self.logger.info('Signing {}'.format(format['url']))
 
         base_name = os.path.basename(format['url'])
         file_to_sign = os.path.join(self.temp_dir, base_name)
@@ -171,11 +174,14 @@ class SigningHandler(object):
         if not format['url'].startswith(self.cdn_url):
             # This allows media to be hosted on third party servers
             format['signature'] = '{}.sig'.format(format['url'])
-            print('WARNING: cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
+            if self.logger:
+                self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
             return (True, True)
 
+        headers = self.url_headers(format['url'])
+
         # skip files that are too large
-        size = int(self.url_size(format['url']))
+        size = int(headers.get('content-length', 0))
         if size > SigningHandler.max_file_size:
             if self.logger:
                 self.logger.warning('File is too large to sign {}'.format(format['url']))
@@ -184,7 +190,8 @@ class SigningHandler(object):
             # For now we are adding a signature url so the catalog builds.
             # We could manually add these signatures since they shouldn't change much.
             format['size'] = size
-            format['modified'] = datetime.datetime.now().isoformat()
+            if not format['modified']:
+                format['modified'] = str_to_timestamp(datetime.datetime.now().isoformat())
             format['signature'] = '{}.sig'.format(format['url'])
             return (False, True)
 
@@ -221,8 +228,15 @@ class SigningHandler(object):
 
         # read modified date from file
         stats = os.stat(file_to_sign)
-        mdate = datetime.datetime.fromtimestamp(stats.st_mtime)
-        format['modified'] = mdate.isoformat()
+        if not format['modified']:
+            modified = headers.get('last-modified')
+            if modified:
+                # TRICKY: http header gives an odd date format
+                date = datetime.datetime.strptime(modified, '%a, %d %b %Y %H:%M:%S %Z')
+                modified = str_to_timestamp(date.isoformat())
+            else:
+                modified = unix_to_timestamp(stats.st_mtime)
+            format['modified'] = modified
         format['size'] = stats.st_size
 
         # retrieve playback time from multimedia files
