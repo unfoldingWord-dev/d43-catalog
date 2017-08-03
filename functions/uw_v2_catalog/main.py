@@ -7,6 +7,9 @@
 from __future__ import print_function
 from handler import UwV2CatalogHandler
 from tools.file_utils import wipe_temp
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def handle(event, context):

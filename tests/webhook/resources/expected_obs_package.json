@@ -16,13 +16,13 @@
     "description": "An unrestricted visual mini-Bible in any language",
     "format": "text/markdown",
     "identifier": "obs",
-    "issued": "2015-08-26",
+    "issued": "2015-08-25T17:00:00-07:00",
     "language": {
       "direction": "ltr",
       "identifier": "en",
       "title": "English"
     },
-    "modified": "2017-01-10",
+    "modified": "2017-01-09T16:00:00-08:00",
     "publisher": "unfoldingWord",
     "relation": [
       "en/tw",
@@ -45,7 +45,7 @@
   "formats": [
     {
       "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
-      "modified": "2017-04-25T21:46:30Z",
+      "modified": "2017-04-25T14:46:30-07:00",
       "signature": "",
       "size": 10024,
       "url": "https://cdn.door43.org/en/obs/v4/obs.zip"

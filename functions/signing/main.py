@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
-import logging
 from handler import SigningHandler
 from tools.signer import Signer, ENC_PRIV_PEM_PATH
 from tools.file_utils import wipe_temp
 
+import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
