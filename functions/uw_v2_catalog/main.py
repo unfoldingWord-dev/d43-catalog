@@ -17,7 +17,7 @@ logging.getLogger('boto3').setLevel(logging.WARNING)
 def handle(event, context):
     wipe_temp(ignore_errors=True)
     try:
-        catalog = UwV2CatalogHandler(event)
+        catalog = UwV2CatalogHandler(event, logger)
         return catalog.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

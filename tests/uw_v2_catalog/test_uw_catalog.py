@@ -1,6 +1,6 @@
 import os
 from tools.file_utils import load_json_object
-from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner
+from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
 from unittest import TestCase
 from tools.test_utils import assert_s3_equals_api_json
 from functions.uw_v2_catalog import UwV2CatalogHandler
@@ -29,8 +29,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -45,8 +47,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -61,8 +65,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -78,8 +84,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -96,8 +104,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -114,8 +124,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -132,8 +144,10 @@ class TestUwV2Catalog(TestCase):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -152,7 +166,10 @@ class TestUwV2Catalog(TestCase):
         mockV2Api = MockAPI(os.path.join(self.resources_dir, 'v2_api'), 'https://test')
         mockS3 = MockS3Handler('uw_bucket')
         mockSigner = MockSigner()
+        mockLogger = MockLogger()
+
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
                                        url_handler=mockV3Api.get_url,
@@ -164,4 +181,4 @@ class TestUwV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/obs/en/obs/v4/source.json')
         self.assertIn('v2/uw/obs/en/obs/v4/source.json.sig', mockS3._recent_uploads)
         self.assertIn('uw/txt/2/catalog.json', mockS3._recent_uploads)
-        # TODO: test in logs: pdf does not match source version and will be excluded. https://cdn.door43.org/en/udb/v7/1ch.pdf
+        self.assertIn('pdf does not match source version and will be excluded. https://cdn.door43.org/en/udb/v9/1ch.pdf', mockLogger._messages)

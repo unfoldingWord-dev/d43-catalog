@@ -17,6 +17,7 @@ from tools.signer import Signer, ENC_PRIV_PEM_PATH
 from tools.date_utils import str_to_unix_time
 from tools.legacy_utils import index_obs
 import math
+import logging
 
 
 class UwV2CatalogHandler:
@@ -24,7 +25,7 @@ class UwV2CatalogHandler:
     cdn_root_path = 'v2/uw'
     api_version = 'uw.2'
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, signing_handler=None):
+    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, signing_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param event:
@@ -36,6 +37,7 @@ class UwV2CatalogHandler:
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
+        self.logger = logger # type: logging._loggerClass
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
         else:
@@ -92,18 +94,21 @@ class UwV2CatalogHandler:
 
         # check if build is complete
         if status['state'] == 'complete':
-            print('Catalog already generated')
+            if self.logger:
+                self.logger.info('Catalog already generated')
             return True
 
         # retrieve the latest catalog
         catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
-            print("ERROR: {0} does not exist".format(source_status['catalog_url']))
+            if self.logger:
+                self.logger.error("{0} does not exist".format(source_status['catalog_url']))
             return False
         try:
             self.latest_catalog = json.loads(catalog_content)
         except Exception as e:
-            print("ERROR: Failed to load the catalog json: {0}".format(e))
+            if self.logger:
+                self.logger.error("Failed to load the catalog json: {0}".format(e))
             return False
 
         # walk v3 catalog
@@ -152,7 +157,8 @@ class UwV2CatalogHandler:
                                         self.signer.verify_signature(upload['path'], sig_file)
                                         self.cdn_handler.upload_file(sig_file, '{}.sig'.format(upload['key']))
                                     except RuntimeError:
-                                        print('WARNING: Could not verify signature {}'.format(sig_file))
+                                        if self.logger:
+                                            self.logger.warning('Could not verify signature {}'.format(sig_file))
 
                                     status['processed'].update({process_id: []})
                                     status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -209,7 +215,8 @@ class UwV2CatalogHandler:
 
                         # build catalog
                         if not source:
-                            print('NOTICE: No book text found in {}_{}_{}'.format(lid, rid, pid))
+                            if self.logger:
+                                self.logger.info('No book text found in {}_{}_{}'.format(lid, rid, pid))
                             continue
 
                         media_keys = media.keys()
@@ -232,7 +239,8 @@ class UwV2CatalogHandler:
                             if pdf['source_version'] == res['version']:
                                 toc_item['pdf'] = pdf['url']
                             else:
-                                print('WARNING: pdf does not match source version and will be excluded. {}'.format(pdf['url']))
+                                if self.logger:
+                                    self.logger.warning('pdf does not match source version and will be excluded. {}'.format(pdf['url']))
                         if not media:
                             del toc_item['media']
                         toc.append(toc_item)
@@ -327,10 +335,12 @@ class UwV2CatalogHandler:
             elif s['api_version'] == UwV2CatalogHandler.api_version:
                 status = s
         if not source_status:
-            print('Source catalog status not found')
+            if self.logger:
+                self.logger.info('Source catalog status not found')
             return False
         if source_status['state'] != 'complete':
-            print('Source catalog is not ready for use')
+            if self.logger:
+                self.logger.info('Source catalog is not ready for use')
             return False
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process
