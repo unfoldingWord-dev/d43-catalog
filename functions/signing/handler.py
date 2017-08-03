@@ -11,6 +11,7 @@ from tools.dict_utils import read_dict
 from tools.url_utils import url_exists, download_file, url_headers
 from tools.build_utils import get_build_rules
 from tools.date_utils import unix_to_timestamp, str_to_timestamp
+from tools.file_utils import ext_to_mime
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
 import logging
@@ -248,16 +249,14 @@ class SigningHandler(object):
             video = MP4(file_to_sign)
             format['length'] = video.info.length
 
-        # add file format
+        # add file format if missing
         if not 'format' in format or not format['format']:
-            if ext == '.mp3':
-                format['format'] = 'audio/mp3'
-            elif ext == '.mp4':
-                format['format'] = 'video/mp4'
-            elif ext == '.zip':
-                format['format'] = 'application/zip'
-            elif self.logger:
-                self.logger.warning('Unknown file format {}'.format(file_to_sign))
+            try:
+                mime = ext_to_mime(ext)
+                format['format'] = mime
+            except Exception as e:
+                if self.logger:
+                    self.logger.error(e.message)
 
         # clean up disk space
         os.remove(file_to_sign)

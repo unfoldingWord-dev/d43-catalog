@@ -19,6 +19,25 @@ else:
     # noinspection PyCompatibility
     string_types = basestring,
 
+def ext_to_mime(ext):
+    """
+    Returns the mime type associated with the file extension.
+    If the extension is undefined an exception is raised
+    :param ext string: the file extension
+    :return:
+    """
+    ext = ext.strip('.').lower()
+    types = {
+        'mp4': 'video/mp4',
+        'mp3': 'audio/mp3',
+        'zip': 'application/zip',
+        'pdf': 'application/pdf'
+    }
+    if ext in types:
+        return types[ext]
+    else:
+        raise Exception('Unknown file extension "{}"'.format(ext))
+
 def wipe_temp(tmp_dir=None, ignore_errors=False):
     """
     This will delete everything in the /tmp directory.

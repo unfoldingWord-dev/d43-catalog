@@ -60,7 +60,7 @@
             "signing.sign_given_url"
           ],
           "contributor": [],
-          "format": "",
+          "format": "application/pdf",
           "modified": "2017-06-03T13:23:12-07:00",
           "quality": "64kbps",
           "signature": "https://cdn.door43.org/en/obs/v4/obs.pdf.sig",
