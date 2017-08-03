@@ -275,15 +275,18 @@ class TestSigningHandler(TestCase):
           "size": 0,
           "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
         }
+        mockHeaders = HeaderReader([
+            ('content-length', SigningHandler.max_file_size + 1)
+        ])
 
-        signer = SigningHandler(event,
+        signer = SigningHandler(event=event,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
                                 dynamodb_handler=mock_db,
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
-                                url_size_handler=lambda url: SigningHandler.max_file_size + 1)
+                                url_headers_handler=lambda url: mockHeaders)
         (already_signed, newly_signed) = signer.process_format(item, format)
         self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
@@ -322,7 +325,9 @@ class TestSigningHandler(TestCase):
           "size": 0,
           "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
         }
-
+        mockHeaders = HeaderReader([
+            ('content-length', 123)
+        ])
         signer = SigningHandler(event,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
@@ -330,7 +335,7 @@ class TestSigningHandler(TestCase):
                                 dynamodb_handler=mock_db,
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
-                                url_size_handler=lambda url: 1)
+                                url_headers_handler=lambda url: mockHeaders)
         (already_signed, newly_signed) = signer.process_format(item, format)
         self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
         self.assertNotIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
