@@ -126,6 +126,7 @@ class UwV2CatalogHandler:
                     pid = proj['identifier']
                     if 'formats' in proj and proj['formats']:
                         source = None
+                        pdf = None
                         media = {
                             'audio': {
                                 'src_dict': {}
@@ -200,6 +201,11 @@ class UwV2CatalogHandler:
                                     'txt_ver': format['source_version'],
                                     'src_dict': src_dict
                                 })
+                            elif 'application/pdf' == format['format']:
+                                pdf = {
+                                    'url': format['url'],
+                                    'source_version': format['source_version']
+                                }
 
                         # build catalog
                         if not source:
@@ -222,6 +228,11 @@ class UwV2CatalogHandler:
                             'src_sig': source['signature'],
                             'title': proj['title'],
                         }
+                        if pdf:
+                            if pdf['source_version'] == res['version']:
+                                toc_item['pdf'] = pdf['url']
+                            else:
+                                print('WARNING: pdf does not match source version and will be excluded. {}'.format(pdf['url']))
                         if not media:
                             del toc_item['media']
                         toc.append(toc_item)

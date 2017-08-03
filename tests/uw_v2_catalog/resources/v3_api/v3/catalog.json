@@ -55,6 +55,18 @@
                   "signature": "https://cdn.door43.org/en/udb/v7/gen.usfm.sig",
                   "size": 241714,
                   "url": "https://cdn.door43.org/en/udb/v7/gen.usfm"
+                },
+                {
+                  "contributor": [
+
+                  ],
+                  "format": "application/pdf",
+                  "modified": "2017-07-18T23:13:52+00:00",
+                  "signature": "https://cdn.door43.org/en/udb/v7/gen.pdf.sig",
+                  "size": 305958,
+                  "url": "https://cdn.door43.org/en/udb/v7/gen.pdf",
+                  "version": "7",
+                  "source_version": "7"
                 }
               ],
               "identifier": "gen",
@@ -74,6 +86,18 @@
                   "signature": "https://cdn.door43.org/en/udb/v7/1ch.usfm.sig",
                   "size": 141366,
                   "url": "https://cdn.door43.org/en/udb/v7/1ch.usfm"
+                },
+                {
+                  "contributor": [
+
+                  ],
+                  "format": "application/pdf",
+                  "modified": "2017-07-18T23:13:52+00:00",
+                  "signature": "https://cdn.door43.org/en/udb/v9/1ch.pdf.sig",
+                  "size": 305958,
+                  "url": "https://cdn.door43.org/en/udb/v9/1ch.pdf",
+                  "version": "9",
+                  "source_version": "9"
                 }
               ],
               "identifier": "1ch",
@@ -138,6 +162,18 @@
                   "signature": "https://cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
                   "size": 118037,
                   "url": "https://cdn.door43.org/en/ulb/v7/1ch.usfm"
+                },
+                {
+                  "contributor": [
+
+                  ],
+                  "format": "application/pdf",
+                  "modified": "2017-07-18T23:13:52+00:00",
+                  "signature": "https://cdn.door43.org/en/ulb/v7/1ch.pdf.sig",
+                  "size": 305958,
+                  "url": "https://cdn.door43.org/en/ulb/v7/1ch.pdf",
+                  "version": "7",
+                  "source_version": "7"
                 }
               ],
               "identifier": "1ch",
