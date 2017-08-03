@@ -181,4 +181,9 @@ class TestUwV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/obs/en/obs/v4/source.json')
         self.assertIn('v2/uw/obs/en/obs/v4/source.json.sig', mockS3._recent_uploads)
         self.assertIn('uw/txt/2/catalog.json', mockS3._recent_uploads)
-        self.assertIn('pdf does not match source version and will be excluded. https://cdn.door43.org/en/udb/v9/1ch.pdf', mockLogger._messages)
+        self.assertIn(
+            'en_udb_1ch: media format "https://cdn.door43.org/en/udb/v9/1ch.pdf" does not match source version "7" and will be excluded.',
+            mockLogger._messages)
+        self.assertIn(
+            'en_obs_obs: media format "https://cdn.door43.org/en/obs/v999/129kbps/en_obs_129kbps.zip" does not match source version "4" and will be excluded.',
+            mockLogger._messages)

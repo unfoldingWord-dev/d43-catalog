@@ -141,6 +141,14 @@ class UwV2CatalogHandler:
                             }
                         }
                         for format in proj['formats']:
+                            # skip media formats that do not match the source version
+                            if 'source_version' in format and format['source_version'] != res['version']:
+                                if self.logger:
+                                    self.logger.warning(
+                                        '{}_{}_{}: media format "{}" does not match source version "{}" and will be excluded.'.format(
+                                            lid, rid, pid, format['url'], res['version']))
+                                continue
+
                             if rid == 'obs' and 'type=book' in format['format']:
                                 # TRICKY: obs must be converted to json
                                 process_id = '_'.join([lid, rid, pid])
@@ -213,6 +221,7 @@ class UwV2CatalogHandler:
                                     'source_version': format['source_version']
                                 }
 
+
                         # build catalog
                         if not source:
                             if self.logger:
@@ -236,11 +245,8 @@ class UwV2CatalogHandler:
                             'title': proj['title'],
                         }
                         if pdf:
-                            if pdf['source_version'] == res['version']:
-                                toc_item['pdf'] = pdf['url']
-                            else:
-                                if self.logger:
-                                    self.logger.warning('pdf does not match source version and will be excluded. {}'.format(pdf['url']))
+                            toc_item['pdf'] = pdf['url']
+
                         if not media:
                             del toc_item['media']
                         toc.append(toc_item)

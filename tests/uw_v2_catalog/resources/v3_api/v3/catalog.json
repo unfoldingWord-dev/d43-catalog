@@ -1472,6 +1472,32 @@
                   "size": 6334,
                   "source_version": "4",
                   "version": "1"
+                },
+                {
+                  "format": "application/zip; content=audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v999/129kbps/en_obs_129kbps.zip",
+                  "modified": "2017-07-26T22:52:23-05:00",
+                  "chapters": [
+                    {
+                      "format": "audio/mp3",
+                      "url": "https://cdn.door43.org/en/obs/v999/32kbps/en_obs_02_129kbps.mp3",
+                      "modified": "2017-07-26T22:52:23-05:00",
+                      "length": 0.57475,
+                      "signature": "https://cdn.door43.org/en/obs/v999/32kbps/en_obs_02_129kbps.mp3.sig",
+                      "identifier": "02",
+                      "size": 2749
+                    }
+                  ],
+                  "signature": "https://cdn.door43.org/en/obs/v999/129kbps/en_obs_129kbps.zip.sig",
+                  "contributor": [
+                    "Narrator: Steve Lossing",
+                    "Checker: Brad Harrington",
+                    "Engineer: Brad Harrington"
+                  ],
+                  "quality": "32kbps",
+                  "size": 6334,
+                  "source_version": "999",
+                  "version": "1"
                 }
               ],
               "versification": null,
