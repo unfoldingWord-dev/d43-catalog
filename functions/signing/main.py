@@ -7,6 +7,8 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# TRICKY: suppress logging noise from boto3
+logging.getLogger('boto3').setLevel(logging.WARNING)
 
 # noinspection PyUnusedLocal
 def handle(event, context):
