@@ -82,7 +82,7 @@ class SigningHandler(object):
 
             found_items = len(items) > 0
             if not found_items and self.logger:
-                self.logger.warning('No items found for signing')
+                self.logger.info('No items found for signing')
             return found_items
         finally:
             if os.path.isdir(self.temp_dir):
