@@ -11,8 +11,9 @@ import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)
-# TRICKY: suppress logging noise from boto3
+# TRICKY: suppress logging noise
 logging.getLogger('boto3').setLevel(logging.WARNING)
+logging.getLogger('usfm_tools').setLevel(logging.WARNING)
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)
