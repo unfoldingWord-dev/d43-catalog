@@ -122,7 +122,7 @@ class TsV2CatalogHandler:
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
-                                (tn, tw_cat) = self._index_note_files(lid, rid, format)
+                                (tn, tw_cat) = self._index_note_files(lid, rid, format, process_id)
                                 if tn or tw_cat:
                                     self._upload_all(tw_cat)
                                     self._upload_all(tn)
@@ -133,7 +133,7 @@ class TsV2CatalogHandler:
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
-                                tq = self._index_question_files(lid, rid, format)
+                                tq = self._index_question_files(lid, rid, format, process_id)
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
@@ -160,7 +160,7 @@ class TsV2CatalogHandler:
                             # TRICKY: there should only be a single tW for each language
                             process_id = '_'.join([lid, 'words'])
                             if process_id not in self.status['processed']:
-                                tw = self._index_words_files(lid, rid, format)
+                                tw = self._index_words_files(lid, rid, format, process_id)
                                 if tw:
                                     self._upload_all(tw)
                                     finished_processes[process_id] = tw.keys()
@@ -169,7 +169,7 @@ class TsV2CatalogHandler:
                                 cat_keys = cat_keys + self.status['processed'][process_id]
 
                             if rid == 'obs':
-                                process_id = '_'.join([lid, rid, 'obs'])
+                                process_id = '_'.join([lid, rid, pid])
                                 if process_id not in self.status['processed']:
                                     self.logger.info('Processing {}'.format(process_id))
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
@@ -183,7 +183,7 @@ class TsV2CatalogHandler:
                             # TRICKY: obs notes and questions are in the project
                             process_id = '_'.join([lid, rid, pid, 'notes'])
                             if process_id not in self.status['processed']:
-                                (tn, tw_cat) = self._index_note_files(lid, rid, format)
+                                (tn, tw_cat) = self._index_note_files(lid, rid, format, process_id)
                                 if tn or tw_cat:
                                     self._upload_all(tw_cat)
                                     self._upload_all(tn)
@@ -192,9 +192,9 @@ class TsV2CatalogHandler:
                             else:
                                 cat_keys = cat_keys + self.status['processed'][process_id]
 
-                            process_id = '_'.join([lid, rid, 'questions'])
+                            process_id = '_'.join([lid, rid, pid, 'questions'])
                             if process_id not in self.status['processed']:
-                                tq = self._index_question_files(lid, rid, format)
+                                tq = self._index_question_files(lid, rid, format, process_id)
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
@@ -332,7 +332,7 @@ class TsV2CatalogHandler:
 
         return (status, source_status)
 
-    def _index_note_files(self, lid, rid, format):
+    def _index_note_files(self, lid, rid, format, process_id):
         """
 
         :param lid:
@@ -348,6 +348,7 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
+            self.logger.info('Processing {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -427,12 +428,13 @@ class TsV2CatalogHandler:
 
         return (tn_uploads, tw_cat_uploads)
 
-    def _index_question_files(self, lid, rid, format):
+    def _index_question_files(self, lid, rid, format, process_id):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
         tq_uploads = {}
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
+            self.logger.info('Processing {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -491,7 +493,7 @@ class TsV2CatalogHandler:
         return tq_uploads
 
 
-    def _index_words_files(self, lid, rid, format):
+    def _index_words_files(self, lid, rid, format, process_id):
         """
         Returns an array of markdown files found in a tW dictionary
         :param lid:
@@ -509,6 +511,7 @@ class TsV2CatalogHandler:
         words = []
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
+            self.logger.info('Processing {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
