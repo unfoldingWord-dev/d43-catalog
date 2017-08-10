@@ -122,7 +122,6 @@ class TsV2CatalogHandler:
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing {}'.format(process_id))
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format)
                                 if tn or tw_cat:
                                     self._upload_all(tw_cat)
@@ -134,7 +133,6 @@ class TsV2CatalogHandler:
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing {}'.format(process_id))
                                 tq = self._index_question_files(lid, rid, format)
                                 if tq:
                                     self._upload_all(tq)
@@ -162,7 +160,6 @@ class TsV2CatalogHandler:
                             # TRICKY: there should only be a single tW for each language
                             process_id = '_'.join([lid, 'words'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing {}'.format(process_id))
                                 tw = self._index_words_files(lid, rid, format)
                                 if tw:
                                     self._upload_all(tw)
@@ -186,7 +183,6 @@ class TsV2CatalogHandler:
                             # TRICKY: obs notes and questions are in the project
                             process_id = '_'.join([lid, rid, pid, 'notes'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing {}'.format(process_id))
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format)
                                 if tn or tw_cat:
                                     self._upload_all(tw_cat)
@@ -198,7 +194,6 @@ class TsV2CatalogHandler:
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing {}'.format(process_id))
                                 tq = self._index_question_files(lid, rid, format)
                                 if tq:
                                     self._upload_all(tq)
