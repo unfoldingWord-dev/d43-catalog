@@ -105,6 +105,7 @@ class TsV2CatalogHandler:
             lid = lang['identifier']
             for res in lang['resources']:
                 rid = res['identifier']
+                self.logger.info('Analyzing {}_{}...'.format(lid, rid))
 
                 rc_format = None
 
@@ -121,6 +122,7 @@ class TsV2CatalogHandler:
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing {}'.format(process_id))
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format)
                                 if tn or tw_cat:
                                     self._upload_all(tw_cat)
@@ -132,6 +134,7 @@ class TsV2CatalogHandler:
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing {}'.format(process_id))
                                 tq = self._index_question_files(lid, rid, format)
                                 if tq:
                                     self._upload_all(tq)
@@ -148,6 +151,7 @@ class TsV2CatalogHandler:
 
                 for project in res['projects']:
                     pid = project['identifier']
+                    self.logger.info('Analyzing {}_{}_{}...'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -158,6 +162,7 @@ class TsV2CatalogHandler:
                             # TRICKY: there should only be a single tW for each language
                             process_id = '_'.join([lid, 'words'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing {}'.format(process_id))
                                 tw = self._index_words_files(lid, rid, format)
                                 if tw:
                                     self._upload_all(tw)
@@ -169,6 +174,7 @@ class TsV2CatalogHandler:
                             if rid == 'obs':
                                 process_id = '_'.join([lid, rid, 'obs'])
                                 if process_id not in self.status['processed']:
+                                    self.logger.info('Processing {}'.format(process_id))
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
                                     upload = self._prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
                                                                     obs_json)
@@ -180,6 +186,7 @@ class TsV2CatalogHandler:
                             # TRICKY: obs notes and questions are in the project
                             process_id = '_'.join([lid, rid, pid, 'notes'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing {}'.format(process_id))
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format)
                                 if tn or tw_cat:
                                     self._upload_all(tw_cat)
@@ -191,6 +198,7 @@ class TsV2CatalogHandler:
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing {}'.format(process_id))
                                 tq = self._index_question_files(lid, rid, format)
                                 if tq:
                                     self._upload_all(tq)
@@ -615,12 +623,13 @@ class TsV2CatalogHandler:
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
             usx_dir = os.path.join(rc_dir, 'usx')
-            usx_is_built = False
             for project in manifest['projects']:
                 pid = project['identifier']
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
+                    self.logger.info('Processing {}'.format(process_id))
+
                     # copy usfm project file
                     usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
                     if not os.path.exists(usfm_dir):
@@ -633,7 +642,6 @@ class TsV2CatalogHandler:
                     UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
 
                     # convert USX to JSON
-                    self.logger.info('{} to json'.format(pid.upper()))
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
                     source = self._generate_source_from_usx(path, format['modified'])
                     upload = self._prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, resource['version']), source['source'])
