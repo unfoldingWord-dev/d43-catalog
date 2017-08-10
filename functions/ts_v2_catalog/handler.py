@@ -103,9 +103,9 @@ class TsV2CatalogHandler:
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
             lid = lang['identifier']
+            self.logger.info('Analyzing {}'.format(lid))
             for res in lang['resources']:
                 rid = res['identifier']
-                self.logger.info('Analyzing {}_{}...'.format(lid, rid))
 
                 rc_format = None
 
@@ -149,7 +149,6 @@ class TsV2CatalogHandler:
 
                 for project in res['projects']:
                     pid = project['identifier']
-                    self.logger.info('Analyzing {}_{}_{}...'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
