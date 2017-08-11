@@ -137,7 +137,7 @@ class TestWebhook(TestCase):
         self.assertEqual('2fbfd081f4', entry['commit_id'])
         self.assertEqual(False, entry['dirty'])
         self.assertEqual('en', entry['language'])
-        self.assertEqual('2017-05-02T15:52:04-07:00', entry['timestamp'])
+        self.assertEqual('2017-05-02T22:52:04+00:00', entry['timestamp'])
         self.assertEqual(False, entry['signed'])
         self.assertEqual('en_ulb', entry['repo_name'])
         self.assertIn('temp/en_ulb/{}/en/ulb/v7/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
