@@ -6,7 +6,7 @@
     "notes": "https://cdn.door43.org/v2/ts/1ch/en/notes.json?date_modified=20170623",
     "slug": "ulb",
     "chunks": "https://api.unfoldingword.org/bible/txt/1/1ch/chunks.json",
-    "source": "https://cdn.door43.org/v2/ts/1ch/en/ulb/source.json?date_modified=20170607",
+    "source": "https://cdn.door43.org/v2/ts/1ch/en/ulb/v7/source.json?date_modified=20170607",
     "status": {
       "checking_entity": "Wycliffe Associates",
       "checking_level": "3",
@@ -28,7 +28,7 @@
     "notes": "https://cdn.door43.org/v2/ts/1ch/en/notes.json?date_modified=20170623",
     "slug": "udb",
     "chunks": "https://api.unfoldingword.org/bible/txt/1/1ch/chunks.json",
-    "source": "https://cdn.door43.org/v2/ts/1ch/en/udb/source.json?date_modified=20170502",
+    "source": "https://cdn.door43.org/v2/ts/1ch/en/udb/v7/source.json?date_modified=20170502",
     "status": {
       "checking_entity": "Wycliffe Associates",
       "checking_level": "3",

@@ -5,8 +5,3 @@
 !/__init__.py
 !/handler.py
 !/tools
-
-!/README.md
-!/signer.py
-!/aws_decrypt.py
-!/uW-sk.enc

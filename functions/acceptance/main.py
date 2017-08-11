@@ -8,6 +8,10 @@ from handler import AcceptanceTest
 from d43_aws_tools import SESHandler
 from tools.url_utils import get_url
 from tools.file_utils import wipe_temp
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 class URLHandler(object):
     """

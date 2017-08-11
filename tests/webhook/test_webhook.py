@@ -2,7 +2,7 @@ import codecs
 import os
 import json
 from unittest import TestCase
-from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler
+from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
 from tools.test_utils import assert_object_equals_file
 from functions.webhook import WebhookHandler
 
@@ -53,7 +53,11 @@ class TestWebhook(TestCase):
 
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        mockLogger = MockLogger()
+        handler = WebhookHandler(event=request_json,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler)
         with self.assertRaises(Exception) as error_context:
             handler.run()
 
@@ -72,6 +76,7 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockLogger = MockLogger()
         mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
@@ -79,7 +84,11 @@ class TestWebhook(TestCase):
             'https://git.door43.org/Door43-Catalog/en_obs/archive/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad.zip': 'en_obs.zip'
         }
         mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler, mock_download)
+        handler = WebhookHandler(event=request_json,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler,
+                                 download_handler=mock_download)
         handler.run()
 
         entry = self.MockDynamodbHandler.data
@@ -87,7 +96,13 @@ class TestWebhook(TestCase):
         self.assertIn('/en_obs.zip', self.MockS3Handler.uploads[0]['path'])
         self.assertIn('temp/en_obs/{}/en/obs/v4/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
 
-        assert_object_equals_file(self, entry, os.path.join(self.resources_dir, 'expected_obs_record.json'))
+        self.assertEqual('f8a8d8d757', entry['commit_id'])
+        self.assertEqual(False, entry['dirty'])
+        self.assertEqual('en', entry['language'])
+        self.assertEqual('2017-04-25T14:46:30-07:00', entry['timestamp'])
+        self.assertEqual(False, entry['signed'])
+        self.assertEqual('en_obs', entry['repo_name'])
+        assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package.json'))
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
@@ -100,15 +115,34 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockLogger = MockLogger()
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
+        urls = {
+            'https://git.door43.org/Door43-Catalog/en_ulb/archive/2fbfd081f46487e48e49090a95c48d45e04e6bed.zip': 'en_ulb.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler = WebhookHandler(event=request_json,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler,
+                                 download_handler=mock_download)
         handler.run()
 
         entry = self.MockDynamodbHandler.data
-        self.assertEqual(67, len(self.MockS3Handler.uploads)) # books and bundle
+        self.assertEqual(4, len(self.MockS3Handler.uploads)) # books and bundle
         self.assertIn('/en_ulb.zip', self.MockS3Handler.uploads[0]['path'])
+
+        self.assertEqual('2fbfd081f4', entry['commit_id'])
+        self.assertEqual(False, entry['dirty'])
+        self.assertEqual('en', entry['language'])
+        self.assertEqual('2017-05-02T15:52:04-07:00', entry['timestamp'])
+        self.assertEqual(False, entry['signed'])
+        self.assertEqual('en_ulb', entry['repo_name'])
         self.assertIn('temp/en_ulb/{}/en/ulb/v7/ulb.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+
+        assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_ulb_package.json'))
 
     def test_webhook_versification(self):
         request_file = os.path.join(self.resources_dir, 'versification-request.json')
@@ -122,11 +156,13 @@ class TestWebhook(TestCase):
             'https://git.door43.org/Door43-Catalog/versification/archive/c7e936e4dcc103560987c8475db69e292aa66dca.zip': 'versification.zip'
         }
 
+        mockLogger = MockLogger()
         mock_api = MockAPI(self.resources_dir, 'https://git.door43.org')
         mock_db = MockDynamodbHandler()
         mock_s3 = MockS3Handler()
         handler = WebhookHandler(request_json,
                     s3_handler=mock_s3,
+                    logger=mockLogger,
                     dynamodb_handler=mock_db,
                     download_handler=lambda url, dest: mock_api.download_file(urls[url], dest))
         handler.run()
@@ -155,7 +191,11 @@ class TestWebhook(TestCase):
             # deserialized object
             request_json = json.loads(content)
 
+        mockLogger = MockLogger()
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
-        handler = WebhookHandler(request_json, self.MockS3Handler, self.MockDynamodbHandler)
+        handler = WebhookHandler(event=request_json,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler)
         handler.run()

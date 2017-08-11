@@ -4,6 +4,7 @@ from tools.file_utils import load_json_object, read_file
 from unittest import TestCase
 from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 from tools.test_utils import assert_s3_equals_api_json
+import logging
 from functions.ts_v2_catalog import TsV2CatalogHandler
 
 # This is here to test importing main
@@ -66,7 +67,7 @@ class TestTsV2Catalog(TestCase):
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/resources.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/source.json')
+        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/v7/source.json')
         self.assertNotIn('v2/ts/1ch/en/notes.json', mockS3._recent_uploads)
         # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/questions.json')
@@ -140,19 +141,21 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/resources.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/source.json')
+        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/v4/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/questions.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/tw_cat.json')
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/resources.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/source.json')
+        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/v7/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/questions.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/tw_cat.json')
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
+
+        self.assertIn('ts/txt/2/catalog.json', mockS3._recent_uploads)
 
         # validate urls in generate catalogs match the generated output paths
         root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
@@ -256,19 +259,29 @@ class TestTsV2Catalog(TestCase):
 
 
 
-            # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
+    # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
     # def test_everything(self):
+    #     """
+    #     This will run through a full catalog build using live data, though nothing will be uploaded to the server.
+    #     :return:
+    #     """
     #     mockS3 = MockS3Handler('ts_bucket')
+    #     mockLogger = MockLogger()
     #     mockDb = MockDynamodbHandler()
-    #     mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
+    #     mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json')) # you can also play with ready_processing_db.json
     #
     #     event = {
     #         'cdn_bucket': 'cdn.door43.org',
     #         'cdn_url': 'https://cdn.door43.org/',
     #         'catalog_url': 'https://api.door43.org/v3/catalog.json'
     #     }
-    #     converter = TsV2CatalogHandler(event, mockS3, mockDb)
+    #     converter = TsV2CatalogHandler(event=event,
+    #                                    logger=mockLogger,
+    #                                    s3_handler=mockS3,
+    #                                    dynamodb_handler=mockDb)
     #     converter.run()
     #
-    #     self.assertTrue(True)
+    #     db_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'out', 'db.json')
+    #     mockDb._exportToFile(db_file)
+    #     self.assertTrue(os.path.exists(db_file))
     #     print('done')
