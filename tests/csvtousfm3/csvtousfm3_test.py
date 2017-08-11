@@ -11,7 +11,7 @@ class TestCSVtoUSFM3(TestCase):
                                   csv_file=os.path.join(self.resources_dir, 'input.csv'))
         expected_usfm = read_file(os.path.join(self.resources_dir, 'output.usfm'))
 
-        self.assertEqual(expected_usfm, usfm)
+        self.assertMultiLineEqual(expected_usfm.encode('utf-8'), usfm)
 
     def test_convert_line(self):
         input_row = {
