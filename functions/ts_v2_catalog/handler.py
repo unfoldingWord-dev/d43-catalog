@@ -149,6 +149,7 @@ class TsV2CatalogHandler:
 
                 for project in res['projects']:
                     pid = project['identifier']
+                    self.logger.info('Analyzing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -775,9 +776,9 @@ class TsV2CatalogHandler:
         chunks_url = ''
         if rid != 'obs':
             chunks_url = 'https://api.unfoldingword.org/bible/txt/1/{}/chunks.json'.format(pid)
-            if not self.url_exists(chunks_url) and 'chunks_url' in project:
+            # if not self.url_exists(chunks_url) and 'chunks_url' in project:
                 # Use the v3 api chunks url if the legacy version cannot be found
-                chunks_url = project['chunks_url']
+                # chunks_url = project['chunks_url']
 
         source_url = '{}/{}/{}/{}/{}/v{}/source.json?date_modified={}'.format(
             self.cdn_url,
