@@ -149,7 +149,7 @@ class TsV2CatalogHandler:
 
                 for project in res['projects']:
                     pid = project['identifier']
-                    self.logger.info('Analyzing {}_{}_{}'.format(lid, rid, pid))
+                    self.logger.debug('Analyzing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -171,7 +171,7 @@ class TsV2CatalogHandler:
                             if rid == 'obs':
                                 process_id = '_'.join([lid, rid, pid])
                                 if process_id not in self.status['processed']:
-                                    self.logger.info('Processing {}'.format(process_id))
+                                    self.logger.debug('Processing {}'.format(process_id))
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
                                     upload = self._prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
                                                                     obs_json)
@@ -348,7 +348,7 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
-            self.logger.info('Processing {}'.format(process_id))
+            self.logger.debug('Processing {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -434,7 +434,7 @@ class TsV2CatalogHandler:
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
-            self.logger.info('Processing {}'.format(process_id))
+            self.logger.debug('Processing {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -511,7 +511,7 @@ class TsV2CatalogHandler:
         words = []
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
-            self.logger.info('Processing {}'.format(process_id))
+            self.logger.debug('Processing {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -626,7 +626,7 @@ class TsV2CatalogHandler:
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
-                    self.logger.info('Processing {}'.format(process_id))
+                    self.logger.debug('Processing {}'.format(process_id))
 
                     # copy usfm project file
                     usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
