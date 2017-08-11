@@ -4,6 +4,7 @@ from tools.file_utils import load_json_object, read_file
 from unittest import TestCase
 from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 from tools.test_utils import assert_s3_equals_api_json
+import logging
 from functions.ts_v2_catalog import TsV2CatalogHandler
 
 # This is here to test importing main
@@ -258,19 +259,31 @@ class TestTsV2Catalog(TestCase):
 
 
 
-            # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
-    # def test_everything(self):
-    #     mockS3 = MockS3Handler('ts_bucket')
-    #     mockDb = MockDynamodbHandler()
-    #     mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
-    #
-    #     event = {
-    #         'cdn_bucket': 'cdn.door43.org',
-    #         'cdn_url': 'https://cdn.door43.org/',
-    #         'catalog_url': 'https://api.door43.org/v3/catalog.json'
-    #     }
-    #     converter = TsV2CatalogHandler(event, mockS3, mockDb)
-    #     converter.run()
-    #
-    #     self.assertTrue(True)
-    #     print('done')
+    # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
+    def test_everything(self):
+        """
+        This will run through a full catalog build using live data, though nothing will be uploaded to the server.
+        :return:
+        """
+        # logger = logging.getLogger()
+        # logger.setLevel(logging.DEBUG)
+        mockS3 = MockS3Handler('ts_bucket')
+        mockLogger = MockLogger()
+        mockDb = MockDynamodbHandler()
+        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json'))
+
+        event = {
+            'cdn_bucket': 'cdn.door43.org',
+            'cdn_url': 'https://cdn.door43.org/',
+            'catalog_url': 'https://api.door43.org/v3/catalog.json'
+        }
+        converter = TsV2CatalogHandler(event=event,
+                                       logger=mockLogger,
+                                       s3_handler=mockS3,
+                                       dynamodb_handler=mockDb)
+        converter.run()
+
+        db_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'out', 'db.json')
+        mockDb._exportToFile(db_file)
+        self.assertTrue(os.path.exists(db_file))
+        print('done')
