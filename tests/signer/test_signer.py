@@ -4,15 +4,14 @@ import shutil
 import tempfile
 import unittest
 from unittest import TestCase
-from functions.signing import Signer
+from tools.signer import Signer, ENC_PRIV_PEM_PATH
 from tools.test_utils import is_travis
 
 
 class TestSigner(TestCase):
 
     def setUp(self):
-        pem_file = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../functions/signing/uW-sk.enc'))
-        self.signer = Signer(pem_file)
+        self.signer = Signer(ENC_PRIV_PEM_PATH)
         self.resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
         self.temp_dir = tempfile.mkdtemp(prefix='signing_tests_')
         self.s3keys = []

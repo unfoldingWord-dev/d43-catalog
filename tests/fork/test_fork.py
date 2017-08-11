@@ -197,7 +197,10 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
         mockLog = MockLogger()
 
-        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
         repo = TestFork.create_repo("en_obs")
         payload = handler.make_hook_payload(repo)
         self.assertIn('body-json', payload)
@@ -207,8 +210,13 @@ class TestFork(TestCase):
 
         TestFork.mock_download = os.path.join(TestFork.resources_dir, 'en_obs.zip')
         s3Handler = MockS3Handler('test')
+        mockLogger = MockLogger()
         dbHandler = MockDynamodbHandler()
-        webhook_handler = WebhookHandler(payload, s3Handler, dbHandler, TestFork.mock_download_file)
+        webhook_handler = WebhookHandler(event=payload,
+                                         logger=mockLogger,
+                                         s3_handler=s3Handler,
+                                         dynamodb_handler=dbHandler,
+                                         download_handler=TestFork.mock_download_file)
         webhook_handler.run()
 
     def test_trigger_hook_with_repos(self):
@@ -217,7 +225,10 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
         mockLog = MockLogger()
 
-        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
         mockClient = self.MockBotoClient()
         mockRepo = self.MockGogsRepo()
         mockRepo.full_name = 'my_repo'
@@ -231,7 +242,10 @@ class TestFork(TestCase):
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
         mockLog = MockLogger()
 
-        handler = ForkHandler(event, mockLog, self.MockGogsClient, mockDb)
+        handler = ForkHandler(event=event,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
         mockClient = self.MockBotoClient()
         handler._trigger_webhook(mockClient, [])
 

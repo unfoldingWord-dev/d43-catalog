@@ -6,9 +6,11 @@ import tempfile
 import unittest
 from unittest import TestCase
 from tools.file_utils import load_json_object
-from functions.signing import SigningHandler, Signer
+from functions.signing import SigningHandler
+from tools.signer import Signer
+from tools.url_utils import HeaderReader
 from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner, MockAPI
-from tools.test_utils import assert_object_not_equals, is_travis
+from tools.test_utils import assert_object_not_equals, is_travis, assert_object_equals_file
 
 # This is here to test importing main
 from functions.signing import main
@@ -163,13 +165,19 @@ class TestSigningHandler(TestCase):
         self.assertIn('signed', original_item)
         self.assertFalse(original_item['signed'])
 
+        global_headers = HeaderReader([
+            ('last-modified', 'Fri, 03 Jun 2017 20:23:12 GMT'),
+            ('content-length', 12345)
+        ])
+
         signer = SigningHandler(event,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
                                 dynamodb_handler=mock_db,
                                 url_exists_handler=mock_api.url_exists,
-                                download_handler=mock_api.download_file)
+                                download_handler=mock_api.download_file,
+                                url_headers_handler=lambda url: global_headers)
         result = signer.run()
         self.assertTrue(result)
 
@@ -184,59 +192,9 @@ class TestSigningHandler(TestCase):
 
         updated_item = mock_db.get_item({'repo_name': 'en_obs'}).copy()
         assert_object_not_equals(self, updated_item, original_item)
-
-        # check for the .sig in resource formats
-        manifest = json.loads(updated_item['package'], 'utf-8')
-        found_file = [f for f in manifest['formats'] if f['signature'].endswith('.sig')]
-        self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
-
-        # check for .sig in project formats
-        for project in manifest['projects']:
-            found_file = [f for f in project['formats'] if f['signature'].endswith('.sig')]
-            self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource formats list.')
-
-            # check for .sig in chapter formats
-            for format in project['formats']:
-                if 'chapters' in format and len(format['chapters']):
-                    if format['quality'] == '32kbps':
-                        # check that we skipped a chapter
-                        self.assertEqual(1, len(format['chapters']))
-                    else:
-                        self.assertTrue(len(format['chapters']) > 1)
-
-                    # check zip format
-                    self.assertTrue(format['url'].endswith('zip'))
-                    if format['chapters'][0]['url'].endswith('.mp3'):
-                        self.assertEqual('application/zip; content=audio/mp3', format['format'])
-                    elif format['chapters'][0]['url'].endswith('.mp4'):
-                        self.assertEqual('application/zip; content=video/mp4', format['format'])
-                    else:
-                        raise Exception('Un-deterministic format')
-
-                    for chapter in format['chapters']:
-                        if chapter['url'].endswith('.mp3'):
-                            self.assertEqual('audio/mp3', chapter['format'])
-                        if chapter['url'].endswith('.mp4'):
-                            self.assertEqual('video/mp4', chapter['format'])
-
-                        self.assertTrue(chapter['signature'].endswith('.sig'))
-                        self.assertNotEqual('', chapter['modified'])
-                        self.assertNotEqual(0, chapter['length'])
-                        self.assertNotEqual(0, chapter['size'])
-
-                        # check that we don't have the skipped chapter
-                        ch_quality = '{}_{}'.format(chapter['identifier'], format['quality'])
-                        self.assertNotEqual(ch_quality, '01_32kbps')  # skipped chapter one audio because it was missing
-
-                    found_file = [c for c in format['chapters'] if c['signature'].endswith('.sig')]
-                    self.assertGreater(len(found_file), 0, 'The .sig file was not found in the resource format chapters list.')
-                elif 'chapters' in format:
-                    raise Exception('Expected some chapters but found none in {}'.format(format['quality']))
+        assert_object_equals_file(self, json.loads(updated_item['package']), os.path.join(self.resources_dir, 'db/expected_signed_package.json'))
 
         self.assertIn('Skipping chapter obs:01 missing url https://cdn.door43.org/en/obs/v4/32kbps/en_obs_01_32kbps.mp3', mock_logger._messages)
-
-        # check the record is marked as signed
-        self.assertIn('signed', updated_item)
         self.assertTrue(updated_item['signed'])
 
     def test_signing_handler_no_records(self):
@@ -317,15 +275,18 @@ class TestSigningHandler(TestCase):
           "size": 0,
           "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
         }
+        mockHeaders = HeaderReader([
+            ('content-length', SigningHandler.max_file_size + 1)
+        ])
 
-        signer = SigningHandler(event,
+        signer = SigningHandler(event=event,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
                                 dynamodb_handler=mock_db,
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
-                                url_size_handler=lambda url: SigningHandler.max_file_size + 1)
+                                url_headers_handler=lambda url: mockHeaders)
         (already_signed, newly_signed) = signer.process_format(item, format)
         self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
@@ -364,7 +325,9 @@ class TestSigningHandler(TestCase):
           "size": 0,
           "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
         }
-
+        mockHeaders = HeaderReader([
+            ('content-length', 123)
+        ])
         signer = SigningHandler(event,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
@@ -372,7 +335,7 @@ class TestSigningHandler(TestCase):
                                 dynamodb_handler=mock_db,
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
-                                url_size_handler=lambda url: 1)
+                                url_headers_handler=lambda url: mockHeaders)
         (already_signed, newly_signed) = signer.process_format(item, format)
         self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
         self.assertNotIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)

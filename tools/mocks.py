@@ -3,6 +3,8 @@ import shutil
 import tempfile
 import os
 import codecs
+import json
+from tools.file_utils import write_file
 from consistency_checker import ConsistencyChecker
 
 class MockAPI(object):
@@ -207,10 +209,14 @@ class MockDynamodbHandler(object):
         self._db.append(item)
 
     def update_item(self, record_keys, row):
-        self._last_inserted_item = row
         item = self.get_item(record_keys)
-        if not item: return False
-        item.update(row)
+        if not item:
+            item = row.copy()
+            item.update(row)
+            self.insert_item(item)
+        else:
+            item.update(row)
+            self._last_inserted_item = item
         return True
 
     def get_item(self, record_keys):
@@ -263,6 +269,15 @@ class MockDynamodbHandler(object):
                 return False
 
         return True
+
+    def _exportToFile(self, path):
+        """
+        Exports the database to a file
+        :param path:
+        :return:
+        """
+        write_file(path, json.dumps(self._db))
+
 
 class MockSESHandler(object):
     pass

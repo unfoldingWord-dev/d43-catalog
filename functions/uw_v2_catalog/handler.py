@@ -5,8 +5,6 @@
 #
 
 import time
-from datetime import datetime
-import pytz
 import json
 import shutil
 import tempfile
@@ -15,28 +13,19 @@ from tools.file_utils import write_file
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from tools.dict_utils import read_dict, merge_dict
 from tools.url_utils import download_file, get_url
+from tools.signer import Signer, ENC_PRIV_PEM_PATH
+from tools.date_utils import str_to_unix_time
 from tools.legacy_utils import index_obs
 import math
-import arrow
-from dateutil import tz
+import logging
 
-
-def datestring_to_timestamp(datestring):
-    """
-    Converts a datetime string to a unix timestamp
-    :param datestring: a datetime string formatted according to ISO 8601
-    :return:
-    """
-    # TRICKY: time.mktime expects local time so we convert to local tz
-    d = arrow.get(datestring).to('local').datetime
-    return str(int(time.mktime(d.timetuple())))
 
 class UwV2CatalogHandler:
 
     cdn_root_path = 'v2/uw'
     api_version = 'uw.2'
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None):
+    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, signing_handler=None):
         """
         Initializes the converter with the catalog from which to generate the v2 catalog
         :param event:
@@ -48,6 +37,7 @@ class UwV2CatalogHandler:
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
+        self.logger = logger # type: logging._loggerClass
         if not s3_handler:
             self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
         else:
@@ -66,6 +56,10 @@ class UwV2CatalogHandler:
             self.download_file = download_handler
 
         self.temp_dir = tempfile.mkdtemp('', 'uwv2', None)
+        if not signing_handler:
+            self.signer = Signer(ENC_PRIV_PEM_PATH) # pragma: no cover
+        else:
+            self.signer = signing_handler
 
     def __del__(self):
         try:
@@ -85,12 +79,6 @@ class UwV2CatalogHandler:
             'bible': {}
         }
 
-        res_map = {
-            'ulb': 'bible',
-            'udb': 'bible',
-            'obs': 'obs'
-        }
-
         title_map = {
             'bible': 'Bible',
             'obs': 'Open Bible Stories'
@@ -106,18 +94,21 @@ class UwV2CatalogHandler:
 
         # check if build is complete
         if status['state'] == 'complete':
-            print('Catalog already generated')
+            if self.logger:
+                self.logger.info('Catalog already generated')
             return True
 
         # retrieve the latest catalog
         catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
-            print("ERROR: {0} does not exist".format(source_status['catalog_url']))
+            if self.logger:
+                self.logger.error("{0} does not exist".format(source_status['catalog_url']))
             return False
         try:
             self.latest_catalog = json.loads(catalog_content)
         except Exception as e:
-            print("ERROR: Failed to load the catalog json: {0}".format(e))
+            if self.logger:
+                self.logger.error("Failed to load the catalog json: {0}".format(e))
             return False
 
         # walk v3 catalog
@@ -130,7 +121,7 @@ class UwV2CatalogHandler:
                 else:
                     cat_key = 'bible'
 
-                mod = datestring_to_timestamp(res['modified'])
+                mod = str_to_unix_time(res['modified'])
 
                 if int(mod) > last_modified:
                     last_modified = int(mod)
@@ -140,6 +131,7 @@ class UwV2CatalogHandler:
                     pid = proj['identifier']
                     if 'formats' in proj and proj['formats']:
                         source = None
+                        pdf = None
                         media = {
                             'audio': {
                                 'src_dict': {}
@@ -149,15 +141,32 @@ class UwV2CatalogHandler:
                             }
                         }
                         for format in proj['formats']:
+                            # skip media formats that do not match the source version
+                            if 'source_version' in format and format['source_version'] != res['version']:
+                                if self.logger:
+                                    self.logger.warning(
+                                        '{}_{}_{}: media format "{}" does not match source version "{}" and will be excluded.'.format(
+                                            lid, rid, pid, format['url'], res['version']))
+                                continue
+
                             if rid == 'obs' and 'type=book' in format['format']:
                                 # TRICKY: obs must be converted to json
                                 process_id = '_'.join([lid, rid, pid])
+                                obs_key = '{}/{}/{}/{}/v{}/source.json'.format(self.cdn_root_path, pid, lid, rid, res['version'])
                                 if process_id not in status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
-                                    upload = self._prep_data_upload('{}/{}/source.json'.format(rid, lid), obs_json)
-                                    self.cdn_handler.upload_file(upload['path'],
-                                                                 '{}/{}'.format(UwV2CatalogHandler.cdn_root_path,
-                                                                                upload['key']))
+                                    upload = self._prep_data_upload(obs_key, obs_json)
+                                    self.cdn_handler.upload_file(upload['path'], upload['key'])
+
+                                    # sign obs file.
+                                    # TRICKY: we only need to sign obs so we do so now.
+                                    sig_file = self.signer.sign_file(upload['path'])
+                                    try:
+                                        self.signer.verify_signature(upload['path'], sig_file)
+                                        self.cdn_handler.upload_file(sig_file, '{}.sig'.format(upload['key']))
+                                    except RuntimeError:
+                                        if self.logger:
+                                            self.logger.warning('Could not verify signature {}'.format(sig_file))
 
                                     status['processed'].update({process_id: []})
                                     status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -166,8 +175,8 @@ class UwV2CatalogHandler:
                                     cat_keys = cat_keys + status['processed'][process_id]
 
                                 source = {
-                                    'url': '{}/en/udb/v4/obs.json'.format(self.cdn_url),
-                                    'signature': '{}/en/udb/v4/obs.json.sig'.format(self.cdn_url)
+                                    'url': '{}/{}'.format(self.cdn_url, obs_key),
+                                    'signature': '{}/{}.sig'.format(self.cdn_url, obs_key)
                                 }
                             elif rid != 'obs' and format['format'] == 'text/usfm':
                                 # process bible
@@ -191,7 +200,7 @@ class UwV2CatalogHandler:
                                         src_dict[chapter['identifier']] = {
                                             quality_short_key: [{
                                                 quality_key: int(quality_value),
-                                                'mod': int(datestring_to_timestamp(chapter['modified'])),
+                                                'mod': int(str_to_unix_time(chapter['modified'])),
                                                 'size': chapter['size']
                                             }],
                                             'chap': chapter['identifier'],
@@ -206,10 +215,17 @@ class UwV2CatalogHandler:
                                     'txt_ver': format['source_version'],
                                     'src_dict': src_dict
                                 })
+                            elif 'application/pdf' == format['format']:
+                                pdf = {
+                                    'url': format['url'],
+                                    'source_version': format['source_version']
+                                }
+
 
                         # build catalog
                         if not source:
-                            print('NOTICE: No book text found in {}_{}_{}'.format(lid, rid, pid))
+                            if self.logger:
+                                self.logger.info('No book text found in {}_{}_{}'.format(lid, rid, pid))
                             continue
 
                         media_keys = media.keys()
@@ -228,6 +244,9 @@ class UwV2CatalogHandler:
                             'src_sig': source['signature'],
                             'title': proj['title'],
                         }
+                        if pdf:
+                            toc_item['pdf'] = pdf['url']
+
                         if not media:
                             del toc_item['media']
                         toc.append(toc_item)
@@ -280,11 +299,21 @@ class UwV2CatalogHandler:
                 'langs': langs
             })
 
-        uploads.append(self._prep_data_upload('catalog.json', catalog))
+        catalog_upload = self._prep_data_upload('catalog.json', catalog)
+        uploads.append(catalog_upload)
+        # TRICKY: also upload to legacy path for backwards compatibility
+        uploads.append({
+            'key': '/uw/txt/2/catalog.json',
+            'path': catalog_upload['path']
+        })
 
         # upload files
         for upload in uploads:
-            self.cdn_handler.upload_file(upload['path'], '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key']))
+            if not upload['key'].startswith('/'):
+                key = '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key'])
+            else:
+                key = upload['key'].lstrip('/')
+            self.cdn_handler.upload_file(upload['path'], key)
 
         status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         status['state'] = 'complete'
@@ -312,16 +341,18 @@ class UwV2CatalogHandler:
             elif s['api_version'] == UwV2CatalogHandler.api_version:
                 status = s
         if not source_status:
-            print('Source catalog status not found')
+            if self.logger:
+                self.logger.info('Source catalog status not found')
             return False
         if source_status['state'] != 'complete':
-            print('Source catalog is not ready for use')
+            if self.logger:
+                self.logger.info('Source catalog is not ready for use')
             return False
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process
             status = {
                 'api_version': UwV2CatalogHandler.api_version,
-                'catalog_url': '{}/{}/catalog.json'.format(self.cdn_url, UwV2CatalogHandler.cdn_root_path),
+                'catalog_url': '{}/uw/txt/2/catalog.json'.format(self.cdn_url),
                 'source_api': source_status['api_version'],
                 'source_timestamp': source_status['timestamp'],
                 'state': 'in-progress',

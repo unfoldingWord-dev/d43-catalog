@@ -1,0 +1,180 @@
+{
+  "checking": {
+    "checking_entity": [
+      "Distant Shores Media",
+      "Wycliffe Associates"
+    ],
+    "checking_level": "3"
+  },
+  "dublin_core": {
+    "conformsto": "rc0.2",
+    "contributor": [
+      "Distant Shores Media",
+      "Wycliffe Associates"
+    ],
+    "creator": "Distant Shores Media",
+    "description": "An unrestricted visual mini-Bible in any language",
+    "format": "text/markdown",
+    "identifier": "obs",
+    "issued": "2015-08-26",
+    "language": {
+      "direction": "ltr",
+      "identifier": "en",
+      "title": "English"
+    },
+    "modified": "2017-01-10",
+    "publisher": "unfoldingWord",
+    "relation": [
+      "en/tw",
+      "en/obs-tq",
+      "en/obs-tn"
+    ],
+    "rights": "CC BY-SA 4.0",
+    "source": [
+      {
+        "identifier": "obs",
+        "language": "en",
+        "version": "4"
+      }
+    ],
+    "subject": "Bible stories",
+    "title": "Open Bible Stories",
+    "type": "book",
+    "version": "4"
+  },
+  "formats": [
+    {
+      "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
+      "modified": "2017-04-25T21:46:30Z",
+      "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
+      "size": 128,
+      "url": "https://cdn.door43.org/en/obs/v4/obs.zip"
+    }
+  ],
+  "projects": [
+    {
+      "categories": null,
+      "formats": [
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "contributor": [],
+          "format": "application/pdf",
+          "modified": "2017-06-03T13:23:12-07:00",
+          "quality": "64kbps",
+          "signature": "https://cdn.door43.org/en/obs/v4/obs.pdf.sig",
+          "size": 29323,
+          "url": "https://cdn.door43.org/en/obs/v4/obs.pdf"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "format": "video/mp4",
+              "identifier": "02",
+              "length": 2.9779591836734696,
+              "modified": "2017-06-03T13:23:12-07:00",
+              "signature": "https://cdn.door43.org/en/obs/v4/320p/en_obs_02_320p.mp4.sig",
+              "size": 49109,
+              "url": "https://cdn.door43.org/en/obs/v4/320p/en_obs_02_320p.mp4"
+            }
+          ],
+          "contributor": [
+            "Narrator: Steve Lossing",
+            "Checker: Brad Harrington",
+            "Engineer: Brad Harrington"
+          ],
+          "format": "application/zip; content=video/mp4",
+          "modified": "2017-06-03T13:23:12-07:00",
+          "quality": "320p",
+          "signature": "https://cdn.door43.org/en/obs/v4/320p/en_obs_320p.zip.sig",
+          "size": 0,
+          "url": "https://cdn.door43.org/en/obs/v4/320p/en_obs_320p.zip"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "format": "audio/mp3",
+              "identifier": "02",
+              "length": 0.6090476190476191,
+              "modified": "2017-06-03T13:23:12-07:00",
+              "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3.sig",
+              "size": 5870,
+              "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "format": "audio/mp3",
+              "identifier": "01",
+              "length": 0.7499092970521541,
+              "modified": "2017-06-03T13:23:12-07:00",
+              "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3.sig",
+              "size": 6891,
+              "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3"
+            }
+          ],
+          "contributor": [
+            "Narrator: Steve Lossing",
+            "Checker: Brad Harrington",
+            "Engineer: Brad Harrington"
+          ],
+          "format": "application/zip; content=audio/mp3",
+          "modified": "2017-06-03T13:23:12-07:00",
+          "quality": "64kbps",
+          "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig",
+          "size": 12032,
+          "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "format": "audio/mp3",
+              "identifier": "02",
+              "length": 0.57475,
+              "modified": "2017-06-03T13:23:12-07:00",
+              "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3.sig",
+              "size": 2749,
+              "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3"
+            }
+          ],
+          "contributor": [
+            "Narrator: Steve Lossing",
+            "Checker: Brad Harrington",
+            "Engineer: Brad Harrington"
+          ],
+          "format": "application/zip; content=audio/mp3",
+          "modified": "2017-06-03T13:23:12-07:00",
+          "quality": "32kbps",
+          "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip.sig",
+          "size": 6334,
+          "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip"
+        }
+      ],
+      "identifier": "obs",
+      "path": "./content",
+      "sort": 0,
+      "title": "Open Bible Stories",
+      "versification": null
+    }
+  ]
+}

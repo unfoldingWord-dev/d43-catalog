@@ -105,7 +105,7 @@ class TestCatalog(TestCase):
         :return: an object containing the result and related mocks
         """
         state = self.make_handler_instance(progress_db)
-        response = state['handler'].handle_catalog()
+        response = state['handler'].run()
         state.update({
             'response':response
         })
@@ -122,7 +122,7 @@ class TestCatalog(TestCase):
         self.assertFalse(response['incomplete'])
         self.assertIn('Uploaded new catalog', response['message'])
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_obs.json'))
-        self.assertEqual(0, len(mock_errors_db._db))
+        self.assertEqual(0, mock_errors_db._db[0]['count'])
         self.assertEqual(1, len(mock_progress_db._db))
 
     def test_catalog_no_sig_content(self):
