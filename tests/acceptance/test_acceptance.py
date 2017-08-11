@@ -35,6 +35,8 @@ class TestAcceptance(TestCase):
             pass
 
         def getresponse(self):
+            if TestAcceptance.MockHttpConnection.response is None:
+                print('WARNING: did you forget to initialize MockHttpConnection?')
             return TestAcceptance.MockHttpConnection.response
 
     class MockURLHandler(object):
@@ -167,32 +169,52 @@ class TestAcceptance(TestCase):
 
         result = acceptance._test_resources("en", [{"identifier":"id"}])
         self.assertFalse(result)
-        self.assertIn("en_id: 'title' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'source' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'rights' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'creator' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'contributor' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'relation' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'publisher' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'issued' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'modified' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'version' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'checking' does not exist", acceptance.errors)
-        self.assertIn("en_id: 'projects' does not exist", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'title'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'source'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'rights'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'creator'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'contributor'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'relation'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'publisher'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'issued'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'modified'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'version'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'checking'", acceptance.errors)
+        self.assertIn("en_id: resource is missing 'projects'", acceptance.errors)
 
     def test_projects_not_array(self):
         acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
-        result = acceptance._test_projects("en", "id", {"projects": 9})
+        result = acceptance._test_projects("en", "id", 9, {})
         self.assertFalse(result)
         self.assertIn("en_id: 'projects' is not an array", acceptance.errors)
+
+    def test_project_not_dictionary(self):
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+
+        result = acceptance._test_projects("en", "id", [9], {})
+        self.assertFalse(result)
+        self.assertIn("en_id: project is not a dictionary", acceptance.errors)
+
+    def test_project_missing_keys(self):
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+
+        result = acceptance._test_projects("en", "id", [{}], {})
+        self.assertFalse(result)
+        self.assertIn("en_id: project missing 'categories'", acceptance.errors)
+        self.assertIn("en_id: project missing 'identifier'", acceptance.errors)
+        self.assertIn("en_id: project missing 'sort'", acceptance.errors)
+        self.assertIn("en_id: project missing 'title'", acceptance.errors)
+        self.assertIn("en_id: project missing 'versification'", acceptance.errors)
 
     def test_formats_missing_in_multi_project_resource(self):
         acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
-        result = acceptance._test_projects("en", "id", {"projects": [{},{}]})
+        result = acceptance._test_projects("en", "id", [{},{}], {})
         self.assertFalse(result)
         self.assertIn("en_id: 'formats' does not exist in multi-project resource", acceptance.errors)
 
@@ -200,7 +222,7 @@ class TestAcceptance(TestCase):
         acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
-        result = acceptance._test_projects("en", "id", {"projects": [{}], "formats":[]})
+        result = acceptance._test_projects("en", "id", [{}], {"formats":[]})
         self.assertFalse(result)
         self.assertIn("en_id: 'formats' found in single-project resource", acceptance.errors)
 
@@ -208,7 +230,7 @@ class TestAcceptance(TestCase):
         acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
-        result = acceptance._test_formats("en", "id", 6)
+        result = acceptance._test_formats(6, "en", "id")
         self.assertFalse(result)
         self.assertIn("en_id: 'formats' is not an array", acceptance.errors)
 
@@ -216,10 +238,109 @@ class TestAcceptance(TestCase):
         acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
-        result = acceptance._test_formats("en", "id", [{}])
+        result = acceptance._test_formats([{}], "en", "id")
         self.assertFalse(result)
         self.assertIn("Format container for 'en_id' doesn't have 'format'", acceptance.errors)
         self.assertIn("Format container for 'en_id' doesn't have 'modified'", acceptance.errors)
         self.assertIn("Format container for 'en_id' doesn't have 'size'", acceptance.errors)
         self.assertIn("Format container for 'en_id' doesn't have 'url'", acceptance.errors)
         self.assertIn("Format container for 'en_id' doesn't have 'signature'", acceptance.errors)
+
+    def test_video_format_has_quality(self):
+        TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+        format = {
+            "identifier":"obs",
+            "modified":"",
+            "size":0,
+            "url":"",
+            "signature":"example.com/file.sig",
+            "format": "content=video/mp4"
+        }
+
+        result = acceptance._test_formats([format], "en", "obs", "obs")
+        self.assertFalse(result)
+        self.assertIn("en_obs: Missing 'quality' key in media format", acceptance.errors)
+
+    def test_audio_format_has_quality(self):
+        TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+        format = {
+            "identifier": "obs",
+            "modified": "",
+            "size": 0,
+            "url": "",
+            "signature": "example.com/file.sig",
+            "format": "content=video/mp3"
+        }
+        result = acceptance._test_formats([format], "en", "obs", "obs")
+        self.assertFalse(result)
+        self.assertIn("en_obs: Missing 'quality' key in media format", acceptance.errors)
+
+    def test_resource_cannot_have_chapters(self):
+        TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+        format = {
+            "identifier": "obs",
+            "modified": "",
+            "size": 0,
+            "url": "",
+            "signature": "example.com/file.sig",
+            "format": "content=video/mp3",
+            "chapters":[]
+        }
+        result = acceptance._test_formats([format], "en", "obs")
+        self.assertFalse(result)
+        self.assertIn("en_obs: chapters can only be in project formats", acceptance.errors)
+
+    def test_chapter_missing_keys(self):
+        TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+        chapter = {
+        }
+        result = acceptance._test_chapters("en", "obs", "obs", [chapter])
+        self.assertFalse(result)
+        self.assertIn('en_obs_obs: chapter format is missing "identifier"', acceptance.errors)
+        self.assertIn('en_obs_obs: chapter format is missing "modified"', acceptance.errors)
+        self.assertIn('en_obs_obs: chapter format is missing "signature"', acceptance.errors)
+        self.assertIn('en_obs_obs: chapter format is missing "size"', acceptance.errors)
+        self.assertIn('en_obs_obs: chapter format is missing "url"', acceptance.errors)
+
+    def test_chapter_missing_length(self):
+        TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+        chapter = {
+            "format": "audio/mp3",
+            "identifier": "29",
+            "modified": "2017-07-28T20:05:58.052139",
+            "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_29_64kbps.mp3.sig",
+            "size": 1037295,
+            "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_29_64kbps.mp3"
+        }
+        result = acceptance._test_chapters("en", "obs", "obs", [chapter])
+        self.assertFalse(result)
+        self.assertEqual(1, len(acceptance.errors))
+        self.assertIn('en_obs_obs: chapter media format is missing "length"', acceptance.errors)
+
+    def test_chapter_missing_urls(self):
+        TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(404)
+        acceptance = AcceptanceTest('http://example.com', self.MockURLHandler, self.MockHttpConnection,
+                                    self.MockSESHandler)
+        chapter = {
+            "format": "audio/mp3",
+            "identifier": "29",
+            "modified": "2017-07-28T20:05:58.052139",
+            "signature": "http://exampe.com.sig",
+            "size": 1037295,
+            "length":0,
+            "url": "http://exampe.com"
+        }
+        result = acceptance._test_chapters("en", "obs", "obs", [chapter])
+        self.assertFalse(result)
+        self.assertIn("en_obs_obs: 'http://exampe.com' does not exist", acceptance.errors)
+        self.assertIn("en_obs_obs: 'http://exampe.com.sig' does not exist", acceptance.errors)

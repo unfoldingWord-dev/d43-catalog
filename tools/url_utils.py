@@ -17,11 +17,41 @@ def get_url_size(url):
     :param url:
     :return:
     """
+    raise Exception('get_url_size is deprecated. Use url_headers instead')
+
+def url_headers(url):
+    """
+    Fetches the headers for a url
+    :param url:
+    :return:
+    """
     p = urlparse(url)
     conn = httplib.HTTPConnection(p.netloc)
     conn.request('HEAD', p.path)
     resp = conn.getresponse()
-    return resp.getheader('content-length', 0)
+    return HeaderReader(resp.getheaders())
+
+class HeaderReader(object):
+    def __init__(self, header_list):
+        """
+        Initializes a new reader
+        :param header_list:
+        """
+        self.headers = {}
+        for key, value in header_list:
+            self.headers[key] = value
+
+    def get(self, key, default=None):
+        """
+        Returns the value of the header
+        :param key:
+        :param default: The value to return if the header does not exist
+        :return:
+        """
+        if key in self.headers:
+            return self.headers[key]
+        else:
+            return default
 
 def url_exists(url):
     """

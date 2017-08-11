@@ -93,7 +93,7 @@ class CatalogHandler:
             language['resources'] = []
         return language
 
-    def handle_catalog(self):
+    def run(self):
         completed_items = 0
         items = self.progress_table.query_items()
         versification_package = None
@@ -135,12 +135,10 @@ class CatalogHandler:
         }
 
         if completed_items > 0:
-            if not self._catalog_has_changed(self.catalog):
+            status = self._read_status()
+            if status and status['state'] == 'complete' and not self._catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
-                # publish the status if not already published
-                if not self._read_status():
-                    self._publish_status()
             else:
                 cat_str = json.dumps(self.catalog, sort_keys=True)
                 try:

@@ -108,23 +108,33 @@ class AcceptanceTest(object):
                 for key in ['title', 'source', 'rights', 'creator', 'contributor', 'relation', 'publisher',
                             'issued', 'modified', 'version', 'checking', 'projects']:
                     if key not in resource:
-                        self.log_error("{}_{}: '{}' does not exist".format(lslug, rslug, key))
+                        self.log_error("{}_{}: resource is missing '{}'".format(lslug, rslug, key))
 
                 if 'projects' in resource:
-                    self._test_projects(lslug, rslug, resource)
+                    self._test_projects(lslug, rslug, resource['projects'], resource)
 
                 if 'formats' in resource:
-                    self._test_formats(lslug, rslug, resource['formats'])
+                    self._test_formats(resource['formats'], lslug, rslug)
 
-    def _test_projects(self, lslug, rslug, resource):
-        if not isinstance(resource['projects'], list):
+    def _test_projects(self, lslug, rslug, projects, resource):
+        if not isinstance(projects, list):
             self.log_error("{}_{}: 'projects' is not an array".format(lslug, rslug))
-        elif len(resource['projects']) > 1 and 'formats' not in resource:
+            return
+        elif len(projects) > 1 and 'formats' not in resource:
             self.log_error("{}_{}: 'formats' does not exist in multi-project resource".format(lslug, rslug))
-        elif len(resource['projects']) == 1 and 'formats' in resource:
+        elif len(projects) == 1 and 'formats' in resource:
             self.log_error("{}_{}: 'formats' found in single-project resource".format(lslug, rslug))
+        for project in projects:
+            if not isinstance(project, dict):
+                self.log_error("{}_{}: project is not a dictionary".format(lslug, rslug))
+                continue
+            for key in ['categories', 'identifier', 'sort', 'title', 'versification']:
+                if not key in project:
+                    self.log_error("{}_{}: project missing '{}'".format(lslug, rslug, key))
+            if 'format' in project:
+                self._test_formats(project['formats'], lslug, rslug, project['identifier'])
 
-    def _test_formats(self, lslug, rslug, formats):
+    def _test_formats(self, formats, lslug, rslug, pslug=None):
         if not isinstance(formats, list):
             self.log_error("{}_{}: 'formats' is not an array".format(lslug, rslug))
         else:
@@ -139,7 +149,32 @@ class AcceptanceTest(object):
                 if not format['signature']:
                     self.log_error("{}_{}: {} has not been signed yet".format(lslug, rslug, format['url']))
                 elif not self.url_exists(format['signature']):
-                    self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['sig']))
+                    self.log_error("{}_{}: {} does not exist".format(lslug, rslug, format['signature']))
+
+                if not pslug and 'chapters' in format:
+                    self.log_error('{}_{}: chapters can only be in project formats'.format(lslug, rslug))
+
+                # test media requirements
+                if pslug:
+                    for key in ['content=video', 'content=audio']:
+                        if key in format['format'] and 'quality' not in format:
+                            self.log_error("{}_{}: Missing 'quality' key in media format".format(lslug, rslug))
+                    if 'chapters' in format:
+                        self._test_chapters(lslug, rslug, pslug, format['chapters'])
+
+    def _test_chapters(self, lslug, rslug, pslug, chapters):
+        for chapter in chapters:
+            for key in ['format', 'identifier', 'modified', 'signature', 'size', 'url']:
+                if key not in chapter:
+                    self.log_error('{}_{}_{}: chapter format is missing "{}"'.format(lslug, rslug, pslug, key))
+            if 'format' in chapter:
+                for key in ['audio', 'video']:
+                    if key in chapter['format'] and 'length' not in chapter:
+                        self.log_error('{}_{}_{}: chapter media format is missing "length"'.format(lslug, rslug, pslug))
+            if 'url' in chapter and not self.url_exists(chapter['url']):
+                self.log_error("{}_{}_{}: '{}' does not exist".format(lslug, rslug, pslug, chapter['url']))
+            if 'signature' in chapter and not self.url_exists(chapter['signature']):
+                self.log_error("{}_{}_{}: '{}' does not exist".format(lslug, rslug, pslug, chapter['signature']))
 
     def run(self):
         self.test_catalog_structure()
