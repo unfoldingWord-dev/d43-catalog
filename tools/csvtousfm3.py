@@ -77,6 +77,5 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', dest='output', required=True, help='Where to save the generated USFM')
 
     args = parser.parse_args(sys.argv[1:])
-
-    usfm = convert(args['lang'], args['input'])
-    write_file(args['output'], usfm)
+    usfm = convert(args.lang, args.input)
+    write_file(args.output, usfm)
