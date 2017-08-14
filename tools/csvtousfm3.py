@@ -60,6 +60,7 @@ def convert(lang, csv_file):
                 lastverse = None
                 usfm.append('')
                 usfm.append('\\c {}'.format(int(chp)))
+                usfm.append('\\p');
 
             if not lastverse or vrs > lastverse:
                 usfm.append('')
@@ -259,5 +260,5 @@ if __name__ == '__main__':
     usfm_books = convert(args.lang, args.input)
 
     for book in usfm_books:
-        file_path = os.path.join(args.output, '{}_{}.usfm'.format(book['sort'], book['id']))
+        file_path = os.path.join(args.output, '{}-{}.usfm'.format(book['sort'], book['id']))
         write_file(file_path, book['usfm'])
