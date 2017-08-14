@@ -46,7 +46,6 @@ def convert_row(lang, row):
     :return: the generated USFM3
     """
     word, punctuation = split_puncuation(row['UMEDIEVAL'])
-
     return '\w {}|lemma="{}" strongs="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
         word,
         row['ULEMMA'],
@@ -78,4 +77,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args(sys.argv[1:])
     usfm = convert(args.lang, args.input)
-    write_file(args.output, usfm)
+    write_file(args.output, usfm.decode('utf-8'))
