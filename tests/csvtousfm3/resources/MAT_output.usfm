@@ -1,6 +1,6 @@
-\id GEN Genesis
+\id MAT Matthew
 \ide UTF-8
-\h Genesis
+\h Matthew
 
 \c 1
 
@@ -79,34 +79,3 @@
 \w ἔσται|lemma="εἰμί" strongs="G15100" x-morph="Gr,VLIFM3,,S,"\w*
 \w εἰς|lemma="εἰς" strongs="G15190" x-morph="Gr,P,,,,,A,,,"\w*
 \w τὴν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AFS,"\w*
-
-\id EXO Exodus
-\ide UTF-8
-\h Exodus
-
-\c 3
-
-\v 29
-\w βλασφημήσῃ|lemma="βλασφημέω" strongs="G09870" x-morph="Gr,VISAA3,,S,"\w*
-\w εἰς|lemma="εἰς" strongs="G15190" x-morph="Gr,P,,,,,A,,,"\w*
-\w τὸ|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,ANS,"\w*
-\w πνεῦμα|lemma="πνεῦμα" strongs="G41510" x-morph="Gr,N,,,,,ANS,"\w*
-\w τὸ|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,ANS,"\w*
-\w ἅγιον|lemma="ἅγιος" strongs="G00400" x-morph="Gr,AR,,,,ANS,"\w*
-\w οὐκ|lemma="οὐ" strongs="G37560" x-morph="Gr,D,,,,,,,,,"\w*
-\w ἔχει|lemma="ἔχω" strongs="G21920" x-morph="Gr,VTIPA3,,S,"\w*
-\w ἄφεσιν|lemma="ἄφεσις" strongs="G08590" x-morph="Gr,N,,,,,AFS,"\w*
-\w εἰς|lemma="εἰς" strongs="G15190" x-morph="Gr,P,,,,,A,,,"\w*
-\w τὸν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AMS,"\w*
-\w αἰῶνα|lemma="αἰών" strongs="G01650" x-morph="Gr,N,,,,,AMS,"\w*
-\w ἀλλὰ|lemma="ἀλλά" strongs="G02350" x-morph="Gr,CC,,,,,,,,"\w*
-\w ἔνοχός|lemma="ἔνοχος" strongs="G17770" x-morph="Gr,NP,,,,NMS,"\w*
-\w ἐστιν|lemma="εἰμί" strongs="G15100" x-morph="Gr,VLIPA3,,S,"\w*
-\w αἰωνίου|lemma="αἰώνιος" strongs="G01660" x-morph="Gr,AA,,,,GNS,"\w*
-\w ἁμαρτήματος|lemma="ἁμάρτημα" strongs="G02650" x-morph="Gr,N,,,,,GNS,"\w*
-
-\v 30
-\w ὅτι|lemma="ὅτι" strongs="G37540" x-morph="Gr,CS,,,,,,,,"\w*
-\w ἔλεγον|lemma="λέγω" strongs="G30040" x-morph="Gr,VIIIA3,,P,"\w*
-\w Πνεῦμα|lemma="πνεῦμα" strongs="G41510" x-morph="Gr,N,,,,,ANS,"\w*
-\w ἀκάθαρτον|lemma="ἀκάθαρτος" strongs="G01690" x-morph="Gr,AA,,,,ANS,"\w*

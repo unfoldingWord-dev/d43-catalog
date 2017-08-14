@@ -9,11 +9,14 @@ class TestCSVtoUSFM3(TestCase):
     def test_convert_file(self):
         usfm = csvtousfm3.convert(lang='Gr',
                                   csv_file=os.path.join(self.resources_dir, 'input.csv'))
-        expected_usfm = read_file(os.path.join(self.resources_dir, 'output.usfm'))
 
-        self.assertIsInstance(usfm, unicode)
-        self.assertIsInstance(expected_usfm, unicode)
-        self.assertMultiLineEqual(expected_usfm, usfm)
+        self.assertIsInstance(usfm, list)
+        self.assertEqual(2, len(usfm))
+        for book in usfm:
+            self.assertIsInstance(book['usfm'], unicode)
+            expected_usfm = read_file(os.path.join(self.resources_dir, '{}_output.usfm'.format(book['id'])))
+            self.assertIsInstance(expected_usfm, unicode)
+            self.assertMultiLineEqual(expected_usfm, book['usfm'])
 
     def test_convert_line(self):
         input_row = {

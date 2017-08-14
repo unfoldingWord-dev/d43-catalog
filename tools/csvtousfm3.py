@@ -3,11 +3,13 @@
 
 """
 This tool reads a CSV file containing a list of words and converts it into USFM3 with word level attributes.
+This currently expects the Greek New Testament.
 """
 
 import argparse
 import sys
 import csv
+import os
 from tools.file_utils import write_file
 
 def convert(lang, csv_file):
@@ -20,6 +22,7 @@ def convert(lang, csv_file):
     if sys.version_info >= (3,0,0):
         raise Exception('Only python 2.7 is supported')
     with open(csv_file) as file:
+        books = []
         usfm = []
         csvreader = csv.DictReader(file)
         lastverse = None
@@ -30,19 +33,25 @@ def convert(lang, csv_file):
             if not row_usfm: continue
 
             # insert verse marker
-            # append_passage_reference(usfm, row['VERSE'], lastbook, lastchapter, lastverse)
             ref = row['VERSE']
-            book_num = ref[:2]
-            book_id = book_identifiers[book_num]['id']
-            book_name = book_identifiers[book_num]['en_name']
+            book_sort = apply_nt_offset(ref[:2])
+            book_id = book_identifiers[book_sort]['id']
+            book_name = book_identifiers[book_sort]['en_name']
             chp = ref[2:4]
             vrs = ref[4:6]
 
-            if not lastbook or book_num != lastbook:
+            if not lastbook or book_sort != lastbook:
+                if lastbook and len(usfm):
+                    # close last book
+                    last_book_id = book_identifiers[lastbook]['id']
+                    books.append({
+                        'sort': lastbook,
+                        'id': last_book_id,
+                        'usfm': '\n'.join(usfm)
+                    })
+                    usfm = []
                 lastchapter = None
-                print('INFO: Writing book {}'.format(book_id))
-                if lastbook:
-                    usfm.append('')
+                print('INFO: Processing {}'.format(book_id))
                 usfm.append('\\id {} {}'.format(book_id, book_name))
                 usfm.append('\\ide UTF-8')
                 usfm.append('\\h {}'.format(book_name))
@@ -56,12 +65,21 @@ def convert(lang, csv_file):
                 usfm.append('')
                 usfm.append('\\v {}'.format(int(vrs)))
 
-            lastbook = book_num
+            lastbook = book_sort
             lastchapter = chp
             lastverse = vrs
 
             usfm.append(row_usfm)
-        return '\n'.join(usfm)
+        if len(usfm):
+            # close last book
+            last_book_id = book_identifiers[lastbook]['id']
+            books.append({
+                'sort': lastbook,
+                'id': last_book_id,
+                'usfm': '\n'.join(usfm)
+            })
+            usfm = []
+        return books
 
 def convert_row(lang, row):
     """
@@ -92,6 +110,16 @@ def split_puncuation(word):
         return word[:-1], word[-1:]
     else:
         return word, ''
+
+def apply_nt_offset(book_id):
+    """
+    Offsets the book id to to the new testament equivalent.
+    e.g. 01 becomes 41 (Matthew)
+    :param book_id:
+    :return:
+    """
+    return '{}'.format(int(book_id) + 40).zfill(2)
+
 
 def append_passage_reference(usfm, ref, lastbook, lastchapter, lastverse):
     """
@@ -222,8 +250,14 @@ if __name__ == '__main__':
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-l', '--lang', dest='lang', required=True, help='The language represented in the CSV file')
     parser.add_argument('-i', '--input', dest='input', required=True, help='CSV file to convert')
-    parser.add_argument('-o', '--output', dest='output', required=True, help='Where to save the generated USFM')
+    parser.add_argument('-o', '--output', dest='output', required=True, help='Directory where to save the generated USFM')
 
     args = parser.parse_args(sys.argv[1:])
-    usfm = convert(args.lang, args.input)
-    write_file(args.output, usfm)
+    if os.path.isfile(args.output):
+        raise Exception('Output must be a directory')
+
+    usfm_books = convert(args.lang, args.input)
+
+    for book in usfm_books:
+        file_path = os.path.join(args.output, '{}_{}.usfm'.format(book['sort'], book['id']))
+        write_file(file_path, book['usfm'])
