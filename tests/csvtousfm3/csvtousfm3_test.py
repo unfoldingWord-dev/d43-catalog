@@ -11,7 +11,9 @@ class TestCSVtoUSFM3(TestCase):
                                   csv_file=os.path.join(self.resources_dir, 'input.csv'))
         expected_usfm = read_file(os.path.join(self.resources_dir, 'output.usfm'))
 
-        self.assertMultiLineEqual(expected_usfm.encode('utf-8'), usfm)
+        self.assertIsInstance(usfm, unicode)
+        self.assertIsInstance(expected_usfm, unicode)
+        self.assertMultiLineEqual(expected_usfm, usfm)
 
     def test_convert_line(self):
         input_row = {
@@ -28,10 +30,12 @@ class TestCSVtoUSFM3(TestCase):
             'WORD': 'biblos',
             'ORDER': '1'
         }
-        output = '\w \xce\x92\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82|lemma="\xce\xb2\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*'
+        output = '\w \xce\x92\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82|lemma="\xce\xb2\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*'.decode('utf-8')
 
+        self.assertIsInstance(output, unicode)
         usfm3 = csvtousfm3.convert_row(lang='Gr',
                                        row=input_row)
+        self.assertIsInstance(usfm3, unicode)
         self.assertEqual(output, usfm3)
 
     def test_convert_punctuated_line(self):
@@ -49,8 +53,10 @@ class TestCSVtoUSFM3(TestCase):
             'WORD': 'biblos',
             'ORDER': '1'
         }
-        output = '\w \xce\x92\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82|lemma="\xce\xb2\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*,' # note the trailing comma
+        output = '\w \xce\x92\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82|lemma="\xce\xb2\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*,'.decode('utf-8') # note the trailing comma
 
+        self.assertIsInstance(output, unicode)
         usfm3 = csvtousfm3.convert_row(lang='Gr',
                                        row=input_row)
+        self.assertIsInstance(usfm3, unicode)
         self.assertEqual(output, usfm3)

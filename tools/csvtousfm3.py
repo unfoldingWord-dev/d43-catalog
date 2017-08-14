@@ -17,6 +17,8 @@ def convert(lang, csv_file):
     :param csv_file: the csv to be converted to USFM
     :return:
     """
+    if sys.version_info >= (3,0,0):
+        raise Exception('Only python 2.7 is supported')
     with open(csv_file) as file:
         usfm = []
         csvreader = csv.DictReader(file)
@@ -45,10 +47,10 @@ def convert_row(lang, row):
     :param row: a row from a CSV file
     :return: the generated USFM3
     """
-    word, punctuation = split_puncuation(row['UMEDIEVAL'])
-    return '\w {}|lemma="{}" strongs="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
+    word, punctuation = split_puncuation(row['UMEDIEVAL'].decode('utf-8'))
+    return u'\w {}|lemma="{}" strongs="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
         word,
-        row['ULEMMA'],
+        row['ULEMMA'].decode('utf-8'),
         row['LEXEME'].zfill(5),
         row['SYN'].replace('.', ','),
         row['MORPH'].replace('.', ','),
@@ -77,4 +79,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args(sys.argv[1:])
     usfm = convert(args.lang, args.input)
-    write_file(args.output, usfm.decode('utf-8'))
+    write_file(args.output, usfm)
