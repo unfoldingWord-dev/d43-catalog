@@ -1,4 +1,10 @@
-\v 010101
+\id GEN Genesis
+\ide UTF-8
+\h Genesis
+
+\c 1
+
+\v 1
 \w Βίβλος|lemma="βίβλος" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*
 \w γενέσεως|lemma="γένεσις" strongs="G10780" x-morph="Gr,N,,,,,GFS,"\w*
 \w Ἰησοῦ|lemma="Ἰησοῦς" strongs="G24240" x-morph="Gr,N,,,,,GMS,"\w*
@@ -8,7 +14,7 @@
 \w υἱοῦ|lemma="υἱός" strongs="G52070" x-morph="Gr,N,,,,,GMS,"\w*
 \w Ἀβραάμ|lemma="Ἀβραάμ" strongs="G00110" x-morph="Gr,N,,,,,GMSI"\w*
 
-\v 010102
+\v 2
 \w Ἀβραὰμ|lemma="Ἀβραάμ" strongs="G00110" x-morph="Gr,N,,,,,NMSI"\w*
 \w ἐγέννησεν|lemma="γεννάω" strongs="G10800" x-morph="Gr,VTIAA3,,S,"\w*
 \w τὸν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AMS,"\w*
@@ -22,11 +28,11 @@
 \w δὲ|lemma="δέ" strongs="G11610" x-morph="Gr,CC,,,,,,,,"\w*
 \w ἐγέννησεν|lemma="γεννάω" strongs="G10800" x-morph="Gr,VTIAA3,,S,"\w*
 
-\v 010113
+\v 13
 \w τὸν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AMS,"\w*
 \w Ἀζώρ|lemma="Ἀζώρ" strongs="G01070" x-morph="Gr,N,,,,,AMSI"\w*
 
-\v 010114
+\v 14
 \w Ἀζὼρ|lemma="Ἀζώρ" strongs="G01070" x-morph="Gr,N,,,,,NMSI"\w*
 \w δὲ|lemma="δέ" strongs="G11610" x-morph="Gr,CC,,,,,,,,"\w*
 \w ἐγέννησεν|lemma="γεννάω" strongs="G10800" x-morph="Gr,VTIAA3,,S,"\w*
@@ -43,13 +49,15 @@
 \w τὸν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AMS,"\w*
 \w Ἐλιούδ|lemma="Ἐλιούδ" strongs="G16640" x-morph="Gr,N,,,,,AMSI"\w*
 
-\v 010115
+\v 15
 \w Ἐλιοὺδ|lemma="Ἐλιούδ" strongs="G16640" x-morph="Gr,N,,,,,NMSI"\w*
 \w δὲ|lemma="δέ" strongs="G11610" x-morph="Gr,CC,,,,,,,,"\w*
 \w ἐγέννησεν|lemma="γεννάω" strongs="G10800" x-morph="Gr,VTIAA3,,S,"\w*
 \w τὸν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AMS,"\w*
 
-\v 010522
+\c 5
+
+\v 22
 \w ὃς|lemma="ὅς" strongs="G37390" x-morph="Gr,RR,,,,NMS,"\w*
 \w δ’|lemma="δέ" strongs="G11610" x-morph="Gr,CC,,,,,,,,"\w*
 \w ἂν|lemma="ἄν" strongs="G03020" x-morph="Gr,T,,,,,,,,,"\w*
@@ -72,7 +80,13 @@
 \w εἰς|lemma="εἰς" strongs="G15190" x-morph="Gr,P,,,,,A,,,"\w*
 \w τὴν|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,AFS,"\w*
 
-\v 020329
+\id EXO Exodus
+\ide UTF-8
+\h Exodus
+
+\c 3
+
+\v 29
 \w βλασφημήσῃ|lemma="βλασφημέω" strongs="G09870" x-morph="Gr,VISAA3,,S,"\w*
 \w εἰς|lemma="εἰς" strongs="G15190" x-morph="Gr,P,,,,,A,,,"\w*
 \w τὸ|lemma="ὁ" strongs="G35880" x-morph="Gr,EA,,,,ANS,"\w*
@@ -91,7 +105,7 @@
 \w αἰωνίου|lemma="αἰώνιος" strongs="G01660" x-morph="Gr,AA,,,,GNS,"\w*
 \w ἁμαρτήματος|lemma="ἁμάρτημα" strongs="G02650" x-morph="Gr,N,,,,,GNS,"\w*
 
-\v 020330
+\v 30
 \w ὅτι|lemma="ὅτι" strongs="G37540" x-morph="Gr,CS,,,,,,,,"\w*
 \w ἔλεγον|lemma="λέγω" strongs="G30040" x-morph="Gr,VIIIA3,,P,"\w*
 \w Πνεῦμα|lemma="πνεῦμα" strongs="G41510" x-morph="Gr,N,,,,,ANS,"\w*
