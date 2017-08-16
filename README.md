@@ -100,3 +100,14 @@ This function is run via AWS cron every 5 minutes and it does the following:
 
 - [x] Checks for a new v3 catalog in the status table
 - [x] Builds a v2 uW api from the new/updated v3 catalog.
+
+## Tools
+
+###CSV to USFM3
+
+This tool will convert a csv file containing Greek words to USFM 3 format.
+You may execute the following command to learn how to use the tool.
+
+```bash
+python execute.py csvtousfm3 -h
+```
