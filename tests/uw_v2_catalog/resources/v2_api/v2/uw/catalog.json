@@ -9,7 +9,7 @@
             {
               "mod": "1475553143",
               "name": "Unlocked Dynamic Bible",
-              "slug": "udb",
+              "slug": "udb-en",
               "status": {
                 "checking_entity": "Wycliffe Associates",
                 "checking_level": "3",
@@ -42,7 +42,7 @@
             },
             {
               "mod": "1479181943",
-              "slug": "ulb",
+              "slug": "ulb-en",
               "name": "Unlocked Literal Bible",
               "status": {
                 "checking_entity": "Wycliffe Associates",

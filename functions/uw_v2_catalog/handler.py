@@ -258,8 +258,15 @@ class UwV2CatalogHandler:
                 comment = ''
                 if 'comment' in res:
                     comment = res['comment']
+
+                # TRICKY: maintain legacy slug formatting for backwards compatibility
+                legacy_slug = '{}-{}'.format(rid, lid)
+                res_v2_id = rid
+                if legacy_slug in self.legacy_slugs:
+                    res_v2_id = legacy_slug
+
                 res_v2 = {
-                    'slug': rid,
+                    'slug': res_v2_id,
                     'name': res['title'],
                     'mod': mod,
                     'status': {
@@ -385,3 +392,19 @@ class UwV2CatalogHandler:
         value = quality.rstrip('{}{}'.format(abc, abc.upper()))
         suffix = quality[len(value):]
         return value, suffix
+
+
+    # 'legacy_slugs' contains a list of legacy slugs for resources 'vers'. Legacy slugs are formatted as `res-lang`
+    legacy_slugs = [
+        "ulb-ceb",
+        "udb-ceb",
+        "ulb-ee",
+        "ulb-en",
+        "udb-en",
+        "ulb-hna",
+        "ulb-ilo",
+        "ulb-kbp",
+        "ulb-kpo",
+        "ulb-las",
+        "ulb-lpx"
+    ]
