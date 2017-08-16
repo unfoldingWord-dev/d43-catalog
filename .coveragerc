@@ -2,3 +2,4 @@
 include=
     functions/**/handler.py
     functions/signing/signer.py
+    tools/csvtousfm3.py
