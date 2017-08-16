@@ -5,12 +5,27 @@
 #
 
 from __future__ import print_function
-from d43_aws_tools import DynamoDBHandler, S3Handler, SESHandler
-from catalog_handler import CatalogHandler
+from handler import CatalogHandler
+from tools.file_utils import wipe_temp
+from tools.lambda_utils import lambda_restarted
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# TRICKY: suppress logging noise from boto3
+logging.getLogger('boto3').setLevel(logging.WARNING)
 
 def handle(event, context):
+    # TRICKY: block automatic restarts since we manually recover from timeouts and errors
+    if lambda_restarted(context):
+        logger.info('Blocked Lambda Restart: {}'.format(context.aws_request_id))
+        return
+    else:
+        logger.info('Starting request: {}'.format(context.aws_request_id))
+
+    wipe_temp(ignore_errors=True)
     try:
-        catalog = CatalogHandler(event=event, s3_handler=S3Handler, dynamodb_handler=DynamoDBHandler, ses_handler=SESHandler)
-        return catalog.handle_catalog()
+        catalog = CatalogHandler(event=event)
+        return catalog.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))

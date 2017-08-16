@@ -1,0 +1,124 @@
+{
+  "checking": {
+    "checking_entity": [
+      "Wycliffe Associates"
+    ],
+    "checking_level": "3"
+  },
+  "dublin_core": {
+    "conformsto": "rc0.2",
+    "contributor": [
+      "Wycliffe Associates"
+    ],
+    "creator": "Wycliffe Associates",
+    "description": "An unrestricted literal Bible",
+    "format": "text/usfm",
+    "identifier": "ulb",
+    "issued": "2016-10-03T00:00:00+00:00",
+    "language": {
+      "direction": "ltr",
+      "identifier": "en",
+      "title": "English"
+    },
+    "modified": "2016-11-14T00:00:00+00:00",
+    "publisher": "unfoldingWord",
+    "relation": [
+      "en/tw",
+      "en/tq",
+      "en/tn"
+    ],
+    "rights": "CC BY-SA 4.0",
+    "source": [
+      {
+        "identifier": "asv",
+        "language": "en",
+        "version": "1901"
+      }
+    ],
+    "subject": "Bible",
+    "title": "Unlocked Literal Bible",
+    "type": "bundle",
+    "version": "7"
+  },
+  "formats": [
+    {
+      "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
+      "modified": "2017-05-02T22:52:04+00:00",
+      "signature": "",
+      "size": 150596,
+      "url": "/en/ulb/v7/ulb.zip"
+    }
+  ],
+  "projects": [
+    {
+      "categories": [
+        "bible-ot"
+      ],
+      "formats": [
+        {
+          "format": "text/usfm",
+          "modified": "2016-11-14T00:00:00+00:00",
+          "signature": "",
+          "size": 204032,
+          "url": "/en/ulb/v7/gen.usfm"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "contributor": [],
+          "format": "",
+          "modified": "",
+          "signature": "",
+          "size": 0,
+          "url": "https://cdn.door43.org/ulb/txt/1/ulb-en/01-GEN.pdf",
+          "source_version": "9",
+          "version": "9"
+        }
+      ],
+      "identifier": "gen",
+      "path": "./01-GEN.usfm",
+      "sort": 1,
+      "title": "Genesis",
+      "versification": "ufw"
+    },
+    {
+      "categories": [
+        "bible-ot"
+      ],
+      "formats": [
+        {
+          "format": "text/usfm",
+          "modified": "2016-11-14T00:00:00+00:00",
+          "signature": "",
+          "size": 172844,
+          "url": "/en/ulb/v7/exo.usfm"
+        }
+      ],
+      "identifier": "exo",
+      "path": "./02-EXO.usfm",
+      "sort": 2,
+      "title": "Exodus",
+      "versification": "ufw"
+    },
+    {
+      "categories": [
+        "bible-ot"
+      ],
+      "formats": [
+        {
+          "format": "text/usfm",
+          "modified": "2016-11-14T00:00:00+00:00",
+          "signature": "",
+          "size": 133011,
+          "url": "/en/ulb/v7/lev.usfm"
+        }
+      ],
+      "identifier": "lev",
+      "path": "./03-LEV.usfm",
+      "sort": 3,
+      "title": "Leviticus",
+      "versification": "ufw"
+    }
+  ]
+}

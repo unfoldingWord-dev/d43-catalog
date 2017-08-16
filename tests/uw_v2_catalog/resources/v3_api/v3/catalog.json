@@ -1,91 +1,23 @@
 {
-  "catalogs": [
-    {
-      "identifier": "langnames",
-      "modified": "2016-10-03",
-      "url": "https://td.unfoldingword.org/exports/langnames.json"
-    },
-    {
-      "identifier": "temp-langnames",
-      "modified": "2016-10-03",
-      "url": "https://td.unfoldingword.org/api/templanguages/"
-    },
-    {
-      "identifier": "approved-temp-langnames",
-      "modified": "2016-10-03",
-      "url": "https://td.unfoldingword.org/api/templanguages/assignment/changed/"
-    },
-    {
-      "identifier": "new-language-questions",
-      "modified": "2016-10-03",
-      "url": "https://td.unfoldingword.org/api/questionnaire/"
-    }
-  ],
   "languages": [
     {
       "category_labels": {
-        "bible-nt": "Bible: NT",
         "bible-ot": "Bible: OT",
+        "bible-nt": "Bible: NT",
         "ta": "translationAcademy"
       },
-      "check_labels": {
-        "keyword": "Keyword",
-        "metaphor": "Metaphor"
-      },
       "direction": "ltr",
+      "title": "English",
       "identifier": "en",
+      "versification_labels": {
+        "mt": "Masoretic Text (Hebrew Bible)",
+        "kjv": "King James Version"
+      },
+      "check_labels": {
+        "metaphor": "Metaphor",
+        "keyword": "Keyword"
+      },
       "resources": [
-        {
-          "checking": {
-            "checking_entity": [
-              "Wycliffe Associates"
-            ],
-            "checking_level": "3"
-          },
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "creator": "Wycliffe Associates",
-          "description": "Notes to help translators of Open Bible Stories",
-          "identifier": "obs-tn",
-          "issued": "2015-08-26",
-          "modified": "2017-01-03",
-          "projects": [
-            {
-              "categories": [
-
-              ],
-              "formats": [
-                {
-                  "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
-                  "modified": "2017-03-15T12:41:45Z",
-                  "signature": "https://cdn.door43.org/en/tn/v4/obs-tn.zip.sig",
-                  "size": 222415,
-                  "url": "https://cdn.door43.org/en/tn/v4/obs-tn.zip"
-                }
-              ],
-              "identifier": "obs",
-              "sort": 0,
-              "title": "OBS translationNotes",
-              "versification": "ufw"
-            }
-          ],
-          "publisher": "unfoldingWord",
-          "relation": [
-            "en/obs"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "obs-tn",
-              "language": "en",
-              "version": "4"
-            }
-          ],
-          "subject": "Translator Notes",
-          "title": "translationNotes",
-          "version": "4"
-        },
         {
           "checking": {
             "checking_entity": [
@@ -101,15 +33,15 @@
           "formats": [
             {
               "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
-              "modified": "2017-05-02T22:52:23Z",
+              "modified": "2017-05-02T22:52:23-05:00",
               "signature": "https://cdn.door43.org/en/udb/v7/udb.zip.sig",
               "size": 1722057,
               "url": "https://cdn.door43.org/en/udb/v7/udb.zip"
             }
           ],
           "identifier": "udb",
-          "issued": "2015-08-26",
-          "modified": "2016-10-03",
+          "issued": "2015-08-26T22:52:23-05:00",
+          "modified": "2016-10-03T22:52:23-05:00",
           "projects": [
             {
               "categories": [
@@ -119,10 +51,22 @@
               "formats": [
                 {
                   "format": "text/usfm",
-                  "modified": "2016-10-03",
+                  "modified": "2016-10-03T22:52:23-05:00",
                   "signature": "https://cdn.door43.org/en/udb/v7/gen.usfm.sig",
                   "size": 241714,
                   "url": "https://cdn.door43.org/en/udb/v7/gen.usfm"
+                },
+                {
+                  "contributor": [
+
+                  ],
+                  "format": "application/pdf",
+                  "modified": "2017-07-18T23:13:52+00:00",
+                  "signature": "https://cdn.door43.org/en/udb/v7/gen.pdf.sig",
+                  "size": 305958,
+                  "url": "https://cdn.door43.org/en/udb/v7/gen.pdf",
+                  "version": "7",
+                  "source_version": "7"
                 }
               ],
               "identifier": "gen",
@@ -138,10 +82,22 @@
               "formats": [
                 {
                   "format": "text/usfm",
-                  "modified": "2016-10-03",
+                  "modified": "2016-10-03T22:52:23-05:00",
                   "signature": "https://cdn.door43.org/en/udb/v7/1ch.usfm.sig",
                   "size": 141366,
                   "url": "https://cdn.door43.org/en/udb/v7/1ch.usfm"
+                },
+                {
+                  "contributor": [
+
+                  ],
+                  "format": "application/pdf",
+                  "modified": "2017-07-18T23:13:52+00:00",
+                  "signature": "https://cdn.door43.org/en/udb/v9/1ch.pdf.sig",
+                  "size": 305958,
+                  "url": "https://cdn.door43.org/en/udb/v9/1ch.pdf",
+                  "version": "9",
+                  "source_version": "9"
                 }
               ],
               "identifier": "1ch",
@@ -169,112 +125,6 @@
           "version": "7"
         },
         {
-          "checking": {
-            "checking_entity": [
-              "Wycliffe Associates"
-            ],
-            "checking_level": "3"
-          },
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "creator": "Wycliffe Associates",
-          "description": "Definitions of words to help translators of the Bible and Open Bible Stories",
-          "identifier": "tw",
-          "issued": "2016-09-30",
-          "modified": "2017-04-11",
-          "projects": [
-            {
-              "categories": [
-
-              ],
-              "formats": [
-                {
-                  "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2",
-                  "modified": "2017-05-18T19:20:21Z",
-                  "signature": "https://cdn.door43.org/en/tw/v5/tw.zip.sig",
-                  "size": 880814,
-                  "url": "https://cdn.door43.org/en/tw/v5/tw.zip"
-                }
-              ],
-              "identifier": "bible",
-              "sort": 0,
-              "title": "translationWords",
-              "versification": null
-            }
-          ],
-          "publisher": "Door43",
-          "relation": [
-            "en/ulb",
-            "en/udb",
-            "en/obs",
-            "en/tn",
-            "en/tq"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "tw",
-              "language": "en",
-              "version": "4"
-            }
-          ],
-          "subject": "Translation Words",
-          "title": "translationWords",
-          "version": "5"
-        },
-        {
-          "checking": {
-            "checking_entity": [
-              "Wycliffe Associates"
-            ],
-            "checking_level": "3"
-          },
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "creator": "Wycliffe Associates",
-          "description": "Questions to help translators of Open Bible Stories",
-          "identifier": "obs-tq",
-          "issued": "2016-10-01",
-          "modified": "2017-04-21",
-          "projects": [
-            {
-              "categories": [
-
-              ],
-              "formats": [
-                {
-                  "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
-                  "modified": "2017-05-03T21:07:09Z",
-                  "signature": "https://cdn.door43.org/en/tq/v4/obs-tq.zip.sig",
-                  "size": 139709,
-                  "url": "https://cdn.door43.org/en/tq/v4/obs-tq.zip"
-                }
-              ],
-              "identifier": "obs",
-              "sort": 0,
-              "title": "OBS translationQuestions",
-              "versification": null
-            }
-          ],
-          "publisher": "unfoldingWord",
-          "relation": [
-            "en/obs"
-          ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
-            {
-              "identifier": "obs-tq",
-              "language": "en",
-              "version": "4"
-            }
-          ],
-          "subject": "Translator Questions",
-          "title": "translationQuestions",
-          "version": "4"
-        },
-        {
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -290,15 +140,15 @@
           "formats": [
             {
               "format": "application/zip; type=bundle content=text/usfm conformsto=rc0.2",
-              "modified": "2017-03-29T00:00:00Z",
+              "modified": "2017-03-29T22:52:23-05:00",
               "signature": "https://cdn.door43.org/en/ulb/v7/ulb.zip.sig",
               "size": 1438229,
               "url": "https://cdn.door43.org/en/ulb/v7/ulb.zip"
             }
           ],
           "identifier": "ulb",
-          "issued": "2016-10-03",
-          "modified": "2016-11-14",
+          "issued": "2016-10-03T22:52:23-05:00",
+          "modified": "2016-11-14T22:52:23-05:00",
           "projects": [
             {
               "categories": [
@@ -308,10 +158,22 @@
               "formats": [
                 {
                   "format": "text/usfm",
-                  "modified": "2016-11-14",
+                  "modified": "2016-11-14T22:52:23-05:00",
                   "signature": "https://cdn.door43.org/en/ulb/v7/1ch.usfm.sig",
                   "size": 118037,
                   "url": "https://cdn.door43.org/en/ulb/v7/1ch.usfm"
+                },
+                {
+                  "contributor": [
+
+                  ],
+                  "format": "application/pdf",
+                  "modified": "2017-07-18T23:13:52+00:00",
+                  "signature": "https://cdn.door43.org/en/ulb/v7/1ch.pdf.sig",
+                  "size": 305958,
+                  "url": "https://cdn.door43.org/en/ulb/v7/1ch.pdf",
+                  "version": "7",
+                  "source_version": "7"
                 }
               ],
               "identifier": "1ch",
@@ -339,60 +201,1175 @@
           "version": "7"
         },
         {
-          "contributor": [
-            "Wycliffe Associates"
-          ],
-          "creator": "Wycliffe Associates",
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "Notes to help translators of the Bible",
           "checking": {
             "checking_entity": [
-              "Jobby Prasannan"
+              "Wycliffe Associates"
             ],
             "checking_level": "3"
           },
-          "comment": "",
-          "description": "Comprehension questions for checking Bible translations",
-          "formats": [
+          "issued": "2017-07-05T22:52:23-05:00",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-07-05T22:52:23-05:00",
+          "source": [
             {
-              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
-              "modified": "2017-05-03T19:34:05Z",
-              "signature": "https://cdn.door43.org/en/tq/v6/tq.zip.sig",
-              "size": 4434519,
-              "url": "https://cdn.door43.org/en/tq/v6/tq.zip"
+              "identifier": "tn",
+              "version": "2",
+              "language": "en"
             }
           ],
-          "identifier": "tq",
-          "issued": "2016-10-01",
-          "modified": "2017-04-12",
-          "projects": [
-            {
-              "categories": [],
-              "identifier": "1ch",
-              "sort": 13,
-              "title": "translationQuestions",
-              "versification": null
-            }
-          ],
-          "publisher": "unfoldingWord",
+          "version": "8",
           "relation": [
             "en/ulb",
             "en/udb"
           ],
+          "formats": [
+            {
+              "size": 8994735,
+              "url": "https://cdn.door43.org/en/tn/v8/tn.zip",
+              "signature": "https://cdn.door43.org/en/tn/v8/tn.zip.sig",
+              "modified": "2017-07-05T22:52:23-05:00",
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+            }
+          ],
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "title": "translationNotes",
+          "identifier": "tn",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "2 Thessalonians translationNotes",
+              "versification": "",
+              "identifier": "2th",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 John translationNotes",
+              "versification": "",
+              "identifier": "1jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Song of Solomon translationNotes",
+              "versification": "",
+              "identifier": "sng",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Leviticus translationNotes",
+              "versification": "",
+              "identifier": "lev",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Ezekiel translationNotes",
+              "versification": "",
+              "identifier": "ezk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Galatians translationNotes",
+              "versification": "",
+              "identifier": "gal",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Timothy translationNotes",
+              "versification": "",
+              "identifier": "1ti",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Kings translationNotes",
+              "versification": "",
+              "identifier": "1ki",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Peter translationNotes",
+              "versification": "",
+              "identifier": "1pe",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Matthew translationNotes",
+              "versification": "",
+              "identifier": "mat",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Genesis translationNotes",
+              "versification": "",
+              "identifier": "gen",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Isaiah translationNotes",
+              "versification": "",
+              "identifier": "isa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "3 John translationNotes",
+              "versification": "",
+              "identifier": "3jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Psalms translationNotes",
+              "versification": "",
+              "identifier": "psa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Hosea translationNotes",
+              "versification": "",
+              "identifier": "hos",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Revelation translationNotes",
+              "versification": "",
+              "identifier": "rev",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Philemon translationNotes",
+              "versification": "",
+              "identifier": "phm",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Esther translationNotes",
+              "versification": "",
+              "identifier": "est",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Job translationNotes",
+              "versification": "",
+              "identifier": "job",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Joel translationNotes",
+              "versification": "",
+              "identifier": "jol",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Jude translationNotes",
+              "versification": "",
+              "identifier": "jud",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Lamentations translationNotes",
+              "versification": "",
+              "identifier": "lam",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Colossians translationNotes",
+              "versification": "",
+              "identifier": "col",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 Corinthians translationNotes",
+              "versification": "",
+              "identifier": "2co",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Jeremiah translationNotes",
+              "versification": "",
+              "identifier": "jer",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Daniel translationNotes",
+              "versification": "",
+              "identifier": "dan",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Numbers translationNotes",
+              "versification": "",
+              "identifier": "num",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Micah translationNotes",
+              "versification": "",
+              "identifier": "mic",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Samuel translationNotes",
+              "versification": "",
+              "identifier": "1sa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Philippians translationNotes",
+              "versification": "",
+              "identifier": "php",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Haggai translationNotes",
+              "versification": "",
+              "identifier": "hag",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Judges translationNotes",
+              "versification": "",
+              "identifier": "jdg",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Ephesians translationNotes",
+              "versification": "",
+              "identifier": "eph",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 Peter translationNotes",
+              "versification": "",
+              "identifier": "2pe",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Chronicles translationNotes",
+              "versification": "",
+              "identifier": "1ch",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 John translationNotes",
+              "versification": "",
+              "identifier": "2jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 Chronicles translationNotes",
+              "versification": "",
+              "identifier": "2ch",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Zechariah translationNotes",
+              "versification": "",
+              "identifier": "zec",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Acts translationNotes",
+              "versification": "",
+              "identifier": "act",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Hebrews translationNotes",
+              "versification": "",
+              "identifier": "heb",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Proverbs translationNotes",
+              "versification": "",
+              "identifier": "pro",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Ecclesiastes translationNotes",
+              "versification": "",
+              "identifier": "ecc",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Jonah translationNotes",
+              "versification": "",
+              "identifier": "jon",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Esra translationNotes",
+              "versification": "",
+              "identifier": "ezr",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Deuteronomy translationNotes",
+              "versification": "",
+              "identifier": "deu",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 Kings translationNotes",
+              "versification": "",
+              "identifier": "2ki",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Exodus translationNotes",
+              "versification": "",
+              "identifier": "exo",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 Samuel translationNotes",
+              "versification": "",
+              "identifier": "2sa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Zephaniah translationNotes",
+              "versification": "",
+              "identifier": "zep",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "2 Timothy translationNotes",
+              "versification": "",
+              "identifier": "2ti",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Luke translationNotes",
+              "versification": "",
+              "identifier": "luk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Joshua translationNotes",
+              "versification": "",
+              "identifier": "jos",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Titus translationNotes",
+              "versification": "",
+              "identifier": "tit",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Nahum translationNotes",
+              "versification": "",
+              "identifier": "nam",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Corinthians translationNotes",
+              "versification": "",
+              "identifier": "1co",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Romans translationNotes",
+              "versification": "",
+              "identifier": "rom",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Mark translationNotes",
+              "versification": "",
+              "identifier": "mrk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "James translationNotes",
+              "versification": "",
+              "identifier": "jas",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Ruth translationNotes",
+              "versification": "",
+              "identifier": "rut",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "1 Thessalonians translationNotes",
+              "versification": "",
+              "identifier": "1th",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Habakkuk translationNotes",
+              "versification": "",
+              "identifier": "hab",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Malachi translationNotes",
+              "versification": "",
+              "identifier": "mal",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Amos translationNotes",
+              "versification": "",
+              "identifier": "amo",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "John translationNotes",
+              "versification": "",
+              "identifier": "jhn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Nehemiah translationNotes",
+              "versification": "",
+              "identifier": "neh",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "Obadiah translationNotes",
+              "versification": "",
+              "identifier": "oba",
+              "categories": []
+            }
+          ],
+          "subject": "Translator Notes"
+        },
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "Definitions of words to help translators of the Bible and Open Bible Stories",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2017-07-06T22:52:23-05:00",
           "rights": "CC BY-SA 4.0",
+          "modified": "2017-07-06T22:52:23-05:00",
+          "source": [
+            {
+              "identifier": "tw",
+              "version": "6",
+              "language": "en"
+            }
+          ],
+          "version": "6",
+          "relation": [
+            "en/ulb",
+            "en/udb",
+            "en/obs",
+            "en/tn",
+            "en/tq"
+          ],
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "title": "translationWords",
+          "identifier": "tw",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "translationWords",
+              "formats": [
+                {
+                  "size": 1021146,
+                  "url": "https://cdn.door43.org/en/tw/v6/tw.zip",
+                  "signature": "https://cdn.door43.org/en/tw/v6/tw.zip.sig",
+                  "modified": "2017-07-06T22:52:23-05:00",
+                  "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2"
+                }
+              ],
+              "versification": null,
+              "identifier": "bible",
+              "categories": []
+            }
+          ],
+          "subject": "Translation Words"
+        },
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "Notes to help translators of Open Bible Stories",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2015-08-26T22:52:23-05:00",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-01-03T22:52:23-05:00",
+          "source": [
+            {
+              "identifier": "obs-tn",
+              "version": "4",
+              "language": "en"
+            }
+          ],
+          "version": "4",
+          "relation": [
+            "en/obs"
+          ],
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "title": "translationNotes",
+          "identifier": "obs-tn",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "OBS translationNotes",
+              "formats": [
+                {
+                  "size": 222415,
+                  "url": "https://cdn.door43.org/en/tn/v4/obs-tn.zip",
+                  "signature": "https://cdn.door43.org/en/tn/v4/obs-tn.zip.sig",
+                  "modified": "2017-03-15T22:52:23-05:00",
+                  "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+                }
+              ],
+              "versification": "ufw",
+              "identifier": "obs",
+              "categories": []
+            }
+          ],
+          "subject": "Translator Notes"
+        },
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "Questions to help translators of Open Bible Stories",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2016-10-01T22:52:23-05:00",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-04-21T22:52:23-05:00",
+          "source": [
+            {
+              "identifier": "obs-tq",
+              "version": "4",
+              "language": "en"
+            }
+          ],
+          "version": "4",
+          "relation": [
+            "en/obs"
+          ],
+          "contributor": [
+            "Wycliffe Associates"
+          ],
+          "title": "translationQuestions",
+          "identifier": "obs-tq",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "OBS translationQuestions",
+              "formats": [
+                {
+                  "size": 139709,
+                  "url": "https://cdn.door43.org/en/tq/v4/obs-tq.zip",
+                  "signature": "https://cdn.door43.org/en/tq/v4/obs-tq.zip.sig",
+                  "modified": "2017-05-03T22:52:23-05:00",
+                  "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+                }
+              ],
+              "versification": null,
+              "identifier": "obs",
+              "categories": []
+            }
+          ],
+          "subject": "Translator Questions"
+        },
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "Comprehension questions for checking Bible translations",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2017-07-05T22:52:23-05:00",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-07-05T22:52:23-05:00",
           "source": [
             {
               "identifier": "tq",
-              "language": "en",
-              "version": "5"
+              "version": "5",
+              "language": "en"
             }
           ],
-          "subject": "Bible translation comprehension questions",
+          "version": "7",
+          "relation": [
+            "en/ulb",
+            "en/udb"
+          ],
+          "formats": [
+            {
+              "size": 4262783,
+              "url": "https://cdn.door43.org/en/tq/v7/tq.zip",
+              "signature": "https://cdn.door43.org/en/tq/v7/tq.zip.sig",
+              "modified": "2017-07-05T22:52:23-05:00",
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+            }
+          ],
+          "contributor": [
+            "Wycliffe Associates"
+          ],
           "title": "translationQuestions",
-          "version": "6"
+          "identifier": "tq",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1ch",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1co",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1ki",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1pe",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1sa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1th",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "1ti",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2ch",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2co",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2ki",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2pe",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2sa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2th",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "2ti",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "3jn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "act",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "amo",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "col",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "dan",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "deu",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "ecc",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "eph",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "est",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "exo",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "ezk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "ezr",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "gal",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "gen",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "hab",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "hag",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "heb",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "hos",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "isa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jas",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jdg",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jer",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jhn",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "job",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jol",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jon",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jos",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "jud",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "lam",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "lev",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "luk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mal",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mat",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mic",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "mrk",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "nam",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "neh",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "num",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "oba",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "phm",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "php",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "pro",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "psa",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "rev",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "rom",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "rut",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "sng",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "tit",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "zec",
+              "categories": []
+            },
+            {
+              "sort": 0,
+              "title": "translationQuestions",
+              "versification": null,
+              "identifier": "zep",
+              "categories": []
+            }
+          ],
+          "subject": "Bible translation comprehension questions"
         },
         {
-          "contributor": [
-            "Distant Shores Media"
-          ],
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "An unrestricted visual mini-Bible in any language",
           "checking": {
             "checking_entity": [
               "Distant Shores Media",
@@ -400,54 +1377,237 @@
             ],
             "checking_level": "3"
           },
-          "comment": "",
-          "creator": "Distant Shores Media",
-          "description": "An unrestricted visual mini-Bible in any language",
-          "identifier": "obs",
-          "issued": "2015-08-26",
-          "modified": "2017-03-15T00:38:18Z",
-          "projects": [
+          "issued": "2015-08-26T22:52:23-05:00",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-01-10T22:52:23-05:00",
+          "source": [
             {
-              "categories": [],
-              "formats": [
-                {
-                  "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
-                  "modified": "2017-03-15T00:38:18Z",
-                  "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
-                  "size": 100416,
-                  "url": "https://cdn.door43.org/en/obs/v4/obs.zip"
-                }
-              ],
               "identifier": "obs",
-              "sort": 0,
-              "title": "Open Bible Stories",
-              "versification": null
+              "version": "4",
+              "language": "en"
             }
           ],
-          "publisher": "unfoldingWord",
+          "version": "4",
           "relation": [
             "en/tw",
             "en/obs-tq",
             "en/obs-tn"
           ],
-          "rights": "CC BY-SA 4.0",
-          "source": [
+          "contributor": [
+            "Distant Shores Media",
+            "Wycliffe Associates"
+          ],
+          "title": "Open Bible Stories",
+          "identifier": "obs",
+          "creator": "Distant Shores Media",
+          "projects": [
             {
+              "sort": 0,
+              "title": "Open Bible Stories",
+              "formats": [
+                {
+                  "size": 128,
+                  "url": "https://cdn.door43.org/en/obs/v4/obs.zip",
+                  "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
+                  "modified": "2017-07-26T22:52:23-05:00",
+                  "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
+                },
+                {
+                  "format": "application/zip; content=audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip",
+                  "modified": "2017-07-26T22:52:23-05:00",
+                  "chapters": [
+                    {
+                      "format": "audio/mp3",
+                      "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3",
+                      "modified": "2017-07-26T22:52:23-05:00",
+                      "length": 0.6090476190476191,
+                      "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3.sig",
+                      "identifier": "02",
+                      "size": 5870
+                    },
+                    {
+                      "format": "audio/mp3",
+                      "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3",
+                      "modified": "2017-07-26T22:52:23-05:00",
+                      "length": 0.7499092970521541,
+                      "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3.sig",
+                      "identifier": "01",
+                      "size": 6891
+                    }
+                  ],
+                  "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig",
+                  "contributor": [
+                    "Narrator: Steve Lossing",
+                    "Checker: Brad Harrington",
+                    "Engineer: Brad Harrington"
+                  ],
+                  "quality": "64kbps",
+                  "size": 12032,
+                  "source_version": "4",
+                  "version": "1"
+                },
+                {
+                  "format": "application/zip; content=audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip",
+                  "modified": "2017-07-26T22:52:23-05:00",
+                  "chapters": [
+                    {
+                      "format": "audio/mp3",
+                      "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3",
+                      "modified": "2017-07-26T22:52:23-05:00",
+                      "length": 0.57475,
+                      "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3.sig",
+                      "identifier": "02",
+                      "size": 2749
+                    }
+                  ],
+                  "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip.sig",
+                  "contributor": [
+                    "Narrator: Steve Lossing",
+                    "Checker: Brad Harrington",
+                    "Engineer: Brad Harrington"
+                  ],
+                  "quality": "32kbps",
+                  "size": 6334,
+                  "source_version": "4",
+                  "version": "1"
+                },
+                {
+                  "format": "application/zip; content=audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v999/129kbps/en_obs_129kbps.zip",
+                  "modified": "2017-07-26T22:52:23-05:00",
+                  "chapters": [
+                    {
+                      "format": "audio/mp3",
+                      "url": "https://cdn.door43.org/en/obs/v999/32kbps/en_obs_02_129kbps.mp3",
+                      "modified": "2017-07-26T22:52:23-05:00",
+                      "length": 0.57475,
+                      "signature": "https://cdn.door43.org/en/obs/v999/32kbps/en_obs_02_129kbps.mp3.sig",
+                      "identifier": "02",
+                      "size": 2749
+                    }
+                  ],
+                  "signature": "https://cdn.door43.org/en/obs/v999/129kbps/en_obs_129kbps.zip.sig",
+                  "contributor": [
+                    "Narrator: Steve Lossing",
+                    "Checker: Brad Harrington",
+                    "Engineer: Brad Harrington"
+                  ],
+                  "quality": "32kbps",
+                  "size": 6334,
+                  "source_version": "999",
+                  "version": "1"
+                }
+              ],
+              "versification": null,
               "identifier": "obs",
-              "language": "en",
-              "version": "4"
+              "categories": []
             }
           ],
-          "subject": "Bible stories",
-          "title": "Open Bible Stories",
-          "version": "4"
+          "subject": "Bible stories"
+        },
+        {
+          "comment": "",
+          "publisher": "unfoldingWord",
+          "description": "",
+          "checking": {
+            "checking_entity": [
+              "Wycliffe Associates"
+            ],
+            "checking_level": "3"
+          },
+          "issued": "2017-07-06T22:52:23-05:00",
+          "rights": "CC BY-SA 4.0",
+          "modified": "2017-07-06T22:52:23-05:00",
+          "source": [
+            {
+              "identifier": "ta",
+              "version": "7",
+              "language": "en"
+            }
+          ],
+          "version": "7",
+          "relation": [],
+          "formats": [
+            {
+              "size": 479004,
+              "url": "https://cdn.door43.org/en/ta/v7/ta.zip",
+              "signature": "https://cdn.door43.org/en/ta/v7/ta.zip.sig",
+              "modified": "2017-07-06T22:52:23-05:00",
+              "format": "application/zip; type=man content=text/markdown conformsto=rc0.2"
+            }
+          ],
+          "contributor": [
+            "unfoldingWord",
+            "Wycliffe Associates"
+          ],
+          "title": "translationAcademy",
+          "identifier": "ta",
+          "creator": "Wycliffe Associates",
+          "projects": [
+            {
+              "sort": 0,
+              "title": "Introduction to translationAcademy",
+              "versification": null,
+              "identifier": "intro",
+              "categories": [
+                "ta"
+              ]
+            },
+            {
+              "sort": 1,
+              "title": "Process Manual",
+              "versification": null,
+              "identifier": "process",
+              "categories": [
+                "ta"
+              ]
+            },
+            {
+              "sort": 2,
+              "title": "Translation Manual",
+              "versification": null,
+              "identifier": "translate",
+              "categories": [
+                "ta"
+              ]
+            },
+            {
+              "sort": 3,
+              "title": "Checking Manual",
+              "versification": null,
+              "identifier": "checking",
+              "categories": [
+                "ta"
+              ]
+            }
+          ],
+          "subject": ""
         }
-      ],
-      "title": "English",
-      "versification_labels": {
-        "kjv": "King James Version",
-        "mt": "Masoretic Text (Hebrew Bible)"
-      }
+      ]
+    }
+  ],
+  "catalogs": [
+    {
+      "url": "https://td.unfoldingword.org/exports/langnames.json",
+      "identifier": "langnames",
+      "modified": "2016-10-03T22:52:23-05:00"
+    },
+    {
+      "url": "https://td.unfoldingword.org/api/templanguages/",
+      "identifier": "temp-langnames",
+      "modified": "2016-10-03T22:52:23-05:00"
+    },
+    {
+      "url": "https://td.unfoldingword.org/api/templanguages/assignment/changed/",
+      "identifier": "approved-temp-langnames",
+      "modified": "2016-10-03T22:52:23-05:00"
+    },
+    {
+      "url": "https://td.unfoldingword.org/api/questionnaire/",
+      "identifier": "new-language-questions",
+      "modified": "2016-10-03T22:52:23-05:00"
     }
   ]
 }

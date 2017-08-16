@@ -9,11 +9,11 @@
     "project": {
       "desc": "",
       "meta": [
-        "bible-ot"
+        "Bible: OT"
       ],
       "name": "1 Chronicles",
       "sort": "13"
     },
-    "res_catalog": "https://api.unfoldingword.org/v2/ts/1ch/en/resources.json?date_modified=20170607"
+    "res_catalog": "https://cdn.door43.org/v2/ts/1ch/en/resources.json?date_modified=20170607"
   }
 ]
