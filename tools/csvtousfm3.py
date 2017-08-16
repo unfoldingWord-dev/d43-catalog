@@ -52,9 +52,13 @@ def convert(lang, csv_file):
                     usfm = []
                 lastchapter = None
                 print('INFO: Processing {}'.format(book_id))
-                usfm.append('\\id {} {}'.format(book_id, book_name))
+                usfm.append('\\id {} {}'.format(book_id.upper(), book_name))
                 usfm.append('\\ide UTF-8')
                 usfm.append('\\h {}'.format(book_name))
+                usfm.append('\\toc1')
+                usfm.append('\\toc2 {}'.format(book_name))
+                usfm.append('\\toc3 {}{}'.format(book_id[:1].upper(), book_id[1:].lower())) # e.g. Gen
+                usfm.append('\\mt {}'.format(book_name))
 
             if not lastchapter or chp > lastchapter:
                 lastverse = None
