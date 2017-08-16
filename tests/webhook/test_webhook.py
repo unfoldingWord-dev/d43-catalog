@@ -99,7 +99,7 @@ class TestWebhook(TestCase):
         self.assertEqual('f8a8d8d757', entry['commit_id'])
         self.assertEqual(False, entry['dirty'])
         self.assertEqual('en', entry['language'])
-        self.assertEqual('2017-04-25T14:46:30-07:00', entry['timestamp'])
+        self.assertEqual('2017-04-25T21:46:30+00:00', entry['timestamp'])
         self.assertEqual(False, entry['signed'])
         self.assertEqual('en_obs', entry['repo_name'])
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package.json'))

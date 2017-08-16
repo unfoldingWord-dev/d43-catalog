@@ -828,6 +828,13 @@ class TsV2CatalogHandler:
         l_modified = self._max_modified(lang['language'], r_modified) # TRICKY: dates bubble up from resource
         description = ''
         if rid == 'obs': description = resource['description']
+        project_meta = []
+        if 'category_labels' in language:
+            for cat_id in project['categories']:
+                if cat_id in language['category_labels']:
+                    project_meta.append(language['category_labels'][cat_id])
+                else:
+                    project_meta.append(cat_id)
         cat_lang = {
             'language': {
                 'date_modified': l_modified,
@@ -837,7 +844,7 @@ class TsV2CatalogHandler:
             },
             'project': {
                 'desc': description,
-                'meta': project['categories'],
+                'meta': project_meta,
                 'name': project['title']
             },
             'res_catalog': '{}/{}/{}/{}/resources.json?date_modified={}'.format(self.cdn_url, TsV2CatalogHandler.cdn_root_path, pid, lid, l_modified)

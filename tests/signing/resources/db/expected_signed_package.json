@@ -61,7 +61,7 @@
           ],
           "contributor": [],
           "format": "application/pdf",
-          "modified": "2017-06-03T13:23:12-07:00",
+          "modified": "2017-06-03T20:23:12+00:00",
           "quality": "64kbps",
           "signature": "https://cdn.door43.org/en/obs/v4/obs.pdf.sig",
           "size": 29323,
@@ -79,7 +79,7 @@
               "format": "video/mp4",
               "identifier": "02",
               "length": 2.9779591836734696,
-              "modified": "2017-06-03T13:23:12-07:00",
+              "modified": "2017-06-03T20:23:12+00:00",
               "signature": "https://cdn.door43.org/en/obs/v4/320p/en_obs_02_320p.mp4.sig",
               "size": 49109,
               "url": "https://cdn.door43.org/en/obs/v4/320p/en_obs_02_320p.mp4"
@@ -91,7 +91,7 @@
             "Engineer: Brad Harrington"
           ],
           "format": "application/zip; content=video/mp4",
-          "modified": "2017-06-03T13:23:12-07:00",
+          "modified": "2017-06-03T20:23:12+00:00",
           "quality": "320p",
           "signature": "https://cdn.door43.org/en/obs/v4/320p/en_obs_320p.zip.sig",
           "size": 0,
@@ -109,7 +109,7 @@
               "format": "audio/mp3",
               "identifier": "02",
               "length": 0.6090476190476191,
-              "modified": "2017-06-03T13:23:12-07:00",
+              "modified": "2017-06-03T20:23:12+00:00",
               "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3.sig",
               "size": 5870,
               "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3"
@@ -121,7 +121,7 @@
               "format": "audio/mp3",
               "identifier": "01",
               "length": 0.7499092970521541,
-              "modified": "2017-06-03T13:23:12-07:00",
+              "modified": "2017-06-03T20:23:12+00:00",
               "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3.sig",
               "size": 6891,
               "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3"
@@ -133,7 +133,7 @@
             "Engineer: Brad Harrington"
           ],
           "format": "application/zip; content=audio/mp3",
-          "modified": "2017-06-03T13:23:12-07:00",
+          "modified": "2017-06-03T20:23:12+00:00",
           "quality": "64kbps",
           "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig",
           "size": 12032,
@@ -151,7 +151,7 @@
               "format": "audio/mp3",
               "identifier": "02",
               "length": 0.57475,
-              "modified": "2017-06-03T13:23:12-07:00",
+              "modified": "2017-06-03T20:23:12+00:00",
               "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3.sig",
               "size": 2749,
               "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3"
@@ -163,7 +163,7 @@
             "Engineer: Brad Harrington"
           ],
           "format": "application/zip; content=audio/mp3",
-          "modified": "2017-06-03T13:23:12-07:00",
+          "modified": "2017-06-03T20:23:12+00:00",
           "quality": "32kbps",
           "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip.sig",
           "size": 6334,

@@ -18,7 +18,7 @@ def str_to_timestamp(datestring):
     :return:
     """
     # TRICKY: time.mktime expects local time so we convert to local tz
-    d = arrow.get(datestring).to('local').datetime
+    d = arrow.get(datestring).to('local').to('utc').datetime
     return d.isoformat()
 
 def str_to_unix_time(datestring):
