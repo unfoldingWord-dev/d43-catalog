@@ -262,7 +262,7 @@ class UwV2CatalogHandler:
                 # TRICKY: maintain legacy slug formatting for backwards compatibility
                 legacy_slug = '{}-{}'.format(rid, lid)
                 res_v2_id = rid
-                if legacy_slug in self.legacy_slugs:
+                if legacy_slug in self.legacy_slugs or rid == 'obs':
                     res_v2_id = legacy_slug
 
                 res_v2 = {
