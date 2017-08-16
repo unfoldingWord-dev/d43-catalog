@@ -24,7 +24,7 @@ class Signer(object):
         self.__temp_dir = tempfile.mkdtemp(prefix='signer_')
 
     def __del__(self):
-        shutil.rmtree(self.__temp_dir)
+        shutil.rmtree(self.__temp_dir, ignore_errors=True)
 
     def sign_file(self, file_to_sign, private_pem_file=None):
         """

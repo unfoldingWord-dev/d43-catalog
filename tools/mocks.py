@@ -126,6 +126,10 @@ class MockLogger(object):
         print('ERROR: {}'.format(message))
         self._messages.append(message)
 
+    def debug(self, message):
+        print('DEBUG: {}'.format(message))
+        self._messages.append(message)
+
 
 class MockS3Handler:
 
