@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from handler import TriggerHandler
-import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from libraries.lambda_handlers.trigger_handler import TriggerHandler
 
 
 def handle(event, context):
-
-    handler = TriggerHandler(event)
-    handler.run()
+    """
+    Triggered by a cron job
+    :param dict event:
+    :param context:
+    :return:
+    """
+    return TriggerHandler().handle(event, context)

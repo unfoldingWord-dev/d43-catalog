@@ -1,30 +1,28 @@
+from libraries.lambda_handlers.handler import Handler
 import grequests
-from tools.dict_utils import read_dict
-import logging
 from functools import partial
 import json
 
-"""
-This lambda function is used to trigger other necessary functions.
-A cron job will execute this function on a schedule to trigger configured
-functions.
 
-This setup allows all of the configured functions to receive
-stage variables from the API gateway so that variables
-can be managed from a single location.
-"""
+class TriggerHandler(Handler):
+    """
+    Triggers necessary lambda functions in the catalog pipeline.
 
-class TriggerHandler:
+    This setup allows the functions to use the same set of
+    stage variables from the API gateway.
+    """
 
-    def __init__(self, event, logger_handler=None):
-        self.api_url = read_dict(event, 'api_url', 'Environment Vars').rstrip('/')
+    def _handle(self, event, context, **kwargs):
+        """
+        :param dict event:
+        :param context:
+        :param kwargs:
+        :return:
+        """
+        api_url = self.retrieve(event, 'api_url')
+        if 'logger' in kwargs:
+            self.logger = kwargs['logger']
 
-        if logger_handler:
-            self.logger = logger_handler
-        else:
-            self.logger = logging.getLogger()
-
-    def run(self):
         urls = [
             'catalog',
             'fork',
@@ -34,7 +32,7 @@ class TriggerHandler:
         ]
         requests = []
         for u in urls:
-            lambda_url = '{}/{}'.format(self.api_url, u)
+            lambda_url = '{}/{}'.format(api_url, u)
             self.logger.info('Triggering {}'.format(lambda_url))
             requests.append(grequests.request('GET', lambda_url, callback=partial(self.__callback, self.logger)))
 

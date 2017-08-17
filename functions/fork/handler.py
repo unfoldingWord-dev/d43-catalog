@@ -27,7 +27,6 @@ class ForkHandler:
         """
 
         #  TRICKY: these var must be structured the same as in the webhook
-        print(event)
         self.stage_vars = read_dict(event, 'stage-variables', 'payload')
         gogs_token = read_dict(self.stage_vars, 'gogs_token', 'Environment Vars')
         self.gogs_url = read_dict(self.stage_vars, 'gogs_url', 'Environment Vars')
