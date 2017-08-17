@@ -38,8 +38,10 @@ class TestSigningHandler(TestCase):
     def create_event(self):
 
         event = {
-            'cdn_bucket': 'cdn.door43.org',
-            'cdn_url': 'https://cdn.door43.org'
+            'stage-variables': {
+                'cdn_bucket': 'cdn.door43.org',
+                'cdn_url': 'https://cdn.door43.org'
+            }
         }
 
         return event

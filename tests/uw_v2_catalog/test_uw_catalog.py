@@ -19,8 +19,10 @@ class TestUwV2Catalog(TestCase):
 
     def _make_event(self):
         return {
-            'cdn_bucket': 'cdn.door43.org',
-            'cdn_url': 'https://cdn.door43.org/'
+            'stage-variables': {
+                'cdn_bucket': 'cdn.door43.org',
+                'cdn_url': 'https://cdn.door43.org/'
+            }
         }
 
     def test_status_missing(self):

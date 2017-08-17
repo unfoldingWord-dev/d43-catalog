@@ -36,8 +36,8 @@ class TsV2CatalogHandler:
         :param download_handler: This is passed in so it can be mocked for unit testing
         """
         env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
+        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         self.logger = logger # type: logging._loggerClass
         if not s3_handler:

@@ -33,8 +33,8 @@ class SigningHandler(object):
         :return: bool
         """
         env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
+        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
         self.logger = logger # type: logging._loggerClass
         self.signer = signer
         if not s3_handler:

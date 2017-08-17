@@ -12,7 +12,7 @@ class Handler(object):
         logging.getLogger('boto3').setLevel(logging.ERROR)
         logging.getLogger('botocore').setLevel(logging.ERROR)
         # Set up logger
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger() # type: logging._loggerClass
         self.logger.setLevel(logging.DEBUG)
 
     def handle(self, event, context, **kwargs):

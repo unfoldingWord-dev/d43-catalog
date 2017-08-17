@@ -21,8 +21,10 @@ class TestTsV2Catalog(TestCase):
 
     def make_event(self):
         return {
-            'cdn_bucket': 'cdn.door43.org',
-            'cdn_url': 'https://cdn.door43.org'
+            'stage-variables': {
+                'cdn_bucket': 'cdn.door43.org',
+                'cdn_url': 'https://cdn.door43.org'
+            }
         }
 
     def test_inprogress(self):
@@ -77,7 +79,7 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
         # validate urls in generate catalogs match the generated output paths
-        root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
+        root_url = '{}/'.format(event['stage-variables']['cdn_url'].rstrip('/'))
         catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:
@@ -158,7 +160,7 @@ class TestTsV2Catalog(TestCase):
         self.assertIn('ts/txt/2/catalog.json', mockS3._recent_uploads)
 
         # validate urls in generate catalogs match the generated output paths
-        root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
+        root_url = '{}/'.format(event['stage-variables']['cdn_url'].rstrip('/'))
         catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:

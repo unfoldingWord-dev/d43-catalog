@@ -35,12 +35,12 @@ class CatalogHandler:
         :param url_exists_handler: This is passed in so it can be mocked for unit testing
         """
         env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_url = read_dict(event, 'cdn_url').rstrip('/')
-        self.cdn_bucket = read_dict(event, 'cdn_bucket')
-        self.api_bucket = read_dict(event, 'api_bucket')
-        self.api_url = read_dict(event, 'api_url').rstrip('/')
-        self.to_email = read_dict(event, 'to_email')
-        self.from_email = read_dict(event, 'from_email')
+        self.cdn_url = read_dict(env_vars, 'cdn_url').rstrip('/')
+        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket')
+        self.api_bucket = read_dict(env_vars, 'api_bucket')
+        self.api_url = read_dict(env_vars, 'api_url').rstrip('/')
+        self.to_email = read_dict(env_vars, 'to_email')
+        self.from_email = read_dict(env_vars, 'from_email')
 
         if dynamodb_handler:
             self.progress_table = dynamodb_handler('d43-catalog-in-progress')
