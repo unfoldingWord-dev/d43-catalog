@@ -104,6 +104,74 @@ class TestWebhook(TestCase):
         self.assertEqual('en_obs', entry['repo_name'])
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package.json'))
 
+    def test_webhook_ulb_merged_pull_request(self):
+        request_file = os.path.join(self.resources_dir, 'ulb-merged-pull-request.json')
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        mockLogger = MockLogger()
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
+        urls = {
+            'https://git.door43.org/Door43-Catalog/ta_ulb/archive/0a7e25cd939f00086262fe94b9d25afc3b5dabd3.zip': 'ta_ulb.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
+        self.MockDynamodbHandler.data = None
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(event=request_json,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler,
+                                 download_handler=mock_download)
+        handler.run()
+        entry = self.MockDynamodbHandler.data
+        self.assertEqual(4, len(self.MockS3Handler.uploads))  # books and bundle
+        self.assertIn('/ta_ulb.zip', self.MockS3Handler.uploads[0]['path'])
+
+        self.assertEqual('0a7e25cd93', entry['commit_id'])
+        self.assertEqual(False, entry['dirty'])
+        self.assertEqual('ta', entry['language'])
+        self.assertEqual('2017-08-17T18:56:52.884140+00:00', entry['timestamp'])
+        self.assertEqual(False, entry['signed'])
+        self.assertEqual('ta_ulb', entry['repo_name'])
+        self.assertIn('temp/ta_ulb/{}/ta/ulb/v3/ulb.zip'.format(entry['commit_id']),
+                      self.MockS3Handler.uploads[0]['key'])
+
+    def test_webhook_ulb_pull_request(self):
+        request_file = os.path.join(self.resources_dir, 'ulb-pull-request.json')
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        mockLogger = MockLogger()
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
+        urls = {
+            'https://git.door43.org/Door43-Catalog/en_ulb/archive/2fbfd081f46487e48e49090a95c48d45e04e6bed.zip': 'en_ulb.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
+        self.MockDynamodbHandler.data = None
+        self.MockS3Handler.reset()
+        handler = WebhookHandler(event=request_json,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler,
+                                 download_handler=mock_download)
+
+        with self.assertRaises(Exception) as error_context:
+            handler.run()
+        self.assertIn('Skipping un-merged pull request', str(error_context.exception))
+        entry = self.MockDynamodbHandler.data
+        self.assertEqual(0, len(self.MockS3Handler.uploads))
+        self.assertIsNone(entry)
+
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
 

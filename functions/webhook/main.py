@@ -20,7 +20,7 @@ def handle(event, context):
         handler = WebhookHandler(event, logger)
         handler.run()
     except Exception as e:
-        raise Exception('Bad Request: {0}'.format(e))
+        raise Exception('Bad Request: {0}'.format(e.message))
 
     return {
         "success": True,
