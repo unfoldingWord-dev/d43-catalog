@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-from tools.file_utils import read_file
+from libraries.tools.file_utils import read_file
 
 from libraries.tools import csvtousfm3
 

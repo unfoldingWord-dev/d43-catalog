@@ -13,11 +13,11 @@ import tempfile
 import time
 
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from tools.date_utils import str_to_unix_time
-from tools.dict_utils import read_dict, merge_dict
-from tools.file_utils import write_file
-from tools.legacy_utils import index_obs
-from tools.url_utils import download_file, get_url
+from libraries.tools.date_utils import str_to_unix_time
+from libraries.tools.dict_utils import read_dict, merge_dict
+from libraries.tools.file_utils import write_file
+from libraries.tools.legacy_utils import index_obs
+from libraries.tools.url_utils import download_file, get_url
 
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 

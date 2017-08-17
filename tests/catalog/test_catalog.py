@@ -3,7 +3,7 @@ from __future__ import unicode_literals, print_function
 import os
 from unittest import TestCase
 
-from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI
+from libraries.tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI
 
 from functions.catalog import CatalogHandler
 from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals

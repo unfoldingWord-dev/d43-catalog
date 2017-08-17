@@ -13,9 +13,9 @@ import tempfile
 import time
 
 from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
-from tools.consistency_checker import ConsistencyChecker
-from tools.file_utils import write_file
-from tools.url_utils import get_url, url_exists
+from libraries.tools.consistency_checker import ConsistencyChecker
+from libraries.tools.file_utils import write_file
+from libraries.tools.url_utils import get_url, url_exists
 
 from libraries.tools.dict_utils import read_dict
 

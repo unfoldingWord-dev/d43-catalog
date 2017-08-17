@@ -3,7 +3,7 @@ import shutil
 import tempfile
 from unittest import TestCase
 
-from tools.build_utils import get_build_rules
+from libraries.tools.build_utils import get_build_rules
 
 from libraries.tools.file_utils import wipe_temp
 

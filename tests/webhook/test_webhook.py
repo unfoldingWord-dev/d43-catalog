@@ -3,7 +3,7 @@ import json
 import os
 from unittest import TestCase
 
-from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
+from libraries.tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
 
 from functions.webhook import WebhookHandler
 from libraries.tools.test_utils import assert_object_equals_file

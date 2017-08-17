@@ -2,8 +2,8 @@ import json
 import os
 from unittest import TestCase
 
-from tools.file_utils import load_json_object, read_file
-from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
+from libraries.tools.file_utils import load_json_object, read_file
+from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 
 from functions.ts_v2_catalog import TsV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json

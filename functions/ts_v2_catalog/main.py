@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import logging
 
-from tools.lambda_utils import lambda_restarted
+from libraries.tools.lambda_utils import lambda_restarted
 
 from handler import TsV2CatalogHandler
 from libraries.tools.file_utils import wipe_temp

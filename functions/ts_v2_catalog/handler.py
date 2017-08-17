@@ -18,9 +18,9 @@ import dateutil.parser
 import markdown
 import yaml
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from tools.file_utils import write_file, read_file, download_rc
-from tools.legacy_utils import index_obs
-from tools.url_utils import download_file, get_url, url_exists
+from libraries.tools.file_utils import write_file, read_file, download_rc
+from libraries.tools.legacy_utils import index_obs
+from libraries.tools.url_utils import download_file, get_url, url_exists
 from usfm_tools.transform import UsfmTransform
 
 from libraries.tools.dict_utils import read_dict

@@ -6,7 +6,7 @@ import httplib
 import logging
 
 from d43_aws_tools import SESHandler
-from tools.url_utils import get_url
+from libraries.tools.url_utils import get_url
 
 from handler import AcceptanceTest
 from libraries.tools.file_utils import wipe_temp

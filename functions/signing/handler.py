@@ -11,10 +11,10 @@ import time
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
-from tools.build_utils import get_build_rules
-from tools.date_utils import unix_to_timestamp, str_to_timestamp
-from tools.file_utils import ext_to_mime
-from tools.url_utils import url_exists, download_file, url_headers
+from libraries.tools.build_utils import get_build_rules
+from libraries.tools.date_utils import unix_to_timestamp, str_to_timestamp
+from libraries.tools.file_utils import ext_to_mime
+from libraries.tools.url_utils import url_exists, download_file, url_headers
 
 from libraries.tools.dict_utils import read_dict
 

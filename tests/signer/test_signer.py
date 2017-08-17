@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest import TestCase
 
-from tools.signer import Signer, ENC_PRIV_PEM_PATH
+from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 
 from libraries.tools.test_utils import is_travis
 

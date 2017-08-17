@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 import logging
 
-from tools.file_utils import wipe_temp
-from tools.lambda_utils import lambda_restarted
+from libraries.tools.file_utils import wipe_temp
+from libraries.tools.lambda_utils import lambda_restarted
 
 from handler import SigningHandler
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
