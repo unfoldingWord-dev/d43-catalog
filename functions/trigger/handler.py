@@ -2,6 +2,7 @@ import grequests
 from tools.dict_utils import read_dict
 import logging
 from functools import partial
+import json
 
 """
 This lambda function is used to trigger other necessary functions.
@@ -46,4 +47,12 @@ class TriggerHandler:
     @staticmethod
     def __callback(logger, response, **kwargs):
         if response.status_code >= 300:
+            # check for auth errors
             logger.warning('Unexpected response for {}: {}'.format(response.url, response.text))
+        else:
+            try:
+                data = json.loads(response.text)
+                if 'errorMessage' in data:
+                    logger.warning('Unexpected response for {}: {}'.format(response.url, data['errorMessage']))
+            except:
+                pass
