@@ -32,6 +32,7 @@ class SigningHandler(object):
         :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
         :return: bool
         """
+        env_vars = read_dict(event, 'stage-variables', 'payload')
         self.cdn_bucket = read_dict(event, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(event, 'cdn_url', 'Environment Vars')
         self.logger = logger # type: logging._loggerClass

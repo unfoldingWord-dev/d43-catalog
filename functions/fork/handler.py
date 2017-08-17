@@ -25,10 +25,11 @@ class ForkHandler:
         :param dynamodb_handler: Passed in for unit testing
         :param boto_handler: Passed in for unit testing
         """
-        gogs_user_token = read_dict(event, 'gogs_user_token', 'Environment Vars')
 
         #  TRICKY: these var must be structured the same as in the webhook
-        self.stage_vars = read_dict(event, 'stage-variables', 'Environment Vars')
+        print(event)
+        self.stage_vars = read_dict(event, 'stage-variables', 'payload')
+        gogs_token = read_dict(self.stage_vars, 'gogs_token', 'Environment Vars')
         self.gogs_url = read_dict(self.stage_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = read_dict(self.stage_vars, 'gogs_org', 'Environment Vars')
         self.logger = logger # type: logging._loggerClass
@@ -46,7 +47,7 @@ class ForkHandler:
             self.boto = boto_handler
 
         self.gogs_api = self.gogs_client.GogsApi(self.gogs_url)
-        self.gogs_auth = self.gogs_client.Token(gogs_user_token)
+        self.gogs_auth = self.gogs_client.Token(gogs_token)
 
     def run(self):
         client = self.boto.client("lambda") # pragma: no cover

@@ -49,8 +49,8 @@ class TestFork(TestCase):
     @staticmethod
     def create_event():
         event = {
-            "gogs_user_token": '',
             "stage-variables": {
+                'gogs_token': '',
                 'gogs_url': 'https://git.door43.org/',
                 'gogs_org': 'Door43-Catalog',
                 'cdn_bucket': '',

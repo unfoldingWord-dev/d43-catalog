@@ -34,6 +34,7 @@ class CatalogHandler:
         :param get_url_handler: This is passed in so it can be mocked for unit testing
         :param url_exists_handler: This is passed in so it can be mocked for unit testing
         """
+        env_vars = read_dict(event, 'stage-variables', 'payload')
         self.cdn_url = read_dict(event, 'cdn_url').rstrip('/')
         self.cdn_bucket = read_dict(event, 'cdn_bucket')
         self.api_bucket = read_dict(event, 'api_bucket')

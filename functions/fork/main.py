@@ -15,6 +15,7 @@ logger.setLevel(logging.INFO)
 
 
 def handle(event, context):
+    print(context)
     wipe_temp(ignore_errors=True)
     try:
         handler = ForkHandler(event, logger)
