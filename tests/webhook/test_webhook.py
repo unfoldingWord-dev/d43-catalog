@@ -164,12 +164,13 @@ class TestWebhook(TestCase):
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler,
                                  download_handler=mock_download)
-        handler.run()
+
+        with self.assertRaises(Exception) as error_context:
+            handler.run()
+        self.assertIn('Skipping un-merged pull request', str(error_context.exception))
         entry = self.MockDynamodbHandler.data
         self.assertEqual(0, len(self.MockS3Handler.uploads))
         self.assertIsNone(entry)
-
-        self.assertIn('Skipping un-merged pull request', mockLogger._messages)
 
     def test_webhook_ulb(self):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
