@@ -4,4 +4,4 @@
 !/.apexignore
 !/__init__.py
 !/handler.py
-!/tools
+!/libraries

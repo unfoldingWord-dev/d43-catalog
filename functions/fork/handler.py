@@ -6,13 +6,15 @@
 
 from __future__ import print_function
 
-from d43_aws_tools import DynamoDBHandler
-import gogs_client as GogsClient
-import boto3
 import json
 import logging
 import time
-from tools.dict_utils import read_dict
+
+import boto3
+import gogs_client as GogsClient
+from d43_aws_tools import DynamoDBHandler
+
+from libraries.tools.dict_utils import read_dict
 
 
 class ForkHandler:

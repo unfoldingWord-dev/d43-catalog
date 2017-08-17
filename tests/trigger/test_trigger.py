@@ -1,8 +1,11 @@
-from unittest import TestCase
 import unittest
-from libraries.lambda_handlers.trigger_handler import TriggerHandler
+from unittest import TestCase
+
 from tools.mocks import MockLogger
-from tools.test_utils import is_travis
+
+from libraries.lambda_handlers.trigger_handler import TriggerHandler
+from libraries.tools.test_utils import is_travis
+
 
 class TestTrigger(TestCase):
 

@@ -1,13 +1,15 @@
 from __future__ import unicode_literals, print_function
+
 import os
 from unittest import TestCase
-from tools.test_utils import assert_object_equals_file, assert_object_equals
+
 from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI
+
 from functions.catalog import CatalogHandler
-import json
+from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals
+
 
 # This is here to test importing main
-from functions.catalog import main
 
 
 class TestCatalog(TestCase):

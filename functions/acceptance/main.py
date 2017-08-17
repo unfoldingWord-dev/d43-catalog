@@ -3,12 +3,14 @@
 from __future__ import print_function
 
 import httplib
+import logging
 
-from handler import AcceptanceTest
 from d43_aws_tools import SESHandler
 from tools.url_utils import get_url
-from tools.file_utils import wipe_temp
-import logging
+
+from handler import AcceptanceTest
+from libraries.tools.file_utils import wipe_temp
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 

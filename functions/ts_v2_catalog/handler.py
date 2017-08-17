@@ -4,24 +4,27 @@
 # Class for converting the catalog into a format compatible with the tS v2 api.
 #
 
+import codecs
 import hashlib
 import json
-import shutil
-import yaml
+import logging
 import os
-import codecs
 import re
+import shutil
 import tempfile
 import time
+
+import dateutil.parser
 import markdown
+import yaml
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from usfm_tools.transform import UsfmTransform
 from tools.file_utils import write_file, read_file, download_rc
 from tools.legacy_utils import index_obs
 from tools.url_utils import download_file, get_url, url_exists
-from tools.dict_utils import read_dict
-import dateutil.parser
-import logging
+from usfm_tools.transform import UsfmTransform
+
+from libraries.tools.dict_utils import read_dict
+
 
 class TsV2CatalogHandler:
 

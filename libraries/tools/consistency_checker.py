@@ -7,7 +7,8 @@
 from __future__ import print_function
 
 import json
-from tools.url_utils import url_exists
+
+from libraries.tools.url_utils import url_exists
 
 
 class ConsistencyChecker(object):

@@ -4,20 +4,22 @@
 # Class for converting the catalog into a format compatible with the v2 api.
 #
 
-import time
 import json
+import logging
+import math
+import os
 import shutil
 import tempfile
-import os
-from tools.file_utils import write_file
+import time
+
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from tools.dict_utils import read_dict, merge_dict
-from tools.url_utils import download_file, get_url
-from tools.signer import Signer, ENC_PRIV_PEM_PATH
 from tools.date_utils import str_to_unix_time
+from tools.dict_utils import read_dict, merge_dict
+from tools.file_utils import write_file
 from tools.legacy_utils import index_obs
-import math
-import logging
+from tools.url_utils import download_file, get_url
+
+from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 
 
 class UwV2CatalogHandler:

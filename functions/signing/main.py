@@ -1,9 +1,13 @@
 from __future__ import unicode_literals
-from handler import SigningHandler
-from tools.signer import Signer, ENC_PRIV_PEM_PATH
+
+import logging
+
 from tools.file_utils import wipe_temp
 from tools.lambda_utils import lambda_restarted
-import logging
+
+from handler import SigningHandler
+from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 

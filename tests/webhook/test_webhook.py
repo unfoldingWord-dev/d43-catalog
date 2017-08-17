@@ -1,13 +1,15 @@
 import codecs
-import os
 import json
+import os
 from unittest import TestCase
+
 from tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
-from tools.test_utils import assert_object_equals_file
+
 from functions.webhook import WebhookHandler
+from libraries.tools.test_utils import assert_object_equals_file
+
 
 # This is here to test importing main
-from functions.webhook import main
 
 
 class TestWebhook(TestCase):

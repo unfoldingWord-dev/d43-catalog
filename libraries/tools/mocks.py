@@ -1,11 +1,13 @@
-from tools.file_utils import load_json_object
-import shutil
-import tempfile
-import os
 import codecs
 import json
-from tools.file_utils import write_file
+import os
+import shutil
+import tempfile
+
 from consistency_checker import ConsistencyChecker
+from libraries.tools.file_utils import load_json_object
+from libraries.tools.file_utils import write_file
+
 
 class MockAPI(object):
     """

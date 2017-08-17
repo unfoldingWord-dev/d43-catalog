@@ -5,12 +5,13 @@
 #
 
 from __future__ import print_function
-from handler import TsV2CatalogHandler
-from tools.file_utils import wipe_temp
-from d43_aws_tools import DynamoDBHandler
-from tools.lambda_utils import lambda_restarted
-import time
+
 import logging
+
+from tools.lambda_utils import lambda_restarted
+
+from handler import TsV2CatalogHandler
+from libraries.tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

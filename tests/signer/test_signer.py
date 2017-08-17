@@ -1,11 +1,14 @@
 from __future__ import unicode_literals, print_function
+
 import os
 import shutil
 import tempfile
 import unittest
 from unittest import TestCase
+
 from tools.signer import Signer, ENC_PRIV_PEM_PATH
-from tools.test_utils import is_travis
+
+from libraries.tools.test_utils import is_travis
 
 
 class TestSigner(TestCase):

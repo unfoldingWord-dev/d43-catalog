@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
+
 import codecs
+
 import boto3
-from tools.file_utils import write_file
+
+from libraries.tools.file_utils import write_file
 
 """
 This is a separate file so it can be excluded from coverage testing on Travis.

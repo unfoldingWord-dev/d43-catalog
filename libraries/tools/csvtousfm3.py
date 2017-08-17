@@ -7,10 +7,12 @@ This currently expects the Greek New Testament.
 """
 
 import argparse
-import sys
 import csv
 import os
-from tools.file_utils import write_file
+import sys
+
+from libraries.tools.file_utils import write_file
+
 
 def convert(lang, csv_file):
     """

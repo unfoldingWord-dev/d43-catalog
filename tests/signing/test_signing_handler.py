@@ -1,19 +1,22 @@
 from __future__ import unicode_literals, print_function
+
 import json
 import os
 import shutil
 import tempfile
 import unittest
 from unittest import TestCase
+
 from tools.file_utils import load_json_object
-from functions.signing import SigningHandler
+from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner, MockAPI
 from tools.signer import Signer
 from tools.url_utils import HeaderReader
-from tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger, MockSigner, MockAPI
-from tools.test_utils import assert_object_not_equals, is_travis, assert_object_equals_file
+
+from functions.signing import SigningHandler
+from libraries.tools.test_utils import assert_object_not_equals, is_travis, assert_object_equals_file
+
 
 # This is here to test importing main
-from functions.signing import main
 
 
 class TestSigningHandler(TestCase):

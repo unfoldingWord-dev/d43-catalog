@@ -1,14 +1,17 @@
 from __future__ import unicode_literals, print_function
+
 import codecs
 import json
 import os
-import zipfile
-import sys
 import shutil
-import yaml
-from mimetypes import MimeTypes
+import sys
 import tempfile
-from tools.url_utils import download_file
+import zipfile
+from mimetypes import MimeTypes
+
+import yaml
+
+from libraries.tools.url_utils import download_file
 
 # we need this to check for string versus object
 PY3 = sys.version_info[0] == 3

@@ -6,16 +6,18 @@
 
 from __future__ import print_function
 
-import os
-import json
-import tempfile
 import copy
+import json
+import os
+import tempfile
 import time
+
+from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
+from tools.consistency_checker import ConsistencyChecker
 from tools.file_utils import write_file
 from tools.url_utils import get_url, url_exists
-from tools.consistency_checker import ConsistencyChecker
-from tools.dict_utils import read_dict
-from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
+
+from libraries.tools.dict_utils import read_dict
 
 
 class CatalogHandler:

@@ -1,12 +1,14 @@
 import os
+from unittest import TestCase
+
 from tools.file_utils import load_json_object
 from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
-from unittest import TestCase
-from tools.test_utils import assert_s3_equals_api_json
+
 from functions.uw_v2_catalog import UwV2CatalogHandler
+from libraries.tools.test_utils import assert_s3_equals_api_json
+
 
 # This is here to test importing main
-from functions.uw_v2_catalog import main
 
 
 class TestUwV2Catalog(TestCase):

@@ -1,11 +1,12 @@
+import json
 import os
 from unittest import TestCase
-from tools.file_utils import load_json_object
+
 from functions.acceptance import AcceptanceTest
-import json
+from libraries.tools.file_utils import load_json_object
+
 
 # This is here to test importing main
-from functions.acceptance import main
 
 class TestAcceptance(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')

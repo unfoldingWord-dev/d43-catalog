@@ -6,21 +6,22 @@
 
 from __future__ import print_function
 
-import os
-import tempfile
-import json
-import shutil
-import yaml
 import codecs
+import json
 import logging
-
+import os
+import shutil
+import tempfile
 from glob import glob
-from tools.url_utils import get_url, download_file
-from tools.file_utils import unzip, read_file, write_file
+
+import yaml
 from d43_aws_tools import DynamoDBHandler, S3Handler
 from tools.consistency_checker import ConsistencyChecker
-from tools.dict_utils import read_dict
 from tools.date_utils import str_to_timestamp
+from tools.file_utils import unzip, read_file, write_file
+from tools.url_utils import get_url, download_file
+
+from libraries.tools.dict_utils import read_dict
 
 
 class WebhookHandler:

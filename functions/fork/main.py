@@ -6,9 +6,11 @@
 #
 
 from __future__ import print_function
-from handler import ForkHandler
-from tools.file_utils import wipe_temp
+
 import logging
+
+from handler import ForkHandler
+from libraries.tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

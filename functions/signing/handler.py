@@ -1,20 +1,22 @@
 from __future__ import unicode_literals
+
+import datetime
 import json
+import logging
 import os
 import shutil
 import tempfile
 import time
 
-import datetime
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from tools.dict_utils import read_dict
-from tools.url_utils import url_exists, download_file, url_headers
+from mutagen.mp3 import MP3
+from mutagen.mp4 import MP4
 from tools.build_utils import get_build_rules
 from tools.date_utils import unix_to_timestamp, str_to_timestamp
 from tools.file_utils import ext_to_mime
-from mutagen.mp3 import MP3
-from mutagen.mp4 import MP4
-import logging
+from tools.url_utils import url_exists, download_file, url_headers
+
+from libraries.tools.dict_utils import read_dict
 
 
 class SigningHandler(object):
