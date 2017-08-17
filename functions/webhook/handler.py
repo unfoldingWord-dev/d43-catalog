@@ -37,23 +37,12 @@ class WebhookHandler:
         self.gogs_org = read_dict(env_vars, 'gogs_org', 'Environment Vars')
         self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
-
         self.repo_commit = read_dict(event, 'body-json', 'payload')
-        self.repo_owner = self.repo_commit['repository']['owner']['username']
-        self.repo_name = self.repo_commit['repository']['name']
-        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
-        self.repo_file = os.path.join(self.temp_dir, self.repo_name+'.zip')
-        # TRICKY: gogs gives a lower case name to the folder in the zip archive
-        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
+        if 'pull_request' in self.repo_commit:
+            self.__parse_pull_request(self.repo_commit)
+        else:
+            self.__parse_push(self.repo_commit)
 
-        self.commit_id = self.repo_commit['after']
-        commit = None
-        for commit in self.repo_commit['commits']:
-            if commit['id'] == self.commit_id:
-                break
-        self.commit_url = commit['url']
-        self.timestamp = str_to_timestamp(commit['timestamp'])
-        self.commit_id = self.commit_id[:10]
         self.resource_id = None # set in self._build
         self.logger = logger # type: logging._loggerClass
         if not dynamodb_handler:
@@ -71,12 +60,67 @@ class WebhookHandler:
         else:
             self.download_file = download_handler
 
+    def __parse_pull_request(self, payload):
+        """
+        Parses a  pull request
+        :param payload:
+        :return: True if the pull request should be processed
+        """
+
+        pull_request = read_dict(payload, 'pull_request', 'payload')
+
+        self.repo_owner = payload['repository']['owner']['username']
+        self.repo_name = payload['repository']['name']
+        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
+        self.repo_file = os.path.join(self.temp_dir, self.repo_name + '.zip')
+        # TRICKY: gogs gives a lower case name to the folder in the zip archive
+        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
+
+        commit_sha = read_dict(pull_request, 'merge_commit_sha', 'pull_request')
+        self.timestamp = str_to_timestamp(read_dict(pull_request, 'merged_at', 'pull_request'))
+        repository = read_dict(payload, 'repository', 'payload')
+        url = read_dict(repository, 'html_url', 'repository').rstrip('/')
+        self.commit_url = '{}/commit/{}'.format(url, commit_sha)
+        if commit_sha:
+            self.commit_id = commit_sha[:10]
+        else:
+            self.commit_id = None
+
+    def __parse_push(self, payload):
+        """
+        Parses a regular push commit
+        :param payload:
+        :return:
+        """
+        self.repo_owner = payload['repository']['owner']['username']
+        self.repo_name = payload['repository']['name']
+        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
+        self.repo_file = os.path.join(self.temp_dir, self.repo_name + '.zip')
+        # TRICKY: gogs gives a lower case name to the folder in the zip archive
+        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
+
+        self.commit_id = payload['after']
+        commit = None
+        for commit in payload['commits']:
+            if commit['id'] == self.commit_id:
+                break
+        self.commit_url = commit['url']
+        self.timestamp = str_to_timestamp(commit['timestamp'])
+        self.commit_id = self.commit_id[:10]
+
     def run(self):
         if not self.commit_url.startswith(self.gogs_url):
             raise Exception('Only accepting webhooks from {0} but found {1}'.format(self.gogs_url, self.commit_url)) # pragma: no cover
 
         if self.repo_owner.lower() != self.gogs_org.lower():
             raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org)) # pragma: no cover
+
+        # skip un-merged pull requests
+        if 'pull_request' in self.repo_commit:
+            pr = self.repo_commit['pull_request']
+            if not pr['merged']:
+                self.logger.info('Skipping un-merged pull request')
+                return
 
         try:
             # build catalog entry
