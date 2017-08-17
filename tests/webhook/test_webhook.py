@@ -117,7 +117,7 @@ class TestWebhook(TestCase):
         mockLogger = MockLogger()
         mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
         urls = {
-            'https://git.door43.org/Door43-Catalog/en_ulb/archive/2fbfd081f46487e48e49090a95c48d45e04e6bed.zip': 'en_ulb.zip'
+            'https://git.door43.org/Door43-Catalog/ta_ulb/archive/0a7e25cd939f00086262fe94b9d25afc3b5dabd3.zip': 'ta_ulb.zip'
         }
         mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
         self.MockDynamodbHandler.data = None
@@ -130,15 +130,15 @@ class TestWebhook(TestCase):
         handler.run()
         entry = self.MockDynamodbHandler.data
         self.assertEqual(4, len(self.MockS3Handler.uploads))  # books and bundle
-        self.assertIn('/en_ulb.zip', self.MockS3Handler.uploads[0]['path'])
+        self.assertIn('/ta_ulb.zip', self.MockS3Handler.uploads[0]['path'])
 
-        self.assertEqual('2fbfd081f4', entry['commit_id'])
+        self.assertEqual('0a7e25cd93', entry['commit_id'])
         self.assertEqual(False, entry['dirty'])
-        self.assertEqual('en', entry['language'])
-        self.assertEqual('2017-05-02T22:52:04+00:00', entry['timestamp'])
+        self.assertEqual('ta', entry['language'])
+        self.assertEqual('2017-08-17T18:56:52.884140+00:00', entry['timestamp'])
         self.assertEqual(False, entry['signed'])
-        self.assertEqual('en_ulb', entry['repo_name'])
-        self.assertIn('temp/en_ulb/{}/en/ulb/v7/ulb.zip'.format(entry['commit_id']),
+        self.assertEqual('ta_ulb', entry['repo_name'])
+        self.assertIn('temp/ta_ulb/{}/ta/ulb/v3/ulb.zip'.format(entry['commit_id']),
                       self.MockS3Handler.uploads[0]['key'])
 
     def test_webhook_ulb_pull_request(self):
