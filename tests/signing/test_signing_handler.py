@@ -12,7 +12,7 @@ from libraries.tools.mocks import MockDynamodbHandler, MockS3Handler, MockLogger
 from libraries.tools.signer import Signer
 from libraries.tools.url_utils import HeaderReader
 
-from functions.signing import SigningHandler
+from libraries.lambda_handlers.signing_handler import SigningHandler
 from libraries.tools.test_utils import assert_object_not_equals, is_travis, assert_object_equals_file
 
 
@@ -57,12 +57,13 @@ class TestSigningHandler(TestCase):
         mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org')
 
         handler = SigningHandler(event,
-                                logger=MockLogger(),
-                                signer=self.mock_signer,
-                                s3_handler=mock_s3,
-                                dynamodb_handler=mock_db,
-                                url_exists_handler=mock_api.url_exists,
-                                download_handler=mock_api.download_file)
+                                 None,
+                                 logger=MockLogger(),
+                                 signer=self.mock_signer,
+                                 s3_handler=mock_s3,
+                                 dynamodb_handler=mock_db,
+                                 url_exists_handler=mock_api.url_exists,
+                                 download_handler=mock_api.download_file)
         result = handler.run()
         self.assertFalse(result)
 
@@ -80,6 +81,7 @@ class TestSigningHandler(TestCase):
         mock_logger = MockLogger()
 
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -112,6 +114,7 @@ class TestSigningHandler(TestCase):
         mock_s3 = MockS3Handler()
 
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -138,6 +141,7 @@ class TestSigningHandler(TestCase):
         # TRICKY: a wrong signing key will result in failed verification
         self.mock_signer._fail_verification()
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -176,6 +180,7 @@ class TestSigningHandler(TestCase):
         ])
 
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -212,6 +217,7 @@ class TestSigningHandler(TestCase):
         mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org')
 
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -235,6 +241,7 @@ class TestSigningHandler(TestCase):
         mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org')
 
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -285,6 +292,7 @@ class TestSigningHandler(TestCase):
         ])
 
         signer = SigningHandler(event=event,
+                                context=None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -334,6 +342,7 @@ class TestSigningHandler(TestCase):
             ('content-length', 123)
         ])
         signer = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 signer=self.mock_signer,
                                 s3_handler=mock_s3,
@@ -380,6 +389,7 @@ class TestSigningHandler(TestCase):
         signer = Signer(pem_file)
 
         signing_handler = SigningHandler(event,
+                                None,
                                 logger=mock_logger,
                                 s3_handler=mock_s3,
                                 signer=signer,

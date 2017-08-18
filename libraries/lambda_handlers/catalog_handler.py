@@ -14,7 +14,7 @@ from libraries.tools.file_utils import write_file
 from libraries.tools.url_utils import get_url, url_exists
 
 class CatalogHandler(Handler):
-    
+
     API_VERSION = '3'
 
     def __init__(self, event, context, **kwargs):

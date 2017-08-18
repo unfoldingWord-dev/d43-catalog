@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import time
 
+from libraries.lambda_handlers.handler import Handler
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
@@ -16,57 +17,47 @@ from libraries.tools.date_utils import unix_to_timestamp, str_to_timestamp
 from libraries.tools.file_utils import ext_to_mime
 from libraries.tools.url_utils import url_exists, download_file, url_headers
 
-from libraries.tools.dict_utils import read_dict
 
-
-class SigningHandler(object):
+class SigningHandler(Handler):
     dynamodb_table_name = 'd43-catalog-in-progress'
     max_file_size = 400000000  # 400mb
 
-    def __init__(self, event, logger, signer, s3_handler=None, dynamodb_handler=None, download_handler=None, url_exists_handler=None, url_headers_handler=None):
-        """
-        Handles the signing of a file on S3
-        :param self:
-        :param dict event:
-        :param logger:
-        :param class signer: This handles all the signer operations
-        :param class s3_handler: This is passed in so it can be mocked for unit testing
-        :param class dynamodb_handler: This is passed in so it can be mocked for unit testing
-        :return: bool
-        """
-        env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
-        self.logger = logger # type: logging._loggerClass
+    def __init__(self, event, context, logger, signer, **kwargs):
+        super(SigningHandler, self).__init__(event, context)
+
+        env_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.logger = logger  # type: logging._loggerClass
         self.signer = signer
-        if not s3_handler:
-            self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
+        if 's3_handler' in kwargs:
+            self.cdn_handler = kwargs['s3_handler']
         else:
-            self.cdn_handler = s3_handler
+            self.cdn_handler = S3Handler(self.cdn_bucket)  # pragma: no cover
 
         self.temp_dir = tempfile.mkdtemp(prefix='signing_')
 
-        if not dynamodb_handler:
-            self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name) # pragma: no cover
+        if 'dynamodb_handler' in kwargs:
+            self.db_handler = kwargs['dynamodb_handler']
         else:
-            self.db_handler = dynamodb_handler
-        if not download_handler:
-            self.download_file = download_file # pragma: no cover
+            self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name)  # pragma: no cover
+        if 'download_handler' in kwargs:
+            self.download_file = kwargs['download_handler']
         else:
-            self.download_file = download_handler
-        if not url_exists_handler:
-            self.url_exists = url_exists # pragma: no cover
+            self.download_file = download_file  # pragma: no cover
+        if 'url_exists_handler' in kwargs:
+            self.url_exists = kwargs['url_exists_handler']
         else:
-            self.url_exists = url_exists_handler
-        if not url_headers_handler:
-            self.url_headers = url_headers # pragma: no cover
+            self.url_exists = url_exists  # pragma: no cover
+        if 'url_headers_handler' in kwargs:
+            self.url_headers = kwargs['url_headers_handler']
         else:
-            self.url_headers = url_headers_handler
+            self.url_headers = url_headers  # pragma: no cover
 
     def __del__(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def run(self):
+    def _run(self):
         items = self.db_handler.query_items({
             'signed': False
         })
