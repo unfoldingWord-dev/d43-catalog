@@ -14,7 +14,8 @@ class TestTrigger(TestCase):
         mockLogger = MockLogger()
 
         event = {
-            "api_url": "https://dev-api.door43.org/v3/lambda"
+            "api_url": "https://dev-api.door43.org/v3/lambda",
+            "api_version": "3"
         }
 
         handler = TriggerHandler(event, None, logger=mockLogger)

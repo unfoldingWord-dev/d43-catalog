@@ -17,12 +17,14 @@ class TriggerHandler(Handler):
         if 'logger' in kwargs:
             self.logger = kwargs['logger']
 
+        self.api_url = self.retrieve(self.event, 'api_url').rstrip('/')
+        self.api_version = self.retrieve(self.event, 'api_version')
+
     def _run(self, **kwargs):
         """
         :param kwargs:
         :return:
         """
-        api_url = self.retrieve(self.event, 'api_url')
 
         urls = [
             'catalog',
@@ -33,7 +35,7 @@ class TriggerHandler(Handler):
         ]
         requests = []
         for u in urls:
-            lambda_url = '{}/{}'.format(api_url, u)
+            lambda_url = '{}/v{}/lambda/{}'.format(self.api_url, self.api_version, u)
             self.logger.info('Triggering {}'.format(lambda_url))
             requests.append(grequests.request('GET', lambda_url, callback=partial(self.__callback, self.logger)))
 

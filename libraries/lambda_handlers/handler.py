@@ -36,6 +36,29 @@ class Handler(object):
         else:
             self.aws_request_id = None
 
+        # get logging level
+        if event and 'log_level' in event:
+            self.__set_logging_level(event['log_level'])
+        elif event and 'stage-variables' in event and 'log_level' in event['stage-variables']:
+            self.__set_logging_level(event['stage-variables']['log_level'])
+
+
+    def __set_logging_level(self, level):
+        """
+        Sets the logging level of the global logger
+        :param level:
+        :return:
+        """
+        level = level.lower()
+        if level == 'info':
+            self.logger.setLevel(logging.INFO)
+        elif level == 'warning':
+            self.logger.setLevel(logging.WARNING)
+        elif level == 'error':
+            self.logger.setLevel(logging.ERROR)
+        else:
+            self.logger.setLevel(logging.DEBUG)
+
     def stage_prefix(self):
         """
         Returns the prefix that should be used for operations within this stage. e.g. database names etc.
