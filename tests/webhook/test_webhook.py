@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from libraries.tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
 
-from functions.webhook import WebhookHandler
+from libraries.lambda_handlers.webhook_handler import WebhookHandler
 from libraries.tools.test_utils import assert_object_equals_file
 
 
@@ -57,6 +57,7 @@ class TestWebhook(TestCase):
         self.MockS3Handler.reset()
         mockLogger = MockLogger()
         handler = WebhookHandler(event=request_json,
+                                 context=None,
                                  logger=mockLogger,
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler)
@@ -87,6 +88,7 @@ class TestWebhook(TestCase):
         }
         mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
         handler = WebhookHandler(event=request_json,
+                                 context=None,
                                  logger=mockLogger,
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler,
@@ -125,6 +127,7 @@ class TestWebhook(TestCase):
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
         handler = WebhookHandler(event=request_json,
+                                 context=None,
                                  logger=mockLogger,
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler,
@@ -162,6 +165,7 @@ class TestWebhook(TestCase):
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
         handler = WebhookHandler(event=request_json,
+                                 context=None,
                                  logger=mockLogger,
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler,
@@ -194,6 +198,7 @@ class TestWebhook(TestCase):
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
         handler = WebhookHandler(event=request_json,
+                                 context=None,
                                  logger=mockLogger,
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler,
@@ -231,6 +236,7 @@ class TestWebhook(TestCase):
         mock_db = MockDynamodbHandler()
         mock_s3 = MockS3Handler()
         handler = WebhookHandler(request_json,
+                    context=None,
                     s3_handler=mock_s3,
                     logger=mockLogger,
                     dynamodb_handler=mock_db,
@@ -265,6 +271,7 @@ class TestWebhook(TestCase):
         self.MockDynamodbHandler.data = None
         self.MockS3Handler.reset()
         handler = WebhookHandler(event=request_json,
+                                 context=None,
                                  logger=mockLogger,
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler)

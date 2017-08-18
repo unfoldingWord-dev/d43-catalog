@@ -35,26 +35,29 @@ class UwV2CatalogHandler(Handler):
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         self.logger = logger # type: logging._loggerClass
+        self.temp_dir = tempfile.mkdtemp('', 'uw_v2', None)
 
-        if 's3_handler':
+        if 's3_handler' in kwargs:
             self.cdn_handler = kwargs['s3_handler']
         else:
             self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
-        if 'dynamodb_handler':
+
+        if 'dynamodb_handler' in kwargs:
             self.db_handler = kwargs['dynamodb_handler']
         else:
             self.db_handler = DynamoDBHandler('d43-catalog-status') # pragma: no cover
-        if 'url_handler':
+
+        if 'url_handler' in kwargs:
             self.get_url = kwargs['url_handler']
         else:
             self.get_url = get_url # pragma: no cover
-        if 'download_handler':
+
+        if 'download_handler' in kwargs:
             self.download_file = kwargs['download_handler']
         else:
             self.download_file = download_file # pragma: no cover
 
-        self.temp_dir = tempfile.mkdtemp('', 'uwv2', None)
-        if 'signing_handler':
+        if 'signing_handler' in kwargs:
             self.signer = kwargs['signing_handler']
         else:
             self.signer = Signer(ENC_PRIV_PEM_PATH) # pragma: no cover

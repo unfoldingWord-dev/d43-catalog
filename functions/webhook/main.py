@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import logging
 
-from handler import WebhookHandler
+from libraries.lambda_handlers.webhook_handler import WebhookHandler
 from libraries.tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
@@ -20,7 +20,7 @@ logging.getLogger('boto3').setLevel(logging.WARNING)
 def handle(event, context):
     wipe_temp(ignore_errors=True)
     try:
-        handler = WebhookHandler(event, logger)
+        handler = WebhookHandler(event, context, logger)
         handler.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e.message))

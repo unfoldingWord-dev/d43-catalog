@@ -21,24 +21,19 @@ from libraries.tools.date_utils import str_to_timestamp
 from libraries.tools.file_utils import unzip, read_file, write_file
 from libraries.tools.url_utils import get_url, download_file
 
-from libraries.tools.dict_utils import read_dict
+from libraries.lambda_handlers.handler import Handler
 
 
-class WebhookHandler:
-    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, download_handler=None):
-        """
+class WebhookHandler(Handler):
+    def __init__(self, event, context, logger, **kwargs):
+        super(WebhookHandler, self).__init__(event, context)
 
-        :param event:
-        :param s3_handler: provided for unit testing
-        :param dynamodb_handler: provided for unit testing
-        :param download_handler: provided for unit testing
-        """
-        env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.gogs_url = read_dict(env_vars, 'gogs_url', 'Environment Vars')
-        self.gogs_org = read_dict(env_vars, 'gogs_org', 'Environment Vars')
-        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
-        self.repo_commit = read_dict(event, 'body-json', 'payload')
+        env_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.gogs_url = self.retrieve(env_vars, 'gogs_url', 'Environment Vars')
+        self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
+        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.repo_commit = self.retrieve(event, 'body-json', 'payload')
         if 'pull_request' in self.repo_commit:
             self.__parse_pull_request(self.repo_commit)
         else:
@@ -46,20 +41,21 @@ class WebhookHandler:
 
         self.resource_id = None # set in self._build
         self.logger = logger # type: logging._loggerClass
-        if not dynamodb_handler:
+
+        if 'dynamodb_handler' in kwargs:
+            self.db_handler = kwargs['dynamodb_handler']
+        else:
             self.db_handler = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
-        else:
-            self.db_handler = dynamodb_handler # pragma: no cover
 
-        if not s3_handler:
+        if 's3_handler' in kwargs:
+            self.s3_handler = kwargs['s3_handler']
+        else:
             self.s3_handler = S3Handler(self.cdn_bucket) # pragma: no cover
-        else:
-            self.s3_handler = s3_handler # pragma: no cover
 
-        if not download_handler:
-            self.download_file = download_file # pragma: no cover
+        if 'download_handler' in kwargs:
+            self.download_file = kwargs['download_handler']
         else:
-            self.download_file = download_handler
+            self.download_file = download_file # pragma: no cover
 
     def __parse_pull_request(self, payload):
         """
@@ -68,7 +64,7 @@ class WebhookHandler:
         :return: True if the pull request should be processed
         """
 
-        pull_request = read_dict(payload, 'pull_request', 'payload')
+        pull_request = self.retrieve(payload, 'pull_request', 'payload')
 
         self.repo_owner = payload['repository']['owner']['username']
         self.repo_name = payload['repository']['name']
@@ -77,10 +73,10 @@ class WebhookHandler:
         # TRICKY: gogs gives a lower case name to the folder in the zip archive
         self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
 
-        commit_sha = read_dict(pull_request, 'merge_commit_sha', 'pull_request')
-        self.timestamp = str_to_timestamp(read_dict(pull_request, 'merged_at', 'pull_request'))
-        repository = read_dict(payload, 'repository', 'payload')
-        url = read_dict(repository, 'html_url', 'repository').rstrip('/')
+        commit_sha = self.retrieve(pull_request, 'merge_commit_sha', 'pull_request')
+        self.timestamp = str_to_timestamp(self.retrieve(pull_request, 'merged_at', 'pull_request'))
+        repository = self.retrieve(payload, 'repository', 'payload')
+        url = self.retrieve(repository, 'html_url', 'repository').rstrip('/')
         self.commit_url = '{}/commit/{}'.format(url, commit_sha)
         if commit_sha:
             self.commit_id = commit_sha[:10]
@@ -109,7 +105,7 @@ class WebhookHandler:
         self.timestamp = str_to_timestamp(commit['timestamp'])
         self.commit_id = self.commit_id[:10]
 
-    def run(self):
+    def _run(self):
         if not self.commit_url.startswith(self.gogs_url):
             raise Exception('Only accepting webhooks from {0} but found {1}'.format(self.gogs_url, self.commit_url)) # pragma: no cover
 
