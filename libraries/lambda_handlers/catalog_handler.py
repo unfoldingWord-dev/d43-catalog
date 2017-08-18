@@ -29,13 +29,13 @@ class CatalogHandler(Handler):
 
         if 'dynamodb_handler' in kwargs:
             db_handler = kwargs['dynamodb_handler']
-            self.progress_table = db_handler('d43-catalog-in-progress')
-            self.status_table = db_handler('d43-catalog-status')
-            self.errors_table = db_handler('d43-catalog-errors')
+            self.progress_table = db_handler('{}d43-catalog-in-progress'.format(self.stage_prefix()))
+            self.status_table = db_handler('{}d43-catalog-status'.format(self.stage_prefix()))
+            self.errors_table = db_handler('{}d43-catalog-errors'.format(self.stage_prefix()))
         else:
-            self.progress_table = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
-            self.status_table = DynamoDBHandler('d43-catalog-status') # pragma: no cover
-            self.errors_table = DynamoDBHandler('d43-catalog-errors') # pragma: no cover
+            self.progress_table = DynamoDBHandler('{}d43-catalog-in-progress'.format(self.stage_prefix())) # pragma: no cover
+            self.status_table = DynamoDBHandler('{}d43-catalog-status'.format(self.stage_prefix())) # pragma: no cover
+            self.errors_table = DynamoDBHandler('{}d43-catalog-errors'.format(self.stage_prefix())) # pragma: no cover
 
         self.catalog = {
             "languages": []

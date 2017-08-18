@@ -19,7 +19,6 @@ from libraries.tools.url_utils import url_exists, download_file, url_headers
 
 
 class SigningHandler(Handler):
-    dynamodb_table_name = 'd43-catalog-in-progress'
     max_file_size = 400000000  # 400mb
 
     def __init__(self, event, context, logger, signer, **kwargs):
@@ -40,7 +39,7 @@ class SigningHandler(Handler):
         if 'dynamodb_handler' in kwargs:
             self.db_handler = kwargs['dynamodb_handler']
         else:
-            self.db_handler = DynamoDBHandler(SigningHandler.dynamodb_table_name)  # pragma: no cover
+            self.db_handler = DynamoDBHandler('{}d43-catalog-in-progress'.format(self.stage_prefix()))  # pragma: no cover
         if 'download_handler' in kwargs:
             self.download_file = kwargs['download_handler']
         else:

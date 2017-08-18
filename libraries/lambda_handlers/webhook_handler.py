@@ -45,7 +45,7 @@ class WebhookHandler(Handler):
         if 'dynamodb_handler' in kwargs:
             self.db_handler = kwargs['dynamodb_handler']
         else:
-            self.db_handler = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
+            self.db_handler = DynamoDBHandler('{}d43-catalog-in-progress'.format(self.stage_prefix())) # pragma: no cover
 
         if 's3_handler' in kwargs:
             self.s3_handler = kwargs['s3_handler']

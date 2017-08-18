@@ -17,11 +17,35 @@ class Handler(object):
         # Make Boto3 not be so noisy
         logging.getLogger('boto3').setLevel(logging.ERROR)
         logging.getLogger('botocore').setLevel(logging.ERROR)
+
         # Set up logger
         self.logger = logging.getLogger() # type: logging._loggerClass
         self.logger.setLevel(logging.DEBUG)
         self.event = event
         self.context = context
+
+        # get stage name
+        if event and 'context' in event and 'stage' in event['context']:
+            self.aws_stage = event['context']['stage']
+        else:
+            self.aws_stage = None
+
+        # get request id
+        if context:
+            self.aws_request_id = context.aws_request_id
+        else:
+            self.aws_request_id = None
+
+    def stage_prefix(self):
+        """
+        Returns the prefix that should be used for operations within this stage. e.g. database names etc.
+        The prefix for an undefined or production stages will be an empty string.
+        :return:
+        """
+        if self.aws_stage and not self.aws_stage.lower().startswith('prod'):
+            return '{}-'.format(self.aws_stage.lower())
+        else:
+            return ''
 
     def run(self, **kwargs):
         """

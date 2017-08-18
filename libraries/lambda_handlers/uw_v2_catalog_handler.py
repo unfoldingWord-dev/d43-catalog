@@ -45,7 +45,7 @@ class UwV2CatalogHandler(Handler):
         if 'dynamodb_handler' in kwargs:
             self.db_handler = kwargs['dynamodb_handler']
         else:
-            self.db_handler = DynamoDBHandler('d43-catalog-status') # pragma: no cover
+            self.db_handler = DynamoDBHandler('{}d43-catalog-status'.format(self.stage_prefix())) # pragma: no cover
 
         if 'url_handler' in kwargs:
             self.get_url = kwargs['url_handler']

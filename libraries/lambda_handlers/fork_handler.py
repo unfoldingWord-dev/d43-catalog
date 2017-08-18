@@ -14,8 +14,6 @@ class ForkHandler(Handler):
     def __init__(self, event, context, **kwargs):
         super(ForkHandler, self).__init__(event, context)
 
-        print(event)
-
         self.stage_vars = self.retrieve(self.event, 'stage-variables', 'payload')
         gogs_token = self.retrieve(self.stage_vars, 'gogs_token', 'Environment Vars')
         self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')
@@ -23,7 +21,7 @@ class ForkHandler(Handler):
         if 'dynamodb_handler' in kwargs:
             self.progress_table = kwargs['dynamodb_handler']
         else:
-            self.progress_table = DynamoDBHandler('d43-catalog-in-progress')  # pragma: no cover
+            self.progress_table = DynamoDBHandler('{}d43-catalog-in-progress'.format(self.stage_prefix()))  # pragma: no cover
         if 'gogs_client' in kwargs:
             self.gogs_client = kwargs['gogs_client']
         else:
