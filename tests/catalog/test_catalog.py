@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from libraries.tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI
 
-from functions.catalog import CatalogHandler
+from libraries.lambda_handlers.catalog_handler import CatalogHandler
 from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals
 
 
@@ -80,6 +80,7 @@ class TestCatalog(TestCase):
         mock_dbs_handler = lambda bucket: dbs[bucket]
         mock_checker_handler = lambda: mock_checker
         handler = CatalogHandler(event,
+                                 None,
                                  s3_handler=mock_s3_handler,
                                  dynamodb_handler=mock_dbs_handler,
                                  ses_handler=mock_ses_handler,

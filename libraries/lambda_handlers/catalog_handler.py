@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-
-#
-# Class for handling the Catalog
-#
-
 from __future__ import print_function
 
 import copy
@@ -12,42 +7,32 @@ import os
 import tempfile
 import time
 
+from libraries.lambda_handlers.handler import Handler
 from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
 from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.file_utils import write_file
 from libraries.tools.url_utils import get_url, url_exists
 
-from libraries.tools.dict_utils import read_dict
-
-
-class CatalogHandler:
+class CatalogHandler(Handler):
+    
     API_VERSION = '3'
 
-    resources_not_versified=['tw', 'tn', 'obs', 'ta', 'tq']
+    def __init__(self, event, context, **kwargs):
+        super(CatalogHandler, self).__init__(event, context)
 
-    def __init__(self, event, s3_handler=None, dynamodb_handler=None, ses_handler=None, consistency_checker=None, get_url_handler=None, url_exists_handler=None):
-        """
-        Initializes a catalog handler
-        :param event: 
-        :param s3_handler: This is passed in so it can be mocked for unit testing
-        :param dynamodb_handler: This is passed in so it can be mocked for unit testing
-        :param ses_handler: This is passed in so it can be mocked for unit testing
-        :param consistency_checker: This is passed in so it can be mocked for unit testing
-        :param get_url_handler: This is passed in so it can be mocked for unit testing
-        :param url_exists_handler: This is passed in so it can be mocked for unit testing
-        """
-        env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_url = read_dict(env_vars, 'cdn_url').rstrip('/')
-        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket')
-        self.api_bucket = read_dict(env_vars, 'api_bucket')
-        self.api_url = read_dict(env_vars, 'api_url').rstrip('/')
-        self.to_email = read_dict(env_vars, 'to_email')
-        self.from_email = read_dict(env_vars, 'from_email')
+        env_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url').rstrip('/')
+        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket')
+        self.api_bucket = self.retrieve(env_vars, 'api_bucket')
+        self.api_url = self.retrieve(env_vars, 'api_url').rstrip('/')
+        self.to_email = self.retrieve(env_vars, 'to_email')
+        self.from_email = self.retrieve(env_vars, 'from_email')
 
-        if dynamodb_handler:
-            self.progress_table = dynamodb_handler('d43-catalog-in-progress')
-            self.status_table = dynamodb_handler('d43-catalog-status')
-            self.errors_table = dynamodb_handler('d43-catalog-errors')
+        if 'dynamodb_handler' in kwargs:
+            db_handler = kwargs['dynamodb_handler']
+            self.progress_table = db_handler('d43-catalog-in-progress')
+            self.status_table = db_handler('d43-catalog-status')
+            self.errors_table = db_handler('d43-catalog-errors')
         else:
             self.progress_table = DynamoDBHandler('d43-catalog-in-progress') # pragma: no cover
             self.status_table = DynamoDBHandler('d43-catalog-status') # pragma: no cover
@@ -56,32 +41,32 @@ class CatalogHandler:
         self.catalog = {
             "languages": []
         }
-        if s3_handler:
-            self.api_handler = s3_handler(self.api_bucket)
+        if 's3_handler' in kwargs:
+            self.api_handler = kwargs['s3_handler'](self.api_bucket)
         else:
             self.api_handler = S3Handler(self.api_bucket) # pragma: no cover
-        if ses_handler:
-            self.ses_handler = ses_handler()
+        if 'ses_handler' in kwargs:
+            self.ses_handler = kwargs['ses_handler']()
         else:
             self.ses_handler = SESHandler() # pragma: no cover
-        if consistency_checker:
-            self.checker = consistency_checker()
+        if 'consistency_checker' in kwargs:
+            self.checker = kwargs['consistency_checker']()
         else:
             self.checker = ConsistencyChecker() # pragma: no cover
-        if not get_url_handler:
+        if 'get_url_handler' in kwargs:
+            self.get_url = kwargs['get_url_handler']
+        else:
             self.get_url = get_url # pragma: no cover
+        if 'url_exists_handler' in kwargs:
+            self.url_exists = kwargs['url_exists_handler']
         else:
-            self.get_url = get_url_handler
-        if not url_exists_handler:
             self.url_exists = url_exists # pragma: no cover
-        else:
-            self.url_exists = url_exists_handler
 
     def get_language(self, language):
         """
         Gets the existing language or creates a new one
-        :param language: 
-        :return: 
+        :param language:
+        :return:
         """
         found_lang = None
         for lang in self.catalog['languages']:
@@ -96,7 +81,7 @@ class CatalogHandler:
             language['resources'] = []
         return language
 
-    def run(self):
+    def _run(self):
         completed_items = 0
         items = self.progress_table.query_items()
         versification_package = None
@@ -204,9 +189,9 @@ class CatalogHandler:
     def _build_rc(self, item, manifest, checker):
         """
         Builds a RC entry in the catalog.
-        :param item: 
-        :param manifest: 
-        :param checker: 
+        :param item:
+        :param manifest:
+        :param checker:
         :return: True if the entry was successfully added otherwise False
         """
         errors = checker.check(item)
@@ -299,7 +284,7 @@ class CatalogHandler:
         Adds versification chunks to projects in the catalog.
         Note: this may not do anything if no languages have been generated yet.
         self._build_rc will pick up the slack in that case.
-        :param package: 
+        :param package:
         :return: False if errors were encountered
         """
         dict = {}
@@ -326,8 +311,8 @@ class CatalogHandler:
     def _build_localization(self, package):
         """
         Adds localization to the catalog
-        :param package: 
-        :return: 
+        :param package:
+        :return:
         """
         for lang in package:
             localization = package[lang]
@@ -340,7 +325,7 @@ class CatalogHandler:
         """
         Checks if the catalog has changed compared to the given catalog
         :param catalog:
-        :return: 
+        :return:
         """
         try:
             catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
@@ -353,8 +338,8 @@ class CatalogHandler:
     def _handle_errors(self, checker):
         """
         Handles errors and warnings produced by the checker
-        :param checker: 
-        :return: 
+        :param checker:
+        :return:
         """
         if len(checker.all_errors) > 0:
             errors = self.errors_table.get_item({'id': 1})

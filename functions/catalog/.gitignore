@@ -3,5 +3,4 @@
 !/.gitignore
 !/.apexignore
 !/__init__.py
-!/handler.py
 !/libraries

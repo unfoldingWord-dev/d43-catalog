@@ -10,7 +10,7 @@ import logging
 
 from libraries.tools.lambda_utils import lambda_restarted
 
-from handler import CatalogHandler
+from libraries.lambda_handlers.catalog_handler import CatalogHandler
 from libraries.tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
@@ -29,7 +29,7 @@ def handle(event, context):
 
     wipe_temp(ignore_errors=True)
     try:
-        catalog = CatalogHandler(event=event)
+        catalog = CatalogHandler(event, context)
         return catalog.run()
     except Exception as e:
         raise Exception('Bad Request: {0}'.format(e))
