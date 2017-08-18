@@ -7,31 +7,37 @@ from abc import ABCMeta, abstractmethod
 class Handler(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, **kwargs):
+    def __init__(self, event, context):
+        """
+
+        :param dict event:
+        :param context:
+        """
+
         # Make Boto3 not be so noisy
         logging.getLogger('boto3').setLevel(logging.ERROR)
         logging.getLogger('botocore').setLevel(logging.ERROR)
         # Set up logger
         self.logger = logging.getLogger() # type: logging._loggerClass
         self.logger.setLevel(logging.DEBUG)
+        self.event = event
+        self.context = context
 
-    def handle(self, event, context, **kwargs):
+    def run(self, **kwargs):
         """
-        :param dict event:
-        :param context:
         :param kwargs:
         :return dict:
         """
         self.logger.debug("EVENT:")
-        self.logger.debug(json.dumps(event))
+        self.logger.debug(json.dumps(self.event))
         try:
-            return self._handle(event, context, **kwargs)
+            return self._run(kwargs)
         except Exception as e:
             self.logger.error(e.message, exc_info=1)
             raise EnvironmentError('Bad Request: {}'.format(e.message))
 
     @abstractmethod
-    def _handle(self, event, context, **kwargs):
+    def _run(self, **kwargs):
         """
         Dummy function for handlers.
 

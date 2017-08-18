@@ -4,7 +4,7 @@ from unittest import TestCase
 
 import gogs_client as GogsClient
 
-from functions.fork import ForkHandler
+from libraries.lambda_handlers.fork_handler import ForkHandler
 from functions.webhook import WebhookHandler
 from libraries.tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
 
@@ -154,6 +154,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb,
@@ -182,6 +183,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb,
@@ -199,6 +201,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
@@ -227,6 +230,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
@@ -244,6 +248,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)

@@ -11,16 +11,10 @@ class ForkHandler(Handler):
     Triggers the webhook lambda if new repositories are found.
     """
 
-    def _handle(self, event, context, **kwargs):
-        """
+    def __init__(self, event, context, **kwargs):
+        super(ForkHandler, self).__init__(event, context)
 
-        :param dict event:
-        :param context:
-        :param kwargs:
-        :return:
-        """
-
-        self.stage_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.stage_vars = self.retrieve(self.event, 'stage-variables', 'payload')
         gogs_token = self.retrieve(self.stage_vars, 'gogs_token', 'Environment Vars')
         self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(self.stage_vars, 'gogs_org', 'Environment Vars')
@@ -42,8 +36,14 @@ class ForkHandler(Handler):
         self.gogs_api = self.gogs_client.GogsApi(self.gogs_url)
         self.gogs_auth = self.gogs_client.Token(gogs_token)
 
+    def _run(self, **kwargs):
+        """
+        :param kwargs:
+        :return:
+        """
+
         client = self.boto.client("lambda")  # pragma: no cover
-        repos = self.get_new_repos(self.gogs_api, self.gogs_org, self.progress_table)  # pragma: no cover
+        repos = self.get_new_repos()  # pragma: no cover
         self._trigger_webhook(client, repos)  # pragma: no cover
 
     def _trigger_webhook(self, client, repos):
@@ -101,14 +101,14 @@ class ForkHandler(Handler):
             },
         }
 
-    def get_new_repos(self, gogs_client, org, progress_table):
+    def get_new_repos(self):
         """
         Compares the organization repos with what's in progress
         and returns those that are new or updated.
         :return:
         """
-        org_repos = gogs_client.get_user_repos(None, org)
-        items = progress_table.query_items()
+        org_repos = self.gogs_api.get_user_repos(None, self.gogs_org)
+        items = self.progress_table.query_items()
 
         new_repos = []
         for repo in org_repos:
@@ -120,7 +120,7 @@ class ForkHandler(Handler):
                 # check if changed
                 # TODO: the branch API is currently broken so this code won't run
                 try:
-                    branch = gogs_client.get_branch(None, org, repo_name, 'master')
+                    branch = self.gogs_api.get_branch(None, self.gogs_org, repo_name, 'master')
                     if branch:
                         commit_id = branch.commit.id[:10]
                         for item in items:
