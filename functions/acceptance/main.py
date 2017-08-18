@@ -8,7 +8,7 @@ import logging
 from d43_aws_tools import SESHandler
 from libraries.tools.url_utils import get_url
 
-from handler import AcceptanceTest
+from libraries.lambda_handlers.acceptance_handler import AcceptanceHandler
 from libraries.tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
@@ -36,7 +36,9 @@ def handle(event, context):
         key = record['s3']['object']['key']
         url = 'https://{0}/{1}'.format(bucket_name, key)
 
-        acceptance = AcceptanceTest(url, URLHandler, httplib.HTTPConnection, SESHandler, to_email="acceptancetest@door43.org", from_email="acceptancetest@door43.org")
+        acceptance = AcceptanceHandler(event, context, url, URLHandler, httplib.HTTPConnection, SESHandler,
+                                       to_email="acceptancetest@door43.org",
+                                       from_email="acceptancetest@door43.org")
         acceptance.run()
         print(acceptance.errors)
         return acceptance.errors

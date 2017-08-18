@@ -1,32 +1,26 @@
-# -*- coding: utf-8 -*-
-
-#
-# Acceptance Test class
-#
-
-from __future__ import print_function
+from libraries.lambda_handlers.handler import Handler
 
 import json
-
 from urlparse import urlparse
 
+class AcceptanceHandler(Handler):
 
-class AcceptanceTest(object):
-    def __init__(self, catalog_url, URLHandler, HTTPConnection, SESHandler, to_email=None, from_email=None, quiet=False, ):
-        """
-        Initializes an acceptance test
-        :param catalog_url: 
-        :param URLHandler: This is passed in so it can be mocked for unit testing
-        :param HTTPConnection: This is passed in so it can be mocked for unit testing
-        :param SESHandler: This is passed in so it can be mocked for unit testing
-        :param to_email: 
-        :param from_email: 
-        :param quiet: 
-        """
+    def __init__(self, event, context, catalog_url, URLHandler, HTTPConnection, SESHandler, **kwargs):
+        super(AcceptanceHandler, self).__init__(event, context)
+
         self.catalog_url = catalog_url
-        self.to_email = to_email
-        self.from_email = from_email
-        self.quiet = quiet
+        if 'to_email' in kwargs:
+            self.to_email = kwargs['to_email']
+        else:
+            self.to_email = None
+        if 'from_email' in kwargs:
+            self.from_email = kwargs['from_email']
+        else:
+            self.from_email = None
+        if 'quiet' in kwargs:
+            self.quiet = kwargs['quiet']
+        else:
+            self.quiet = None
         self.errors = []
         self.ses_handler = SESHandler()
         self.http_connection = HTTPConnection
@@ -176,7 +170,7 @@ class AcceptanceTest(object):
             if 'signature' in chapter and not self.url_exists(chapter['signature']):
                 self.log_error("{}_{}_{}: '{}' does not exist".format(lslug, rslug, pslug, chapter['signature']))
 
-    def run(self):
+    def _run(self, **kwargs):
         self.test_catalog_structure()
         if self.to_email and self.from_email:
             try:
