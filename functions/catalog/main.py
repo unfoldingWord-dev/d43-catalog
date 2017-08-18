@@ -8,10 +8,9 @@ from __future__ import print_function
 
 import logging
 
-from libraries.tools.lambda_utils import lambda_restarted
+from libraries.tools.lambda_utils import lambda_restarted, wipe_temp
 
 from libraries.lambda_handlers.catalog_handler import CatalogHandler
-from libraries.tools.file_utils import wipe_temp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -14,6 +14,8 @@ class ForkHandler(Handler):
     def __init__(self, event, context, **kwargs):
         super(ForkHandler, self).__init__(event, context)
 
+        print(event)
+
         self.stage_vars = self.retrieve(self.event, 'stage-variables', 'payload')
         gogs_token = self.retrieve(self.stage_vars, 'gogs_token', 'Environment Vars')
         self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')

@@ -9,7 +9,7 @@ from d43_aws_tools import SESHandler
 from libraries.tools.url_utils import get_url
 
 from libraries.lambda_handlers.acceptance_handler import AcceptanceHandler
-from libraries.tools.file_utils import wipe_temp
+from libraries.tools.lambda_utils import wipe_temp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

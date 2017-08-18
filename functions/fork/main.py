@@ -10,7 +10,7 @@ from __future__ import print_function
 import logging
 
 from libraries.lambda_handlers.fork_handler import ForkHandler
-from libraries.tools.file_utils import wipe_temp
+from libraries.tools.lambda_utils import wipe_temp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
