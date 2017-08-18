@@ -14,8 +14,6 @@ from libraries.lambda_handlers.uw_v2_catalog_handler import UwV2CatalogHandler
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# TRICKY: suppress logging noise from boto3
-logging.getLogger('boto3').setLevel(logging.WARNING)
 
 def handle(event, context):
     # TRICKY: block automatic restarts since we manually recover from timeouts and errors

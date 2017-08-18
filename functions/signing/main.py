@@ -3,15 +3,12 @@ from __future__ import unicode_literals
 import logging
 
 from libraries.tools.lambda_utils import wipe_temp, lambda_restarted
-
 from libraries.lambda_handlers.signing_handler import SigningHandler
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# TRICKY: suppress logging noise from boto3
-logging.getLogger('boto3').setLevel(logging.WARNING)
 
 # noinspection PyUnusedLocal
 def handle(event, context):

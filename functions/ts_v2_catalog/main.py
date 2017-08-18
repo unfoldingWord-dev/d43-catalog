@@ -13,9 +13,6 @@ from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-# TRICKY: suppress logging noise
-logging.getLogger('boto3').setLevel(logging.WARNING)
-logging.getLogger('usfm_tools').setLevel(logging.WARNING)
 
 def handle(event, context):
     # TRICKY: block automatic restarts since we manually recover from timeouts and errors

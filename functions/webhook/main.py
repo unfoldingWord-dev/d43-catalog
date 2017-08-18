@@ -14,8 +14,6 @@ from libraries.tools.lambda_utils import wipe_temp
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# TRICKY: suppress logging noise from boto3
-logging.getLogger('boto3').setLevel(logging.WARNING)
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)

@@ -11,4 +11,4 @@ def handle(event, context):
     :param context:
     :return:
     """
-    return TriggerHandler().handle(event, context)
+    return TriggerHandler(event, context).run()

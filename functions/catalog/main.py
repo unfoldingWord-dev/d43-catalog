@@ -9,14 +9,11 @@ from __future__ import print_function
 import logging
 
 from libraries.tools.lambda_utils import lambda_restarted, wipe_temp
-
 from libraries.lambda_handlers.catalog_handler import CatalogHandler
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# TRICKY: suppress logging noise from boto3
-logging.getLogger('boto3').setLevel(logging.WARNING)
 
 def handle(event, context):
     # TRICKY: block automatic restarts since we manually recover from timeouts and errors
