@@ -5,7 +5,7 @@ from unittest import TestCase
 import gogs_client as GogsClient
 
 from libraries.lambda_handlers.fork_handler import ForkHandler
-from functions.webhook import WebhookHandler
+from libraries.lambda_handlers.webhook_handler import WebhookHandler
 from libraries.tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
 
 
@@ -217,6 +217,7 @@ class TestFork(TestCase):
         mockLogger = MockLogger()
         dbHandler = MockDynamodbHandler()
         webhook_handler = WebhookHandler(event=payload,
+                                         context=None,
                                          logger=mockLogger,
                                          s3_handler=s3Handler,
                                          dynamodb_handler=dbHandler,
