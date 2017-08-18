@@ -15,8 +15,6 @@ from libraries.tools.url_utils import get_url, url_exists
 
 class CatalogHandler(Handler):
 
-    API_VERSION = '3'
-
     def __init__(self, event, context, **kwargs):
         super(CatalogHandler, self).__init__(event, context)
 
@@ -27,6 +25,7 @@ class CatalogHandler(Handler):
         self.api_url = self.retrieve(env_vars, 'api_url').rstrip('/')
         self.to_email = self.retrieve(env_vars, 'to_email')
         self.from_email = self.retrieve(env_vars, 'from_email')
+        self.api_version = self.retrieve(env_vars, 'version')
 
         if 'dynamodb_handler' in kwargs:
             db_handler = kwargs['dynamodb_handler']
@@ -136,11 +135,11 @@ class CatalogHandler(Handler):
                     print('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
 
                     print('Uploading catalog.json to API')
-                    self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.API_VERSION), cache_time=0)
+                    self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.api_version), cache_time=0)
                     self._publish_status()
 
                     response['success'] = True
-                    response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
+                    response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog: {0}'.format(e)) # pragma: no cover
         else:
@@ -164,7 +163,7 @@ class CatalogHandler(Handler):
         Retrieves the recorded status of the catalog
         :return:
         """
-        results = self.status_table.query_items({'api_version': self.API_VERSION})
+        results = self.status_table.query_items({'api_version': self.api_version})
         if not results:
             return None
         else:
@@ -178,11 +177,11 @@ class CatalogHandler(Handler):
         """
         print('Recording catalog status')
         self.status_table.update_item(
-            {'api_version': self.API_VERSION},
+            {'api_version': self.api_version},
             {
                 'state': state,
                 'timestamp': time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
+                'catalog_url': '{0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
             }
         )
 
@@ -328,7 +327,7 @@ class CatalogHandler(Handler):
         :return:
         """
         try:
-            catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.API_VERSION)
+            catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
             current_catalog = json.loads(self.get_url(catalog_url, True))
             same = current_catalog == catalog
             return not same

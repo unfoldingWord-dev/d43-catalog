@@ -27,7 +27,8 @@ class TestCatalog(TestCase):
                 'to_email': 'me@example.com',
                 'from_email': 'me@example.com',
                 'cdn_bucket': 'cdn-bucket',
-                'cdn_url': 'cdn-url'
+                'cdn_url': 'cdn-url',
+                'version': '3',
             }
         }
 
@@ -235,7 +236,7 @@ class TestCatalog(TestCase):
     def test_read_status(self):
         state = self.make_handler_instance('valid.json')
         state['mocks']['db']['status'].insert_item({
-            'api_version': CatalogHandler.API_VERSION
+            'api_version': '3'
         })
         status = state['handler']._read_status()
         self.assertIsNotNone(status)
