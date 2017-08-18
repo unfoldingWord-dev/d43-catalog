@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from libraries.tools.build_utils import get_build_rules
 
-from libraries.tools.file_utils import wipe_temp
+from libraries.tools.lambda_utils import wipe_temp
 
 
 class TestTools(TestCase):

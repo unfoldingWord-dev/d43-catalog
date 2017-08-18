@@ -12,14 +12,17 @@ class TriggerHandler(Handler):
     stage variables from the API gateway.
     """
 
+    def __init__(self, event, context, **kwargs):
+        super(TriggerHandler, self).__init__(event, context)
+        if 'logger' in kwargs:
+            self.logger = kwargs['logger']
+
     def _run(self, **kwargs):
         """
         :param kwargs:
         :return:
         """
         api_url = self.retrieve(self.event, 'api_url')
-        if 'logger' in kwargs:
-            self.logger = kwargs['logger']
 
         urls = [
             'catalog',

@@ -31,7 +31,7 @@ class Handler(object):
         self.logger.debug("EVENT:")
         self.logger.debug(json.dumps(self.event))
         try:
-            return self._run(kwargs)
+            return self._run(**kwargs)
         except Exception as e:
             self.logger.error(e.message, exc_info=1)
             raise EnvironmentError('Bad Request: {}'.format(e.message))

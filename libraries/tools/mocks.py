@@ -116,19 +116,19 @@ class MockLogger(object):
     def __init__(self):
         self._messages = []
 
-    def warning(self, message):
+    def warning(self, message, **kwargs):
         print('WARNING: {}'.format(message))
         self._messages.append(message)
 
-    def info(self, message):
+    def info(self, message, **kwargs):
         print('INFO: {}'.format(message))
         self._messages.append(message)
 
-    def error(self, message):
+    def error(self, message, **kwargs):
         print('ERROR: {}'.format(message))
         self._messages.append(message)
 
-    def debug(self, message):
+    def debug(self, message, **kwargs):
         print('DEBUG: {}'.format(message))
         self._messages.append(message)
 

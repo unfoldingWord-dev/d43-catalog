@@ -41,31 +41,6 @@ def ext_to_mime(ext):
     else:
         raise Exception('Unknown file extension "{}"'.format(ext))
 
-def wipe_temp(tmp_dir=None, ignore_errors=False):
-    """
-    This will delete everything in the /tmp directory.
-    Lambda instances may be reused and if a lambda timed out the temp files may not have been removed.
-    Running this method will remove all temp files on the instance
-    :param string tmp_dir:
-    :param bool ignore_errors:
-    :return:
-    """
-    if not tmp_dir:
-        tmp_dir = tempfile.gettempdir()
-
-    # TRICKY: gettempdir() could return None
-    if tmp_dir:
-        print('Emptying temp dir {}'.format(tmp_dir))
-        files = os.listdir(tmp_dir)
-        for f in files:
-            if f in ['.', '..']: continue
-
-            f_path = os.path.join(tmp_dir, f)
-            if os.path.isdir(f_path):
-                shutil.rmtree(f_path, ignore_errors)
-            elif os.path.isfile(f_path):
-                os.unlink(f_path)
-
 def unzip(source_file, destination_dir):
     """
     Unzips <source_file> into <destination_dir>.

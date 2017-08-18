@@ -17,6 +17,5 @@ class TestTrigger(TestCase):
             "api_url": "https://dev-api.door43.org/v3/lambda"
         }
 
-        TriggerHandler().handle(event,
-                                None,
-                                logger=mockLogger)
+        handler = TriggerHandler(event, None, logger=mockLogger)
+        handler.run()
