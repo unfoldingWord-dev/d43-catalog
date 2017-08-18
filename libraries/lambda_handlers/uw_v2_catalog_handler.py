@@ -14,55 +14,50 @@ import time
 
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.date_utils import str_to_unix_time
-from libraries.tools.dict_utils import read_dict, merge_dict
+from libraries.tools.dict_utils import merge_dict
 from libraries.tools.file_utils import write_file
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url
 
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
+from libraries.lambda_handlers.handler import Handler
 
-
-class UwV2CatalogHandler:
+class UwV2CatalogHandler(Handler):
 
     cdn_root_path = 'v2/uw'
     api_version = 'uw.2'
 
-    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, signing_handler=None):
-        """
-        Initializes the converter with the catalog from which to generate the v2 catalog
-        :param event:
-        :param s3_handler: This is passed in so it can be mocked for unit testing
-        :param dynamodb_handler: This is passed in so it can be mocked for unit testing
-        :param url_handler: This is passed in so it can be mocked for unit testing
-        :param download_handler: This is passed in so it can be mocked for unit testing
-        """
-        env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
+    def __init__(self, event, context, logger, **kwargs):
+        super(UwV2CatalogHandler, self).__init__(event, context)
+
+        env_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         self.logger = logger # type: logging._loggerClass
-        if not s3_handler:
+
+        if 's3_handler':
+            self.cdn_handler = kwargs['s3_handler']
+        else:
             self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
+        if 'dynamodb_handler':
+            self.db_handler = kwargs['dynamodb_handler']
         else:
-            self.cdn_handler = s3_handler
-        if not dynamodb_handler:
             self.db_handler = DynamoDBHandler('d43-catalog-status') # pragma: no cover
+        if 'url_handler':
+            self.get_url = kwargs['url_handler']
         else:
-            self.db_handler = dynamodb_handler
-        if not url_handler:
             self.get_url = get_url # pragma: no cover
+        if 'download_handler':
+            self.download_file = kwargs['download_handler']
         else:
-            self.get_url = url_handler
-        if not download_handler:
             self.download_file = download_file # pragma: no cover
-        else:
-            self.download_file = download_handler
 
         self.temp_dir = tempfile.mkdtemp('', 'uwv2', None)
-        if not signing_handler:
-            self.signer = Signer(ENC_PRIV_PEM_PATH) # pragma: no cover
+        if 'signing_handler':
+            self.signer = kwargs['signing_handler']
         else:
-            self.signer = signing_handler
+            self.signer = Signer(ENC_PRIV_PEM_PATH) # pragma: no cover
 
     def __del__(self):
         try:
@@ -70,7 +65,7 @@ class UwV2CatalogHandler:
         finally:
             pass
 
-    def run(self):
+    def _run(self):
         """
         Generates the v2 catalog
         :return:

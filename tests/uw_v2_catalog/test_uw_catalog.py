@@ -4,7 +4,7 @@ from unittest import TestCase
 from libraries.tools.file_utils import load_json_object
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
 
-from functions.uw_v2_catalog import UwV2CatalogHandler
+from libraries.lambda_handlers.uw_v2_catalog_handler import UwV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json
 
 
@@ -36,6 +36,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -54,6 +55,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -72,6 +74,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -91,6 +94,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -111,6 +115,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -131,6 +136,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -151,6 +157,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -173,6 +180,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
