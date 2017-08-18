@@ -23,47 +23,42 @@ from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from usfm_tools.transform import UsfmTransform
 
-from libraries.tools.dict_utils import read_dict
+from libraries.lambda_handlers.handler import Handler
 
 
-class TsV2CatalogHandler:
+class TsV2CatalogHandler(Handler):
 
     cdn_root_path = 'v2/ts'
     api_version = 'ts.2'
 
-    def __init__(self, event, logger, s3_handler=None, dynamodb_handler=None, url_handler=None, download_handler=None, url_exists_handler=None):
-        """
-        Initializes the converter with the catalog from which to generate the v2 catalog
-        :param  s3_handler: This is passed in so it can be mocked for unit testing
-        :param url_handler: This is passed in so it can be mocked for unit testing
-        :param download_handler: This is passed in so it can be mocked for unit testing
-        """
-        env_vars = read_dict(event, 'stage-variables', 'payload')
-        self.cdn_bucket = read_dict(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = read_dict(env_vars, 'cdn_url', 'Environment Vars')
+    def __init__(self, event, context, logger, **kwargs):
+        super(TsV2CatalogHandler, self).__init__(event, context)
+
+        env_vars = self.retrieve(event, 'stage-variables', 'payload')
+        self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         self.cdn_url = self.cdn_url.rstrip('/')
         self.logger = logger # type: logging._loggerClass
-        if not s3_handler:
+        if 's3_handler' in kwargs:
+            self.cdn_handler = kwargs['s3_handler']
+        else:
             self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
+        if 'dynamodb_handler' in kwargs:
+            self.db_handler = kwargs['dynamodb_handler']
         else:
-            self.cdn_handler = s3_handler
-        if not dynamodb_handler:
             self.db_handler = DynamoDBHandler('d43-catalog-status') # pragma: no cover
+        if 'url_handler' in kwargs:
+            self.get_url = kwargs['url_handler']
         else:
-            self.db_handler = dynamodb_handler
-        if not url_handler:
             self.get_url = get_url # pragma: no cover
+        if 'download_handler' in kwargs:
+            self.download_file = kwargs['download_handler']
         else:
-            self.get_url = url_handler
-        if not download_handler:
             self.download_file = download_file # pragma: no cover
+        if 'url_exists_handler' in kwargs:
+            self.url_exists = kwargs['url_exists_handler']
         else:
-            self.download_file = download_handler
-        if not url_exists_handler:
             self.url_exists = url_exists # pragma: no cover
-        else:
-            self.url_exists = url_exists_handler
-
 
         self.temp_dir = tempfile.mkdtemp('', 'tsv2', None)
 
@@ -73,7 +68,7 @@ class TsV2CatalogHandler:
         finally:
             pass
 
-    def run(self):
+    def _run(self):
         """
         Generates the v2 catalog
         :return:
@@ -656,9 +651,9 @@ class TsV2CatalogHandler:
     def _prep_data_upload(self, key, data):
         """
         Prepares some data for upload to s3
-        :param key: 
-        :param data: 
-        :return: 
+        :param key:
+        :param data:
+        :return:
         """
         temp_file = os.path.join(self.temp_dir, key)
         write_file(temp_file, json.dumps(data, sort_keys=True))
@@ -694,8 +689,8 @@ class TsV2CatalogHandler:
     def _get_rc_type(self, format):
         """
         Returns the first resource type found in an array of formats
-        :param ary: 
-        :return: 
+        :param ary:
+        :return:
         """
         re_type = re.compile(r'type=(\w+)', re.UNICODE|re.IGNORECASE)
         if 'conformsto=rc0.2' in format['format'] and 'type' in format['format']:
@@ -706,13 +701,13 @@ class TsV2CatalogHandler:
     def _add_supplement(self, catalog, language, resource, project, modified, rc_type):
         """
         Adds supplementary helps to the catalog nodes
-        :param catalog: 
-        :param language: 
-        :param resource: 
-        :param project: 
-        :param modified: 
-        :param rc_type: 
-        :return: 
+        :param catalog:
+        :param language:
+        :param resource:
+        :param project:
+        :param modified:
+        :param rc_type:
+        :return:
         """
         lid = language['identifier']
 
@@ -753,8 +748,8 @@ class TsV2CatalogHandler:
         :param language: the v3 language catalog object
         :param resource: the v3 resource catalog object
         :param project: the v3 project catalog object
-        :param modified: 
-        :return: 
+        :param modified:
+        :return:
         """
         lid = language['identifier']
         rid = resource['identifier']
@@ -873,9 +868,9 @@ class TsV2CatalogHandler:
         """
         Return the largest modified date
         If the object does not have a date_modified the argument is returned
-        :param obj: 
-        :param modified: 
-        :return: 
+        :param obj:
+        :param modified:
+        :return:
         """
         if 'date_modified' not in obj or int(obj['date_modified']) < int(modified):
             return modified
@@ -885,8 +880,8 @@ class TsV2CatalogHandler:
     def _convert_date(self, date_str):
         """
         Converts a date from the UTC format (used in api v3) to the form in api v2.
-        :param date_str: 
-        :return: 
+        :param date_str:
+        :return:
         """
         date_obj = dateutil.parser.parse(date_str)
         try:

@@ -5,7 +5,7 @@ from unittest import TestCase
 from libraries.tools.file_utils import load_json_object, read_file
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 
-from functions.ts_v2_catalog import TsV2CatalogHandler
+from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json
 
 
@@ -51,6 +51,7 @@ class TestTsV2Catalog(TestCase):
         mockLog = MockLogger()
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -133,6 +134,7 @@ class TestTsV2Catalog(TestCase):
         mockLog = MockLogger()
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -205,6 +207,7 @@ class TestTsV2Catalog(TestCase):
 
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -228,6 +231,7 @@ class TestTsV2Catalog(TestCase):
 
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -250,6 +254,7 @@ class TestTsV2Catalog(TestCase):
 
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -279,6 +284,7 @@ class TestTsV2Catalog(TestCase):
     #         'catalog_url': 'https://api.door43.org/v3/catalog.json'
     #     }
     #     converter = TsV2CatalogHandler(event=event,
+    #                                    context=None,
     #                                    logger=mockLogger,
     #                                    s3_handler=mockS3,
     #                                    dynamodb_handler=mockDb)
