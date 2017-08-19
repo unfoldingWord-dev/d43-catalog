@@ -257,3 +257,32 @@ class TestFork(TestCase):
         handler._trigger_webhook(mockClient, [])
 
         self.assertIn('No new repositories found', mockLog._messages)
+
+    def test_stage_prefix_prod(self):
+        event = self.create_event()
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event=event,
+                              context=None,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
+        self.assertEqual('', handler.stage_prefix())
+
+    def test_stage_prefix_dev(self):
+        event = self.create_event()
+        event['context'] = {
+            'stage': 'dev'
+        }
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event=event,
+                              context=None,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
+        self.assertEqual('dev-', handler.stage_prefix())

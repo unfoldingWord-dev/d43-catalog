@@ -1,11 +1,13 @@
 import os
 import shutil
 import tempfile
+import unittest
+from libraries.tools.test_utils import is_travis, Bunch
 from unittest import TestCase
 
 from libraries.tools.build_utils import get_build_rules
 
-from libraries.tools.lambda_utils import wipe_temp
+from libraries.tools.lambda_utils import wipe_temp, is_lambda_running, set_lambda_running, clear_lambda_running
 
 
 class TestTools(TestCase):
@@ -49,3 +51,21 @@ class TestTools(TestCase):
         files_after = [name for name in os.listdir(self.temp_dir) if os.path.isfile(name)]
         self.assertTrue(os.path.exists(self.temp_dir))
         self.assertEqual(0, len(files_after))
+
+    @unittest.skipIf(is_travis(), 'Skipping test_is_lambda_running on travis')
+    def test_is_lambda_is_not_running(self):
+        dbname = 'dev-d43-catalog-running'
+        context = Bunch(function_name='test', aws_request_id='test')
+
+        clear_lambda_running(context, dbname)
+        result = is_lambda_running(context, dbname)
+        self.assertFalse(result)
+
+    @unittest.skipIf(is_travis(), 'Skipping test_is_lambda_running on travis')
+    def test_is_lambda_is_running(self):
+        dbname = 'dev-d43-catalog-running'
+        context = Bunch(function_name='test', aws_request_id='test')
+
+        set_lambda_running(context, dbname)
+        result = is_lambda_running(context, dbname)
+        self.assertTrue(result)

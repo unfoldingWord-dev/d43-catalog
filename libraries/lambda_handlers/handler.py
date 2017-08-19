@@ -2,6 +2,7 @@ from __future__ import unicode_literals, print_function
 import json
 import logging
 from abc import ABCMeta, abstractmethod
+from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
 
 
 class Handler(object):
@@ -41,7 +42,6 @@ class Handler(object):
             self.__set_logging_level(event['log_level'])
         elif event and 'stage-variables' in event and 'log_level' in event['stage-variables']:
             self.__set_logging_level(event['stage-variables']['log_level'])
-
 
     def __set_logging_level(self, level):
         """
