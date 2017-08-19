@@ -3,6 +3,8 @@ import grequests
 from functools import partial
 import json
 
+from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
+
 
 class TriggerHandler(Handler):
     """
@@ -25,6 +27,12 @@ class TriggerHandler(Handler):
         :param kwargs:
         :return:
         """
+        running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
+        if is_lambda_running(self.context, running_db_name):
+            self.logger.info('Lambda is already running. Aborting execution.')
+            return False
+        else:
+            set_lambda_running(self.context, running_db_name)
 
         urls = [
             'catalog',

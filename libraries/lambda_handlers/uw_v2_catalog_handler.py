@@ -16,6 +16,7 @@ from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.date_utils import str_to_unix_time
 from libraries.tools.dict_utils import merge_dict
 from libraries.tools.file_utils import write_file
+from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url
 
@@ -73,6 +74,14 @@ class UwV2CatalogHandler(Handler):
         Generates the v2 catalog
         :return:
         """
+        running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
+        if is_lambda_running(self.context, running_db_name):
+            self.logger.info('Lambda is already running. Aborting execution.')
+            return False
+        else:
+            set_lambda_running(self.context, running_db_name)
+
+
         cat_keys = []
         uploads = []
         v2_catalog = {

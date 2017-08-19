@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import logging
 
-from libraries.tools.lambda_utils import lambda_restarted, wipe_temp
+from libraries.tools.lambda_utils import wipe_temp
 from libraries.lambda_handlers.uw_v2_catalog_handler import UwV2CatalogHandler
 
 logger = logging.getLogger()
@@ -16,13 +16,6 @@ logger.setLevel(logging.INFO)
 
 
 def handle(event, context):
-    # TRICKY: block automatic restarts since we manually recover from timeouts and errors
-    if lambda_restarted(context):
-        logger.info('Blocked Lambda Restart: {}'.format(context.aws_request_id))
-        return
-    else:
-        logger.info('Starting request: {}'.format(context.aws_request_id))
-
     wipe_temp(ignore_errors=True)
     try:
         catalog = UwV2CatalogHandler(event, context, logger)

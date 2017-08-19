@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from libraries.tools.lambda_utils import wipe_temp, lambda_restarted
+from libraries.tools.lambda_utils import wipe_temp
 from libraries.lambda_handlers.signing_handler import SigningHandler
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 
@@ -17,13 +17,6 @@ def handle(event, context):
     :param dict event:
     :param context:
     """
-    # TRICKY: block automatic restarts since we manually recover from timeouts and errors
-    if lambda_restarted(context):
-        logger.info('Blocked Lambda Restart: {}'.format(context.aws_request_id))
-        return
-    else:
-        logger.info('Starting request: {}'.format(context.aws_request_id))
-
     wipe_temp(ignore_errors=True)
     global logger
     signer = Signer(ENC_PRIV_PEM_PATH)

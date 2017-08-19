@@ -47,7 +47,7 @@ class ForkHandler(Handler):
             self.logger.info('Lambda is already running. Aborting execution.')
             return False
         else:
-            set_lambda_running(self.context, running_db_name, )
+            set_lambda_running(self.context, running_db_name)
 
         client = self.boto.client("lambda")  # pragma: no cover
         repos = self.get_new_repos()  # pragma: no cover
