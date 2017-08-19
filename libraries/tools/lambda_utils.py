@@ -7,6 +7,7 @@ import arrow
 
 def lambda_restarted(context, dbname='d43-catalog-requests'):
     """
+    THIS IS DEPRECATED!!!!
     Checks if the lambda instance is a restart.
     Restarts may occur if an instance encountered an exception or timed out.
 
@@ -14,6 +15,8 @@ def lambda_restarted(context, dbname='d43-catalog-requests'):
     :param dbname: the dynamo db where lambda request ids are stored for recollection.
     :return: True if the instance restarted or False if starting for the first time.
     """
+    if not context:
+        return False
     db = DynamoDBHandler('d43-catalog-requests')
     request = db.get_item({
         "request_id": context.aws_request_id
@@ -38,6 +41,8 @@ def is_lambda_running(context, dbname, dynamodb_handler=None):
     :param dbname: the database holding a list of lambda run times
     :return:
     """
+    if not context:
+        return False
     if dynamodb_handler:
         db = dynamodb_handler(dbname)
     else:
@@ -61,6 +66,8 @@ def set_lambda_running(context, dbname, dynamodb_handler=None):
     :param dbname: the database holding a list of lambda run times.
     :return:
     """
+    if not context:
+        return
     if dynamodb_handler:
         db = dynamodb_handler(dbname)
     else:
