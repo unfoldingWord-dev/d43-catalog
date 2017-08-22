@@ -60,6 +60,7 @@ def is_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None
     })
     if request:
         last_time = arrow.get(request['started_at']).to('local')
+        # TRICKY: we use this lambda's expires time instead of the recorded value avoid delays in applying changes to expiration times.
         timeout = arrow.now().shift(minutes=-lambda_min_remaining(context))
         return last_time > timeout
     else:
@@ -97,7 +98,8 @@ def set_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=Non
     db.insert_item({
         "lambda": lambda_name,
         "request_id": context.aws_request_id,
-        "started_at": arrow.utcnow().isoformat()
+        "started_at": arrow.utcnow().isoformat(),
+        "expires": context.get_remaining_time_in_millis()
     })
 
 def clear_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None):
