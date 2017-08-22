@@ -24,7 +24,9 @@ class TestTsV2Catalog(TestCase):
         return {
             'stage-variables': {
                 'cdn_bucket': 'cdn.door43.org',
-                'cdn_url': 'https://cdn.door43.org'
+                'cdn_url': 'https://cdn.door43.org',
+                'from_email': '',
+                'to_email': ''
             }
         }
 

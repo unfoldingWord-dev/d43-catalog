@@ -18,6 +18,8 @@ class ForkHandler(InstanceHandler):
         gogs_token = self.retrieve(self.stage_vars, 'gogs_token', 'Environment Vars')
         self.gogs_url = self.retrieve(self.stage_vars, 'gogs_url', 'Environment Vars')
         self.gogs_org = self.retrieve(self.stage_vars, 'gogs_org', 'Environment Vars')
+        self.from_email = self.retrieve(self.stage_vars, 'from_email', 'Environment Vars')
+        self.to_email = self.retrieve(self.stage_vars, 'to_email', 'Environment Vars')
         if 'dynamodb_handler' in kwargs:
             self.progress_table = kwargs['dynamodb_handler']
         else:

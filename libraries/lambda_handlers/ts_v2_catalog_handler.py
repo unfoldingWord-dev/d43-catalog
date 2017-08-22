@@ -36,8 +36,9 @@ class TsV2CatalogHandler(InstanceHandler):
 
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
-        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
-        self.cdn_url = self.cdn_url.rstrip('/')
+        self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars').rstrip('/')
+        self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
+        self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
         self.logger = logger # type: logging._loggerClass
         if 's3_handler' in kwargs:
             self.cdn_handler = kwargs['s3_handler']
@@ -73,6 +74,13 @@ class TsV2CatalogHandler(InstanceHandler):
         Generates the v2 catalog
         :return:
         """
+        try:
+            return self.__execute()
+        except Exception as e:
+            self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
+            raise e
+
+    def __execute(self):
         cat_keys = []
         cat_dict = {}
         supplemental_resources = []

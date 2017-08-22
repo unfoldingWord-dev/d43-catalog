@@ -27,6 +27,8 @@ class SigningHandler(InstanceHandler):
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
+        self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
         self.logger = logger  # type: logging._loggerClass
         self.signer = signer
         if 's3_handler' in kwargs:
@@ -77,6 +79,9 @@ class SigningHandler(InstanceHandler):
             if not found_items and self.logger:
                 self.logger.info('No items found for signing')
             return found_items
+        except Exception as e:
+            self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
+            raise e
         finally:
             if os.path.isdir(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
