@@ -3,12 +3,67 @@ from contextlib import closing
 import json
 import shutil
 import sys
+import httplib
+from urlparse import urlparse
 
 try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
 
+def get_url_size(url):
+    """
+    Returns the file size of the url in bytes
+    :param url:
+    :return:
+    """
+    raise Exception('get_url_size is deprecated. Use url_headers instead')
+
+def url_headers(url):
+    """
+    Fetches the headers for a url
+    :param url:
+    :return:
+    """
+    p = urlparse(url)
+    conn = httplib.HTTPConnection(p.netloc)
+    conn.request('HEAD', p.path)
+    resp = conn.getresponse()
+    return HeaderReader(resp.getheaders())
+
+class HeaderReader(object):
+    def __init__(self, header_list):
+        """
+        Initializes a new reader
+        :param header_list:
+        """
+        self.headers = {}
+        for key, value in header_list:
+            self.headers[key] = value
+
+    def get(self, key, default=None):
+        """
+        Returns the value of the header
+        :param key:
+        :param default: The value to return if the header does not exist
+        :return:
+        """
+        if key in self.headers:
+            return self.headers[key]
+        else:
+            return default
+
+def url_exists(url):
+    """
+    Checks if a url exists
+    :param url:
+    :return:
+    """
+    p = urlparse(url)
+    conn = httplib.HTTPConnection(p.netloc)
+    conn.request('HEAD', p.path)
+    resp = conn.getresponse()
+    return resp.status == 301 or resp.status == 200
 
 def get_url(url, catch_exception=False):
     """

@@ -1,11 +1,11 @@
 [
   {
-    "checking_questions": "https://api.unfoldingword.org/v2/ts/obs/en/questions.json?date_modified=20170503",
+    "checking_questions": "https://cdn.door43.org/v2/ts/obs/en/questions.json?date_modified=20170503",
     "date_modified": "20170614",
     "name": "Open Bible Stories",
-    "notes": "https://api.unfoldingword.org/v2/ts/obs/en/notes.json?date_modified=20170315",
+    "notes": "https://cdn.door43.org/v2/ts/obs/en/notes.json?date_modified=20170315",
     "slug": "obs",
-    "source": "https://api.unfoldingword.org/v2/ts/obs/en/obs/source.json?date_modified=20170614",
+    "source": "https://cdn.door43.org/v2/ts/obs/en/obs/v4/source.json?date_modified=20170614",
     "chunks": "",
     "status": {
       "checking_entity": "Distant Shores Media, Wycliffe Associates",
@@ -17,7 +17,7 @@
       "source_text_version": "4",
       "version": "4"
     },
-    "terms": "https://api.unfoldingword.org/v2/ts/bible/en/words.json?date_modified=20170518",
-    "tw_cat": ""
+    "terms": "https://cdn.door43.org/v2/ts/bible/en/words.json?date_modified=20170518",
+    "tw_cat": "https://cdn.door43.org/v2/ts/obs/en/tw_cat.json?date_modified=20170614"
   }
 ]

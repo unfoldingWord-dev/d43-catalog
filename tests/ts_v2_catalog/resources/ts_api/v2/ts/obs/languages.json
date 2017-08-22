@@ -11,6 +11,6 @@
       "meta": [],
       "name": "Open Bible Stories"
     },
-    "res_catalog": "https://api.unfoldingword.org/v2/ts/obs/en/resources.json?date_modified=20170614"
+    "res_catalog": "https://cdn.door43.org/v2/ts/obs/en/resources.json?date_modified=20170614"
   }
 ]
