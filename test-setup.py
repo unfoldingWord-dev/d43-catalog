@@ -23,7 +23,8 @@ setup(
         'boto3==1.4.4',
         'python-dateutil==2.6.0',
         'pytz==2017.2',
-        'grequests==0.3.0'
+        'grequests==0.3.0',
+        'mock'  # travis reports syntax error in mock setup.cfg if we give version
     ],
     test_suite='tests'
 )

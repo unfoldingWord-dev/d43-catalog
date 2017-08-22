@@ -1,9 +1,9 @@
 from __future__ import unicode_literals, print_function
 import json
+import arrow
 import logging
 from abc import ABCMeta, abstractmethod
-from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
-
+from d43_aws_tools import DynamoDBHandler, SESHandler
 
 class Handler(object):
     """
@@ -76,6 +76,73 @@ class Handler(object):
             return '{}-'.format(self.aws_stage.lower())
         else:
             return ''
+
+    def report_error(self, message, queue_size=4, to_email=None, from_email=None):
+        """
+        Submits an error report to administrators
+        :param string message: the error message
+        :param int queue_size: The number of errors to store in the report queue. A report is sent when the queue is full
+        :return:
+        """
+        lambda_name = self.__class__.__name__
+        if self.context:
+            lambda_name = self.context.function_name
+
+        # check existing errors
+        db = DynamoDBHandler('{}d43-catalog-errors'.format(self.stage_prefix()))
+        report = db.get_item({'lambda': lambda_name})
+        if report and 'errors' in report:
+            errors = report['errors']
+            count = len(errors)
+        else:
+            errors = []
+            count = 1
+
+        # record error
+        errors.append({
+            'message': message,
+            'timestamp': arrow.utcnow().isoformat()
+        })
+        db.update_item({'lambda': lambda_name}, {
+            'count': count,
+            'errors': errors
+        })
+
+        # send report
+        if count >= queue_size and to_email and from_email:
+            # send message
+            text = ''
+            html = ''
+            for e in errors:
+                text += '----------------\n{}\n{}'.format(e['timestamp'], e['message'])
+                html += '<li><i>{}</i>: {}</li>'.format(e['timestamp'], e['message'])
+            ses = SESHandler()
+            try:
+                ses.send_email(
+                    Source=from_email,
+                    Destination={
+                        'ToAddresses': [
+                            to_email
+                        ]
+                    },
+                    Message={
+                        'Subject': {
+                            'Data': 'ERRORS running {}'.format(lambda_name),
+                            'Charset': 'UTF-8'
+                        },
+                        'Body': {
+                            'Text': {
+                                'Data': 'Errors running {}\n\n{}'.format(lambda_name, text),
+                                'Charset': 'UTF-8'
+                            },
+                            'Html': {
+                                'Data': 'Errors running {}\n\n<ul>{}</ul>'.format(lambda_name, html)
+                            }
+                        }
+                    }
+                )
+            except Exception as e:
+                self.logger.error('Failed to report errors {}'.format(e.message))
 
     def run(self, **kwargs):
         """

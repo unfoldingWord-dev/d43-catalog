@@ -1,10 +1,10 @@
 import codecs
 import json
 import os
+import mock
+
 from unittest import TestCase
-
 from libraries.tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
-
 from libraries.lambda_handlers.webhook_handler import WebhookHandler
 from libraries.tools.test_utils import assert_object_equals_file
 
@@ -67,6 +67,7 @@ class TestWebhook(TestCase):
         self.assertIn('does not have a manifest.yaml file', str(error_context.exception))
 
         self.assertFalse(os.path.isdir(handler.temp_dir))
+
 
     def test_malformed_manifest(self):
         request_file = os.path.join(self.resources_dir, 'malformed-manifest.json')
