@@ -33,6 +33,8 @@ class WebhookHandler(Handler):
         self.gogs_org = self.retrieve(env_vars, 'gogs_org', 'Environment Vars')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
+        self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
         self.repo_commit = self.retrieve(event, 'body-json', 'payload')
         if 'pull_request' in self.repo_commit:
             self.__parse_pull_request(self.repo_commit)
@@ -127,6 +129,9 @@ class WebhookHandler(Handler):
                     self.s3_handler.upload_file(upload['path'], upload['key'])
                 del data['uploads']
             self.db_handler.insert_item(data)
+        except Exception as e:
+            self.report_error(e.message, from_email=self.from_email, to_email=self.to_email)
+            raise e
         finally:
             # clean
             if self.temp_dir and os.path.isdir(self.temp_dir):

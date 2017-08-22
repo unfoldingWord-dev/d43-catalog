@@ -77,7 +77,7 @@ class Handler(object):
         else:
             return ''
 
-    def report_error(self, message, queue_size=4, to_email=None, from_email=None):
+    def report_error(self, message, to_email=None, from_email=None, queue_size=4):
         """
         Submits an error report to administrators
         :param string message: the error message

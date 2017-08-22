@@ -1,7 +1,7 @@
 import codecs
 import json
 import os
-import mock
+from mock import patch, mock
 
 from unittest import TestCase
 from libraries.tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
@@ -11,7 +11,7 @@ from libraries.tools.test_utils import assert_object_equals_file
 
 # This is here to test importing main
 
-
+@patch('libraries.lambda_handlers.webhook_handler.Handler.report_error')
 class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
@@ -42,7 +42,7 @@ class TestWebhook(TestCase):
     def tearDown(self):
         pass
 
-    def test_webook_with_invalid_data(self):
+    def test_webook_with_invalid_data(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'missing-manifest.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -69,7 +69,7 @@ class TestWebhook(TestCase):
         self.assertFalse(os.path.isdir(handler.temp_dir))
 
 
-    def test_malformed_manifest(self):
+    def test_malformed_manifest(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'malformed-manifest.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -96,8 +96,9 @@ class TestWebhook(TestCase):
         self.assertIn('manifest missing dublin_core key "type"', str(error_context.exception))
 
         self.assertFalse(os.path.isdir(handler.temp_dir))
+        mock_report_error.assert_called_once_with('Bad Manifest: manifest missing dublin_core key "type"', from_email=mock.ANY, to_email=mock.ANY)
 
-    def test_webhook_with_obs_data(self):
+    def test_webhook_with_obs_data(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'obs-request.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -137,7 +138,7 @@ class TestWebhook(TestCase):
         self.assertEqual('en_obs', entry['repo_name'])
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package.json'))
 
-    def test_webhook_ulb_merged_pull_request(self):
+    def test_webhook_ulb_merged_pull_request(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'ulb-merged-pull-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
@@ -175,7 +176,7 @@ class TestWebhook(TestCase):
         self.assertIn('temp/ta_ulb/{}/ta/ulb/v3/ulb.zip'.format(entry['commit_id']),
                       self.MockS3Handler.uploads[0]['key'])
 
-    def test_webhook_ulb_pull_request(self):
+    def test_webhook_ulb_pull_request(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'ulb-pull-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
@@ -207,7 +208,7 @@ class TestWebhook(TestCase):
         self.assertEqual(0, len(self.MockS3Handler.uploads))
         self.assertIsNone(entry)
 
-    def test_webhook_ulb(self):
+    def test_webhook_ulb(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -248,7 +249,7 @@ class TestWebhook(TestCase):
 
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_ulb_package.json'))
 
-    def test_webhook_versification(self):
+    def test_webhook_versification(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'versification-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
@@ -286,7 +287,7 @@ class TestWebhook(TestCase):
             self.assertIn('bible/'.format(data['commit_id']), dest)
             #self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
 
-    def test_webhook_localization(self):
+    def test_webhook_localization(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'localization-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()

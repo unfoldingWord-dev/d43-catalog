@@ -55,7 +55,9 @@ class TestFork(TestCase):
                 'gogs_url': 'https://git.door43.org/',
                 'gogs_org': 'Door43-Catalog',
                 'cdn_bucket': '',
-                'cdn_url': ''
+                'cdn_url': '',
+                'from_email': '',
+                'to_email': ''
             }
         }
         if 'testing_gogs_user_token' in os.environ:
