@@ -75,7 +75,7 @@ class ConsistencyChecker(object):
 
         # check formats
         if not 'formats' in manifest:
-            self.log_error('{0}: manifest missing key - {1}'.format(repo_name, 'formats'))
+            self.log_error('{0}: manifest missing key "{1}"'.format(repo_name, 'formats'))
         if not isinstance(manifest['formats'], list):
             self.log_error("{0}: manifest key formats must be an array".format(repo_name))
 
@@ -136,12 +136,12 @@ class ConsistencyChecker(object):
 
         for key in ['dublin_core', 'checking', 'projects']:
             if key not in manifest:
-                raise Exception('manifest missing key - {0}'.format(key))
+                raise Exception('manifest missing key "{0}"'.format(key))
 
         # check checking
         for key in ['checking_entity', 'checking_level']:
             if key not in manifest['checking']:
-                raise Exception('manifest missing checking key - {0}'.format(key))
+                raise Exception('manifest missing checking key "{0}"'.format(key))
 
         if not isinstance(manifest['checking']['checking_entity'], list):
             raise Exception('manifest key checking.checking_entity must be an array')
@@ -153,13 +153,13 @@ class ConsistencyChecker(object):
         for key in ['categories', 'identifier', 'path', 'sort', 'title', 'versification']:
             for project in manifest['projects']:
                 if key not in project:
-                    raise Exception('manifest missing project key - {0}'.format(key))
+                    raise Exception('manifest missing project key "{0}"'.format(key))
 
         # check dublin_core
         for key in ['conformsto', 'contributor', 'creator', 'description', 'format', 'identifier', 'issued', 'language',
                     'modified', 'publisher', 'relation', 'rights', 'source', 'subject', 'title', 'type', 'version']:
             if key not in manifest['dublin_core']:
-                raise Exception('manifest missing dublin_core key - {0}'.format(key))
+                raise Exception('manifest missing dublin_core key "{0}"'.format(key))
 
         expectedRCVersion = 'rc0.2'
         if manifest['dublin_core']['conformsto'].lower() != expectedRCVersion:
@@ -167,7 +167,7 @@ class ConsistencyChecker(object):
 
         for key in ['direction', 'identifier', 'title']:
             if key not in manifest['dublin_core']['language']:
-                raise Exception('manifest missing dublin_core.language key - {0}'.format(key))
+                raise Exception('manifest missing dublin_core.language key "{0}"'.format(key))
 
         if not isinstance(manifest['dublin_core']['source'], list):
             raise Exception('manifest key dublin_core.source must be an array')
@@ -175,4 +175,4 @@ class ConsistencyChecker(object):
         for key in ['version', 'identifier', 'language']:
             for source in manifest['dublin_core']['source']:
                 if key not in source:
-                    raise Exception('manifest missing dublin_core.source key - {0}'.format(key))
+                    raise Exception('manifest missing dublin_core.source key "{0}"'.format(key))
