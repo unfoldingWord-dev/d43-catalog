@@ -8,18 +8,17 @@ import shutil
 import tempfile
 import time
 
-from libraries.lambda_handlers.handler import Handler
+from libraries.lambda_handlers.instance_handler import InstanceHandler
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.date_utils import unix_to_timestamp, str_to_timestamp
 from libraries.tools.file_utils import ext_to_mime
-from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
 from libraries.tools.url_utils import url_exists, download_file, url_headers
 
 
-class SigningHandler(Handler):
+class SigningHandler(InstanceHandler):
     max_file_size = 400000000  # 400mb
 
     def __init__(self, event, context, logger, signer, **kwargs):
@@ -58,14 +57,6 @@ class SigningHandler(Handler):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _run(self):
-        running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
-        if is_lambda_running(self.context, running_db_name):
-            self.logger.info('Lambda is already running. Aborting execution.')
-            return False
-        else:
-            set_lambda_running(self.context, running_db_name)
-
-
         items = self.db_handler.query_items({
             'signed': False
         })

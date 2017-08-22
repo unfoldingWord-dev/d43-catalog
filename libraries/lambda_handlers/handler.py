@@ -6,6 +6,9 @@ from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
 
 
 class Handler(object):
+    """
+    Provides a base for lambda handlers
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self, event, context):
@@ -28,7 +31,11 @@ class Handler(object):
         # get stage name
         if event and 'context' in event and 'stage' in event['context']:
             self.aws_stage = event['context']['stage']
+        elif event and 'stage' in event:
+            # TRICKY: the stage must be manually given for cloudwatch events
+            self.aws_stage = event['stage']
         else:
+            self.logger.warning('AWS Stage is not specified.')
             self.aws_stage = None
 
         # get request id

@@ -3,11 +3,10 @@ import boto3
 import time
 import json
 
-from libraries.lambda_handlers.handler import Handler
+from libraries.lambda_handlers.instance_handler import InstanceHandler
 from d43_aws_tools import DynamoDBHandler
-from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
 
-class ForkHandler(Handler):
+class ForkHandler(InstanceHandler):
     """
     Triggers the webhook lambda if new repositories are found.
     """
@@ -42,13 +41,6 @@ class ForkHandler(Handler):
         :param kwargs:
         :return:
         """
-        running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
-        if is_lambda_running(self.context, running_db_name):
-            self.logger.info('Lambda is already running. Aborting execution.')
-            return False
-        else:
-            set_lambda_running(self.context, running_db_name)
-
         client = self.boto.client("lambda")  # pragma: no cover
         repos = self.get_new_repos()  # pragma: no cover
         self._trigger_webhook(client, repos)  # pragma: no cover

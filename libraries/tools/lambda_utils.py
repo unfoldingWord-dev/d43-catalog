@@ -15,30 +15,33 @@ def lambda_restarted(context, dbname='d43-catalog-requests'):
     :param dbname: the dynamo db where lambda request ids are stored for recollection.
     :return: True if the instance restarted or False if starting for the first time.
     """
-    if not context:
-        return False
-    db = DynamoDBHandler('d43-catalog-requests')
-    request = db.get_item({
-        "request_id": context.aws_request_id
-    })
-    if request:
-        return True
-    else:
-        # record id so we can detect restarts
-        db.insert_item({
-            "request_id": context.aws_request_id,
-            "name": context.function_name,
-            "version": context.function_version,
-            "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        })
-        return False
 
-def is_lambda_running(context, dbname, dynamodb_handler=None):
+    raise Exception('"lambda_restarted" is deprecated')
+    # if not context:
+    #     return False
+    # db = DynamoDBHandler('d43-catalog-requests')
+    # request = db.get_item({
+    #     "request_id": context.aws_request_id
+    # })
+    # if request:
+    #     return True
+    # else:
+    #     # record id so we can detect restarts
+    #     db.insert_item({
+    #         "request_id": context.aws_request_id,
+    #         "name": context.function_name,
+    #         "version": context.function_version,
+    #         "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    #     })
+    #     return False
+
+def is_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None):
     """
     Retrieves the last recorded process information for this lambda.
     This is used to determine if the lambda is already running.
     :param context:
-    :param dbname: the database holding a list of lambda run times
+    :param string dbname: the database holding a list of lambda run times
+    :param string lambda_suffix: name of the lambda handler
     :return:
     """
     if not context:
@@ -47,23 +50,37 @@ def is_lambda_running(context, dbname, dynamodb_handler=None):
         db = dynamodb_handler(dbname)
     else:
         db = DynamoDBHandler(dbname)
+
+    lambda_name = context.function_name
+    if lambda_suffix:
+        lambda_name = '{}.{}'.format(lambda_name, lambda_suffix)
+
     request = db.get_item({
-        "lambda": context.function_name
+        "lambda": lambda_name
     })
     if request:
         last_time = arrow.get(request['started_at']).to('local')
-        timeout = arrow.now().shift(minutes=-5)
+        timeout = arrow.now().shift(minutes=-lambda_min_remaining(context))
         return last_time > timeout
     else:
         return False
 
+def lambda_min_remaining(context):
+    """
+    Returns the time remaining in minutes before the lambda times out
+    :param context:
+    :return:
+    """
+    time_remaining = context.get_remaining_time_in_millis() / 60000  # ms to min
+    return time_remaining
 
-def set_lambda_running(context, dbname, dynamodb_handler=None):
+def set_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None):
     """
     Sets the process information for this lambda.
     This is used to indicate the lambda is currently running.
     :param context:
-    :param dbname: the database holding a list of lambda run times.
+    :param string dbname: the database holding a list of lambda run times.
+    :param string lambda_suffix: name of the lambda handler
     :return:
     """
     if not context:
@@ -72,17 +89,23 @@ def set_lambda_running(context, dbname, dynamodb_handler=None):
         db = dynamodb_handler(dbname)
     else:
         db = DynamoDBHandler(dbname)
+
+    lambda_name = context.function_name
+    if lambda_suffix:
+        lambda_name = '{}.{}'.format(lambda_name, lambda_suffix)
+
     db.insert_item({
-        "lambda": context.function_name,
+        "lambda": lambda_name,
         "request_id": context.aws_request_id,
         "started_at": arrow.utcnow().isoformat()
     })
 
-def clear_lambda_running(context, dbname, dynamodb_handler=None):
+def clear_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None):
     """
     This is a convenience method to clear a lambda from the list of running lambdas
     :param context:
-    :param dbname:
+    :param string dbname:
+    :param string lambda_suffix: the name of the lambda handler
     :param dynamodb_handler:
     :return:
     """
@@ -90,8 +113,14 @@ def clear_lambda_running(context, dbname, dynamodb_handler=None):
         db = dynamodb_handler(dbname)
     else:
         db = DynamoDBHandler(dbname)
+
+    lambda_name = context.function_name
+    if lambda_suffix:
+        lambda_name = '{}.{}'.format(lambda_name, lambda_suffix)
+
+
     db.delete_item({
-        "lambda": context.function_name
+        "lambda": lambda_name
     })
 
 

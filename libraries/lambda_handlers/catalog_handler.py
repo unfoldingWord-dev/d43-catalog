@@ -7,14 +7,13 @@ import os
 import tempfile
 import time
 
-from libraries.lambda_handlers.handler import Handler
+from libraries.lambda_handlers.instance_handler import InstanceHandler
 from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
 from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.file_utils import write_file
 from libraries.tools.url_utils import get_url, url_exists
-from libraries.tools.lambda_utils import is_lambda_running, set_lambda_running
 
-class CatalogHandler(Handler):
+class CatalogHandler(InstanceHandler):
 
     def __init__(self, event, context, **kwargs):
         super(CatalogHandler, self).__init__(event, context)
@@ -82,14 +81,6 @@ class CatalogHandler(Handler):
         return language
 
     def _run(self):
-        running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
-        if is_lambda_running(self.context, running_db_name):
-            self.logger.info('Lambda is already running. Aborting execution.')
-            return False
-        else:
-            set_lambda_running(self.context, running_db_name)
-
-
         completed_items = 0
         items = self.progress_table.query_items()
         versification_package = None
