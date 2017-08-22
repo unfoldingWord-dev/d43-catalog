@@ -17,13 +17,6 @@ logger.setLevel(logging.INFO)
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)
-    try:
-        handler = WebhookHandler(event, context, logger)
-        handler.run()
-    except Exception as e:
-        raise Exception('Bad Request: {0}'.format(e.message))
 
-    return {
-        "success": True,
-        "message": "Successfully added {0} ({1}) to the catalog".format(handler.repo_name, handler.commit_id)
-    }
+    handler = WebhookHandler(event, context, logger)
+    return handler.run()

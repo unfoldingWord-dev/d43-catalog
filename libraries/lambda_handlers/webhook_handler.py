@@ -132,6 +132,11 @@ class WebhookHandler(Handler):
             if self.temp_dir and os.path.isdir(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
 
+        return {
+            "success": True,
+            "message": "Successfully added {0} ({1}) to the catalog".format(self.repo_name, self.commit_id)
+        }
+
     def _build(self):
         """
         Constructs a new catalog entry from the repository
