@@ -14,12 +14,12 @@ class InstanceHandler(Handler):
     def run(self, **kwargs):
         # check if already running
         running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
-        if is_lambda_running(self.context, running_db_name, self.__class__.__name__):
+        if is_lambda_running(self.context, running_db_name):
             min_remaining = lambda_min_remaining(self.context)
             self.logger.warning('Lambda started before last execution timed out ({}min). Aborting.'.format(round(min_remaining)))
             return False
         else:
-            set_lambda_running(self.context, running_db_name, self.__class__.__name__)
+            set_lambda_running(self.context, running_db_name)
 
         # continue normal execution
         return super(InstanceHandler, self).run(**kwargs)
