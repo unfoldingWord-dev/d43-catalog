@@ -54,7 +54,7 @@ class TestAcceptance(TestCase):
         self.MockSESHandler.email = None
         self.MockURLHandler.response =  self._load_catalog('good_catalog.json')
         self.MockHttpConnection.response = self.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
                                     to_email='me@example.com',
                                     from_email='me@example.com')
         errors = acceptance.run()
@@ -66,7 +66,7 @@ class TestAcceptance(TestCase):
         self.MockSESHandler.email = None
         self.MockURLHandler.response =  self._load_catalog('complex_good_catalog.json')
         self.MockHttpConnection.response = self.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
                                     to_email='me@example.com',
                                     from_email='me@example.com')
         errors = acceptance.run()
@@ -78,7 +78,7 @@ class TestAcceptance(TestCase):
         self.MockSESHandler.email = None
         self.MockURLHandler.response =  self._load_catalog('bad_catalog.json')
         self.MockHttpConnection.response = self.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection, self.MockSESHandler,
                                     to_email='me@example.com',
                                     from_email='me@example.com')
         errors = acceptance.run()
@@ -90,7 +90,7 @@ class TestAcceptance(TestCase):
         self.MockSESHandler.email = None
         self.MockURLHandler.response = ''
         self.MockHttpConnection.response = self.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler,
                                     to_email='me@example.com',
                                     from_email='me@example.com')
@@ -102,7 +102,7 @@ class TestAcceptance(TestCase):
         self.MockSESHandler.email = None
         self.MockURLHandler.response = '{'
         self.MockHttpConnection.response = self.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler,
                                     to_email='me@example.com',
                                     from_email='me@example.com')
@@ -113,28 +113,28 @@ class TestAcceptance(TestCase):
     def test_missing_languages(self):
         self.MockURLHandler.response = '{"catalogs":[]}'
         self.MockHttpConnection.response = self.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance.test_catalog_structure()
         self.assertFalse(result)
         self.assertIn("http://example.com doesn't have 'languages'", acceptance.errors)
 
     def test_empty_languages(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance._test_languages([])
         self.assertFalse(result)
         self.assertIn("There needs to be at least one language in the catalog", acceptance.errors)
 
     def test_languages_not_array(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance._test_languages(9)
         self.assertFalse(result)
         self.assertIn("'languages' is not an array", acceptance.errors)
 
     def test_language_not_dict(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance._test_languages([{}, []])
         self.assertFalse(result)
@@ -142,7 +142,7 @@ class TestAcceptance(TestCase):
         self.assertIn("languages: Found a language container that is not an associative array", acceptance.errors)
 
     def test_language_missing_keys(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance._test_languages([{"identifier":"en"}])
         self.assertFalse(result)
@@ -150,14 +150,14 @@ class TestAcceptance(TestCase):
         self.assertIn("en: 'direction' does not exist", acceptance.errors)
 
     def test_resources_not_array(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance._test_resources("en", 9)
         self.assertFalse(result)
         self.assertIn("en: 'resources' is not an array", acceptance.errors)
 
     def test_resource_not_dict(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         result = acceptance._test_resources("en", [{}, 9])
         self.assertFalse(result)
@@ -165,7 +165,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en: Found a resource container that is not an associative array", acceptance.errors)
 
     def test_resource_missing_keys(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_resources("en", [{"identifier":"id"}])
@@ -184,7 +184,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: resource is missing 'projects'", acceptance.errors)
 
     def test_projects_not_array(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_projects("en", "id", 9, {})
@@ -192,7 +192,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: 'projects' is not an array", acceptance.errors)
 
     def test_project_not_dictionary(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_projects("en", "id", [9], {})
@@ -200,7 +200,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: project is not a dictionary", acceptance.errors)
 
     def test_project_missing_keys(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_projects("en", "id", [{}], {})
@@ -212,7 +212,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: project missing 'versification'", acceptance.errors)
 
     def test_formats_missing_in_multi_project_resource(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_projects("en", "id", [{},{}], {})
@@ -220,7 +220,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: 'formats' does not exist in multi-project resource", acceptance.errors)
 
     def test_formats_in_single_project_resource(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_projects("en", "id", [{}], {"formats":[]})
@@ -228,7 +228,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: 'formats' found in single-project resource", acceptance.errors)
 
     def test_formats_not_array(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_formats(6, "en", "id")
@@ -236,7 +236,7 @@ class TestAcceptance(TestCase):
         self.assertIn("en_id: 'formats' is not an array", acceptance.errors)
 
     def test_format_missing_key(self):
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
 
         result = acceptance._test_formats([{}], "en", "id")
@@ -249,7 +249,7 @@ class TestAcceptance(TestCase):
 
     def test_video_format_has_quality(self):
         TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         format = {
             "identifier":"obs",
@@ -266,7 +266,7 @@ class TestAcceptance(TestCase):
 
     def test_audio_format_has_quality(self):
         TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         format = {
             "identifier": "obs",
@@ -282,7 +282,7 @@ class TestAcceptance(TestCase):
 
     def test_resource_cannot_have_chapters(self):
         TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         format = {
             "identifier": "obs",
@@ -299,7 +299,7 @@ class TestAcceptance(TestCase):
 
     def test_chapter_missing_keys(self):
         TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         chapter = {
         }
@@ -313,7 +313,7 @@ class TestAcceptance(TestCase):
 
     def test_chapter_missing_length(self):
         TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(200)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         chapter = {
             "format": "audio/mp3",
@@ -330,7 +330,7 @@ class TestAcceptance(TestCase):
 
     def test_chapter_missing_urls(self):
         TestAcceptance.MockHttpConnection.response = TestAcceptance.MockResponse(404)
-        acceptance = AcceptanceHandler(None, None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
+        acceptance = AcceptanceHandler(self.make_event(), None,'http://example.com', self.MockURLHandler, self.MockHttpConnection,
                                     self.MockSESHandler)
         chapter = {
             "format": "audio/mp3",
@@ -345,3 +345,11 @@ class TestAcceptance(TestCase):
         self.assertFalse(result)
         self.assertIn("en_obs_obs: 'http://exampe.com' does not exist", acceptance.errors)
         self.assertIn("en_obs_obs: 'http://exampe.com.sig' does not exist", acceptance.errors)
+
+    def make_event(self):
+        return {
+            'stage-variables':{
+                'from_email': 'me@example.com',
+                'to_email':'me@example.com'
+            }
+        }

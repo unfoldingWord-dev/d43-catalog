@@ -37,7 +37,7 @@ class TriggerHandler(InstanceHandler):
             self.logger.info('Triggering {}'.format(lambda_url))
             requests.append(grequests.request('GET', lambda_url, callback=partial(self.__callback, self.logger)))
 
-        grequests.imap(requests, exception_handler=self.__exception_handler)
+        grequests.map(requests, exception_handler=self.__exception_handler)
 
     @staticmethod
     def __exception_handler(request, exception):

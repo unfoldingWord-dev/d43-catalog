@@ -9,26 +9,29 @@ class AcceptanceHandler(Handler):
         super(AcceptanceHandler, self).__init__(event, context)
 
         self.catalog_url = catalog_url
-        if 'to_email' in kwargs:
-            self.to_email = kwargs['to_email']
-        else:
-            self.to_email = None
-        if 'from_email' in kwargs:
-            self.from_email = kwargs['from_email']
-        else:
-            self.from_email = None
-        if 'quiet' in kwargs:
-            self.quiet = kwargs['quiet']
-        else:
-            self.quiet = None
+        self.stage_vars = self.retrieve(event, 'stage-variables')
+        self.to_email = self.retrieve(self.stage_vars, 'to_email')
+        self.from_email = self.retrieve(self.stage_vars, 'from_email')
+
+        # if 'to_email' in kwargs:
+        #     self.to_email = kwargs['to_email']
+        # else:
+        #     self.to_email = None
+        # if 'from_email' in kwargs:
+        #     self.from_email = kwargs['from_email']
+        # else:
+        #     self.from_email = self.retrieve(event['stage-variables'])
+        # if 'quiet' in kwargs:
+        #     self.quiet = kwargs['quiet']
+        # else:
+        #     self.quiet = None
         self.errors = []
         self.ses_handler = SESHandler()
         self.http_connection = HTTPConnection
         self.url_handler = URLHandler()
 
     def log_error(self, message):
-        if not self.quiet:
-            print(message)
+        self.logger.error(message)
         self.errors.append(message)
 
     def url_exists(self, url):
