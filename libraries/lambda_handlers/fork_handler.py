@@ -86,6 +86,7 @@ class ForkHandler(InstanceHandler):
         branch = self.gogs_api.get_branch(self.gogs_auth, self.gogs_org, repo.name, repo.default_branch)
         return {
             "stage-variables": self.event['stage-variables'],
+            "context": self.event['context'],
             "body-json": {
                 "after": branch.commit.id,
                 "commits": [{
