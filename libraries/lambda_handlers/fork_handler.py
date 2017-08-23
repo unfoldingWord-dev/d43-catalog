@@ -92,7 +92,7 @@ class ForkHandler(InstanceHandler):
                     "id": branch.commit.id,
                     "message": branch.commit.message,
                     "timestamp": branch.commit.timestamp,
-                    "url": '{0}{1}/{2}/commit/{3}'.format(self.gogs_url, self.gogs_org, repo.name, branch.commit.id) # branch.commit.url <-- not implemented yet
+                    "url": '{0}/{1}/{2}/commit/{3}'.format(self.gogs_url, self.gogs_org, repo.name, branch.commit.id) # branch.commit.url <-- not implemented yet
                 }],
                 "repository": {
                     "owner": {
