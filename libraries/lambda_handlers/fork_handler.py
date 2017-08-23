@@ -62,18 +62,18 @@ class ForkHandler(InstanceHandler):
             try:
                 payload = self.make_hook_payload(repo)
             except Exception as e:
-                self.logger.error("Failed to retrieve master branch for {0}: {1}".format(repo.full_name, e))
+                self.logger.error('Failed to retrieve master branch for {0}: {1}'.format(repo.full_name, e))
                 continue
             try:
-                self.logger.info("Simulating Webhook for {}".format(repo.full_name))
+                self.logger.info('Simulating Webhook for {}'.format(repo.full_name))
                 client.invoke(
-                    FunctionName="d43-catalog_webhook",
-                    InvocationType="Event",
+                    FunctionName='{}d43-catalog_webhook'.format(self.stage_prefix()),
+                    InvocationType='Event',
                     Payload=json.dumps(payload)
                 )
                 time.sleep(5)
             except Exception as e:
-                self.logger.error("Failed to trigger webhook {0}: {1}".format(repo.full_name, e))
+                self.logger.error('Failed to trigger webhook {0}: {1}'.format(repo.full_name, e))
                 continue
 
     def make_hook_payload(self, repo):

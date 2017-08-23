@@ -200,13 +200,11 @@ class WebhookHandler(Handler):
         try:
             manifest['dublin_core']['modified'] = str_to_timestamp(manifest['dublin_core']['modified'])
         except Exception as e:
-            if self.logger:
-                self.logger.warning('Invalid datetime detected: {}'.format(e.message))
+            self.logger.warning('Invalid datetime detected: {}'.format(e.message))
         try:
             manifest['dublin_core']['issued'] = str_to_timestamp(manifest['dublin_core']['issued'])
         except Exception as e:
-            if self.logger:
-                self.logger.warning('Invalid datetime detected: {}'.format(e.message))
+            self.logger.warning('Invalid datetime detected: {}'.format(e.message))
 
 
         # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
@@ -257,8 +255,7 @@ class WebhookHandler(Handler):
                 try:
                     resource_mtime = str_to_timestamp(manifest['dublin_core']['modified'])
                 except Exception as e:
-                    if self.logger:
-                        self.logger.warning('Invalid datetime detected: {}'.format(e.message))
+                    self.logger.warning('Invalid datetime detected: {}'.format(e.message))
                     resource_mtime = manifest['dublin_core']['modified']
                 project['formats'].append({
                     'format': 'text/usfm',
@@ -387,8 +384,7 @@ class WebhookHandler(Handler):
                         })
                 else:
                     # TODO: add additional support as needed
-                    if self.logger:
-                        self.logger.warning('Failed to generate media chapters. Only book RCs are currently supported. {}'.format(id))
+                    self.logger.warning('Failed to generate media chapters. Only book RCs are currently supported. {}'.format(id))
                     break
 
         return media_chapters
@@ -408,8 +404,7 @@ class WebhookHandler(Handler):
             vrs_id = os.path.basename(vrs_dir)
             book_files = sorted(glob(os.path.join(bible_dir, vrs_dir, 'chunks', '*.json')))
             for b in book_files:
-                if self.logger:
-                    self.logger.info('Reading {0}...'.format(b))
+                self.logger.info('Reading {0}...'.format(b))
                 identifier = os.path.splitext(os.path.basename(b))[0]
                 try:
                     book_vrs = json.loads(read_file(b))
@@ -459,8 +454,7 @@ class WebhookHandler(Handler):
         files = sorted(glob(os.path.join(self.repo_dir, '*.json')))
         localization = {}
         for f in files:
-            if self.logger:
-                self.logger.info("Reading {0}...".format(f))
+            self.logger.info("Reading {0}...".format(f))
             language = os.path.splitext(os.path.basename(f))[0]
             try:
                 localization[language] = json.loads(read_file(f))
@@ -532,19 +526,15 @@ class WebhookHandler(Handler):
     def download_repo(self, commit_url, repo_file):
         repo_zip_url = commit_url.replace('commit', 'archive') + '.zip'
         try:
-            if self.logger:
-                self.logger.info('Downloading {0}...'.format(repo_zip_url))
+            self.logger.info('Downloading {0}...'.format(repo_zip_url))
             if not os.path.isfile(repo_file):
                 self.download_file(repo_zip_url, repo_file)
         finally:
-            if self.logger:
-                self.logger.info('finished.')
+            self.logger.info('finished.')
 
     def unzip_repo_file(self, repo_file, repo_dir):
         try:
-            if self.logger:
-                self.logger.info('Unzipping {0}...'.format(repo_file))
+            self.logger.info('Unzipping {0}...'.format(repo_file))
             unzip(repo_file, repo_dir)
         finally:
-            if self.logger:
-                self.logger.info('finished.')
+            self.logger.info('finished.')
