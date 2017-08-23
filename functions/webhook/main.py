@@ -12,8 +12,6 @@ from libraries.lambda_handlers.webhook_handler import WebhookHandler
 from libraries.tools.lambda_utils import wipe_temp
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)

@@ -84,6 +84,7 @@ class Handler(object):
         :param int queue_size: The number of errors to store in the report queue. A report is sent when the queue is full
         :return:
         """
+        self.logger.info('Reporting Error: {}'.format(message))
         lambda_name = self.__class__.__name__
         if self.context:
             lambda_name = self.context.function_name
@@ -151,6 +152,7 @@ class Handler(object):
         """
         self.logger.debug("EVENT:")
         self.logger.debug(json.dumps(self.event))
+        self.logger.debug('Stage Prefix: {}'.format(self.stage_prefix()))
         try:
             return self._run(**kwargs)
         except Exception as e:

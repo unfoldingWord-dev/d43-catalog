@@ -12,6 +12,7 @@ import logging
 import os
 import shutil
 import tempfile
+import arrow
 from glob import glob
 
 import yaml
@@ -125,9 +126,12 @@ class WebhookHandler(Handler):
             data = self._build()
             # upload data
             if 'uploads' in data:
+                self.logger.info('Uploading files for "{}"'.format(self.repo_name))
                 for upload in data['uploads']:
                     self.s3_handler.upload_file(upload['path'], upload['key'])
                 del data['uploads']
+            else:
+                self.logger.info('No publishable content found in "{}"'.format(self.repo_name))
             self.db_handler.insert_item(data)
         except Exception as e:
             self.report_error(e.message, from_email=self.from_email, to_email=self.to_email)
@@ -154,6 +158,7 @@ class WebhookHandler(Handler):
         if not os.path.isdir(self.repo_dir):
             raise Exception('Was not able to find {0}'.format(self.repo_dir)) # pragma: no cover
 
+        self.logger.info('Processing repository "{}"'.format(self.repo_name))
         data = {}
         if self.repo_name == 'localization':
             data = self._build_localization()
@@ -280,6 +285,7 @@ class WebhookHandler(Handler):
             'commit_id': self.commit_id,
             'language': manifest['dublin_core']['language']['identifier'],
             'timestamp': self.timestamp,
+            'added_at': arrow.utcnow().isoformat(),
             'package': json.dumps(manifest, sort_keys=True),
             'signed': False,
             'dirty': False,
@@ -526,15 +532,15 @@ class WebhookHandler(Handler):
     def download_repo(self, commit_url, repo_file):
         repo_zip_url = commit_url.replace('commit', 'archive') + '.zip'
         try:
-            self.logger.info('Downloading {0}...'.format(repo_zip_url))
+            self.logger.debug('Downloading {0}...'.format(repo_zip_url))
             if not os.path.isfile(repo_file):
                 self.download_file(repo_zip_url, repo_file)
         finally:
-            self.logger.info('finished.')
+            pass
 
     def unzip_repo_file(self, repo_file, repo_dir):
         try:
-            self.logger.info('Unzipping {0}...'.format(repo_file))
+            self.logger.debug('Unzipping {0}...'.format(repo_file))
             unzip(repo_file, repo_dir)
         finally:
-            self.logger.info('finished.')
+            pass
