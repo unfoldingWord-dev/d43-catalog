@@ -4,7 +4,7 @@
   "runtime": "python2.7",
   "memory": 512,
   "timeout": 300,
-  "role": "arn:aws:iam::002723143144:role/dev-tx_lambda_function",
+  "role": "arn:aws:iam::002723143144:role/tx_lambda_function",
   "environment": {},
   "hooks": {
     "build": "pip install --upgrade -r ../../requirements.txt -t ."
