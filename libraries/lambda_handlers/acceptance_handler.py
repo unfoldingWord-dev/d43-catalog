@@ -1,6 +1,7 @@
 from libraries.lambda_handlers.handler import Handler
 
 import json
+import os
 from urlparse import urlparse
 
 class AcceptanceHandler(Handler):
@@ -9,22 +10,19 @@ class AcceptanceHandler(Handler):
         super(AcceptanceHandler, self).__init__(event, context)
 
         self.catalog_url = catalog_url
-        self.stage_vars = self.retrieve(event, 'stage-variables')
-        self.to_email = self.retrieve(self.stage_vars, 'to_email')
-        self.from_email = self.retrieve(self.stage_vars, 'from_email')
+        if 'to_email' in kwargs:
+            self.to_email = kwargs['to_email']
+        elif 'TO_EMAIL' in os.environ:
+            self.to_email = os.environ['TO_EMAIL']
+        else:
+            self.to_email = ''
+        if 'from_email' in kwargs:
+            self.from_email = kwargs['from_email']
+        elif 'FROM_EMAIL' in os.environ:
+            self.from_email = os.environ['FROM_EMAIL']
+        else:
+            self.from_email = ''
 
-        # if 'to_email' in kwargs:
-        #     self.to_email = kwargs['to_email']
-        # else:
-        #     self.to_email = None
-        # if 'from_email' in kwargs:
-        #     self.from_email = kwargs['from_email']
-        # else:
-        #     self.from_email = self.retrieve(event['stage-variables'])
-        # if 'quiet' in kwargs:
-        #     self.quiet = kwargs['quiet']
-        # else:
-        #     self.quiet = None
         self.errors = []
         self.ses_handler = SESHandler()
         self.http_connection = HTTPConnection
@@ -229,6 +227,6 @@ class AcceptanceHandler(Handler):
                         }
                     )
             except Exception as e:
-                print("ALERT! FAILED TO SEND EMAIL: {}".format(e))
+                self.logger.error("Failed to send email: {}".format(e))
 
         return self.errors

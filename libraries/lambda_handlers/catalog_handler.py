@@ -342,4 +342,3 @@ class CatalogHandler(InstanceHandler):
         """
         if len(checker.all_errors) > 0:
             self.report_error(checker.all_errors, to_email=self.to_email, from_email=self.from_email)
-    
