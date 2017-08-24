@@ -58,6 +58,9 @@ class TestFork(TestCase):
                 'cdn_url': '',
                 'from_email': '',
                 'to_email': ''
+            },
+            'context': {
+
             }
         }
         if 'testing_gogs_user_token' in os.environ:

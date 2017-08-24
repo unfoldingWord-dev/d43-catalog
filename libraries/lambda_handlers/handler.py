@@ -80,11 +80,18 @@ class Handler(object):
     def report_error(self, message, to_email=None, from_email=None, queue_size=4):
         """
         Submits an error report to administrators
-        :param string message: the error message
+        :param string|list message: the error message
         :param int queue_size: The number of errors to store in the report queue. A report is sent when the queue is full
         :return:
         """
-        self.logger.info('Reporting Error: {}'.format(message))
+        if isinstance(message, list):
+            self.logger.info('Reporting Error: {}'.format(json.dumps(message)))
+        elif isinstance(message, str):
+            self.logger.info('Reporting Error: {}'.format(message))
+        else:
+            self.logger.warning('Unable to report error. Invalid type "{}"'.format(type(message)))
+            return
+
         lambda_name = self.__class__.__name__
         if self.context:
             lambda_name = self.context.function_name
@@ -97,13 +104,25 @@ class Handler(object):
             count = len(errors)
         else:
             errors = []
-            count = 1
+            count = 0
 
-        # record error
-        errors.append({
-            'message': message,
-            'timestamp': arrow.utcnow().isoformat()
-        })
+        # append errors
+        if isinstance(message, list):
+            timestamp = arrow.utcnow().isoformat()
+            for m in message:
+                errors.append({
+                    'message': m,
+                    'timestamp': timestamp
+                })
+            count += len(message)
+        else:
+            errors.append({
+                'message': message,
+                'timestamp': arrow.utcnow().isoformat()
+            })
+            count += 1
+
+        # record errors
         db.update_item({'lambda': lambda_name}, {
             'count': count,
             'errors': errors

@@ -341,41 +341,5 @@ class CatalogHandler(InstanceHandler):
         :return:
         """
         if len(checker.all_errors) > 0:
-            errors = self.errors_table.get_item({'id': 1})
-            if errors:
-                count = errors['count'] + 1
-            else:
-                count = 1
-        else:
-            count = 0
-
-        self.errors_table.update_item({'id': 1}, {'count': count, 'errors': checker.all_errors})
-        if count > 4: # pragma: no cover
-            print("ALERT! FAILED MORE THAN 4 TIMES!")
-            try:
-                self.ses_handler.send_email(
-                    Source=self.from_email,
-                    Destination={
-                        'ToAddresses': [
-                            self.to_email
-                        ]
-                    },
-                    Message={
-                        'Subject': {
-                            'Data': 'ERRORS Generating catalog.json',
-                            'Charset': 'UTF-8'
-                        },
-                        'Body': {
-                            'Text': {
-                                'Data': 'Errors generating catalog.json: '+"\n"+"\n".join(checker.all_errors),
-                                'Charset': 'UTF-8'
-                            },
-                            'Html': {
-                                'Data': 'Errors generating catalog.json: <ul><li>'+'</li><li>'.join(checker.all_errors)+'</li></ul>',
-                                'Charset': 'UTF-8'
-                            }
-                        }
-                    }
-                )
-            except Exception as e: # pragma: no cover
-                print("ALERT! FAILED TO SEND EMAIL: {}".format(e))
+            self.report_error(checker.all_errors, to_email=self.to_email, from_email=self.from_email)
+    
