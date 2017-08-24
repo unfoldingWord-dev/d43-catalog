@@ -22,6 +22,9 @@ class Handler(object):
         logging.getLogger('boto3').setLevel(logging.ERROR)
         logging.getLogger('botocore').setLevel(logging.ERROR)
 
+        # Make USFM-tools not be so noisy
+        logging.getLogger('usfm_tools').setLevel(logging.WARNING)
+
         # Set up logger
         self.logger = logging.getLogger() # type: logging._loggerClass
         self.logger.setLevel(logging.DEBUG)
