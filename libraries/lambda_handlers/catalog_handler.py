@@ -6,6 +6,7 @@ import json
 import os
 import tempfile
 import time
+import hashlib
 
 from libraries.lambda_handlers.instance_handler import InstanceHandler
 from d43_aws_tools import S3Handler, SESHandler, DynamoDBHandler
@@ -87,6 +88,7 @@ class CatalogHandler(InstanceHandler):
 
         for item in items:
             repo_name = item['repo_name']
+            self.logger.info('Processing {}'.format(repo_name))
             try:
                 package = json.loads(item['package'])
             except Exception as e:
@@ -123,7 +125,7 @@ class CatalogHandler(InstanceHandler):
 
         if completed_items > 0:
             status = self._read_status()
-            if status and status['state'] == 'complete' and not self._catalog_has_changed(self.catalog):
+            if status and status['state'] == 'complete' and not self.__catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
             else:
@@ -178,7 +180,7 @@ class CatalogHandler(InstanceHandler):
         :param state: the state of completion the catalog is in
         :return:
         """
-        self.logger.debug('Recording catalog status')
+        self.logger.debug('Recording catalog status: "{}"'.format(state))
         self.status_table.update_item(
             {'api_version': self.api_version},
             {
@@ -323,7 +325,7 @@ class CatalogHandler(InstanceHandler):
             language = self.get_language(language)  # gets the existing language container or creates a new one
             language.update(localization)
 
-    def _catalog_has_changed(self, catalog):
+    def __catalog_has_changed(self, catalog):
         """
         Checks if the catalog has changed compared to the given catalog
         :param catalog:
@@ -331,9 +333,15 @@ class CatalogHandler(InstanceHandler):
         """
         try:
             catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
-            current_catalog = json.loads(self.get_url(catalog_url, True))
-            same = current_catalog == catalog
-            return not same
+            self.logger.debug('Comparing new catalog against old ({})'.format(catalog_url))
+            old_catalog_str = self.get_url(catalog_url, True)
+            new_catalog_str = json.dumps(catalog, sort_keys=True)
+
+            old_hash = hashlib.md5(old_catalog_str.encode('utf-8')).hexdigest()
+            new_hash = hashlib.md5(new_catalog_str.encode('utf-8')).hexdigest()
+            self.logger.debug('Old catalog hash: {}'.format(old_hash))
+            self.logger.debug('New catalog hash: {}'.format(new_hash))
+            return old_hash != new_hash
         except Exception as e:
             return True
 

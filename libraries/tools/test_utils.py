@@ -37,8 +37,17 @@ def assert_object_equals(unit_test, obj1, obj2):
     :param obj2:
     :return:
     """
-    unit_test.assertEqual(sort_object(obj1), sort_object(obj2))
+    unit_test.assertTrue(object_equals(obj1, obj2))
 
+def object_equals(obj1, obj2):
+    """
+        Checks if two objects are equal after recursively sorting them
+        :param unit_test: the object doing the assertions
+        :param obj1:
+        :param obj2:
+        :return:
+        """
+    return sort_object(obj1) == sort_object(obj2)
 
 def assert_object_not_equals(unit_test, obj1, obj2):
     """

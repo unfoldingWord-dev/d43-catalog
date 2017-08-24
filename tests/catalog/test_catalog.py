@@ -1,5 +1,6 @@
 from __future__ import unicode_literals, print_function
 
+import json
 import os
 from mock import patch
 from unittest import TestCase
