@@ -141,6 +141,7 @@ class CatalogHandler(InstanceHandler):
                     if len(self.checker.all_errors):
                         self._publish_status('incomplete')
                     else:
+                        self.clear_errors()
                         self._publish_status()
 
                     response['success'] = True

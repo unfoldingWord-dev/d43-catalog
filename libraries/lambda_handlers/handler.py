@@ -80,6 +80,17 @@ class Handler(object):
         else:
             return ''
 
+    def clear_errors(self):
+        """
+        Empties the error queue
+        :return:
+        """
+        lambda_name = self.__class__.__name__
+        if self.context:
+            lambda_name = self.context.function_name
+        db = DynamoDBHandler('{}d43-catalog-errors'.format(self.stage_prefix()))
+        db.delete_item({'lambda': lambda_name})
+
     def report_error(self, message, to_email=None, from_email=None, queue_size=4):
         """
         Submits an error report to administrators

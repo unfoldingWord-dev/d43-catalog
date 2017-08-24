@@ -118,7 +118,8 @@ class TestCatalog(TestCase):
         })
         return state
 
-    def test_catalog_valid_obs_content(self, mock_report_error):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_valid_obs_content(self, mock_clear_errors, mock_report_error):
         state = self.run_with_db('valid.json')
 
         response = state['response']
@@ -131,6 +132,7 @@ class TestCatalog(TestCase):
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_obs.json'))
         self.assertEqual(1, len(mock_progress_db._db))
         mock_report_error.assert_not_called()
+        mock_clear_errors.assert_called_once()
 
     def test_catalog_no_sig_content(self, mock_report_error):
         state = self.run_with_db('no_sig.json')
@@ -177,7 +179,8 @@ class TestCatalog(TestCase):
         self.assertIn('There were no formats to process', response['message'])
         self.assertFalse(response['incomplete'])
 
-    def test_catalog_ulb_versification(self, mock_report_error):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_ulb_versification(self, mock_clear_errors, mock_report_error):
         """
         Tests processing ulb first then versification.
         It's important to test order of processing versification because it can take two code paths
@@ -188,8 +191,10 @@ class TestCatalog(TestCase):
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_versification_ulb.json'))
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_versification_ulb(self, mock_report_error):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_versification_ulb(self, mock_clear_errors, mock_report_error):
         """
         Tests processing versification first then ulb.
         It's important to test order of processing versification because it can take two code paths
@@ -200,8 +205,10 @@ class TestCatalog(TestCase):
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_versification_ulb.json'))
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_versification_tq(self, mock_report_error):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_versification_tq(self, mock_clear_errors, mock_report_error):
         """
         Tests processing versification for tQ (a help RC)
         :return:
@@ -211,15 +218,20 @@ class TestCatalog(TestCase):
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_versification_tq.json'))
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_localization(self, mock_report_error):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_localization(self, mock_clear_errors, mock_report_error):
         state = self.run_with_db('localization.json')
 
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_localization.json'))
+        mock_clear_errors.assert_called_once()
+        mock_report_error.assert_not_called()
 
-    def test_catalog_complex(self, mock_report_error):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_complex(self, mock_clear_errors, mock_report_error):
         """
         Tests multiple repositories sharing a single resource
         and other complex situations
@@ -228,6 +240,8 @@ class TestCatalog(TestCase):
         state = self.run_with_db('complex.json')
 
         assert_object_equals_file(self, state['response']['catalog'], os.path.join(self.resources_dir, 'v3_catalog_complex.json'))
+        mock_clear_errors.assert_called_once()
+        mock_report_error.assert_not_called()
 
     def test_read_none_status(self, mock_report_error):
         state = self.make_handler_instance('valid.json')
