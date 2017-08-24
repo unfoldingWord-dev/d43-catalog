@@ -304,3 +304,9 @@ class TestCatalog(TestCase):
         }
         state['handler']._strip_build_rules(obj)
         assert_object_equals(self, expected, obj)
+
+    def test_catalog_has_changed(self, mock_report_error):
+        state = self.make_handler_instance('valid.json')
+        new_catalog = {}
+        result = state['handler']._catalog_has_changed(new_catalog)
+        self.assertTrue(result)

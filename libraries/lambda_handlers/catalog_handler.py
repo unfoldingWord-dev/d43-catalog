@@ -125,7 +125,7 @@ class CatalogHandler(InstanceHandler):
 
         if completed_items > 0:
             status = self._read_status()
-            if status and status['state'] == 'complete' and not self.__catalog_has_changed(self.catalog):
+            if status and status['state'] == 'complete' and not self._catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
             else:
@@ -325,7 +325,7 @@ class CatalogHandler(InstanceHandler):
             language = self.get_language(language)  # gets the existing language container or creates a new one
             language.update(localization)
 
-    def __catalog_has_changed(self, catalog):
+    def _catalog_has_changed(self, catalog):
         """
         Checks if the catalog has changed compared to the given catalog
         :param catalog:
