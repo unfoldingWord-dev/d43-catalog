@@ -135,7 +135,11 @@ class CatalogHandler(InstanceHandler):
                     self.logger.info('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
 
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.api_version), cache_time=0)
-                    self._publish_status()
+                    # TRICKY: only mark as complete when there are no errors
+                    if len(self.checker.all_errors):
+                        self._publish_status('incomplete')
+                    else:
+                        self._publish_status()
 
                     response['success'] = True
                     response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
