@@ -93,7 +93,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # check if build is complete
         if self.status['state'] == 'complete':
-            self.logger.info('Catalog already generated')
+            self.logger.debug('Catalog already generated')
             return True
 
         # retrieve the latest catalog
@@ -110,7 +110,7 @@ class TsV2CatalogHandler(InstanceHandler):
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
             lid = lang['identifier']
-            self.logger.info('Analyzing {}'.format(lid))
+            self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = res['identifier']
 
@@ -324,7 +324,7 @@ class TsV2CatalogHandler(InstanceHandler):
             self.logger.warning('Source catalog status not found')
             return False
         if source_status['state'] != 'complete':
-            self.logger.info('Source catalog is not ready for use')
+            self.logger.debug('Source catalog is not ready for use')
             return False
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process

@@ -81,7 +81,7 @@ class Handler(object):
         """
         Submits an error report to administrators
         :param string|list message: the error message
-        :param int queue_size: The number of errors to store in the report queue. A report is sent when the queue is full
+        :param int queue_size: The number of error reports to store in the queue. An email is sent when the queue is full
         :return:
         """
         if isinstance(message, list):
@@ -101,7 +101,7 @@ class Handler(object):
         report = db.get_item({'lambda': lambda_name})
         if report and 'errors' in report:
             errors = report['errors']
-            count = len(errors)
+            count = report['count']
         else:
             errors = []
             count = 0
@@ -114,23 +114,22 @@ class Handler(object):
                     'message': m,
                     'timestamp': timestamp
                 })
-            count += len(message)
         else:
             errors.append({
                 'message': message,
                 'timestamp': arrow.utcnow().isoformat()
             })
-            count += 1
 
         # record errors
         db.update_item({'lambda': lambda_name}, {
-            'count': count,
+            'count': count + 1, # increment count every time this method is called
             'errors': errors
         })
 
         # send report
         if count >= queue_size and to_email and from_email:
             # send message
+            self.logger.info('Emailing error report')
             text = ''
             html = ''
             for e in errors:
@@ -161,6 +160,8 @@ class Handler(object):
                         }
                     }
                 )
+                # clear error queue
+                db.delete_item({'lambda': lambda_name})
             except Exception as e:
                 self.logger.error('Failed to report errors {}'.format(e.message))
 

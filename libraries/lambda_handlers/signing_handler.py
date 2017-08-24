@@ -141,7 +141,7 @@ class SigningHandler(InstanceHandler):
 
         if was_signed or fully_signed:
             if self.logger:
-                self.logger.info('recording signatures')
+                self.logger.debug('recording signatures')
             record_keys = {'repo_name': item['repo_name']}
             time.sleep(5)
             self.db_handler.update_item(record_keys, {
@@ -160,7 +160,7 @@ class SigningHandler(InstanceHandler):
         if 'signature' in format and format['signature']:
             return (True, False)
         elif self.logger:
-            self.logger.info('Signing {}'.format(format['url']))
+            self.logger.debug('Signing {}'.format(format['url']))
 
         base_name = os.path.basename(format['url'])
         file_to_sign = os.path.join(self.temp_dir, base_name)

@@ -108,7 +108,7 @@ class UwV2CatalogHandler(InstanceHandler):
         # check if build is complete
         if status['state'] == 'complete':
             if self.logger:
-                self.logger.info('Catalog already generated')
+                self.logger.debug('Catalog already generated')
             return True
 
         # retrieve the latest catalog
@@ -127,6 +127,7 @@ class UwV2CatalogHandler(InstanceHandler):
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
             lid = lang['identifier']
+            self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = res['identifier']
                 if rid == 'obs':
@@ -238,7 +239,7 @@ class UwV2CatalogHandler(InstanceHandler):
                         # build catalog
                         if not source:
                             if self.logger:
-                                self.logger.info('No book text found in {}_{}_{}'.format(lid, rid, pid))
+                                self.logger.debug('No book text found in {}_{}_{}'.format(lid, rid, pid))
                             continue
 
                         media_keys = media.keys()
@@ -362,11 +363,11 @@ class UwV2CatalogHandler(InstanceHandler):
                 status = s
         if not source_status:
             if self.logger:
-                self.logger.info('Source catalog status not found')
+                self.logger.debug('Source catalog status not found')
             return False
         if source_status['state'] != 'complete':
             if self.logger:
-                self.logger.info('Source catalog is not ready for use')
+                self.logger.debug('Source catalog is not ready for use')
             return False
         if not status or status['source_timestamp'] != source_status['timestamp']:
             # begin or restart process

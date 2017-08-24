@@ -126,12 +126,12 @@ class WebhookHandler(Handler):
             data = self._build()
             # upload data
             if 'uploads' in data:
-                self.logger.info('Uploading files for "{}"'.format(self.repo_name))
+                self.logger.debug('Uploading files for "{}"'.format(self.repo_name))
                 for upload in data['uploads']:
                     self.s3_handler.upload_file(upload['path'], upload['key'])
                 del data['uploads']
             else:
-                self.logger.info('No publishable content found in "{}"'.format(self.repo_name))
+                self.logger.debug('No publishable content found in "{}"'.format(self.repo_name))
             self.db_handler.insert_item(data)
         except Exception as e:
             self.report_error(e.message, from_email=self.from_email, to_email=self.to_email)
@@ -410,7 +410,7 @@ class WebhookHandler(Handler):
             vrs_id = os.path.basename(vrs_dir)
             book_files = sorted(glob(os.path.join(bible_dir, vrs_dir, 'chunks', '*.json')))
             for b in book_files:
-                self.logger.info('Reading {0}...'.format(b))
+                self.logger.debug('Reading {0}...'.format(b))
                 identifier = os.path.splitext(os.path.basename(b))[0]
                 try:
                     book_vrs = json.loads(read_file(b))
@@ -460,7 +460,7 @@ class WebhookHandler(Handler):
         files = sorted(glob(os.path.join(self.repo_dir, '*.json')))
         localization = {}
         for f in files:
-            self.logger.info("Reading {0}...".format(f))
+            self.logger.debug("Reading {0}...".format(f))
             language = os.path.splitext(os.path.basename(f))[0]
             try:
                 localization[language] = json.loads(read_file(f))

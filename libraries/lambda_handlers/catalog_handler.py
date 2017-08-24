@@ -90,7 +90,7 @@ class CatalogHandler(InstanceHandler):
             try:
                 package = json.loads(item['package'])
             except Exception as e:
-                print('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
+                self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e), to_email=self.to_email, from_email=self.from_email)
                 continue
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = package
@@ -132,9 +132,8 @@ class CatalogHandler(InstanceHandler):
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                     write_file(catalog_path, cat_str)
                     c_stats = os.stat(catalog_path)
-                    print('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
+                    self.logger.info('New catalog built: {} Kilobytes'.format(c_stats.st_size * 0.001))
 
-                    print('Uploading catalog.json to API')
                     self.api_handler.upload_file(catalog_path, 'v{0}/catalog.json'.format(self.api_version), cache_time=0)
                     self._publish_status()
 
@@ -152,9 +151,9 @@ class CatalogHandler(InstanceHandler):
             response['message'] = '{0}'.format(self.checker.all_errors)
 
         if(response['success']):
-            print(response['message'])
+            self.logger.info(response['message'])
         else:
-            print('Catalog was not published due to errors')
+            self.logger.error('Catalog was not published due to errors')
 
         return response
 
@@ -175,7 +174,7 @@ class CatalogHandler(InstanceHandler):
         :param state: the state of completion the catalog is in
         :return:
         """
-        print('Recording catalog status')
+        self.logger.debug('Recording catalog status')
         self.status_table.update_item(
             {'api_version': self.api_version},
             {
