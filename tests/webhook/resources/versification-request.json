@@ -3,7 +3,9 @@
     "gogs_url": "",
     "gogs_org": "Door43-Catalog",
     "cdn_bucket": "",
-    "cdn_url": "https://cdn.door43.org"
+    "cdn_url": "https://cdn.door43.org",
+    "from_email": "",
+    "to_email": ""
   },
   "body-json": {
     "secret": "",

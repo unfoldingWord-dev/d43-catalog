@@ -25,10 +25,11 @@ setup(
         'markdown==2.6.8',
         'pyyaml==3.12',
         'gogs_client==1.0.6',
-        'usfm-tools==0.0.12',
+        'usfm-tools==0.0.13',
         'd43_aws_tools==1.0.4',
         'boto3==1.4.4',
         'python-dateutil==2.6.0',
-        'pytz==2017.2'
+        'pytz==2017.2',
+        'grequests==0.3.0'
     ]
 )
