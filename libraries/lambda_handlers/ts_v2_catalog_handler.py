@@ -110,10 +110,10 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
-            lid = lang['identifier']
+            lid = lang['identifier'].lower()
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
-                rid = res['identifier']
+                rid = res['identifier'].lower()
                 self.logger.debug('Processing {}_{}'.format(lid, rid))
 
                 rc_format = None
@@ -157,7 +157,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
                 for project in res['projects']:
-                    pid = project['identifier']
+                    pid = project['identifier'].lower()
                     self.logger.debug('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
@@ -218,14 +218,14 @@ class TsV2CatalogHandler(InstanceHandler):
                                 self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
                     if not rc_format:
-                        raise Exception('Could not find a format for {}_{}_{}'.format(lang['identifier'], res['identifier'], project['identifier']))
+                        raise Exception('Could not find a format for {}_{}_{}'.format(lid, rid, pid))
 
                     modified = self._convert_date(rc_format['modified'])
                     rc_type = self._get_rc_type(rc_format)
 
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
-                        self.logger.warning('Could not find date_modified for {}_{}_{} from "{}"'.format(lang['identifier'], res['identifier'], project['identifier'], rc_format['modified']))
+                        self.logger.warning('Could not find date_modified for {}_{}_{} from "{}"'.format(lid, rid, pid, rc_format['modified']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         self._build_catalog_node(cat_dict, lang, res, project, modified)
@@ -365,7 +365,7 @@ class TsV2CatalogHandler(InstanceHandler):
             dc = manifest['dublin_core']
 
             for project in manifest['projects']:
-                pid = project['identifier']
+                pid = project['identifier'].lower()
                 note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 note_json = []
 
@@ -451,7 +451,7 @@ class TsV2CatalogHandler(InstanceHandler):
             dc = manifest['dublin_core']
 
             for project in manifest['projects']:
-                pid = project['identifier']
+                pid = project['identifier'].lower()
                 question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 question_json = []
 
@@ -529,7 +529,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
             # TRICKY: there should only be one project
             for project in manifest['projects']:
-                pid = project['identifier']
+                pid = project['identifier'].lower()
                 content_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 categories = os.listdir(content_dir)
                 for cat in categories:
@@ -631,7 +631,7 @@ class TsV2CatalogHandler(InstanceHandler):
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
             usx_dir = os.path.join(rc_dir, 'usx')
             for project in manifest['projects']:
-                pid = project['identifier']
+                pid = project['identifier'].lower()
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
@@ -719,20 +719,20 @@ class TsV2CatalogHandler(InstanceHandler):
         :param rc_type:
         :return:
         """
-        lid = language['identifier']
+        lid = language['identifier'].lower()
 
         if rc_type == 'help':
-            pid = project['identifier']
+            pid = project['identifier'].lower()
             for rid in catalog[pid]['_langs'][lid]['_res']:
                 res = catalog[pid]['_langs'][lid]['_res'][rid]
-                if 'tn' in resource['identifier']:
+                if 'tn' in resource['identifier'].lower():
                     res.update({
                         'notes': '{}/{}/{}/{}/notes.json?date_modified={}'.format(
                             self.cdn_url,
                             TsV2CatalogHandler.cdn_root_path,
                             pid, lid, modified)
                     })
-                elif 'tq' in resource['identifier']:
+                elif 'tq' in resource['identifier'].lower():
                     res.update({
                         'checking_questions': '{}/{}/{}/{}/questions.json?date_modified={}'.format(
                             self.cdn_url,
@@ -741,6 +741,9 @@ class TsV2CatalogHandler(InstanceHandler):
                     })
         elif rc_type == 'dict':
             for pid in catalog:
+                if lid not in catalog[pid]['_langs']:
+                    self.logger.warning('Expected "{}" as a language in "{}" but could not find it.'.format(lid, pid))
+                    continue
                 for rid in catalog[pid]['_langs'][lid]['_res']:
                     res = catalog[pid]['_langs'][lid]['_res'][rid]
                     # TRICKY: obs and Bible now use the same words
@@ -761,9 +764,9 @@ class TsV2CatalogHandler(InstanceHandler):
         :param modified:
         :return:
         """
-        lid = language['identifier']
-        rid = resource['identifier']
-        pid = project['identifier']
+        lid = language['identifier'].lower()
+        rid = resource['identifier'].lower()
+        pid = project['identifier'].lower()
 
         # TRICKY: v2 api sorted obs with 1
         if pid == 'obs': project['sort'] = 1
@@ -797,7 +800,7 @@ class TsV2CatalogHandler(InstanceHandler):
             'date_modified': r_modified,
             'name': resource['title'],
             'notes': '',
-            'slug': resource['identifier'],
+            'slug': rid,
             'status': {
                 'checking_entity': ', '.join(resource['checking']['checking_entity']),
                 'checking_level': resource['checking']['checking_level'],

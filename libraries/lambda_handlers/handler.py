@@ -178,7 +178,7 @@ class Handler(object):
                 # clear error queue
                 db.delete_item({'lambda': lambda_name})
             except Exception as e:
-                self.logger.error('Failed to report errors {}'.format(e.message))
+                self.logger.error('Failed to report errors {}: {}'.format(e.message, sys.exc_info()[2]))
 
     def run(self, **kwargs):
         """
