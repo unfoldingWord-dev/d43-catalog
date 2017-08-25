@@ -70,6 +70,28 @@ class Handler(object):
         else:
             self.logger.setLevel(logging.DEBUG)
 
+    def sanitize_identifier(self, identifier):
+        """
+        Sanitizes an identifier.
+        Warnings will be produced if the identifier is malformed
+        :param identifier:
+        :return:
+        """
+        # errors
+        if not isinstance(identifier, str):
+            self.logger.error('Identifier "{}" is not a string'.format(identifier))
+            return identifier
+        if not identifier.strip():
+            self.logger.error('Identifier "{}" is empty'.format(identifier))
+            return identifier
+
+        # warnings
+        if '_' in identifier:
+            self.logger.warning('Identifier "{}" contains an underscore'.format(identifier))
+
+        return identifier.strip().lower()
+
+
     def stage_prefix(self):
         """
         Returns the prefix that should be used for operations within this stage. e.g. database names etc.

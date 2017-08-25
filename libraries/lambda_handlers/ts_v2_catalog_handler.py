@@ -110,10 +110,10 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
-            lid = lang['identifier'].lower()
+            lid = self.sanitize_identifier(lang['identifier'])
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
-                rid = res['identifier'].lower()
+                rid = self.sanitize_identifier(res['identifier'])
                 self.logger.debug('Processing {}_{}'.format(lid, rid))
 
                 rc_format = None
@@ -157,7 +157,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
                 for project in res['projects']:
-                    pid = project['identifier'].lower()
+                    pid = self.sanitize_identifier(project['identifier'])
                     self.logger.debug('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
@@ -365,7 +365,7 @@ class TsV2CatalogHandler(InstanceHandler):
             dc = manifest['dublin_core']
 
             for project in manifest['projects']:
-                pid = project['identifier'].lower()
+                pid = self.sanitize_identifier(project['identifier'])
                 note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 note_json = []
 
@@ -451,7 +451,7 @@ class TsV2CatalogHandler(InstanceHandler):
             dc = manifest['dublin_core']
 
             for project in manifest['projects']:
-                pid = project['identifier'].lower()
+                pid = self.sanitize_identifier(project['identifier'])
                 question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 question_json = []
 
@@ -529,7 +529,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
             # TRICKY: there should only be one project
             for project in manifest['projects']:
-                pid = project['identifier'].lower()
+                pid = self.sanitize_identifier(project['identifier'])
                 content_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 categories = os.listdir(content_dir)
                 for cat in categories:
@@ -631,7 +631,7 @@ class TsV2CatalogHandler(InstanceHandler):
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
             usx_dir = os.path.join(rc_dir, 'usx')
             for project in manifest['projects']:
-                pid = project['identifier'].lower()
+                pid = self.sanitize_identifier(project['identifier'])
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
@@ -719,20 +719,20 @@ class TsV2CatalogHandler(InstanceHandler):
         :param rc_type:
         :return:
         """
-        lid = language['identifier'].lower()
+        lid = self.sanitize_identifier(language['identifier'])
 
         if rc_type == 'help':
-            pid = project['identifier'].lower()
+            pid = self.sanitize_identifier(project['identifier'])
             for rid in catalog[pid]['_langs'][lid]['_res']:
                 res = catalog[pid]['_langs'][lid]['_res'][rid]
-                if 'tn' in resource['identifier'].lower():
+                if 'tn' in self.sanitize_identifier(resource['identifier']):
                     res.update({
                         'notes': '{}/{}/{}/{}/notes.json?date_modified={}'.format(
                             self.cdn_url,
                             TsV2CatalogHandler.cdn_root_path,
                             pid, lid, modified)
                     })
-                elif 'tq' in resource['identifier'].lower():
+                elif 'tq' in self.sanitize_identifier(resource['identifier']):
                     res.update({
                         'checking_questions': '{}/{}/{}/{}/questions.json?date_modified={}'.format(
                             self.cdn_url,
@@ -764,9 +764,9 @@ class TsV2CatalogHandler(InstanceHandler):
         :param modified:
         :return:
         """
-        lid = language['identifier'].lower()
-        rid = resource['identifier'].lower()
-        pid = project['identifier'].lower()
+        lid = self.sanitize_identifier(language['identifier'])
+        rid = self.sanitize_identifier(resource['identifier'])
+        pid = self.sanitize_identifier(project['identifier'])
 
         # TRICKY: v2 api sorted obs with 1
         if pid == 'obs': project['sort'] = 1
