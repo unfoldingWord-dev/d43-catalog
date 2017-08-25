@@ -191,8 +191,7 @@ class WebhookHandler(Handler):
             raise Exception('Bad Manifest: {0}'.format(e))
 
         # identifiers must be lowercase
-        self.lower_key(manifest['dublin_core'], 'identifier')
-        self.lower_key(manifest['dublin_core']['language'], 'identifier')
+        manifest['dublin_core']['identifier'] = self.sanitize_identifier(manifest['dublin_core']['identifier'])
 
         # build media formats
         media_formats = {}
@@ -250,16 +249,15 @@ class WebhookHandler(Handler):
         # split usfm bundles
         if manifest['dublin_core']['type'] == 'bundle' and manifest['dublin_core']['format'] == 'text/usfm':
             for project in manifest['projects']:
-                self.lower_key(project, 'identifier')
+                pid = self.sanitize_identifier(project['identifier'])
                 if 'formats' not in project:
                     project['formats'] = []
-                self.lower_key(project['formats'], 'identifier')
                 resource_id = manifest['dublin_core']['identifier'].split('-')[-1]
                 project_key = '{}/{}/v{}/{}.usfm'.format(
                                                         manifest['dublin_core']['language']['identifier'],
                                                         resource_id,
                                                         manifest['dublin_core']['version'],
-                                                        project['identifier'])
+                                                        pid)
                 project_url = '{}/{}'.format(self.cdn_url, project_key)
                 p_file_path = os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
                 p_stats = os.stat(p_file_path)
@@ -282,10 +280,10 @@ class WebhookHandler(Handler):
 
         # add media to projects
         for project in manifest['projects']:
-            self.lower_key(project, 'identifier')
-            if project['identifier'] in media_formats:
+            pid = self.sanitize_identifier(project['identifier'])
+            if pid in media_formats:
                 if 'formats' not in project: project['formats'] = []
-                project['formats'] = project['formats'] + media_formats[project['identifier']]
+                project['formats'] = project['formats'] + media_formats[pid]
 
         return {
             'repo_name': self.repo_name,
@@ -321,7 +319,7 @@ class WebhookHandler(Handler):
         """
         formats = {}
         for project in media['projects']:
-            self.lower_key(project, 'identifier')
+            pid = self.sanitize_identifier(project['identifier'])
             project_formats = []
             for media in project['media']:
                 if 'quality' in media and len(media['quality']) > 0:
@@ -343,7 +341,7 @@ class WebhookHandler(Handler):
                         }
                         if 'chapter_url' in media:
                             chapter_url = media['chapter_url'].replace('{quality}', quality)
-                            chapters = self._build_media_chapters(rc_dir, manifest, project['identifier'], chapter_url)
+                            chapters = self._build_media_chapters(rc_dir, manifest, pid, chapter_url)
                             if chapters:
                                 format['chapters'] = chapters
 
@@ -365,7 +363,7 @@ class WebhookHandler(Handler):
                         ]
                     }
                     if 'chapter_url' in media:
-                        chapters = self._build_media_chapters(rc_dir, manifest, project['identifier'], media['chapter_url'])
+                        chapters = self._build_media_chapters(rc_dir, manifest, pid, media['chapter_url'])
                         if chapters:
                             format['chapters'] = chapters
                         pass
@@ -385,12 +383,12 @@ class WebhookHandler(Handler):
         """
         media_chapters = []
         for project in manifest['projects']:
-            self.lower_key(project, 'identifier')
+            pid = self.sanitize_identifier(project['identifier'])
             if project['identifier'] == pid:
                 id = '_'.join([manifest['dublin_core']['language']['identifier'],
                                manifest['dublin_core']['identifier'],
                                manifest['dublin_core']['type'],
-                               project['identifier']])
+                               pid])
                 project_path = os.path.normpath(os.path.join(rc_dir, project['path']))
                 if manifest['dublin_core']['type'] == 'book':
                     chapters = os.listdir(project_path)
