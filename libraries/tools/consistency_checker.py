@@ -28,6 +28,7 @@ class ConsistencyChecker(object):
         return url_exists(url)
 
     def log_error(self, message):
+        message = 'Consistency Check Failed: {}'.format(message)
         if not self.quiet:
             self.logger.error(message)
         self.errors.append(message)
@@ -42,9 +43,13 @@ class ConsistencyChecker(object):
         self.errors = []
 
         # checks the row
-        if not row or 'repo_name' not in row or 'commit_id' not in row:
-            self.log_error('Bad row in table')
+        if not row:
+            self.log_error('None object given to consistency checker')
             return self.errors
+        for key in ['repo_name', 'commit_id']:
+            if key not in row:
+                self.log_error('Row is missing key "{}"'.format(key))
+                return self.errors
 
         repo_name = row['repo_name']
         commit_id = row['commit_id']
