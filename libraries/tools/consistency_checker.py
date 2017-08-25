@@ -7,7 +7,7 @@
 from __future__ import print_function
 
 import json
-
+import logging
 from libraries.tools.url_utils import url_exists
 
 
@@ -17,6 +17,7 @@ class ConsistencyChecker(object):
         self.quiet = quiet
         self.all_errors = []
         self.errors = []
+        self.logger = logging.getLogger()
 
     def _url_exists(self, url):
         """
@@ -28,7 +29,7 @@ class ConsistencyChecker(object):
 
     def log_error(self, message):
         if not self.quiet:
-            print(message)
+            self.logger.error(message)
         self.errors.append(message)
         self.all_errors.append(message)
 

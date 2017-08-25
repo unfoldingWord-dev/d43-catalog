@@ -39,9 +39,8 @@ class TriggerHandler(InstanceHandler):
 
         grequests.map(requests, exception_handler=self.__exception_handler)
 
-    @staticmethod
-    def __exception_handler(request, exception):
-        print('Failed to trigger {}. {}'.format(request.url, exception.message))
+    def __exception_handler(self, request, exception):
+        self.logger.error('Failed to trigger {}. {}'.format(request.url, exception.message))
 
     @staticmethod
     def __callback(logger, response, **kwargs):

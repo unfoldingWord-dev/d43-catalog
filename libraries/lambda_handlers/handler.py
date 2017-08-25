@@ -122,11 +122,11 @@ class Handler(object):
         :return:
         """
         if isinstance(message, list):
-            self.logger.info('Reporting Error: {}'.format(json.dumps(message)))
+            self.logger.info('Reporting Error: {}'.format(json.dumps(message)), exc_info=1)
         elif isinstance(message, str):
-            self.logger.info('Reporting Error: {}'.format(message))
+            self.logger.info('Reporting Error: {}'.format(message), exc_info=1)
         else:
-            self.logger.warning('Unable to report error. Invalid type "{}"'.format(type(message)))
+            self.logger.warning('Unable to report error. Invalid type "{}"'.format(type(message)), exc_info=1)
             return
 
         lambda_name = self.__class__.__name__
@@ -200,7 +200,7 @@ class Handler(object):
                 # clear error queue
                 db.delete_item({'lambda': lambda_name})
             except Exception as e:
-                self.logger.error('Failed to report errors {}: {}'.format(e.message, sys.exc_info()[2]))
+                self.logger.error('Failed to report errors {}'.format(e.message), exc_info=1)
 
     def run(self, **kwargs):
         """
