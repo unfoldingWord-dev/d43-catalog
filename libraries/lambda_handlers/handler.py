@@ -70,11 +70,12 @@ class Handler(object):
         else:
             self.logger.setLevel(logging.DEBUG)
 
-    def sanitize_identifier(self, identifier):
+    def sanitize_identifier(self, identifier, lower=True):
         """
         Sanitizes an identifier.
         Warnings will be produced if the identifier is malformed
-        :param identifier:
+        :param string identifier:
+        :param bool lower: returns the identifier in lower case
         :return:
         """
         # errors
@@ -89,7 +90,10 @@ class Handler(object):
         if '_' in identifier:
             self.logger.warning('Identifier "{}" contains an underscore'.format(identifier))
 
-        return identifier.strip().lower()
+        if lower:
+            return identifier.strip().lower()
+        else:
+            return identifier.strip()
 
 
     def stage_prefix(self):
