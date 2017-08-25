@@ -125,12 +125,12 @@ class Handler(object):
             timestamp = arrow.utcnow().isoformat()
             for m in message:
                 errors.append({
-                    'message': m,
+                    'message': m.decode('utf-8'),
                     'timestamp': timestamp
                 })
         else:
             errors.append({
-                'message': message,
+                'message': message.decode('utf-8'),
                 'timestamp': arrow.utcnow().isoformat()
             })
 
