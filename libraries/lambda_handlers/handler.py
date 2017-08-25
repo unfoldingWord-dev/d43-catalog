@@ -78,7 +78,7 @@ class Handler(object):
         :return:
         """
         # errors
-        if not isinstance(identifier, str):
+        if not isinstance(identifier, basestring):
             self.logger.error('Identifier "{}" is not a string'.format(identifier))
             return identifier
         if not identifier.strip():

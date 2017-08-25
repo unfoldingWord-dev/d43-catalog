@@ -39,8 +39,6 @@ class Signer(object):
         if not private_pem_file:
             private_pem_file = self._default_priv_pem()
 
-        print(private_pem_file)
-
         # use openssl to sign the content
         sha384_file = file_to_sign + '.sha384'
         sign_com = 'openssl dgst -sha384 -sign {0} -out {1} {2}'.format(private_pem_file, sha384_file, file_to_sign)
@@ -146,7 +144,6 @@ class Signer(object):
         :return:
         """
         if not self.__pub_pem:
-            print('INFO: retrieving public pem from AWS')
             pem_path = os.path.join(self.__temp_dir, 'uW-vk.pem')
             download_file('https://pki.unfoldingword.org/uW-vk.pem', pem_path)
             self.__pub_pem = pem_path
