@@ -148,10 +148,11 @@ class CatalogHandler(InstanceHandler):
                     response['message'] = 'Uploaded new catalog to {0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog: {0}'.format(e)) # pragma: no cover
-        else:
-            self.checker.log_error('There were no formats to process')
 
         self._handle_errors(self.checker)
+
+        if completed_items == 0:
+            self.checker.log_error('There were no formats to process')
 
         if not response['success']:
             response['catalog'] = None
