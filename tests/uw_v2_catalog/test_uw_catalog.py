@@ -1,12 +1,14 @@
 import os
-from tools.file_utils import load_json_object
-from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
 from unittest import TestCase
-from tools.test_utils import assert_s3_equals_api_json
-from functions.uw_v2_catalog import UwV2CatalogHandler
+
+from libraries.tools.file_utils import load_json_object
+from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
+
+from libraries.lambda_handlers.uw_v2_catalog_handler import UwV2CatalogHandler
+from libraries.tools.test_utils import assert_s3_equals_api_json
+
 
 # This is here to test importing main
-from functions.uw_v2_catalog import main
 
 
 class TestUwV2Catalog(TestCase):
@@ -19,8 +21,12 @@ class TestUwV2Catalog(TestCase):
 
     def _make_event(self):
         return {
-            'cdn_bucket': 'cdn.door43.org',
-            'cdn_url': 'https://cdn.door43.org/'
+            'stage-variables': {
+                'cdn_bucket': 'cdn.door43.org',
+                'cdn_url': 'https://cdn.door43.org/',
+                'from_email': '',
+                'to_email': ''
+            }
         }
 
     def test_status_missing(self):
@@ -32,6 +38,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -50,6 +57,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -68,6 +76,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -87,6 +96,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -107,6 +117,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -127,6 +138,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -147,6 +159,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,
@@ -169,6 +182,7 @@ class TestUwV2Catalog(TestCase):
         mockLogger = MockLogger()
 
         converter = UwV2CatalogHandler(event=self._make_event(),
+                                       context=None,
                                        logger=mockLogger,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDB,

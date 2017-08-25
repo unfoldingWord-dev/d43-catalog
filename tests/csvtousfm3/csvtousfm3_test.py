@@ -1,7 +1,10 @@
 import os
 from unittest import TestCase
-from tools import csvtousfm3
-from tools.file_utils import read_file
+
+from libraries.tools.file_utils import read_file
+
+from libraries.tools import csvtousfm3
+
 
 class TestCSVtoUSFM3(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')

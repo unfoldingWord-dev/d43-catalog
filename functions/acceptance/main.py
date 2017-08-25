@@ -4,13 +4,10 @@ from __future__ import print_function
 
 import httplib
 
-from handler import AcceptanceTest
 from d43_aws_tools import SESHandler
-from tools.url_utils import get_url
-from tools.file_utils import wipe_temp
-import logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from libraries.tools.url_utils import get_url
+from libraries.lambda_handlers.acceptance_handler import AcceptanceHandler
+from libraries.tools.lambda_utils import wipe_temp
 
 
 class URLHandler(object):
@@ -34,7 +31,7 @@ def handle(event, context):
         key = record['s3']['object']['key']
         url = 'https://{0}/{1}'.format(bucket_name, key)
 
-        acceptance = AcceptanceTest(url, URLHandler, httplib.HTTPConnection, SESHandler, to_email="acceptancetest@door43.org", from_email="acceptancetest@door43.org")
+        acceptance = AcceptanceHandler(event, context, url, URLHandler, httplib.HTTPConnection, SESHandler)
         acceptance.run()
         print(acceptance.errors)
         return acceptance.errors
