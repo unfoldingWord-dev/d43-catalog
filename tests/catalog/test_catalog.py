@@ -1,15 +1,18 @@
 from __future__ import unicode_literals, print_function
-import os
-from unittest import TestCase
-from tools.test_utils import assert_object_equals_file, assert_object_equals
-from tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI
-from functions.catalog import CatalogHandler
+
 import json
+import os
+from mock import patch
+from unittest import TestCase
+
+from libraries.tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI, MockLogger
+
+from libraries.lambda_handlers.catalog_handler import CatalogHandler
+from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals
+
 
 # This is here to test importing main
-from functions.catalog import main
-
-
+@patch('libraries.lambda_handlers.handler.Handler.report_error')
 class TestCatalog(TestCase):
 
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
@@ -19,12 +22,15 @@ class TestCatalog(TestCase):
 
         event = {
             'Records': [],
-            'api_url': 'my-api',
-            'api_bucket': 'my-bucket',
-            'to_email': 'me@example.com',
-            'from_email': 'me@example.com',
-            'cdn_bucket': 'cdn-bucket',
-            'cdn_url': 'cdn-url'
+            'stage-variables': {
+                'api_url': 'my-api',
+                'api_bucket': 'my-bucket',
+                'to_email': 'me@example.com',
+                'from_email': 'me@example.com',
+                'cdn_bucket': 'cdn-bucket',
+                'cdn_url': 'cdn-url',
+                'version': '3',
+            }
         }
 
         return event
@@ -76,6 +82,7 @@ class TestCatalog(TestCase):
         mock_dbs_handler = lambda bucket: dbs[bucket]
         mock_checker_handler = lambda: mock_checker
         handler = CatalogHandler(event,
+                                 None,
                                  s3_handler=mock_s3_handler,
                                  dynamodb_handler=mock_dbs_handler,
                                  ses_handler=mock_ses_handler,
@@ -111,7 +118,8 @@ class TestCatalog(TestCase):
         })
         return state
 
-    def test_catalog_valid_obs_content(self):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_valid_obs_content(self, mock_clear_errors, mock_report_error):
         state = self.run_with_db('valid.json')
 
         response = state['response']
@@ -122,10 +130,11 @@ class TestCatalog(TestCase):
         self.assertFalse(response['incomplete'])
         self.assertIn('Uploaded new catalog', response['message'])
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_obs.json'))
-        self.assertEqual(0, mock_errors_db._db[0]['count'])
         self.assertEqual(1, len(mock_progress_db._db))
+        mock_report_error.assert_not_called()
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_no_sig_content(self):
+    def test_catalog_no_sig_content(self, mock_report_error):
         state = self.run_with_db('no_sig.json')
 
         response = state['response']
@@ -133,7 +142,7 @@ class TestCatalog(TestCase):
         self.assertFalse(response['success'])
         self.assertIn('has not been signed yet', response['message'])
 
-    def test_catalog_mixed_valid_content(self):
+    def test_catalog_mixed_valid_content(self, mock_report_error):
         """
         Test with one valid and one invalid record
         :return:
@@ -148,7 +157,7 @@ class TestCatalog(TestCase):
         # we expect the invalid record to be skipped
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_obs.json'))
 
-    def test_catalog_invalid_manifest(self):
+    def test_catalog_invalid_manifest(self, mock_report_error):
         state = self.run_with_db('invalid_manifest.json')
 
         response = state['response']
@@ -157,7 +166,7 @@ class TestCatalog(TestCase):
         self.assertIn('manifest missing key', response['message'])
         self.assertIsNone(response['catalog'])
 
-    def test_catalog_empty_formats(self):
+    def test_catalog_empty_formats(self, mock_report_error):
         """
         Tests missing status and empty formats
         :return:
@@ -170,7 +179,8 @@ class TestCatalog(TestCase):
         self.assertIn('There were no formats to process', response['message'])
         self.assertFalse(response['incomplete'])
 
-    def test_catalog_ulb_versification(self):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_ulb_versification(self, mock_clear_errors, mock_report_error):
         """
         Tests processing ulb first then versification.
         It's important to test order of processing versification because it can take two code paths
@@ -181,8 +191,10 @@ class TestCatalog(TestCase):
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_versification_ulb.json'))
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_versification_ulb(self):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_versification_ulb(self, mock_clear_errors, mock_report_error):
         """
         Tests processing versification first then ulb.
         It's important to test order of processing versification because it can take two code paths
@@ -193,8 +205,10 @@ class TestCatalog(TestCase):
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_versification_ulb.json'))
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_versification_tq(self):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_versification_tq(self, mock_clear_errors, mock_report_error):
         """
         Tests processing versification for tQ (a help RC)
         :return:
@@ -204,15 +218,20 @@ class TestCatalog(TestCase):
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_versification_tq.json'))
+        mock_clear_errors.assert_called_once()
 
-    def test_catalog_localization(self):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_localization(self, mock_clear_errors, mock_report_error):
         state = self.run_with_db('localization.json')
 
         response = state['response']
 
         assert_object_equals_file(self, response['catalog'], os.path.join(self.resources_dir, 'v3_catalog_localization.json'))
+        mock_clear_errors.assert_called_once()
+        mock_report_error.assert_not_called()
 
-    def test_catalog_complex(self):
+    @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
+    def test_catalog_complex(self, mock_clear_errors, mock_report_error):
         """
         Tests multiple repositories sharing a single resource
         and other complex situations
@@ -221,28 +240,30 @@ class TestCatalog(TestCase):
         state = self.run_with_db('complex.json')
 
         assert_object_equals_file(self, state['response']['catalog'], os.path.join(self.resources_dir, 'v3_catalog_complex.json'))
+        mock_clear_errors.assert_called_once()
+        mock_report_error.assert_not_called()
 
-    def test_read_none_status(self):
+    def test_read_none_status(self, mock_report_error):
         state = self.make_handler_instance('valid.json')
         status = state['handler']._read_status()
         self.assertIsNone(status)
 
-    def test_read_status(self):
+    def test_read_status(self, mock_report_error):
         state = self.make_handler_instance('valid.json')
         state['mocks']['db']['status'].insert_item({
-            'api_version': CatalogHandler.API_VERSION
+            'api_version': '3'
         })
         status = state['handler']._read_status()
         self.assertIsNotNone(status)
 
-    def test_has_usfm_bundle(self):
+    def test_has_usfm_bundle(self, mock_report_error):
         state = self.make_handler_instance('valid.json')
         result = state['handler'].has_usfm_bundle([{
             'format': 'application/zip; content=text/usfm type=bundle'
         }])
         self.assertTrue(result)
 
-    def test_strip_build_rules(self):
+    def test_strip_build_rules(self, mock_report_error):
         state = self.make_handler_instance('valid.json')
         obj = {
             'build_rules': [],
@@ -297,3 +318,9 @@ class TestCatalog(TestCase):
         }
         state['handler']._strip_build_rules(obj)
         assert_object_equals(self, expected, obj)
+
+    def test_catalog_has_changed(self, mock_report_error):
+        state = self.make_handler_instance('valid.json')
+        new_catalog = {}
+        result = state['handler']._catalog_has_changed(new_catalog)
+        self.assertTrue(result)

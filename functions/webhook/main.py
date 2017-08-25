@@ -5,24 +5,16 @@
 #
 
 from __future__ import print_function
-from handler import WebhookHandler
-from tools.file_utils import wipe_temp
-import logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
-# TRICKY: suppress logging noise from boto3
-logging.getLogger('boto3').setLevel(logging.WARNING)
+import logging
+
+from libraries.lambda_handlers.webhook_handler import WebhookHandler
+from libraries.tools.lambda_utils import wipe_temp
+
+logger = logging.getLogger()
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)
-    try:
-        handler = WebhookHandler(event, logger)
-        handler.run()
-    except Exception as e:
-        raise Exception('Bad Request: {0}'.format(e))
 
-    return {
-        "success": True,
-        "message": "Successfully added {0} ({1}) to the catalog".format(handler.repo_name, handler.commit_id)
-    }
+    handler = WebhookHandler(event, context, logger)
+    return handler.run()

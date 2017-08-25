@@ -1,0 +1,216 @@
+{
+  "stage-variables": {
+    "gogs_url": "",
+    "gogs_org": "Door43-Catalog",
+    "cdn_bucket": "",
+    "cdn_url": "",
+    "from_email": "",
+    "to_email": ""
+  },
+  "body-json": {
+    "secret": "",
+    "action": "closed",
+    "number": 2,
+    "pull_request": {
+      "id": 188,
+      "url": "",
+      "number": 2,
+      "user": {
+        "id": 644,
+        "login": "joel",
+        "full_name": "Joel Lonbeck",
+        "email": "joel@neutrinographics.com",
+        "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf",
+        "username": "joel"
+      },
+      "title": "This is a test",
+      "body": "test",
+      "labels": [],
+      "milestone": null,
+      "assignee": null,
+      "state": "closed",
+      "comments": 0,
+      "html_url": "https://git.door43.org/Door43-Catalog/ta_ulb/pulls/2",
+      "diff_url": "https://git.door43.org/Door43-Catalog/ta_ulb/pulls/2.diff",
+      "patch_url": "https://git.door43.org/Door43-Catalog/ta_ulb/pulls/2.patch",
+      "mergeable": true,
+      "merged": true,
+      "merged_at": "2017-08-17T18:56:52.88414021Z",
+      "merge_commit_sha": "0a7e25cd939f00086262fe94b9d25afc3b5dabd3",
+      "merged_by": {
+        "id": 644,
+        "login": "joel",
+        "full_name": "Joel Lonbeck",
+        "email": "joel@neutrinographics.com",
+        "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf",
+        "username": "joel"
+      },
+      "base": {
+        "label": "master",
+        "ref": "master",
+        "sha": "0a7e25cd939f00086262fe94b9d25afc3b5dabd3",
+        "repo_id": 10743,
+        "repo": {
+          "id": 10743,
+          "owner": {
+            "id": 4598,
+            "login": "Door43-Catalog",
+            "full_name": "Door43 Resource Catalog",
+            "email": "door43-catalog@noreply.door43.org",
+            "avatar_url": "https://git.door43.org/img/avatar_default.png",
+            "username": "Door43-Catalog"
+          },
+          "name": "ta_ulb",
+          "full_name": "Door43-Catalog/ta_ulb",
+          "description": "",
+          "empty": false,
+          "private": false,
+          "fork": false,
+          "parent": null,
+          "mirror": false,
+          "size": 924,
+          "html_url": "https://git.door43.org/Door43-Catalog/ta_ulb",
+          "ssh_url": "git@git.door43.org:Door43-Catalog/ta_ulb.git",
+          "clone_url": "https://git.door43.org/Door43-Catalog/ta_ulb.git",
+          "website": "",
+          "stars_count": 0,
+          "forks_count": 2,
+          "watchers_count": 7,
+          "open_issues_count": 0,
+          "default_branch": "master",
+          "created_at": "2017-05-19T05:50:33Z",
+          "updated_at": "2017-05-30T20:12:03Z",
+          "permissions": {
+            "admin": false,
+            "push": false,
+            "pull": false
+          }
+        }
+      },
+      "head": {
+        "label": "test",
+        "ref": "test",
+        "sha": "9d19ce7b6a0d3a3283c830dbf027962fc222e4d5",
+        "repo_id": 15473,
+        "repo": {
+          "id": 15473,
+          "owner": {
+            "id": 644,
+            "login": "joel",
+            "full_name": "Joel Lonbeck",
+            "email": "joel@neutrinographics.com",
+            "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf",
+            "username": "joel"
+          },
+          "name": "ta_ulb",
+          "full_name": "joel/ta_ulb",
+          "description": "",
+          "empty": false,
+          "private": false,
+          "fork": true,
+          "parent": {
+            "id": 10743,
+            "owner": {
+              "id": 4598,
+              "login": "Door43-Catalog",
+              "full_name": "Door43 Resource Catalog",
+              "email": "door43-catalog@noreply.door43.org",
+              "avatar_url": "https://git.door43.org/img/avatar_default.png",
+              "username": "Door43-Catalog"
+            },
+            "name": "ta_ulb",
+            "full_name": "Door43-Catalog/ta_ulb",
+            "description": "",
+            "empty": false,
+            "private": false,
+            "fork": false,
+            "parent": null,
+            "mirror": false,
+            "size": 924,
+            "html_url": "https://git.door43.org/Door43-Catalog/ta_ulb",
+            "ssh_url": "git@git.door43.org:Door43-Catalog/ta_ulb.git",
+            "clone_url": "https://git.door43.org/Door43-Catalog/ta_ulb.git",
+            "website": "",
+            "stars_count": 0,
+            "forks_count": 2,
+            "watchers_count": 7,
+            "open_issues_count": 0,
+            "default_branch": "master",
+            "created_at": "2017-05-19T05:50:33Z",
+            "updated_at": "2017-05-30T20:12:03Z",
+            "permissions": {
+              "admin": false,
+              "push": false,
+              "pull": false
+            }
+          },
+          "mirror": false,
+          "size": 2464,
+          "html_url": "https://git.door43.org/joel/ta_ulb",
+          "ssh_url": "git@git.door43.org:joel/ta_ulb.git",
+          "clone_url": "https://git.door43.org/joel/ta_ulb.git",
+          "website": "",
+          "stars_count": 0,
+          "forks_count": 0,
+          "watchers_count": 1,
+          "open_issues_count": 0,
+          "default_branch": "master",
+          "created_at": "2017-08-17T18:51:35Z",
+          "updated_at": "2017-08-17T18:54:06Z",
+          "permissions": {
+            "admin": false,
+            "push": false,
+            "pull": false
+          }
+        }
+      },
+      "merge_base": "0aaf9f1b23b2c0564afec67f72e22cb342abdea7",
+      "created_at": "2017-08-17T18:54:44Z",
+      "updated_at": "2017-08-17T18:54:44Z"
+    },
+    "repository": {
+      "id": 10743,
+      "owner": {
+        "id": 4598,
+        "login": "Door43-Catalog",
+        "full_name": "Door43 Resource Catalog",
+        "email": "door43-catalog@noreply.door43.org",
+        "avatar_url": "https://git.door43.org/img/avatar_default.png",
+        "username": "Door43-Catalog"
+      },
+      "name": "ta_ulb",
+      "full_name": "Door43-Catalog/ta_ulb",
+      "description": "",
+      "empty": false,
+      "private": false,
+      "fork": false,
+      "parent": null,
+      "mirror": false,
+      "size": 924,
+      "html_url": "https://git.door43.org/Door43-Catalog/ta_ulb",
+      "ssh_url": "git@git.door43.org:Door43-Catalog/ta_ulb.git",
+      "clone_url": "https://git.door43.org/Door43-Catalog/ta_ulb.git",
+      "website": "",
+      "stars_count": 0,
+      "forks_count": 2,
+      "watchers_count": 7,
+      "open_issues_count": 0,
+      "default_branch": "master",
+      "created_at": "2017-05-19T05:50:33Z",
+      "updated_at": "2017-05-30T20:12:03Z",
+      "permissions": {
+        "admin": false,
+        "push": false,
+        "pull": false
+      }
+    },
+    "sender": {
+      "id": 644,
+      "login": "joel",
+      "full_name": "Joel Lonbeck",
+      "email": "joel@neutrinographics.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf",
+      "username": "joel"
+    }
+  }
+}

@@ -1,14 +1,15 @@
 import os
+from shutil import copyfile
 from unittest import TestCase
 
 import gogs_client as GogsClient
-from shutil import copyfile
-from tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
-from functions.fork import ForkHandler
-from functions.webhook import WebhookHandler
+
+from libraries.lambda_handlers.fork_handler import ForkHandler
+from libraries.lambda_handlers.webhook_handler import WebhookHandler
+from libraries.tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
+
 
 # This is here to test importing main
-from functions.fork import main
 
 
 class TestFork(TestCase):
@@ -49,12 +50,17 @@ class TestFork(TestCase):
     @staticmethod
     def create_event():
         event = {
-            "gogs_user_token": '',
             "stage-variables": {
+                'gogs_token': '',
                 'gogs_url': 'https://git.door43.org/',
                 'gogs_org': 'Door43-Catalog',
                 'cdn_bucket': '',
-                'cdn_url': ''
+                'cdn_url': '',
+                'from_email': '',
+                'to_email': ''
+            },
+            'context': {
+
             }
         }
         if 'testing_gogs_user_token' in os.environ:
@@ -153,6 +159,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb,
@@ -181,6 +188,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb,
@@ -198,6 +206,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
@@ -213,6 +222,7 @@ class TestFork(TestCase):
         mockLogger = MockLogger()
         dbHandler = MockDynamodbHandler()
         webhook_handler = WebhookHandler(event=payload,
+                                         context=None,
                                          logger=mockLogger,
                                          s3_handler=s3Handler,
                                          dynamodb_handler=dbHandler,
@@ -226,6 +236,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
@@ -243,6 +254,7 @@ class TestFork(TestCase):
         mockLog = MockLogger()
 
         handler = ForkHandler(event=event,
+                              context=None,
                               logger=mockLog,
                               gogs_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
@@ -250,3 +262,32 @@ class TestFork(TestCase):
         handler._trigger_webhook(mockClient, [])
 
         self.assertIn('No new repositories found', mockLog._messages)
+
+    def test_stage_prefix_prod(self):
+        event = self.create_event()
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event=event,
+                              context=None,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
+        self.assertEqual('', handler.stage_prefix())
+
+    def test_stage_prefix_dev(self):
+        event = self.create_event()
+        event['context'] = {
+            'stage': 'dev'
+        }
+        mockDb = MockDynamodbHandler()
+        self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
+        mockLog = MockLogger()
+
+        handler = ForkHandler(event=event,
+                              context=None,
+                              logger=mockLog,
+                              gogs_client=self.MockGogsClient,
+                              dynamodb_handler=mockDb)
+        self.assertEqual('dev-', handler.stage_prefix())

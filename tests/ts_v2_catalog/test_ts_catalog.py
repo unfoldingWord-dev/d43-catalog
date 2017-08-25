@@ -1,14 +1,15 @@
-import os
 import json
-from tools.file_utils import load_json_object, read_file
+import os
 from unittest import TestCase
-from tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
-from tools.test_utils import assert_s3_equals_api_json
-import logging
-from functions.ts_v2_catalog import TsV2CatalogHandler
+
+from libraries.tools.file_utils import load_json_object, read_file
+from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
+
+from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
+from libraries.tools.test_utils import assert_s3_equals_api_json
+
 
 # This is here to test importing main
-from functions.ts_v2_catalog import main
 
 
 class TestTsV2Catalog(TestCase):
@@ -21,8 +22,12 @@ class TestTsV2Catalog(TestCase):
 
     def make_event(self):
         return {
-            'cdn_bucket': 'cdn.door43.org',
-            'cdn_url': 'https://cdn.door43.org'
+            'stage-variables': {
+                'cdn_bucket': 'cdn.door43.org',
+                'cdn_url': 'https://cdn.door43.org',
+                'from_email': '',
+                'to_email': ''
+            }
         }
 
     def test_inprogress(self):
@@ -48,6 +53,7 @@ class TestTsV2Catalog(TestCase):
         mockLog = MockLogger()
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -77,7 +83,7 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
         # validate urls in generate catalogs match the generated output paths
-        root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
+        root_url = '{}/'.format(event['stage-variables']['cdn_url'].rstrip('/'))
         catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:
@@ -130,6 +136,7 @@ class TestTsV2Catalog(TestCase):
         mockLog = MockLogger()
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -158,7 +165,7 @@ class TestTsV2Catalog(TestCase):
         self.assertIn('ts/txt/2/catalog.json', mockS3._recent_uploads)
 
         # validate urls in generate catalogs match the generated output paths
-        root_url = '{}/'.format(event['cdn_url'].rstrip('/'))
+        root_url = '{}/'.format(event['stage-variables']['cdn_url'].rstrip('/'))
         catalog = json.loads(read_file(mockS3._recent_uploads['v2/ts/catalog.json']))
         url_err_msg = 'url in catalog does not match upload path: {}'
         for project in catalog:
@@ -202,6 +209,7 @@ class TestTsV2Catalog(TestCase):
 
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -225,6 +233,7 @@ class TestTsV2Catalog(TestCase):
 
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -247,6 +256,7 @@ class TestTsV2Catalog(TestCase):
 
         event = self.make_event()
         converter = TsV2CatalogHandler(event=event,
+                                       context=None,
                                        logger=mockLog,
                                        s3_handler=mockS3,
                                        dynamodb_handler=mockDb,
@@ -276,6 +286,7 @@ class TestTsV2Catalog(TestCase):
     #         'catalog_url': 'https://api.door43.org/v3/catalog.json'
     #     }
     #     converter = TsV2CatalogHandler(event=event,
+    #                                    context=None,
     #                                    logger=mockLogger,
     #                                    s3_handler=mockS3,
     #                                    dynamodb_handler=mockDb)
