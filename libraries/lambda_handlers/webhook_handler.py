@@ -190,6 +190,10 @@ class WebhookHandler(Handler):
         except Exception as e:
             raise Exception('Bad Manifest: {0}'.format(e))
 
+        # identifiers must be lowercase
+        self.lower_key(manifest['dublin_core'], 'identifier')
+        self.lower_key(manifest['dublin_core']['language'], 'identifier')
+
         # build media formats
         media_formats = {}
         media_path = os.path.join(self.repo_dir, 'media.yaml')
@@ -212,10 +216,9 @@ class WebhookHandler(Handler):
         except Exception as e:
             self.logger.warning('Invalid datetime detected: {}'.format(e.message))
 
-
         # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
         if len(manifest['projects']) == 1:
-            zip_name = manifest['projects'][0]['identifier']
+            zip_name = manifest['projects'][0]['identifier'].lower()
         else:
             zip_name = manifest['dublin_core']['identifier']
 
@@ -247,8 +250,10 @@ class WebhookHandler(Handler):
         # split usfm bundles
         if manifest['dublin_core']['type'] == 'bundle' and manifest['dublin_core']['format'] == 'text/usfm':
             for project in manifest['projects']:
+                self.lower_key(project, 'identifier')
                 if 'formats' not in project:
                     project['formats'] = []
+                self.lower_key(project['formats'], 'identifier')
                 resource_id = manifest['dublin_core']['identifier'].split('-')[-1]
                 project_key = '{}/{}/v{}/{}.usfm'.format(
                                                         manifest['dublin_core']['language']['identifier'],
@@ -277,6 +282,7 @@ class WebhookHandler(Handler):
 
         # add media to projects
         for project in manifest['projects']:
+            self.lower_key(project, 'identifier')
             if project['identifier'] in media_formats:
                 if 'formats' not in project: project['formats'] = []
                 project['formats'] = project['formats'] + media_formats[project['identifier']]
@@ -293,6 +299,18 @@ class WebhookHandler(Handler):
             'uploads': uploads
         }
 
+    @staticmethod
+    def lower_key(dict, key):
+        """
+        Changes the value in the dictionary to lowercase.
+        This will perform proper checks to ensure the key exists and is a string
+        :param dict:
+        :param key:
+        :return:
+        """
+        if dict and key and key in dict and isinstance(dict[key], str):
+            dict[key] = dict[key].lower()
+
     def _build_media_formats(self, rc_dir, manifest, media):
         """
         Prepares the media formats
@@ -303,6 +321,7 @@ class WebhookHandler(Handler):
         """
         formats = {}
         for project in media['projects']:
+            self.lower_key(project, 'identifier')
             project_formats = []
             for media in project['media']:
                 if 'quality' in media and len(media['quality']) > 0:
@@ -366,6 +385,7 @@ class WebhookHandler(Handler):
         """
         media_chapters = []
         for project in manifest['projects']:
+            self.lower_key(project, 'identifier')
             if project['identifier'] == pid:
                 id = '_'.join([manifest['dublin_core']['language']['identifier'],
                                manifest['dublin_core']['identifier'],
