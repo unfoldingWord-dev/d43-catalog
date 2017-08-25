@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import time
+import urlparse
 
 from libraries.lambda_handlers.instance_handler import InstanceHandler
 from d43_aws_tools import S3Handler, DynamoDBHandler
@@ -68,8 +69,7 @@ class SigningHandler(InstanceHandler):
                 try:
                     package = json.loads(item['package'])
                 except Exception as e:
-                    if self.logger:
-                        self.logger.warning('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
+                    self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e), to_email=self.to_email, from_email=self.from_email)
                     continue
 
                 if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
@@ -90,8 +90,7 @@ class SigningHandler(InstanceHandler):
     def process_db_item(self, item, package):
         was_signed = False
         fully_signed = True
-        if self.logger:
-            self.logger.info('Processing {}'.format(item['repo_name']))
+        self.logger.info('Processing {}'.format(item['repo_name']))
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
@@ -120,8 +119,7 @@ class SigningHandler(InstanceHandler):
                                     missing_url = 'empty url'
                                 else:
                                     missing_url = chapter['url']
-                                if self.logger:
-                                    self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
+                                self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
                                 continue
 
                             (already_signed, newly_signed) = self.process_format(item, chapter)
@@ -140,8 +138,7 @@ class SigningHandler(InstanceHandler):
                                 format['format'] = 'application/zip; content=video/mp4'
 
         if was_signed or fully_signed:
-            if self.logger:
-                self.logger.debug('recording signatures')
+            self.logger.debug('recording signatures')
             record_keys = {'repo_name': item['repo_name']}
             time.sleep(5)
             self.db_handler.update_item(record_keys, {
@@ -159,22 +156,35 @@ class SigningHandler(InstanceHandler):
         """
         if 'signature' in format and format['signature']:
             return (True, False)
-        elif self.logger:
+        else:
             self.logger.debug('Signing {}'.format(format['url']))
 
         base_name = os.path.basename(format['url'])
         file_to_sign = os.path.join(self.temp_dir, base_name)
 
         # extract cdn key from url
-        src_key = format['url'][len(self.cdn_url):].lstrip('/')
+        url_info = urlparse.urlparse(format['url'])
+        src_key = url_info.path.lstrip('/')
         sig_key = '{}.sig'.format(src_key)
 
+        build_rules = get_build_rules(format, 'signing')
+
+        # TRICKY: allow dev environments to download from prod environment
+        valid_hosts = [self.cdn_bucket]
+        if self.stage_prefix():
+            if not self.cdn_bucket.startswith(self.stage_prefix()):
+                self.logger.warning('Expected `cdn_bucket` to begin with the stage prefix ({}) but found {}'.format(self.stage_prefix(), self.cdn_bucket))
+            prod_cdn_bucket = self.cdn_bucket.lstrip(self.stage_prefix())
+            valid_hosts.append(prod_cdn_bucket)
+            # TRICKY: force dev environments to handle prod content as external files
+            # if format['url'].startswith(prod_cdn_url):
+            #     build_rules.append('sign_given_url')
+
         # verify url is on the cdn
-        if not format['url'].startswith(self.cdn_url):
+        if not url_info.hostname in valid_hosts:
             # This allows media to be hosted on third party servers
             format['signature'] = '{}.sig'.format(format['url'])
-            if self.logger:
-                self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
+            self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
             return (True, True)
 
         headers = self.url_headers(format['url'])
@@ -182,12 +192,11 @@ class SigningHandler(InstanceHandler):
         # skip files that are too large
         size = int(headers.get('content-length', 0))
         if size > SigningHandler.max_file_size:
-            if self.logger:
-                self.logger.warning('File is too large to sign {}'.format(format['url']))
+            self.logger.warning('File is too large to sign {}'.format(format['url']))
             # return (False, False)
             # TODO: we need to sign these large files but for now this is breaking lambda functions due to limited disk space
             # For now we are adding a signature url so the catalog builds.
-            # We could manually add these signatures since they shouldn't change much.
+            # And then we manually add these signatures since they shouldn't change much.
             format['size'] = size
             if not format['modified']:
                 format['modified'] = str_to_timestamp(datetime.datetime.now().isoformat())
@@ -195,7 +204,6 @@ class SigningHandler(InstanceHandler):
             return (False, True)
 
         # download file
-        build_rules = get_build_rules(format, 'signing')
         try:
             if 'sign_given_url' in build_rules:
                 self.download_file(format['url'], file_to_sign)

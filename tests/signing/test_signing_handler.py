@@ -5,6 +5,8 @@ import os
 import shutil
 import tempfile
 import unittest
+import mock
+from mock import patch
 from unittest import TestCase
 
 from libraries.tools.file_utils import load_json_object
@@ -69,8 +71,8 @@ class TestSigningHandler(TestCase):
         result = handler.run()
         self.assertFalse(result)
 
-
-    def test_signing_handler_invalid_manifest(self):
+    @patch('libraries.lambda_handlers.handler.Handler.report_error')
+    def test_signing_handler_invalid_manifest(self, mock_report_error):
         event = self.create_event()
         mock_db = MockDynamodbHandler()
         mock_db._load_db(os.path.join(self.resources_dir, 'db/invalid.json'))
@@ -97,9 +99,10 @@ class TestSigningHandler(TestCase):
             # assert nothing was uploaded to production
             self.assertTrue(f.startswith('temp/'))
             self.assertFalse(f.endswith('.sig'))
-        self.assertIn('Skipping unit-test. Bad Manifest: No JSON object could be decoded', mock_logger._messages)
+        mock_report_error.assert_called_once_with('Skipping unit-test. Bad Manifest: No JSON object could be decoded', from_email=mock.ANY, to_email=mock.ANY)
 
-    def test_signing_handler_text_missing_file(self):
+    @patch('libraries.lambda_handlers.handler.Handler.report_error')
+    def test_signing_handler_text_missing_file(self, mock_report_error):
         """
         Signing will continue to run even if a file is missing.
         The missing file will just be ignored.
@@ -127,7 +130,8 @@ class TestSigningHandler(TestCase):
         self.assertTrue(result)
         self.assertIn('The file "obs.zip" could not be downloaded: File not found for key: temp/en_obs/f8a8d8d757/en/obs/v4/obs.zip', mock_logger._messages)
 
-    def test_signing_handler_text_wrong_key(self):
+    @patch('libraries.lambda_handlers.handler.Handler.report_error')
+    def test_signing_handler_text_wrong_key(self, mock_report_error):
         event = self.create_event()
 
         mock_db = MockDynamodbHandler()
@@ -159,7 +163,8 @@ class TestSigningHandler(TestCase):
             self.assertFalse(f.endswith('.sig'))
         self.assertIn('The signature was not successfully verified.', mock_logger._messages)
 
-    def test_signing_handler_s3(self):
+    @patch('libraries.lambda_handlers.handler.Handler.report_error')
+    def test_signing_handler_s3(self, mock_report_error):
         mock_s3 = MockS3Handler()
         mock_s3._load_path(os.path.join(self.resources_dir, 'cdn'))
 
@@ -257,7 +262,8 @@ class TestSigningHandler(TestCase):
         updated_record = mock_db.get_item({'repo_name': 'en_obs'}).copy()
         self.assertTrue(updated_record['signed'])
 
-    def test_skip_signing_large_file(self):
+    @patch('libraries.lambda_handlers.handler.Handler.report_error')
+    def test_skip_signing_large_file(self, mock_report_error):
         """
         Ensure that large files are not signed.
         Because lambda functions have limited disk space.
@@ -309,7 +315,8 @@ class TestSigningHandler(TestCase):
         self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
         self.assertTrue(newly_signed)
 
-    def test_signing_small_file(self):
+    @patch('libraries.lambda_handlers.handler.Handler.report_error')
+    def test_signing_small_file(self, mock_report_error):
         """
         Ensure that small files are signed properly
         :return:
