@@ -297,18 +297,6 @@ class WebhookHandler(Handler):
             'uploads': uploads
         }
 
-    @staticmethod
-    def lower_key(dict, key):
-        """
-        Changes the value in the dictionary to lowercase.
-        This will perform proper checks to ensure the key exists and is a string
-        :param dict:
-        :param key:
-        :return:
-        """
-        if dict and key and key in dict and isinstance(dict[key], str):
-            dict[key] = dict[key].lower()
-
     def _build_media_formats(self, rc_dir, manifest, media):
         """
         Prepares the media formats
