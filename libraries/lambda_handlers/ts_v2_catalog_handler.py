@@ -110,7 +110,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
-            lid = self.sanitize_identifier(lang['identifier'])
+            lid = self.sanitize_identifier(lang['identifier'], lower=False)
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = self.sanitize_identifier(res['identifier'])
@@ -719,7 +719,7 @@ class TsV2CatalogHandler(InstanceHandler):
         :param rc_type:
         :return:
         """
-        lid = self.sanitize_identifier(language['identifier'])
+        lid = self.sanitize_identifier(language['identifier'], lower=False)
 
         if rc_type == 'help':
             pid = self.sanitize_identifier(project['identifier'])
@@ -764,7 +764,7 @@ class TsV2CatalogHandler(InstanceHandler):
         :param modified:
         :return:
         """
-        lid = self.sanitize_identifier(language['identifier'])
+        lid = self.sanitize_identifier(language['identifier'], lower=False)
         rid = self.sanitize_identifier(resource['identifier'])
         pid = self.sanitize_identifier(project['identifier'])
 
