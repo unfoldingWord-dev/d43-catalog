@@ -17,8 +17,5 @@ logger.setLevel(logging.INFO)
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)
-    try:
-        catalog = CatalogHandler(event, context)
-        return catalog.run()
-    except Exception as e:
-        raise Exception('Bad Request: {0}'.format(e))
+    catalog = CatalogHandler(event, context)
+    return catalog.run()

@@ -2,6 +2,7 @@ from __future__ import unicode_literals, print_function
 import json
 import arrow
 import logging
+import sys
 from abc import ABCMeta, abstractmethod
 from d43_aws_tools import DynamoDBHandler, SESHandler
 
@@ -191,7 +192,7 @@ class Handler(object):
             return self._run(**kwargs)
         except Exception as e:
             self.logger.error(e.message, exc_info=1)
-            raise EnvironmentError('Bad Request: {}'.format(e.message))
+            raise Exception, EnvironmentError('Bad Request: {}'.format(e.message)), sys.exc_info()[2]
 
     @abstractmethod
     def _run(self, **kwargs):
