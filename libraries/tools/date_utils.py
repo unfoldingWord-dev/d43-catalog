@@ -7,6 +7,8 @@ def unix_to_timestamp(timeint):
     :param datestring:
     :return:
     """
+    if timeint == None:
+        return ''
     d = arrow.get(timeint).to('local').datetime
     return d.isoformat()
     # datetime.datetime.fromtimestamp(stats.st_mtime).isoformat()
@@ -17,6 +19,8 @@ def str_to_timestamp(datestring):
     :param datestring:
     :return:
     """
+    if not datestring:
+        return ''
     # TRICKY: time.mktime expects local time so we convert to local tz
     d = arrow.get(datestring).to('local').to('utc').datetime
     return d.isoformat()
@@ -27,6 +31,8 @@ def str_to_unix_time(datestring):
     :param datestring: a datetime string formatted according to ISO 8601
     :return:
     """
+    if not datestring:
+        return 0
     # TRICKY: time.mktime expects local time so we convert to local tz
     d = arrow.get(datestring).to('local').datetime
     return str(int(time.mktime(d.timetuple())))

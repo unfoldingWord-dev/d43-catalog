@@ -13,10 +13,11 @@ import re
 import shutil
 import tempfile
 import time
-
+import sys
 import dateutil.parser
 import markdown
 import yaml
+
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.file_utils import write_file, read_file, download_rc
 from libraries.tools.legacy_utils import index_obs
@@ -77,9 +78,8 @@ class TsV2CatalogHandler(InstanceHandler):
         try:
             return self.__execute()
         except Exception as e:
-            self.logger.error(e.message)
             self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
-            raise e
+            raise Exception, Exception(e), sys.exc_info()[2]
 
     def __execute(self):
         cat_keys = []
@@ -114,6 +114,7 @@ class TsV2CatalogHandler(InstanceHandler):
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = res['identifier']
+                self.logger.debug('Processing {}_{}'.format(lid, rid))
 
                 rc_format = None
 
@@ -157,7 +158,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 for project in res['projects']:
                     pid = project['identifier']
-                    self.logger.debug('Analyzing {}_{}_{}'.format(lid, rid, pid))
+                    self.logger.debug('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -963,7 +964,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         first_vs = verse_re.search(fr_text).group(1)
                     except AttributeError as e:
                         self.logger.error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
-                        raise e
+                        raise Exception, Exception(e), sys.exc_info()[2]
 
                     chp['frames'].append({'id': '{0}-{1}'.format(
                         str(chp_num).zfill(2), first_vs.zfill(2)),

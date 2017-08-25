@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import time
 import urlparse
+import sys
 
 from libraries.lambda_handlers.instance_handler import InstanceHandler
 from d43_aws_tools import S3Handler, DynamoDBHandler
@@ -81,7 +82,7 @@ class SigningHandler(InstanceHandler):
             return found_items
         except Exception as e:
             self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
-            raise e
+            raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             if os.path.isdir(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)

@@ -11,6 +11,7 @@ import os
 import shutil
 import tempfile
 import time
+import sys
 
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.date_utils import str_to_unix_time
@@ -77,9 +78,8 @@ class UwV2CatalogHandler(InstanceHandler):
         try:
             return self.__execute()
         except Exception as e:
-            self.logger.error(e.message)
             self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
-            raise e
+            raise Exception, Exception(e), sys.exc_info()[2]
 
     def __execute(self):
         """

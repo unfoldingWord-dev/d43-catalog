@@ -13,9 +13,10 @@ import os
 import shutil
 import tempfile
 import arrow
-from glob import glob
-
+import sys
 import yaml
+
+from glob import glob
 from d43_aws_tools import DynamoDBHandler, S3Handler
 from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.date_utils import str_to_timestamp
@@ -135,7 +136,7 @@ class WebhookHandler(Handler):
             self.db_handler.insert_item(data)
         except Exception as e:
             self.report_error(e.message, from_email=self.from_email, to_email=self.to_email)
-            raise e
+            raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             # clean
             if self.temp_dir and os.path.isdir(self.temp_dir):
