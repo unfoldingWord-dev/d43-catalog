@@ -136,7 +136,6 @@ class CatalogHandler(InstanceHandler):
                     if len(self.checker.all_errors):
                         self._publish_status('incomplete')
                     else:
-                        self.clear_errors()
                         self._publish_status()
 
                     response['success'] = True
@@ -144,7 +143,8 @@ class CatalogHandler(InstanceHandler):
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog: {0}'.format(e)) # pragma: no cover
 
-        self._handle_errors(self.checker)
+        if len(self.checker.all_errors) > 0:
+            self.report_error(self.checker.all_errors)
 
         if completed_items == 0:
             self.checker.log_error('There were no formats to process')
@@ -343,12 +343,3 @@ class CatalogHandler(InstanceHandler):
             return old_hash != new_hash
         except Exception as e:
             return True
-
-    def _handle_errors(self, checker):
-        """
-        Handles errors and warnings produced by the checker
-        :param checker:
-        :return:
-        """
-        if len(checker.all_errors) > 0:
-            self.report_error(checker.all_errors, to_email=self.to_email, from_email=self.from_email)

@@ -1,10 +1,11 @@
 from __future__ import unicode_literals, print_function
 import json
-import arrow
 import logging
 import sys
+
 from abc import ABCMeta, abstractmethod
-from d43_aws_tools import DynamoDBHandler, SESHandler
+from libraries.tools.error_reporter import ErrorReporter
+
 
 class Handler(object):
     """
@@ -34,7 +35,6 @@ class Handler(object):
         self.logger.setLevel(logging.DEBUG)
         self.event = event
         self.context = context
-        self.__num_error_reporters = 0
 
         # get stage name
         if event and 'context' in event and 'stage' in event['context']:
@@ -58,8 +58,19 @@ class Handler(object):
             self.__set_logging_level(log_level)
 
         # get emails
-        self.to_email = self.__find_stage_var('to_email', event)
-        self.from_email = self.__find_stage_var('from_email', event)
+        to_email = self.__find_stage_var('to_email', event)
+        from_email = self.__find_stage_var('from_email', event)
+
+        # set up error reporter
+        lambda_name = self.__class__.__name__
+        if self.context:
+            lambda_name = self.context.function_name
+        table_name = '{}d43-catalog-errors'.format(self.stage_prefix())
+        self.reporter = ErrorReporter(reporter=lambda_name,
+                                      table=table_name,
+                                      request_id=self.aws_request_id,
+                                      to_email=to_email,
+                                      from_email=from_email)
 
     def __find_stage_var(self, key, dict):
         """
@@ -132,131 +143,13 @@ class Handler(object):
         else:
             return ''
 
-    def clear_errors(self):
-        """
-        Empties the error queue
-        :return:
-        """
-        lambda_name = self.__class__.__name__
-        if self.context:
-            lambda_name = self.context.function_name
-        db = DynamoDBHandler('{}d43-catalog-errors'.format(self.stage_prefix()))
-        db.delete_item({'lambda': lambda_name})
-
     def report_error(self, message):
         """
         Records an error that will be reported to administrators if not automatically resolved.
         :param string|list message: the error message
         :return:
         """
-        if isinstance(message, list):
-            self.logger.info('Reporting Error: {}'.format(json.dumps(message)), exc_info=1)
-        elif isinstance(message, str):
-            self.logger.info('Reporting Error: {}'.format(message), exc_info=1)
-        else:
-            self.logger.warning('Unable to report error. Invalid type "{}"'.format(type(message)), exc_info=1)
-            return
-
-        lambda_name = self.__class__.__name__
-        if self.context:
-            lambda_name = self.context.function_name
-
-        # load existing report
-        db = DynamoDBHandler('{}d43-catalog-errors'.format(self.stage_prefix()))
-        item = db.get_item({'lambda': lambda_name})
-        if not item:
-            item = {}
-        report = {
-            'errors': [],
-            'lambda': lambda_name,
-            'reporters': []
-        }
-        report.update(item)
-
-        # start new report
-        if self.aws_request_id not in report['reporters']:
-            report['errors'] = []
-            report['reporters'].append(self.aws_request_id)
-
-        # append errors
-        if isinstance(message, list):
-            timestamp = arrow.utcnow().isoformat()
-            for m in message:
-                report['errors'].append({
-                    'message': m.decode('utf-8'),
-                    'timestamp': timestamp
-                })
-        else:
-            report['errors'].append({
-                'message': message.decode('utf-8'),
-                'timestamp': arrow.utcnow().isoformat()
-            })
-
-        self.__num_error_reporters = len(report['reporters'])
-
-        # TODO: cache the report and update after lambda is finished
-
-        # update error report
-        db.update_item({'lambda': lambda_name}, report)
-
-    def __email_error_report(self, to_email, from_email):
-        """
-        Emails the error report.
-        :param to_email:
-        :param from_email:
-        :return:
-        """
-        # get reporter name
-        lambda_name = self.__class__.__name__
-        if self.context:
-            lambda_name = self.context.function_name
-
-        # TODO: send from cache
-
-        # get errors
-        db = DynamoDBHandler('{}d43-catalog-errors'.format(self.stage_prefix()))
-        report = db.get_item({'lambda': lambda_name})
-        if report and 'errors' in report:
-            errors = report['errors']
-        else:
-            errors = []
-
-        # send message
-        self.logger.info('Emailing error report')
-        text = ''
-        html = ''
-        for e in errors:
-            text += '----------------\n{}\n{}'.format(e['timestamp'], e['message'])
-            html += '<li><i>{}</i>: {}</li>'.format(e['timestamp'], e['message'])
-        ses = SESHandler()
-        try:
-            ses.send_email(
-                Source=from_email,
-                Destination={
-                    'ToAddresses': [
-                        to_email
-                    ]
-                },
-                Message={
-                    'Subject': {
-                        'Data': 'ERRORS running {}'.format(lambda_name),
-                        'Charset': 'UTF-8'
-                    },
-                    'Body': {
-                        'Text': {
-                            'Data': 'Errors running {}\n\n{}'.format(lambda_name, text),
-                            'Charset': 'UTF-8'
-                        },
-                        'Html': {
-                            'Data': 'Errors running {}\n\n<ul>{}</ul>'.format(lambda_name, html)
-                        }
-                    }
-                }
-            )
-            # clear error queue
-            db.delete_item({'lambda': lambda_name})
-        except Exception as e:
-            self.logger.error('Failed to report errors {}'.format(e.message), exc_info=1)
+        self.reporter.add_error(message)
 
     def run(self, **kwargs):
         """
@@ -272,8 +165,7 @@ class Handler(object):
             self.logger.error(e.message, exc_info=1)
             raise Exception, EnvironmentError('Bad Request: {}'.format(e.message)), sys.exc_info()[2]
         finally:
-            if self.__num_error_reporters >= self.__ERROR_THRESHOLD:
-                self.__email_error_report(self.to_email, self.from_email)
+            self.reporter.commit()
 
     @abstractmethod
     def _run(self, **kwargs):

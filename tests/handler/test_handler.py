@@ -13,15 +13,9 @@ class MockHandler(Handler):
 
 class TestHandler(TestCase):
 
-    @patch('libraries.lambda_handlers.handler.DynamoDBHandler.get_item')
-    @patch('libraries.lambda_handlers.handler.DynamoDBHandler.update_item')
-    def test_report_error(self, mock_update_item, mock_get_item):
-        """
-
-        :param MagicMock mock_db:
-        :return:
-        """
-        mock_get_item.return_value=None
+    @patch('libraries.lambda_handlers.handler.ErrorReporter.add_error')
+    def test_report_error(self, mock_add_error):
+        mock_add_error.return_value=None
         event = {
             'stage': 'dev'
         }
@@ -31,10 +25,19 @@ class TestHandler(TestCase):
         handler = MockHandler(event, context)
 
         handler.report_error('first error')
-        mock_get_item.assert_called_once_with({'lambda':'test_lambda'})
-        mock_update_item.assert_called_once_with({'lambda': 'test_lambda'},
-                                                 {'reporters': ['request-id'],
-                                                  'errors':[{"timestamp": mock.ANY, "message": "first error"}],
-                                                  'lambda': 'test_lambda'
-                                                 }
-                                                )
+        mock_add_error.assert_called_once_with('first error')
+
+    @patch('libraries.lambda_handlers.handler.ErrorReporter.add_error')
+    @patch('libraries.lambda_handlers.handler.ErrorReporter.commit')
+    def test_commit_errors(self, mock_commit, mock_add_error):
+        event = {
+            'stage': 'dev'
+        }
+        context = Mock()
+        context.function_name = 'test_lambda'
+        context.aws_request_id = 'request-id'
+        handler = MockHandler(event, context)
+        handler.report_error('first error')
+        handler.run()
+        mock_add_error.assert_called_once_with('first error')
+        mock_commit.assert_called_once()
