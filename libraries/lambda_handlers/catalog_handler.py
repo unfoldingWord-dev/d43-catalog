@@ -84,7 +84,6 @@ class CatalogHandler(InstanceHandler):
     def _run(self):
         completed_items = 0
         items = self.progress_table.query_items()
-        versification_package = None
 
         for item in items:
             repo_name = item['repo_name']
@@ -99,15 +98,11 @@ class CatalogHandler(InstanceHandler):
             elif repo_name == 'localization':
                 self._build_localization(package)
             elif repo_name == 'versification':
-                versification_package = package
+                # TODO: we have not yet determined what to do with versification
+                pass
             else:
                 if self._build_rc(item, package, self.checker):
                     completed_items += 1
-
-        # process versification last
-        if versification_package and not self._build_versification(versification_package, self.checker):
-                # fail build if chunks are broken
-                completed_items = 0
 
         # remove empty languages
         condensed_languages = []
@@ -287,6 +282,8 @@ class CatalogHandler(InstanceHandler):
 
     def _build_versification(self, package, checker):
         """
+        DEPRECATED
+
         Adds versification chunks to projects in the catalog.
         Note: this may not do anything if no languages have been generated yet.
         self._build_rc will pick up the slack in that case.

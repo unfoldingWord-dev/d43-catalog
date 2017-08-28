@@ -250,6 +250,12 @@ class TestWebhook(TestCase):
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_ulb_package.json'))
 
     def test_webhook_versification(self, mock_report_error):
+        """
+        We are not currently processing versification.
+        Therefore, we test that nothing happens.
+        :param mock_report_error:
+        :return:
+        """
         request_file = os.path.join(self.resources_dir, 'versification-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
@@ -273,19 +279,9 @@ class TestWebhook(TestCase):
                     download_handler=lambda url, dest: mock_api.download_file(urls[url], dest))
         handler.run()
 
-        self.assertEqual(66, len(mock_s3._recent_uploads))
+        self.assertEqual(0, len(mock_s3._recent_uploads))
         data = mock_db._last_inserted_item
-        self.assertTrue(len(data['package']) > 0)
-        package = json.loads(data['package'])
-        self.assertIn('chunks_url', package[0])
-        self.assertIn('https://cdn.door43.org/bible/', package[0]['chunks_url'])
-        self.assertIn('identifier', package[0])
-        self.assertNotIn('chunks', package[0])
-        for key in mock_s3._recent_uploads:
-            dest = mock_s3._recent_uploads[key]
-            # for now we are bypassing signing and uploading directly
-            self.assertIn('bible/'.format(data['commit_id']), dest)
-            #self.assertIn('temp/versification/{}/'.format(data['commit_id']), upload['key'])
+        self.assertEqual(None, data)
 
     def test_webhook_localization(self, mock_report_error):
         request_file = os.path.join(self.resources_dir, 'localization-request.json')

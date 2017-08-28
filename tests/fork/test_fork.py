@@ -57,7 +57,8 @@ class TestFork(TestCase):
                 'cdn_bucket': '',
                 'cdn_url': '',
                 'from_email': '',
-                'to_email': ''
+                'to_email': '',
+                'version': '3'
             },
             'context': {
 

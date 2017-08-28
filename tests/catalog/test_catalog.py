@@ -184,6 +184,8 @@ class TestCatalog(TestCase):
         """
         Tests processing ulb first then versification.
         It's important to test order of processing versification because it can take two code paths
+
+        We are no longer processing versification. This checks that nothing happens.
         :return:
         """
         state = self.run_with_db('ulb_versification.json')
@@ -197,7 +199,9 @@ class TestCatalog(TestCase):
     def test_catalog_versification_ulb(self, mock_clear_errors, mock_report_error):
         """
         Tests processing versification first then ulb.
-        It's important to test order of processing versification because it can take two code paths
+        It's important to test order of processing versification because it can take two code paths.
+
+        We are no longer processing versification. This checks that nothing happens.
         :return:
         """
         state = self.run_with_db('versification_ulb.json')
@@ -210,7 +214,9 @@ class TestCatalog(TestCase):
     @patch('libraries.lambda_handlers.handler.Handler.clear_errors')
     def test_catalog_versification_tq(self, mock_clear_errors, mock_report_error):
         """
-        Tests processing versification for tQ (a help RC)
+        Tests processing versification for tQ (a help RC).
+
+        We are no longer processing versification.
         :return:
         """
         state = self.run_with_db('versification_tq.json')
