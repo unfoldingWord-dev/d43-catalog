@@ -27,12 +27,14 @@ class TestHandler(TestCase):
         }
         context = Mock()
         context.function_name = 'test_lambda'
+        context.aws_request_id = 'request-id'
         handler = MockHandler(event, context)
 
         handler.report_error('first error')
         mock_get_item.assert_called_once_with({'lambda':'test_lambda'})
         mock_update_item.assert_called_once_with({'lambda': 'test_lambda'},
-                                                 {'count': 1, 'errors':
-                                                     [{"timestamp": mock.ANY, "message": "first error"}]
+                                                 {'reporters': ['request-id'],
+                                                  'errors':[{"timestamp": mock.ANY, "message": "first error"}],
+                                                  'lambda': 'test_lambda'
                                                  }
                                                 )
