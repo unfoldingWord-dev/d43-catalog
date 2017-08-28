@@ -139,7 +139,7 @@ class WebhookHandler(Handler):
             else:
                 self.logger.debug('No data found in {}'.format(self.repo_name))
         except Exception as e:
-            self.report_error(e.message, from_email=self.from_email, to_email=self.to_email)
+            self.report_error(e.message)
             raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             # clean

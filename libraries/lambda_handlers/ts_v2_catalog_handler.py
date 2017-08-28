@@ -78,7 +78,7 @@ class TsV2CatalogHandler(InstanceHandler):
         try:
             return self.__execute()
         except Exception as e:
-            self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
+            self.report_error(e.message)
             raise Exception, Exception(e), sys.exc_info()[2]
 
     def __execute(self):
@@ -548,9 +548,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         if title_match:
                             title = title_match.group(1)
                         else:
-                            self.report_error('missing title in {}'.format(word_path),
-                                              to_email=self.to_email,
-                                              from_email=self.from_email)
+                            self.report_error('missing title in {}'.format(word_path))
                             continue
                         word_content = word_title_re.sub('', word_content).strip()
 
@@ -561,9 +559,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             def_title = def_title_match.group(1).strip()
                             word_content = h2_re.sub('', word_content).strip()
                         else:
-                            self.report_error('missing definition title in {}'.format(word_path),
-                                              to_email=self.to_email,
-                                              from_email=self.from_email)
+                            self.report_error('missing definition title in {}'.format(word_path))
 
                         # find obs examples
                         blocks = block_re.split(word_content)
@@ -934,9 +930,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         try:
                             first_vs = verse_re.search(fr_text).group(1)
                         except AttributeError:
-                            self.report_error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text),
-                                              to_email=self.to_email,
-                                              from_email=self.from_email)
+                            self.report_error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
                             continue
                         chp['frames'].append({'id': '{0}-{1}'.format(
                             str(chp_num).zfill(2), first_vs.zfill(2)),
@@ -972,9 +966,7 @@ class TsV2CatalogHandler(InstanceHandler):
                     try:
                         first_vs = verse_re.search(fr_text).group(1)
                     except AttributeError as e:
-                        self.report_error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text),
-                                          to_email=self.to_email,
-                                          from_email=self.from_email)
+                        self.report_error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
                         continue
 
                     chp['frames'].append({'id': '{0}-{1}'.format(

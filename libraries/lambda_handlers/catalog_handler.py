@@ -91,7 +91,7 @@ class CatalogHandler(InstanceHandler):
             try:
                 package = json.loads(item['package'])
             except Exception as e:
-                self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e), to_email=self.to_email, from_email=self.from_email)
+                self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
                 continue
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = package
