@@ -70,7 +70,7 @@ class SigningHandler(InstanceHandler):
                 try:
                     package = json.loads(item['package'])
                 except Exception as e:
-                    self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e), to_email=self.to_email, from_email=self.from_email)
+                    self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
                     continue
 
                 if repo_name != "catalogs" and repo_name != 'localization' and repo_name != 'versification':
@@ -81,7 +81,7 @@ class SigningHandler(InstanceHandler):
                 self.logger.info('No items found for signing')
             return found_items
         except Exception as e:
-            self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
+            self.report_error(e.message)
             raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             if os.path.isdir(self.temp_dir):
@@ -141,7 +141,6 @@ class SigningHandler(InstanceHandler):
         if was_signed or fully_signed:
             self.logger.debug('recording signatures')
             record_keys = {'repo_name': item['repo_name']}
-            time.sleep(5)
             self.db_handler.update_item(record_keys, {
                 'package': json.dumps(package, sort_keys=True),
                 'signed': fully_signed

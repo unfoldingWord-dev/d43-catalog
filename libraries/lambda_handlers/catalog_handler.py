@@ -84,7 +84,6 @@ class CatalogHandler(InstanceHandler):
     def _run(self):
         completed_items = 0
         items = self.progress_table.query_items()
-        versification_package = None
 
         for item in items:
             repo_name = item['repo_name']
@@ -92,22 +91,18 @@ class CatalogHandler(InstanceHandler):
             try:
                 package = json.loads(item['package'])
             except Exception as e:
-                self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e), to_email=self.to_email, from_email=self.from_email)
+                self.report_error('Skipping {}. Bad Manifest: {}'.format(repo_name, e))
                 continue
             if repo_name == "catalogs":
                 self.catalog['catalogs'] = package
             elif repo_name == 'localization':
                 self._build_localization(package)
             elif repo_name == 'versification':
-                versification_package = package
+                # TODO: we have not yet determined what to do with versification
+                pass
             else:
                 if self._build_rc(item, package, self.checker):
                     completed_items += 1
-
-        # process versification last
-        if versification_package and not self._build_versification(versification_package, self.checker):
-                # fail build if chunks are broken
-                completed_items = 0
 
         # remove empty languages
         condensed_languages = []
@@ -141,7 +136,6 @@ class CatalogHandler(InstanceHandler):
                     if len(self.checker.all_errors):
                         self._publish_status('incomplete')
                     else:
-                        self.clear_errors()
                         self._publish_status()
 
                     response['success'] = True
@@ -149,7 +143,8 @@ class CatalogHandler(InstanceHandler):
                 except Exception as e:
                     self.checker.log_error('Unable to save catalog: {0}'.format(e)) # pragma: no cover
 
-        self._handle_errors(self.checker)
+        if len(self.checker.all_errors) > 0:
+            self.report_error(self.checker.all_errors)
 
         if completed_items == 0:
             self.checker.log_error('There were no formats to process')
@@ -287,6 +282,8 @@ class CatalogHandler(InstanceHandler):
 
     def _build_versification(self, package, checker):
         """
+        DEPRECATED
+
         Adds versification chunks to projects in the catalog.
         Note: this may not do anything if no languages have been generated yet.
         self._build_rc will pick up the slack in that case.
@@ -346,12 +343,3 @@ class CatalogHandler(InstanceHandler):
             return old_hash != new_hash
         except Exception as e:
             return True
-
-    def _handle_errors(self, checker):
-        """
-        Handles errors and warnings produced by the checker
-        :param checker:
-        :return:
-        """
-        if len(checker.all_errors) > 0:
-            self.report_error(checker.all_errors, to_email=self.to_email, from_email=self.from_email)

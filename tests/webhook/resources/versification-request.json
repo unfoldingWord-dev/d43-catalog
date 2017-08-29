@@ -5,7 +5,8 @@
     "cdn_bucket": "",
     "cdn_url": "https://cdn.door43.org",
     "from_email": "",
-    "to_email": ""
+    "to_email": "",
+    "version": "3"
   },
   "body-json": {
     "secret": "",

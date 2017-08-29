@@ -78,7 +78,7 @@ class UwV2CatalogHandler(InstanceHandler):
         try:
             return self.__execute()
         except Exception as e:
-            self.report_error(e.message, to_email=self.to_email, from_email=self.from_email)
+            self.report_error(e.message)
             raise Exception, Exception(e), sys.exc_info()[2]
 
     def __execute(self):
