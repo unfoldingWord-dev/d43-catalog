@@ -38,6 +38,7 @@ class WebhookHandler(Handler):
         self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
         self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
         self.repo_commit = self.retrieve(event, 'body-json', 'payload')
+        self.api_version = self.retrieve(env_vars, 'version')
         if 'pull_request' in self.repo_commit:
             self.__parse_pull_request(self.repo_commit)
         else:
@@ -125,17 +126,20 @@ class WebhookHandler(Handler):
         try:
             # build catalog entry
             data = self._build()
-            # upload data
-            if 'uploads' in data:
-                self.logger.debug('Uploading files for "{}"'.format(self.repo_name))
-                for upload in data['uploads']:
-                    self.s3_handler.upload_file(upload['path'], upload['key'])
-                del data['uploads']
+            if data:
+                # upload data
+                if 'uploads' in data:
+                    self.logger.debug('Uploading files for "{}"'.format(self.repo_name))
+                    for upload in data['uploads']:
+                        self.s3_handler.upload_file(upload['path'], upload['key'])
+                    del data['uploads']
+                else:
+                    self.logger.debug('No upload-able content found in "{}"'.format(self.repo_name))
+                self.db_handler.insert_item(data)
             else:
-                self.logger.debug('No publishable content found in "{}"'.format(self.repo_name))
-            self.db_handler.insert_item(data)
+                self.logger.debug('No data found in {}'.format(self.repo_name))
         except Exception as e:
-            self.report_error(e.message, from_email=self.from_email, to_email=self.to_email)
+            self.report_error(e.message)
             raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             # clean
@@ -166,7 +170,8 @@ class WebhookHandler(Handler):
         elif self.repo_name == 'catalogs':
             data = self._build_catalogs()
         elif self.repo_name == 'versification':
-            data = self._build_versification()
+            # TODO: we do not yet know what to do with versification
+            return None
         else:
             data = self._build_rc()
 
@@ -297,18 +302,6 @@ class WebhookHandler(Handler):
             'uploads': uploads
         }
 
-    @staticmethod
-    def lower_key(dict, key):
-        """
-        Changes the value in the dictionary to lowercase.
-        This will perform proper checks to ensure the key exists and is a string
-        :param dict:
-        :param key:
-        :return:
-        """
-        if dict and key and key in dict and isinstance(dict[key], str):
-            dict[key] = dict[key].lower()
-
     def _build_media_formats(self, rc_dir, manifest, media):
         """
         Prepares the media formats
@@ -415,9 +408,12 @@ class WebhookHandler(Handler):
         return media_chapters
 
     def _build_versification(self):
-        # we may need to upload multiple files and insert multiple versification entries in the db (one for each book)
-        # we may need to combine the versification by book.
-        # files = sorted(glob(os.path.join(self.repo_dir, 'bible', '*.json')))
+        """
+        DEPRECATED
+
+        we are no longer processing versification.
+        :return:
+        """
         bible_dir = os.path.join(self.repo_dir, 'bible')
         versification_dirs = os.listdir(bible_dir)
         books = {}
@@ -429,15 +425,15 @@ class WebhookHandler(Handler):
             vrs_id = os.path.basename(vrs_dir)
             book_files = sorted(glob(os.path.join(bible_dir, vrs_dir, 'chunks', '*.json')))
             for b in book_files:
-                self.logger.debug('Reading {0}...'.format(b))
-                identifier = os.path.splitext(os.path.basename(b))[0]
+                self.logger.debug('Reading "{}" versification for "{}"'.format(vrs_id, b))
+                b_id = os.path.splitext(os.path.basename(b))[0]
                 try:
                     book_vrs = json.loads(read_file(b))
                 except Exception as e:
-                    raise Exception('Bad JSON: {0}'.format(e))
-                book = WebhookHandler.retrieve_or_make(books, identifier, {
-                    'identifier': identifier,
-                    'chunks_url': '{0}/bible/{1}/v3/chunks.json'.format(self.cdn_url, identifier),
+                    raise Exception, Exception('Bad JSON: {0}'.format(e)), sys.exc_info()[2]
+                book = WebhookHandler.retrieve_or_make(books, b_id, {
+                    'identifier': b_id,
+                    'chunks_url': '{0}/bible/{}/{}/v{}/chunks.json'.format(self.cdn_url, vrs_id, b_id, self.api_version),
                     'chunks': {}
                 })
                 book['chunks'][vrs_id] = book_vrs
@@ -451,7 +447,7 @@ class WebhookHandler(Handler):
             chunk_file = os.path.join(temp_dir, book['identifier'] + '.json')
             write_file(chunk_file, json.dumps(book['chunks'], sort_keys=True))
             # for now we bypass signing and upload chunks directly
-            upload_key = 'bible/{}/v3/chunks.json'.format(book['identifier']) # self.make_temp_upload_key('{}/chunks.json'.format(book['identifier']))
+            upload_key = 'bible/{}/{}/v{}/chunks.json'.format(book['identifier'], self.api_version)
             uploads.append({
                 'key': upload_key,
                 'path': chunk_file

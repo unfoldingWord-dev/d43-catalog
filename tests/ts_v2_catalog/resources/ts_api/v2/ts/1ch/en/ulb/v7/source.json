@@ -3,129 +3,31 @@
     {
       "frames": [
         {
-          "format": "usx", 
-          "id": "01-01", 
-          "img": "", 
-          "lastvs": "4", 
-          "text": "<para style=\"s2\">The descendants of Adam</para>\n\n<para style=\"p\">\n\n  <verse number=\"1\" style=\"v\" />The first person God created was Adam. Adam's son was Seth. Seth's son was Enosh. Enosh's son was Kenan.\n\n  <verse number=\"2\" style=\"v\" />Kenan's son was Mahalalel. Mahalalel's son was Jared. Jared's son was Enoch.\n\n  <verse number=\"3\" style=\"v\" />Enoch's son was Methuselah. Methusalah's son was Lamech. Lamech's son was Noah.\n\n  <verse number=\"4\" style=\"v\" />Noah's sons were Shem, Ham, and Japheth.</para>\n\n<para style=\"s2\">The descendants of Japheth</para>\n\n<para style=\"li1\">\n"
-        }, 
+          "text": "<para style=\"s2\">The descendants of Adam</para>\n\n<para style=\"p\">\n\n  <verse number=\"1\" style=\"v\" />The first person God created was Adam. Adam's son was Seth. Seth's son was Enosh. Enosh's son was Kenan.\n\n  <verse number=\"2\" style=\"v\" />Kenan's son was Mahalalel. Mahalalel's son was Jared. Jared's son was Enoch.\n\n  <verse number=\"3\" style=\"v\" />Enoch's son was Methuselah. Methusalah's son was Lamech. Lamech's son was Noah.\n\n  <verse number=\"4\" style=\"v\" />Noah's sons were Shem, Ham, and Japheth.</para>\n\n<para style=\"s2\">The descendants of Japheth</para>\n\n<para style=\"li1\">\n",
+          "lastvs": "4",
+          "id": "01-01",
+          "img": "",
+          "format": "usx"
+        },
         {
-          "format": "usx", 
-          "id": "01-05", 
-          "img": "", 
-          "lastvs": "7", 
-          "text": "<verse number=\"5\" style=\"v\" />The sons of Japheth were Gomer, Magog, Madai, Javan, Tubal, Meshech, and Tiras.</para>\n\n<para style=\"li2\">\n\n<verse number=\"6\" style=\"v\" />The sons of Gomer were Ashkenaz, Riphath, and Togarmah.</para>\n\n<para style=\"li2\">\n\n<verse number=\"7\" style=\"v\" />The descendants of Javan were Elishah, Tarshish, Kittim, and Rodanim.</para>\n\n<para style=\"s2\">The descendants of Ham</para>\n\n<para style=\"li1\">\n"
-        }, 
+          "text": "<verse number=\"5\" style=\"v\" />The sons of Japheth were Gomer, Magog, Madai, Javan, Tubal, Meshech, and Tiras.</para>\n\n<para style=\"li2\">\n\n<verse number=\"6\" style=\"v\" />The sons of Gomer were Ashkenaz, Riphath, and Togarmah.</para>\n\n<para style=\"li2\">\n\n<verse number=\"7\" style=\"v\" />The descendants of Javan were Elishah, Tarshish, Kittim, and Rodanim.</para>\n\n<para style=\"s2\">The descendants of Ham</para>\n\n<para style=\"li1\">\n",
+          "lastvs": "7",
+          "id": "01-05",
+          "img": "",
+          "format": "usx"
+        },
         {
-          "format": "usx", 
-          "id": "01-08", 
-          "img": "", 
-          "lastvs": "10", 
-          "text": "<verse number=\"8\" style=\"v\" />The sons of Ham were Cush, Mizraim, Put, and Canaan.</para>\n\n<para style=\"li1\">\n\n<verse number=\"9\" style=\"v\" />The descendants of Cush were Seba, Havilah, Sabta, Raamah, and Sabteca.</para>\n\n<para style=\"li2\">The sons of Raamah were Sheba and Dedan.</para>\n\n<para style=\"li1\">\n\n<verse number=\"10\" style=\"v\" />Another descendant of Cush was Nimrod. When he grew up, he became a mighty warrior on the earth.</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-11", 
-          "img": "", 
-          "lastvs": "12", 
-          "text": "<verse number=\"11\" style=\"v\" />Mizraim was the ancestor of the Lud , the Anam, the Lehab, the Naphtuh,\n\n<verse number=\"12\" style=\"v\" />the Pathrus, the Casluh, and the Caphtor people groups. The people of the region of Philistia were descended from the Casluh people group.</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-13", 
-          "img": "", 
-          "lastvs": "16", 
-          "text": "<verse number=\"13\" style=\"v\" />Canaan's first son was Sidon. He was also the ancestor of the Heth,\n\n<verse number=\"14\" style=\"v\" />the Jebus, the Amor, the Girgash,\n\n<verse number=\"15\" style=\"v\" />the Hiv, the Ark, the Sin,\n\n<verse number=\"16\" style=\"v\" />the Arvad, the Zemar, and the Hamath people groups.</para>\n\n<para style=\"s2\">The descendants of Shem</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-17", 
-          "img": "", 
-          "lastvs": "19", 
-          "text": "<verse number=\"17\" style=\"v\" />The sons of Shem were Elam, Asshur, Arphachshad, Lud, and Aram.</para>\n\n<para style=\"li1\">Aram's sons were Uz, Hul, Gether, and Meshech.</para>\n\n<para style=\"li1\">\n\n<verse number=\"18\" style=\"v\" />Arphachshad was the father of Shelah, who was the father of Eber.</para>\n\n<para style=\"li2\">\n\n<verse number=\"19\" style=\"v\" />Eber had two sons. One was named Peleg which sounds like the word that means 'divided' because during the time that he lived, the people on the earth were divided into various language groups. Peleg's younger brother was Joktan.</para>\n\n<para style=\"li2\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-20", 
-          "img": "", 
-          "lastvs": "23", 
-          "text": "<verse number=\"20\" style=\"v\" />Joktan was the ancestor of Almodad, Sheleph, Hazarmaveth, Jerah,\n\n<verse number=\"21\" style=\"v\" />Hadoram, Uzal, Diklah,\n\n<verse number=\"22\" style=\"v\" />Obal, Abimael, Sheba,\n\n<verse number=\"23\" style=\"v\" />Ophir, Havilah, and Jobab.</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-24", 
-          "img": "", 
-          "lastvs": "27", 
-          "text": "<verse number=\"24\" style=\"v\" />The descendants of Shem, in order from him to Abraham, were Arphachshad, Shelah,\n\n<verse number=\"25\" style=\"v\" />Eber, Peleg, Reu,\n\n<verse number=\"26\" style=\"v\" />Serug, Nahor, Terah,\n\n<verse number=\"27\" style=\"v\" />and Abram, whose name was later changed to Abraham.</para>\n\n<para style=\"s2\">The descendants of Abraham</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-28", 
-          "img": "", 
-          "lastvs": "31", 
-          "text": "<verse number=\"28\" style=\"v\" />Abraham's sons were Isaac and Ishmael.</para>\n\n<para style=\"li1\">\n\n<verse number=\"29\" style=\"v\" />The son of Abraham's slave wife Hagar was Ishmael. Ishmael's twelve sons were Nebaioth, his firstborn, then Kedar, Adbeel, Mibsam,\n\n<verse number=\"30\" style=\"v\" />Mishma, Dumah, Massa, Hadad, Tema,\n\n<verse number=\"31\" style=\"v\" />Jetur, Naphish, and Kedemah.</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-32", 
-          "img": "", 
-          "lastvs": "33", 
-          "text": "<verse number=\"32\" style=\"v\" />After Abraham's wife Sarah died, he took another wife named Keturah. Her sons were Zimran, Jokshan, Medan, Midian, Ishbak, and Shuah.</para>\n\n<para style=\"li2\">Jokshan's sons were Sheba and Dedan.</para>\n\n<para style=\"li2\">\n\n<verse number=\"33\" style=\"v\" />Midian's sons were Ephah, Epher, Hanoch, Abida, and Eldaah.</para>\n\n<para style=\"s2\">The descendants of Esau</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-34", 
-          "img": "", 
-          "lastvs": "37", 
-          "text": "<verse number=\"34\" style=\"v\" />The son of Abraham's wife Sarah was Isaac, and Isaac's sons were Esau and Jacob, whose name was later changed to Israel.</para>\n\n<para style=\"li1\">\n\n<verse number=\"35\" style=\"v\" />The sons of Esau were Eliphaz, Reuel, Jeush, Jalam, and Korah.</para>\n\n<para style=\"li2\">\n\n<verse number=\"36\" style=\"v\" />The sons of Eliphaz were Teman, Omar, Zepho, Gatam, Kenaz, Timna, and Amalek.</para>\n\n<para style=\"li2\">\n\n<verse number=\"37\" style=\"v\" />Reuel's sons were Nahath, Zerah, Shammah, and Mizzah.</para>\n\n<para style=\"s2\">The descendants of Seir</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-38", 
-          "img": "", 
-          "lastvs": "40", 
-          "text": "<verse number=\"38\" style=\"v\" />Another descendant of Esau was Seir. His descendants lived in the region of Edom. Seir's sons were Lotan, Shobal, Zibeon, Anah, Dishon, Ezer, and Dishan.</para>\n\n<para style=\"li2\">\n\n<verse number=\"39\" style=\"v\" />Lotan's sons were Hori and Homam, and Lotan's sister was Timna.</para>\n\n<para style=\"li2\">\n\n<verse number=\"40\" style=\"v\" />Shobal's sons were Alvan, Manahath, Ebal, Shepho, and Onam.</para>\n\n<para style=\"li2\">Zibeon's sons were Aiah and Anah.</para>\n\n<para style=\"li2\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-41", 
-          "img": "", 
-          "lastvs": "42", 
-          "text": "<verse number=\"41\" style=\"v\" />Anah's son was Dishon.</para>\n\n<para style=\"li2\">1 Dishon's sons were Hamram, Eshban, Ithran, and Keran.</para>\n\n<para style=\"li2\">\n\n<verse number=\"42\" style=\"v\" />Ezer's sons were Bilhan, Zaavan, and Jaakan.</para>\n\n<para style=\"li2\">Dishan's sons were Uz and Aran.</para>\n\n<para style=\"s2\">The kings of Edom</para>\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-43", 
-          "img": "", 
-          "lastvs": "45", 
-          "text": "<para style=\"p\">\n\n  <verse number=\"43\" style=\"v\" />These are the names of the kings who ruled the region of Edom before any kings ruled over Israel:</para>\n\n<para style=\"li1\">Bela son of Beor, was king in Edom, and the name of the city in which he lived was Dinhabah.</para>\n\n<para style=\"li1\">\n\n<verse number=\"44\" style=\"v\" />When Bela died, Jobab son of Zerah, from the city of Bozrah, became the king.</para>\n\n<para style=\"li1\">\n\n<verse number=\"45\" style=\"v\" />When Jobab died, Husham became the king. He was from the region where the Teman people group lived.</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-46", 
-          "img": "", 
-          "lastvs": "48", 
-          "text": "<verse number=\"46\" style=\"v\" />When Husham died, Hadad son of Bedad, became the king. He ruled in the city of Avith. Hadad's army defeated the army of the Midian people group in the region of Moab.</para>\n\n<para style=\"li1\">\n\n<verse number=\"47\" style=\"v\" />When Hadad died, Samlah became the king. He was from the city of Masrekah.</para>\n\n<para style=\"li1\">\n\n<verse number=\"48\" style=\"v\" />When Samlah died, Shaul became the king. He was from the city of Rehoboth Hannahar.</para>\n\n<para style=\"li1\">\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-49", 
-          "img": "", 
-          "lastvs": "50", 
-          "text": "<verse number=\"49\" style=\"v\" />When Shaul died, Baal Hanan son of Achbor, became the king.</para>\n\n<para style=\"li1\">\n\n<verse number=\"50\" style=\"v\" />When Baal Hanan died, Hadad became the king. He was from the city of Pai. His wife's name was Mehetabel; she was the daughter of Matred and the granddaughter of Me Zahab.\n"
-        }, 
-        {
-          "format": "usx", 
-          "id": "01-00", 
-          "img": "", 
-          "lastvs": "54", 
-          "text": "<verse number=\"51\" style=\"v\" />Then Hadad died.</para>\n\n<para style=\"b\" />\n\n<para style=\"li1\">The leaders of the clans of the Edom people group were Timna, Alvah, Jetheth,\n\n<verse number=\"52\" style=\"v\" />Oholibamah, Elah, Pinon,\n\n<verse number=\"53\" style=\"v\" />Kenaz, Teman, Mibzar,\n\n<verse number=\"54\" style=\"v\" />Magdiel, and Iram.</para>"
+          "text": "<verse number=\"8\" style=\"v\" />The sons of Ham were Cush, Mizraim, Put, and Canaan.</para>\n\n<para style=\"li1\">\n\n<verse number=\"9\" style=\"v\" />The descendants of Cush were Seba, Havilah, Sabta, Raamah, and Sabteca.</para>\n\n<para style=\"li2\">The sons of Raamah were Sheba and Dedan.</para>\n\n<para style=\"li1\">\n\n<verse number=\"10\" style=\"v\" />Another descendant of Cush was Nimrod. When he grew up, he became a mighty warrior on the earth.</para>\n\n<para style=\"li1\"></para>",
+          "lastvs": "10",
+          "id": "01-00",
+          "img": "",
+          "format": "usx"
         }
-      ], 
-      "number": "01", 
-      "ref": "", 
+      ],
+      "ref": "",
+      "number": "01",
       "title": ""
     }
-  ], 
+  ],
   "date_modified": "20170607"
 }

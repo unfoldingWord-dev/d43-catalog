@@ -1,3 +1,9 @@
+"""
+DEPRECATED: These classes were designed earlier on to assist in running tests, however you should now use the "mock" module instead.
+The mock module provides powerful tools for patching classes and methods without having to access the mocked object directly.
+This allows us to avoid designing ways to pass mock objects into our code (which is ugly).
+"""
+
 import codecs
 import json
 import os
