@@ -1,17 +1,13 @@
 from __future__ import unicode_literals, print_function
 
-import json
 import os
 from mock import patch
 from unittest import TestCase
-
 from libraries.tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI, MockLogger
-
 from libraries.lambda_handlers.catalog_handler import CatalogHandler
 from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals
 
 
-# This is here to test importing main
 @patch('libraries.lambda_handlers.handler.ErrorReporter.add_error')
 class TestCatalog(TestCase):
 

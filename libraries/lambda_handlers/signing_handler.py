@@ -141,7 +141,6 @@ class SigningHandler(InstanceHandler):
         if was_signed or fully_signed:
             self.logger.debug('recording signatures')
             record_keys = {'repo_name': item['repo_name']}
-            time.sleep(5)
             self.db_handler.update_item(record_keys, {
                 'package': json.dumps(package, sort_keys=True),
                 'signed': fully_signed
