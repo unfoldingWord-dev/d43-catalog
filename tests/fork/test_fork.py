@@ -1,9 +1,9 @@
 import os
-from shutil import copyfile
-from unittest import TestCase
-
 import gogs_client as GogsClient
 
+from shutil import copyfile
+from unittest import TestCase
+from mock import patch
 from libraries.lambda_handlers.fork_handler import ForkHandler
 from libraries.lambda_handlers.webhook_handler import WebhookHandler
 from libraries.tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
@@ -11,7 +11,8 @@ from libraries.tools.mocks import MockS3Handler, MockDynamodbHandler, MockLogger
 
 # This is here to test importing main
 
-
+# @patch('')
+@patch('libraries.lambda_handlers.handler.ErrorReporter')
 class TestFork(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
     mock_download = None
@@ -57,7 +58,8 @@ class TestFork(TestCase):
                 'cdn_bucket': '',
                 'cdn_url': '',
                 'from_email': '',
-                'to_email': ''
+                'to_email': '',
+                'version': '3'
             },
             'context': {
 
@@ -143,7 +145,7 @@ class TestFork(TestCase):
     def mock_download_file(url, outfile):
         copyfile(TestFork.mock_download, outfile)
 
-    def test_get_repos(self):
+    def test_get_repos(self, mock_reporter):
         event = self.create_event()
 
         # mock data
@@ -170,7 +172,7 @@ class TestFork(TestCase):
         for repo in repos:
             self.assertNotIn(repo.full_name, ['Door43-Catalog/hmr-obs', 'Door43-Catalog/pt-br-obs'])
 
-    def test_get_dirty_repos(self):
+    def test_get_dirty_repos(self, mock_reporter):
         event = self.create_event()
 
         # mock data
@@ -199,7 +201,7 @@ class TestFork(TestCase):
         for repo in repos:
             self.assertNotIn(repo.full_name, ['Door43-Catalog/pt-br-obs'])
 
-    def test_make_hook_payload(self):
+    def test_make_hook_payload(self, mock_reporter):
         event = self.create_event()
         mockDb = MockDynamodbHandler()
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
@@ -229,7 +231,7 @@ class TestFork(TestCase):
                                          download_handler=TestFork.mock_download_file)
         webhook_handler.run()
 
-    def test_trigger_hook_with_repos(self):
+    def test_trigger_hook_with_repos(self, mock_reporter):
         event = self.create_event()
         mockDb = MockDynamodbHandler()
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
@@ -247,7 +249,7 @@ class TestFork(TestCase):
 
         self.assertIn('Simulating Webhook for my_repo', mockLog._messages)
 
-    def test_trigger_hook_no_repos(self):
+    def test_trigger_hook_no_repos(self, mock_reporter):
         event = self.create_event()
         mockDb = MockDynamodbHandler()
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
@@ -263,7 +265,7 @@ class TestFork(TestCase):
 
         self.assertIn('No new repositories found', mockLog._messages)
 
-    def test_stage_prefix_prod(self):
+    def test_stage_prefix_prod(self, mock_reporter):
         event = self.create_event()
         mockDb = MockDynamodbHandler()
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")
@@ -276,7 +278,7 @@ class TestFork(TestCase):
                               dynamodb_handler=mockDb)
         self.assertEqual('', handler.stage_prefix())
 
-    def test_stage_prefix_dev(self):
+    def test_stage_prefix_dev(self, mock_reporter):
         event = self.create_event()
         event['context'] = {
             'stage': 'dev'

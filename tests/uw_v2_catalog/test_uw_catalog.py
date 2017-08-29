@@ -3,14 +3,14 @@ from unittest import TestCase
 
 from libraries.tools.file_utils import load_json_object
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
-
+from mock import patch
 from libraries.lambda_handlers.uw_v2_catalog_handler import UwV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json
 
 
 # This is here to test importing main
 
-
+@patch('libraries.lambda_handlers.handler.ErrorReporter')
 class TestUwV2Catalog(TestCase):
 
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
@@ -29,7 +29,7 @@ class TestUwV2Catalog(TestCase):
             }
         }
 
-    def test_status_missing(self):
+    def test_status_missing(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'missing_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -48,7 +48,7 @@ class TestUwV2Catalog(TestCase):
         result = converter._get_status()
         self.assertFalse(result)
 
-    def test_status_not_ready(self):
+    def test_status_not_ready(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'not_ready_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -67,7 +67,7 @@ class TestUwV2Catalog(TestCase):
         result = converter._get_status()
         self.assertFalse(result)
 
-    def test_status_ready_complete(self):
+    def test_status_ready_complete(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'ready_complete_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -87,7 +87,7 @@ class TestUwV2Catalog(TestCase):
         self.assertEqual('complete', source_status['state'])
         self.assertEqual('complete', status['state'])
 
-    def test_status_ready_inprogress(self):
+    def test_status_ready_inprogress(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'ready_inprogress_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -108,7 +108,7 @@ class TestUwV2Catalog(TestCase):
         self.assertEqual('in-progress', status['state'])
         self.assertEqual(1, len(status['processed']))
 
-    def test_status_ready_new_db(self):
+    def test_status_ready_new_db(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'ready_new_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -129,7 +129,7 @@ class TestUwV2Catalog(TestCase):
         self.assertEqual('in-progress', status['state'])
         self.assertEqual(0, len(status['processed']))
 
-    def test_status_outdated_complete_db(self):
+    def test_status_outdated_complete_db(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'ready_outdated_complete_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -150,7 +150,7 @@ class TestUwV2Catalog(TestCase):
         self.assertEqual('in-progress', status['state'])
         self.assertEqual(0, len(status['processed']))
 
-    def test_status_outdated_inprogress_db(self):
+    def test_status_outdated_inprogress_db(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'ready_outdated_inprogress_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
@@ -171,7 +171,7 @@ class TestUwV2Catalog(TestCase):
         self.assertEqual('in-progress', status['state'])
         self.assertEqual(0, len(status['processed']))
 
-    def test_create_v2_catalog(self):
+    def test_create_v2_catalog(self, mock_reporter):
         mockDB = MockDynamodbHandler()
         mockDB._load_db(os.path.join(TestUwV2Catalog.resources_dir, 'ready_new_db.json'))
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
