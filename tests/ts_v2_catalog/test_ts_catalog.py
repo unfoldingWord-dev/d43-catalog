@@ -1,17 +1,17 @@
 import json
 import os
-from unittest import TestCase
 
+from mock import patch
+from unittest import TestCase
 from libraries.tools.file_utils import load_json_object, read_file
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
-
 from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json
 
 
 # This is here to test importing main
 
-
+@patch('libraries.lambda_handlers.handler.ErrorReporter')
 class TestTsV2Catalog(TestCase):
 
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
@@ -30,7 +30,7 @@ class TestTsV2Catalog(TestCase):
             }
         }
 
-    def test_inprogress(self):
+    def test_inprogress(self, mock_reporter):
         mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
         mockV2Api = MockAPI(os.path.join(self.resources_dir, 'ts_api'), 'https://test')
         mockS3 = MockS3Handler('ts_bucket')
@@ -113,7 +113,7 @@ class TestTsV2Catalog(TestCase):
                     #     self.assertIn(terms_map_path, mockS3._uploads, url_err_msg.format(terms_map_path))
 
 
-    def test_convert_catalog(self):
+    def test_convert_catalog(self, mock_reporter):
         mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
         mockV2Api = MockAPI(os.path.join(self.resources_dir, 'ts_api'), 'https://test')
         mockS3 = MockS3Handler('ts_bucket')
@@ -198,7 +198,7 @@ class TestTsV2Catalog(TestCase):
                     if terms_map_path:
                         self.assertIn(terms_map_path, mockS3._recent_uploads, url_err_msg.format(terms_map_path))
 
-    def test_complete_status(self):
+    def test_complete_status(self, mock_reporter):
         mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
         mockS3 = MockS3Handler('ts_bucket')
         mockDb = MockDynamodbHandler()
@@ -221,7 +221,7 @@ class TestTsV2Catalog(TestCase):
         self.assertEqual(0, len(mockS3._recent_uploads))
         self.assertIn('Catalog already generated', mockLog._messages)
 
-    def test_missing_catalog(self):
+    def test_missing_catalog(self, mock_reporter):
         mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
         mockV3Api.add_host(self.resources_dir, 'https://api.door43.org/')
         mockS3 = MockS3Handler('ts_bucket')
@@ -244,7 +244,7 @@ class TestTsV2Catalog(TestCase):
         self.assertFalse(result)
         self.assertIn('https://api.door43.org/v3/catalog.json does not exist', mockLog._messages)
 
-    def test_broken_catalog(self):
+    def test_broken_catalog(self, mock_reporter):
         mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')
         mockV3Api.add_host(os.path.join(self.resources_dir, 'broken_api'), 'https://api.door43.org/')
         mockS3 = MockS3Handler('ts_bucket')
