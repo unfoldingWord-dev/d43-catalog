@@ -11,6 +11,7 @@ from libraries.tools.test_utils import assert_object_equals_file
 
 # This is here to test importing main
 
+@patch('libraries.lambda_handlers.webhook_handler.url_exists')
 @patch('libraries.lambda_handlers.handler.ErrorReporter')
 class TestWebhook(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
@@ -42,7 +43,7 @@ class TestWebhook(TestCase):
     def tearDown(self):
         pass
 
-    def test_webook_with_invalid_data(self, mock_reporter):
+    def test_webook_with_invalid_data(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'missing-manifest.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -69,7 +70,7 @@ class TestWebhook(TestCase):
         self.assertFalse(os.path.isdir(handler.temp_dir))
 
 
-    def test_malformed_manifest(self, mock_reporter):
+    def test_malformed_manifest(self, mock_reporter, mock_url_exists):
         mock_instance = MagicMock()
         mock_instance.add_error = MagicMock()
         mock_reporter.return_value = mock_instance
@@ -102,7 +103,7 @@ class TestWebhook(TestCase):
         self.assertFalse(os.path.isdir(handler.temp_dir))
         mock_instance.add_error.assert_called_once_with('Bad Manifest: manifest missing dublin_core key "type"')
 
-    def test_webhook_with_obs_data(self, mock_reporter):
+    def test_webhook_with_obs_data(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'obs-request.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -142,7 +143,7 @@ class TestWebhook(TestCase):
         self.assertEqual('en_obs', entry['repo_name'])
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package.json'))
 
-    def test_webhook_ulb_merged_pull_request(self, mock_reporter):
+    def test_webhook_ulb_merged_pull_request(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'ulb-merged-pull-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
@@ -180,7 +181,7 @@ class TestWebhook(TestCase):
         self.assertIn('temp/ta_ulb/{}/ta/ulb/v3/ulb.zip'.format(entry['commit_id']),
                       self.MockS3Handler.uploads[0]['key'])
 
-    def test_webhook_ulb_pull_request(self, mock_reporter):
+    def test_webhook_ulb_pull_request(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'ulb-pull-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
@@ -212,7 +213,7 @@ class TestWebhook(TestCase):
         self.assertEqual(0, len(self.MockS3Handler.uploads))
         self.assertIsNone(entry)
 
-    def test_webhook_ulb(self, mock_reporter):
+    def test_webhook_ulb(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'ulb-request.json')
 
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
@@ -253,7 +254,7 @@ class TestWebhook(TestCase):
 
         assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_ulb_package.json'))
 
-    def test_webhook_versification(self, mock_reporter):
+    def test_webhook_versification(self, mock_reporter, mock_url_exists):
         """
         We are not currently processing versification.
         Therefore, we test that nothing happens.
@@ -287,7 +288,7 @@ class TestWebhook(TestCase):
         data = mock_db._last_inserted_item
         self.assertEqual(None, data)
 
-    def test_webhook_localization(self, mock_reporter):
+    def test_webhook_localization(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'localization-request.json')
         with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
             request_text = in_file.read()
