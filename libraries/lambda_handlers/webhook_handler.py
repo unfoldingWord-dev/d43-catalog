@@ -21,7 +21,7 @@ from d43_aws_tools import DynamoDBHandler, S3Handler
 from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.date_utils import str_to_timestamp
 from libraries.tools.file_utils import unzip, read_file, write_file
-from libraries.tools.url_utils import get_url, download_file
+from libraries.tools.url_utils import get_url, download_file, url_exists
 
 from libraries.lambda_handlers.handler import Handler
 
@@ -289,6 +289,27 @@ class WebhookHandler(Handler):
             if pid in media_formats:
                 if 'formats' not in project: project['formats'] = []
                 project['formats'] = project['formats'] + media_formats[pid]
+
+        # add html format
+        if manifest['dublin_core']['identifier'] == 'ta':
+            for project in manifest['projects']:
+                pid = self.sanitize_identifier(project['identifier'])
+                sort_slug = '{}'.format(int(project['sort']) + 1).zfill(2)
+                html_url = '{}/u/Door43/{}/{}/{}-{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, sort_slug, pid)
+                if url_exists(html_url):
+                    if 'formats' not in project: project['formats'] = []
+                    project['formats'].append({
+                        'format': 'text/html',
+                        'modified': '',
+                        'signature': '',
+                        'size': '',
+                        'url': html_url,
+                        'build_rules': [
+                            'signing.sign_given_url'
+                        ]
+                    })
+                else:
+                    self.logger.warning('Missing html format for {}_{} at {}'.format(self.repo_name, pid, html_url))
 
         return {
             'repo_name': self.repo_name,
