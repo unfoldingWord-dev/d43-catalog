@@ -214,6 +214,16 @@
           "source_version": "4",
           "url": "https://cdn.door43.org/en/obs/v4/360p/en_obs_360p.zip",
           "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.html_format"
+          ],
+          "format": "text/html",
+          "modified": "",
+          "signature": "",
+          "size": "",
+          "url": "https://api.door43.org/tx/print?id=Door43-Catalog/en_obs/f8a8d8d757"
         }
       ],
       "identifier": "obs",
