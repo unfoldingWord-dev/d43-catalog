@@ -236,10 +236,11 @@ class SigningHandler(InstanceHandler):
 
         # TRICKY: re-format html urls
         if 'html_format' in build_rules:
-            html_name = package['identifier']
+            dc = package['dublin_core']
+            html_name = dc['identifier']
             if project:
                 html_name = project['identifier']
-            src_key = '{}/{}/v{}/media/html/{}.html'.format(package['language']['identifier'], package['identifier'], self.api_version, html_name)
+            src_key = '{}/{}/v{}/media/html/{}.html'.format(dc['language']['identifier'], dc['identifier'], self.api_version, html_name)
             sig_key = '{}.sig'.format(src_key)
             format['url'] = '{}/{}'.format(self.cdn_url, src_key)
 
