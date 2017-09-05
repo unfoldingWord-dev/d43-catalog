@@ -47,7 +47,9 @@ class TestSigningHandler(TestCase):
                 'cdn_bucket': 'cdn.door43.org',
                 'cdn_url': 'https://cdn.door43.org',
                 'from_email': '',
-                'to_email': ''
+                'to_email': '',
+                'version': '3',
+                'api_url': 'https://api.door43.org'
             }
         }
 
@@ -309,7 +311,7 @@ class TestSigningHandler(TestCase):
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
                                 url_headers_handler=lambda url: mockHeaders)
-        (already_signed, newly_signed) = signer.process_format(item, format)
+        (already_signed, newly_signed) = signer.process_format(item, None, None, format)
         self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
         # TRICKY: for now we are faking the signature so the catalog can build.
@@ -359,7 +361,7 @@ class TestSigningHandler(TestCase):
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
                                 url_headers_handler=lambda url: mockHeaders)
-        (already_signed, newly_signed) = signer.process_format(item, format)
+        (already_signed, newly_signed) = signer.process_format(item, None, None, format)
         self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
         self.assertNotIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
@@ -404,6 +406,6 @@ class TestSigningHandler(TestCase):
                                 signer=signer,
                                 dynamodb_handler=mock_db,
                                 url_size_handler=lambda url: 1)
-        (already_signed, newly_signed) = signing_handler.process_format(item, format)
+        (already_signed, newly_signed) = signing_handler.process_format(item, None, None, format)
         self.assertTrue(newly_signed)
         mock_s3.download_file('{}.sig'.format(key), os.path.expanduser('~/{}.sig'.format(os.path.basename(key))))

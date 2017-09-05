@@ -59,7 +59,8 @@ class TestFork(TestCase):
                 'cdn_url': '',
                 'from_email': '',
                 'to_email': '',
-                'version': '3'
+                'version': '3',
+                'api_url': ''
             },
             'context': {
 
@@ -201,7 +202,9 @@ class TestFork(TestCase):
         for repo in repos:
             self.assertNotIn(repo.full_name, ['Door43-Catalog/pt-br-obs'])
 
-    def test_make_hook_payload(self, mock_reporter):
+    @patch('libraries.lambda_handlers.webhook_handler.url_exists')
+    def test_make_hook_payload(self, mock_url_exists, mock_reporter):
+        mock_url_exists.return_value = True
         event = self.create_event()
         mockDb = MockDynamodbHandler()
         self.MockGogsClient.MockGogsApi.branch = TestFork.create_branch("branch")

@@ -29,8 +29,10 @@ class SigningHandler(InstanceHandler):
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
+        self.api_url = self.retrieve(env_vars, 'api_url', 'Environment Vars')
         self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
         self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
+        self.api_version = self.retrieve(env_vars, 'version', 'Environment Vars')
         self.logger = logger  # type: logging._loggerClass
         self.signer = signer
         if 's3_handler' in kwargs:
@@ -95,7 +97,7 @@ class SigningHandler(InstanceHandler):
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                (already_signed, newly_signed) = self.process_format(item, format)
+                (already_signed, newly_signed) = self.process_format(item, package, None, format)
                 if newly_signed:
                     was_signed = True
                 if not(already_signed or newly_signed):
@@ -104,7 +106,7 @@ class SigningHandler(InstanceHandler):
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    (already_signed, newly_signed) = self.process_format(item, format)
+                    (already_signed, newly_signed) = self.process_format(item, package, project, format)
                     if newly_signed:
                         was_signed = True
                     if not (already_signed or newly_signed):
@@ -123,7 +125,7 @@ class SigningHandler(InstanceHandler):
                                 self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
                                 continue
 
-                            (already_signed, newly_signed) = self.process_format(item, chapter)
+                            (already_signed, newly_signed) = self.process_format(item, package, project, chapter)
                             sanitized_chapters.append(chapter)
                             if newly_signed:
                                 was_signed = True
@@ -146,11 +148,13 @@ class SigningHandler(InstanceHandler):
                 'signed': fully_signed
             })
 
-    def process_format(self, item, format):
+    def process_format(self, item, package, project, format):
         """
         Performs the signing on the format object.
         Files outside of the cdn will not be signed
         :param item:
+        :param package: contains the language and resource
+        :param project: this may be None.
         :param format:
         :return: (already_signed, newly_signed)
         """
@@ -180,6 +184,10 @@ class SigningHandler(InstanceHandler):
             # if format['url'].startswith(prod_cdn_url):
             #     build_rules.append('sign_given_url')
 
+        # TRICKY: some html content is on the api
+        if 'html_format' in build_rules:
+            valid_hosts.append(self.api_url)
+
         # verify url is on the cdn
         if not url_info.hostname in valid_hosts:
             # This allows media to be hosted on third party servers
@@ -205,7 +213,7 @@ class SigningHandler(InstanceHandler):
 
         # download file
         try:
-            if 'sign_given_url' in build_rules:
+            if 'sign_given_url' in build_rules or 'html_format' in build_rules:
                 self.download_file(format['url'], file_to_sign)
             else:
                 # TRICKY: most files to be signed are stored in a temp directory
@@ -224,8 +232,17 @@ class SigningHandler(InstanceHandler):
                 self.logger.warning('The signature was not successfully verified.')
             return (False, False)
 
+        # TRICKY: re-format html urls
+        if 'html_format' in build_rules:
+            html_name = package['identifier']
+            if project:
+                html_name = project['identifier']
+            src_key = '{}/{}/v{}/media/html/{}.html'.format(package['language']['identifier'], package['identifier'], self.api_version, html_name)
+            sig_key = '{}.sig'.format(src_key)
+            format['url'] = '{}/{}'.format(self.cdn_url, src_key)
+
         # upload files
-        if 'sign_given_url' not in build_rules:
+        if 'sign_given_url' not in build_rules or 'html_format' in build_rules:
             # TRICKY: upload temp files to production
             self.cdn_handler.upload_file(file_to_sign, src_key)
         self.cdn_handler.upload_file(sig_file, sig_key)
