@@ -272,6 +272,10 @@ class TestSigningHandler(TestCase):
         Because lambda functions have limited disk space.
         :return:
         """
+        mock_instance = MagicMock()
+        mock_instance.add_error = MagicMock()
+        mock_reporter.return_value = mock_instance
+
         mock_s3 = MockS3Handler()
         mock_db = MockDynamodbHandler()
         mock_logger = MockLogger()
@@ -312,7 +316,7 @@ class TestSigningHandler(TestCase):
                                 download_handler=mock_api.download_file,
                                 url_headers_handler=lambda url: mockHeaders)
         (already_signed, newly_signed) = signer.process_format(item, None, None, format)
-        self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
+        mock_instance.add_error.assert_called_once_with('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip')
         self.assertFalse(already_signed)
         # TRICKY: for now we are faking the signature so the catalog can build.
         self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])

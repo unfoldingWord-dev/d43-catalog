@@ -200,7 +200,7 @@ class SigningHandler(InstanceHandler):
         # skip files that are too large
         size = int(headers.get('content-length', 0))
         if size > SigningHandler.max_file_size:
-            self.logger.warning('File is too large to sign {}'.format(format['url']))
+            self.report_error('File is too large to sign {}'.format(format['url']))
             # return (False, False)
             # TODO: we need to sign these large files but for now this is breaking lambda functions due to limited disk space
             # For now we are adding a signature url so the catalog builds.
