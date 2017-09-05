@@ -318,9 +318,8 @@ class TestSigningHandler(TestCase):
         (already_signed, newly_signed) = signer.process_format(item, None, None, format)
         mock_instance.add_error.assert_called_once_with('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip')
         self.assertFalse(already_signed)
-        # TRICKY: for now we are faking the signature so the catalog can build.
-        self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
-        self.assertTrue(newly_signed)
+        self.assertEqual('', format['signature'])
+        self.assertFalse(newly_signed)
 
     def test_signing_small_file(self, mock_reporter):
         """
