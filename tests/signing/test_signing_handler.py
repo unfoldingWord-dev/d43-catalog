@@ -370,7 +370,7 @@ class TestSigningHandler(TestCase):
         self.assertFalse(already_signed)
         self.assertTrue(newly_signed)
 
-    def test_signing_html(self, mock_reporter):
+    def test_signing_obs_html(self, mock_reporter):
         mock_s3 = MockS3Handler()
         mock_db = MockDynamodbHandler()
         mock_logger = MockLogger()
