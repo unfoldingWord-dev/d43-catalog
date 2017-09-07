@@ -29,10 +29,10 @@ class SigningHandler(InstanceHandler):
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
-        self.api_url = self.retrieve(env_vars, 'api_url', 'Environment Vars')
         self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
         self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
         self.api_version = self.retrieve(env_vars, 'version', 'Environment Vars')
+        self.api_bucket = self.retrieve(env_vars, 'api_bucket', 'Environment Vars')
         self.logger = logger  # type: logging._loggerClass
         self.signer = signer
         if 's3_handler' in kwargs:
@@ -97,7 +97,7 @@ class SigningHandler(InstanceHandler):
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                (already_signed, newly_signed) = self.process_format(item, package, None, format)
+                (already_signed, newly_signed) = self.process_format(item, package['dublin_core'], None, format)
                 if newly_signed:
                     was_signed = True
                 if not(already_signed or newly_signed):
@@ -106,7 +106,7 @@ class SigningHandler(InstanceHandler):
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    (already_signed, newly_signed) = self.process_format(item, package, project, format)
+                    (already_signed, newly_signed) = self.process_format(item, package['dublin_core'], project, format)
                     if newly_signed:
                         was_signed = True
                     if not (already_signed or newly_signed):
@@ -125,7 +125,7 @@ class SigningHandler(InstanceHandler):
                                 self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
                                 continue
 
-                            (already_signed, newly_signed) = self.process_format(item, package, project, chapter)
+                            (already_signed, newly_signed) = self.process_format(item, package['dublin_core'], project, chapter)
                             sanitized_chapters.append(chapter)
                             if newly_signed:
                                 was_signed = True
@@ -148,12 +148,12 @@ class SigningHandler(InstanceHandler):
                 'signed': fully_signed
             })
 
-    def process_format(self, item, package, project, format):
+    def process_format(self, item, dublin_core, project, format):
         """
         Performs the signing on the format object.
         Files outside of the cdn will not be signed
         :param item:
-        :param package: contains the language and resource
+        :param dublin_core:
         :param project: this may be None.
         :param format:
         :return: (already_signed, newly_signed)
@@ -186,10 +186,11 @@ class SigningHandler(InstanceHandler):
 
         # TRICKY: some html content is on the api
         if 'html_format' in build_rules:
-            valid_hosts.append(self.api_url)
+            valid_hosts.append(self.api_bucket)
 
         # verify url is on the cdn
         if not url_info.hostname in valid_hosts:
+            # TODO: external media should be imported if it's not too big
             # This allows media to be hosted on third party servers
             format['signature'] = '{}.sig'.format(format['url'])
             self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
@@ -236,11 +237,10 @@ class SigningHandler(InstanceHandler):
 
         # TRICKY: re-format html urls
         if 'html_format' in build_rules:
-            dc = package['dublin_core']
-            html_name = dc['identifier']
+            html_name = dublin_core['identifier']
             if project:
                 html_name = project['identifier']
-            src_key = '{}/{}/v{}/media/html/{}.html'.format(dc['language']['identifier'], dc['identifier'], self.api_version, html_name)
+            src_key = '{}/{}/v{}/media/html/{}.html'.format(dublin_core['language']['identifier'], dublin_core['identifier'], self.api_version, html_name)
             sig_key = '{}.sig'.format(src_key)
             format['url'] = '{}/{}'.format(self.cdn_url, src_key)
 

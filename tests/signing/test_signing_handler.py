@@ -49,7 +49,7 @@ class TestSigningHandler(TestCase):
                 'from_email': '',
                 'to_email': '',
                 'version': '3',
-                'api_url': 'https://api.door43.org'
+                'api_bucket': 'api.door43.org'
             }
         }
 
@@ -370,6 +370,53 @@ class TestSigningHandler(TestCase):
         self.assertFalse(already_signed)
         self.assertTrue(newly_signed)
 
+    def test_signing_html(self, mock_reporter):
+        mock_s3 = MockS3Handler()
+        mock_db = MockDynamodbHandler()
+        mock_logger = MockLogger()
+        mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org/')
+        event = self.create_event()
+        item = {
+            'repo_name': 'repo_name',
+            'commit_id': 'commitid'
+        }
+        format = {
+          "build_rules": [
+            "signing.html_format"
+          ],
+          "format": "text/html",
+          "modified": "",
+          "signature": "",
+          "size": "",
+          # NOTE: this is not the actual url format used
+          "url": "https://cdn.door43.org/temp/en_obs/f8a8d8d757/en/obs.html"
+        }
+
+        dublin_core = {
+            "identifier": "obs",
+            "language": {
+                "identifier": "en"
+            }
+        }
+        mockHeaders = HeaderReader([
+            ('content-length', 123)
+        ])
+        signer = SigningHandler(event,
+                                None,
+                                logger=mock_logger,
+                                signer=self.mock_signer,
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db,
+                                url_exists_handler=mock_api.url_exists,
+                                download_handler=mock_api.download_file,
+                                url_headers_handler=lambda url: mockHeaders)
+        (already_signed, newly_signed) = signer.process_format(item, dublin_core, None, format)
+        self.assertEqual('https://cdn.door43.org/en/obs/v3/media/html/obs.html', format['url'])
+        self.assertEqual('https://cdn.door43.org/en/obs/v3/media/html/obs.html.sig', format['signature'])
+        self.assertFalse(already_signed)
+        self.assertTrue(newly_signed)
+
+
     @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
     def test_manually_sign(self, mock_reporter):
         """
@@ -388,6 +435,7 @@ class TestSigningHandler(TestCase):
         }
         quality = '720p'
         key = 'en/obs/v4/{0}/en_obs_{0}.zip'.format(quality)
+
         format = {
             "build_rules": [
                 "signing.sign_given_url"
