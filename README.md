@@ -173,7 +173,7 @@ Please note additional tables may be necessary when catering to multiple stages 
 
 ## Tools
 
-###CSV to USFM3
+### CSV to USFM3
 
 This tool will convert a csv file containing Greek words to USFM 3 format.
 You may execute the following command to learn how to use the tool.
