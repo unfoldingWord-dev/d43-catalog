@@ -128,7 +128,7 @@ For example you can trigger the fork lambda at `https://api.door43.org/v3/lambda
 > The functions are not designed to always return useful information in the browser and may timeout,
 > however they are still running properly.
 
-The name of the stage determines the operating environment.
+The name of the stage in API Gateway determines the operating environment.
 If the stage name begins with `prod` the functions will operate on production databases.
 If the stage name begins with anything other than `prod` the functions will
 prefix databases with the stage name.
@@ -160,6 +160,16 @@ The `acceptance` function is ran according to a CloudWatch rule which runs when 
 ### trigger function configuration
 
 The `trigger` function is ran according to a CloudWatch rule which is configured to run every 5 minutes via a cron job.
+
+### Dynamo DB Configuration
+
+The following database tables are used by the API pipeline described above.
+Please note additional tables may be necessary when catering to multiple stages (described above).
+
+* `d43-catalog-errors` tracks errors encountered in functions. Keyed with `lambda`.
+* `d43-catalog-in-progress` tracks items in the queue. Keyed with `repo_name`.
+* `d43-catalog-running` tracks functions that are running. This prevents certain functions from having multiple instances running at the same time. Keyed with `lambda`.
+* `d43-catalog-status` tracks the status of the catalog generation. Keyed with `api_version`.
 
 ## Tools
 
