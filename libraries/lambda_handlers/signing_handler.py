@@ -229,7 +229,7 @@ class SigningHandler(InstanceHandler):
 
         # strip print script from html
         if 'html_format' in build_rules:
-            self.logger.info('Removing print script from {} html'.format(item['repo_name']))
+            self.logger.debug('Removing print script from {} html'.format(item['repo_name']))
             self._strip_print_script(file_to_sign)
 
         # sign file
@@ -298,5 +298,5 @@ class SigningHandler(InstanceHandler):
     @staticmethod
     def _strip_print_script(file_to_sign):
         html = read_file(file_to_sign)
-        html.replace('window.print()', '')
+        html = html.replace('window.print()', '')
         write_file(file_to_sign, html)

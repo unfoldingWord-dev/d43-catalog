@@ -307,10 +307,8 @@ class WebhookHandler(Handler):
                 name, _ = os.path.splitext(os.path.basename(project['path']))
                 html_url = '{}/u/Door43-Catalog/{}/{}/{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, name)
 
-            if html_url:
-                self.logger.info('Injecting html url: {}'.format(manifest['dublin_core']['identifier'], html_url))
-
             if html_url and url_exists(html_url):
+                self.logger.info('Injecting {} html url: {}'.format(manifest['dublin_core']['identifier'], html_url))
                 if 'formats' not in project: project['formats'] = []
                 project['formats'].append({
                     'format': 'text/html',
