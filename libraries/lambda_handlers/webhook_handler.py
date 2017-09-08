@@ -294,18 +294,23 @@ class WebhookHandler(Handler):
         # add html format
         for project in manifest['projects']:
             pid = self.sanitize_identifier(project['identifier'])
+            html_url = ''
             if manifest['dublin_core']['identifier'] == 'obs':
                 # obs html
                 html_url = '{}/tx/print?id={}/{}/{}'.format(self.api_url, self.gogs_org, self.repo_name, self.commit_id)
+                self.logger.info('Injecting obs html format: {}'.format(html_url))
             elif manifest['dublin_core']['identifier'] == 'ta':
                 # ta html
                 sort_slug = '{}'.format(int(project['sort']) + 1).zfill(2)
                 html_url = '{}/u/Door43-Catalog/{}/{}/{}-{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, sort_slug, pid)
-            else:
+                self.logger.info('Injecting ta html format: {}'.format(html_url))
+            elif manifest['dublin_core']['identifier'] not in ['tq', 'tn', 'tw', 'obs-tn', 'obs-tq']:
                 # we also have html for Bible resources
                 name, _ = os.path.splitext(os.path.basename(project['path']))
                 html_url = '{}/u/Door43-Catalog/{}/{}/{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, name)
-            if url_exists(html_url):
+                self.logger.info('Injecting {} html format: {}'.format(manifest['dublin_core']['identifier'], html_url))
+
+            if html_url and url_exists(html_url):
                 if 'formats' not in project: project['formats'] = []
                 project['formats'].append({
                     'format': 'text/html',

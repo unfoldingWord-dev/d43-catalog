@@ -16,7 +16,7 @@ from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.date_utils import unix_to_timestamp, str_to_timestamp
-from libraries.tools.file_utils import ext_to_mime
+from libraries.tools.file_utils import ext_to_mime, read_file, write_file
 from libraries.tools.url_utils import url_exists, download_file, url_headers
 
 
@@ -227,6 +227,12 @@ class SigningHandler(InstanceHandler):
                 self.logger.warning('The file "{}" could not be downloaded: {}'.format(base_name, e))
             return (False, False)
 
+        # strip print script from obs html
+        if 'html_format' in build_rules and 'obs' == dublin_core['identifier']:
+            self.logger.info('Removing print script from obs html')
+            self._strip_print_script(file_to_sign)
+
+        # sign file
         sig_file = self.signer.sign_file(file_to_sign)
         try:
             self.signer.verify_signature(file_to_sign, sig_file)
@@ -288,3 +294,9 @@ class SigningHandler(InstanceHandler):
         os.remove(file_to_sign)
 
         return (False, True)
+
+    @staticmethod
+    def _strip_print_script(file_to_sign):
+        html = read_file(file_to_sign)
+        html.replace('window.print()', '')
+        write_file(file_to_sign, html)
