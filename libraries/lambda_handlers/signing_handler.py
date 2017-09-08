@@ -227,9 +227,9 @@ class SigningHandler(InstanceHandler):
                 self.logger.warning('The file "{}" could not be downloaded: {}'.format(base_name, e))
             return (False, False)
 
-        # strip print script from obs html
-        if 'html_format' in build_rules and 'obs' == dublin_core['identifier']:
-            self.logger.info('Removing print script from obs html')
+        # strip print script from html
+        if 'html_format' in build_rules:
+            self.logger.info('Removing print script from {} html'.format(item['repo_name']))
             self._strip_print_script(file_to_sign)
 
         # sign file
