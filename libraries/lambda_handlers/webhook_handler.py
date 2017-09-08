@@ -303,9 +303,8 @@ class WebhookHandler(Handler):
                 html_url = '{}/u/Door43-Catalog/{}/{}/{}-{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, sort_slug, pid)
             else:
                 # we also have html for Bible resources
-                sort_slug = '{}'.format(int(project['sort'])).zfill(2)
-                html_url = '{}/u/Door43-Catalog/{}/{}/{}-{}.html'.format(self.cdn_url, self.repo_name, self.commit_id,
-                                                                         sort_slug, pid.upper())
+                name, _ = os.path.splitext(os.path.basename(project['path']))
+                html_url = '{}/u/Door43-Catalog/{}/{}/{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, name)
             if url_exists(html_url):
                 if 'formats' not in project: project['formats'] = []
                 project['formats'].append({
