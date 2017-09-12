@@ -47,7 +47,9 @@ class TestSigningHandler(TestCase):
                 'cdn_bucket': 'cdn.door43.org',
                 'cdn_url': 'https://cdn.door43.org',
                 'from_email': '',
-                'to_email': ''
+                'to_email': '',
+                'version': '3',
+                'api_bucket': 'api.door43.org'
             }
         }
 
@@ -270,6 +272,10 @@ class TestSigningHandler(TestCase):
         Because lambda functions have limited disk space.
         :return:
         """
+        mock_instance = MagicMock()
+        mock_instance.add_error = MagicMock()
+        mock_reporter.return_value = mock_instance
+
         mock_s3 = MockS3Handler()
         mock_db = MockDynamodbHandler()
         mock_logger = MockLogger()
@@ -309,12 +315,11 @@ class TestSigningHandler(TestCase):
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
                                 url_headers_handler=lambda url: mockHeaders)
-        (already_signed, newly_signed) = signer.process_format(item, format)
-        self.assertIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
+        (already_signed, newly_signed) = signer.process_format(item, None, None, format)
+        mock_instance.add_error.assert_called_once_with('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip')
         self.assertFalse(already_signed)
-        # TRICKY: for now we are faking the signature so the catalog can build.
-        self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
-        self.assertTrue(newly_signed)
+        self.assertEqual('', format['signature'])
+        self.assertFalse(newly_signed)
 
     def test_signing_small_file(self, mock_reporter):
         """
@@ -359,11 +364,58 @@ class TestSigningHandler(TestCase):
                                 url_exists_handler=mock_api.url_exists,
                                 download_handler=mock_api.download_file,
                                 url_headers_handler=lambda url: mockHeaders)
-        (already_signed, newly_signed) = signer.process_format(item, format)
+        (already_signed, newly_signed) = signer.process_format(item, None, None, format)
         self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
         self.assertNotIn('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip', mock_logger._messages)
         self.assertFalse(already_signed)
         self.assertTrue(newly_signed)
+
+    def test_signing_obs_html(self, mock_reporter):
+        mock_s3 = MockS3Handler()
+        mock_db = MockDynamodbHandler()
+        mock_logger = MockLogger()
+        mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org/')
+        event = self.create_event()
+        item = {
+            'repo_name': 'repo_name',
+            'commit_id': 'commitid'
+        }
+        format = {
+          "build_rules": [
+            "signing.html_format"
+          ],
+          "format": "text/html",
+          "modified": "",
+          "signature": "",
+          "size": "",
+          # NOTE: this is not the actual url format used
+          "url": "https://cdn.door43.org/temp/en_obs/f8a8d8d757/en/obs.html"
+        }
+
+        dublin_core = {
+            "identifier": "obs",
+            "language": {
+                "identifier": "en"
+            }
+        }
+        mockHeaders = HeaderReader([
+            ('content-length', 123)
+        ])
+        signer = SigningHandler(event,
+                                None,
+                                logger=mock_logger,
+                                signer=self.mock_signer,
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db,
+                                url_exists_handler=mock_api.url_exists,
+                                download_handler=mock_api.download_file,
+                                url_headers_handler=lambda url: mockHeaders)
+        (already_signed, newly_signed) = signer.process_format(item, dublin_core, None, format)
+        self.assertEqual('https://cdn.door43.org/en/obs/v3/media/html/obs.html', format['url'])
+        self.assertEqual('https://cdn.door43.org/en/obs/v3/media/html/obs.html.sig', format['signature'])
+        self.assertFalse(already_signed)
+        self.assertTrue(newly_signed)
+
 
     @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
     def test_manually_sign(self, mock_reporter):
@@ -383,6 +435,7 @@ class TestSigningHandler(TestCase):
         }
         quality = '720p'
         key = 'en/obs/v4/{0}/en_obs_{0}.zip'.format(quality)
+
         format = {
             "build_rules": [
                 "signing.sign_given_url"
@@ -404,6 +457,6 @@ class TestSigningHandler(TestCase):
                                 signer=signer,
                                 dynamodb_handler=mock_db,
                                 url_size_handler=lambda url: 1)
-        (already_signed, newly_signed) = signing_handler.process_format(item, format)
+        (already_signed, newly_signed) = signing_handler.process_format(item, None, None, format)
         self.assertTrue(newly_signed)
         mock_s3.download_file('{}.sig'.format(key), os.path.expanduser('~/{}.sig'.format(os.path.basename(key))))

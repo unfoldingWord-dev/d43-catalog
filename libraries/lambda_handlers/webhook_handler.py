@@ -37,6 +37,7 @@ class WebhookHandler(Handler):
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
         self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
+        self.api_url = self.retrieve(env_vars, 'api_url', 'Environment Vars')
         self.repo_commit = self.retrieve(event, 'body-json', 'payload')
         self.api_version = self.retrieve(env_vars, 'version')
         if 'pull_request' in self.repo_commit:
@@ -291,25 +292,36 @@ class WebhookHandler(Handler):
                 project['formats'] = project['formats'] + media_formats[pid]
 
         # add html format
-        if manifest['dublin_core']['identifier'] == 'ta':
-            for project in manifest['projects']:
-                pid = self.sanitize_identifier(project['identifier'])
+        for project in manifest['projects']:
+            pid = self.sanitize_identifier(project['identifier'])
+            html_url = ''
+            if manifest['dublin_core']['identifier'] == 'obs':
+                # obs html
+                html_url = '{}/tx/print?id={}/{}/{}'.format(self.api_url, self.gogs_org, self.repo_name, self.commit_id)
+            elif manifest['dublin_core']['identifier'] == 'ta':
+                # ta html
                 sort_slug = '{}'.format(int(project['sort']) + 1).zfill(2)
-                html_url = '{}/u/Door43/{}/{}/{}-{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, sort_slug, pid)
-                if url_exists(html_url):
-                    if 'formats' not in project: project['formats'] = []
-                    project['formats'].append({
-                        'format': 'text/html',
-                        'modified': '',
-                        'signature': '',
-                        'size': '',
-                        'url': html_url,
-                        'build_rules': [
-                            'signing.sign_given_url'
-                        ]
-                    })
-                else:
-                    self.logger.warning('Missing html format for {}_{} at {}'.format(self.repo_name, pid, html_url))
+                html_url = '{}/u/Door43-Catalog/{}/{}/{}-{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, sort_slug, pid)
+            elif manifest['dublin_core']['identifier'] not in ['tq', 'tn', 'tw', 'obs-tn', 'obs-tq']:
+                # we also have html for Bible resources
+                name, _ = os.path.splitext(os.path.basename(project['path']))
+                html_url = '{}/u/Door43-Catalog/{}/{}/{}.html'.format(self.cdn_url, self.repo_name, self.commit_id, name)
+
+            if html_url and url_exists(html_url):
+                self.logger.info('Injecting {} html url: {}'.format(manifest['dublin_core']['identifier'], html_url))
+                if 'formats' not in project: project['formats'] = []
+                project['formats'].append({
+                    'format': 'text/html',
+                    'modified': '',
+                    'signature': '',
+                    'size': '',
+                    'url': html_url,
+                    'build_rules': [
+                        'signing.html_format'
+                    ]
+                })
+            else:
+                self.logger.warning('Missing html format for {}_{} at {}'.format(self.repo_name, pid, html_url))
 
         return {
             'repo_name': self.repo_name,
