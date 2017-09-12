@@ -141,6 +141,10 @@ For example:
 
 #### Stage Variables
 
+Stage variables are configured within the stage defined in API Gateway.
+These variables are accessible within lambdas from the `event` parameter.
+e.g. `event['stage-variables']`
+
 * `cdn_bucket`
 * `cdn_url`
 * `to_email`
