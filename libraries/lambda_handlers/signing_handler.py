@@ -16,7 +16,7 @@ from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.date_utils import unix_to_timestamp, str_to_timestamp
-from libraries.tools.file_utils import ext_to_mime
+from libraries.tools.file_utils import ext_to_mime, read_file, write_file
 from libraries.tools.url_utils import url_exists, download_file, url_headers
 
 
@@ -31,6 +31,8 @@ class SigningHandler(InstanceHandler):
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars')
         self.from_email = self.retrieve(env_vars, 'from_email', 'Environment Vars')
         self.to_email = self.retrieve(env_vars, 'to_email', 'Environment Vars')
+        self.api_version = self.retrieve(env_vars, 'version', 'Environment Vars')
+        self.api_bucket = self.retrieve(env_vars, 'api_bucket', 'Environment Vars')
         self.logger = logger  # type: logging._loggerClass
         self.signer = signer
         if 's3_handler' in kwargs:
@@ -95,7 +97,7 @@ class SigningHandler(InstanceHandler):
         if 'formats' in package:
             for format in package['formats']:
                 # process resource formats
-                (already_signed, newly_signed) = self.process_format(item, format)
+                (already_signed, newly_signed) = self.process_format(item, package['dublin_core'], None, format)
                 if newly_signed:
                     was_signed = True
                 if not(already_signed or newly_signed):
@@ -104,7 +106,7 @@ class SigningHandler(InstanceHandler):
             if 'formats' in project:
                 for format in project['formats']:
                     # process project formats
-                    (already_signed, newly_signed) = self.process_format(item, format)
+                    (already_signed, newly_signed) = self.process_format(item, package['dublin_core'], project, format)
                     if newly_signed:
                         was_signed = True
                     if not (already_signed or newly_signed):
@@ -123,7 +125,7 @@ class SigningHandler(InstanceHandler):
                                 self.logger.warning('Skipping chapter {}:{} missing url {}'.format(project['identifier'], chapter['identifier'], missing_url))
                                 continue
 
-                            (already_signed, newly_signed) = self.process_format(item, chapter)
+                            (already_signed, newly_signed) = self.process_format(item, package['dublin_core'], project, chapter)
                             sanitized_chapters.append(chapter)
                             if newly_signed:
                                 was_signed = True
@@ -146,11 +148,13 @@ class SigningHandler(InstanceHandler):
                 'signed': fully_signed
             })
 
-    def process_format(self, item, format):
+    def process_format(self, item, dublin_core, project, format):
         """
         Performs the signing on the format object.
         Files outside of the cdn will not be signed
         :param item:
+        :param dublin_core:
+        :param project: this may be None.
         :param format:
         :return: (already_signed, newly_signed)
         """
@@ -180,8 +184,13 @@ class SigningHandler(InstanceHandler):
             # if format['url'].startswith(prod_cdn_url):
             #     build_rules.append('sign_given_url')
 
+        # TRICKY: some html content is on the api
+        if 'html_format' in build_rules:
+            valid_hosts.append(self.api_bucket)
+
         # verify url is on the cdn
         if not url_info.hostname in valid_hosts:
+            # TODO: external media should be imported if it's not too big
             # This allows media to be hosted on third party servers
             format['signature'] = '{}.sig'.format(format['url'])
             self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
@@ -192,20 +201,22 @@ class SigningHandler(InstanceHandler):
         # skip files that are too large
         size = int(headers.get('content-length', 0))
         if size > SigningHandler.max_file_size:
-            self.logger.warning('File is too large to sign {}'.format(format['url']))
-            # return (False, False)
-            # TODO: we need to sign these large files but for now this is breaking lambda functions due to limited disk space
-            # For now we are adding a signature url so the catalog builds.
-            # And then we manually add these signatures since they shouldn't change much.
+            sig_url = '{}.sig'.format(format['url'])
+            if not self.url_exists(sig_url):
+                # wait for signature to be manually uploaded
+                self.report_error('File is too large to sign {}'.format(format['url']))
+                return (False, False)
+
+            # finish with manually uploaded signature
             format['size'] = size
             if not format['modified']:
                 format['modified'] = str_to_timestamp(datetime.datetime.now().isoformat())
-            format['signature'] = '{}.sig'.format(format['url'])
+            format['signature'] = sig_url
             return (False, True)
 
         # download file
         try:
-            if 'sign_given_url' in build_rules:
+            if 'sign_given_url' in build_rules or 'html_format' in build_rules:
                 self.download_file(format['url'], file_to_sign)
             else:
                 # TRICKY: most files to be signed are stored in a temp directory
@@ -216,6 +227,12 @@ class SigningHandler(InstanceHandler):
                 self.logger.warning('The file "{}" could not be downloaded: {}'.format(base_name, e))
             return (False, False)
 
+        # strip print script from html
+        if 'html_format' in build_rules:
+            self.logger.debug('Removing print script from {} html'.format(item['repo_name']))
+            self._strip_print_script(file_to_sign)
+
+        # sign file
         sig_file = self.signer.sign_file(file_to_sign)
         try:
             self.signer.verify_signature(file_to_sign, sig_file)
@@ -224,8 +241,17 @@ class SigningHandler(InstanceHandler):
                 self.logger.warning('The signature was not successfully verified.')
             return (False, False)
 
+        # TRICKY: re-format html urls
+        if 'html_format' in build_rules:
+            html_name = dublin_core['identifier']
+            if project:
+                html_name = project['identifier']
+            src_key = '{}/{}/v{}/media/html/{}.html'.format(dublin_core['language']['identifier'], dublin_core['identifier'], self.api_version, html_name)
+            sig_key = '{}.sig'.format(src_key)
+            format['url'] = '{}/{}'.format(self.cdn_url, src_key)
+
         # upload files
-        if 'sign_given_url' not in build_rules:
+        if 'sign_given_url' not in build_rules or 'html_format' in build_rules:
             # TRICKY: upload temp files to production
             self.cdn_handler.upload_file(file_to_sign, src_key)
         self.cdn_handler.upload_file(sig_file, sig_key)
@@ -268,3 +294,9 @@ class SigningHandler(InstanceHandler):
         os.remove(file_to_sign)
 
         return (False, True)
+
+    @staticmethod
+    def _strip_print_script(file_to_sign):
+        html = read_file(file_to_sign)
+        html = html.replace('window.print()', '')
+        write_file(file_to_sign, html)
