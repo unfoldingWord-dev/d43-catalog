@@ -21,6 +21,7 @@ import yaml
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.file_utils import write_file, read_file, download_rc
 from libraries.tools.legacy_utils import index_obs
+from libraries.tools.usfm_utils import strip_word_data
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from usfm_tools.transform import UsfmTransform
 
@@ -646,7 +647,7 @@ class TsV2CatalogHandler(InstanceHandler):
                     shutil.copyfile(usfm_src_file, usfm_dest_file)
 
                     # transform usfm to usx
-                    UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
+                    self._build_usx(usfm_dir, usx_dir)
 
                     # convert USX to JSON
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
@@ -657,6 +658,23 @@ class TsV2CatalogHandler(InstanceHandler):
                     self.status['processed'][process_id] = []
                     self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                     self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+
+    @staticmethod
+    def _build_usx(usfm_dir, usx_dir):
+        """
+        Builds the usx after performing some custom processing
+        :param usfm_dir:
+        :param usx_dir:
+        :return:
+        """
+        # strip word data
+        files = os.listdir(usfm_dir)
+        for name in files:
+            f = os.path.join(usfm_dir, name)
+            usfm = read_file(f)
+            write_file(f, strip_word_data(usfm))
+
+        UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
 
     def _prep_data_upload(self, key, data):
         """
