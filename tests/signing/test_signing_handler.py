@@ -113,6 +113,9 @@ class TestSigningHandler(TestCase):
         The missing file will just be ignored.
         :return:
         """
+        mock_instance = MagicMock()
+        mock_instance.add_error = MagicMock()
+        mock_reporter.return_value = mock_instance
 
         event = self.create_event()
 
@@ -134,7 +137,7 @@ class TestSigningHandler(TestCase):
                                 download_handler=mock_api.download_file)
         result = signer.run()
         self.assertTrue(result)
-        self.assertIn('The file "obs.zip" could not be downloaded: File not found for key: temp/en_obs/f8a8d8d757/en/obs/v4/obs.zip', mock_logger._messages)
+        mock_instance.add_error.assert_called_once_with('The file "obs.zip" could not be downloaded: File not found for key: temp/en_obs/f8a8d8d757/en/obs/v4/obs.zip')
 
     def test_signing_handler_text_wrong_key(self, mock_reporter):
         event = self.create_event()
