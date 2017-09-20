@@ -112,7 +112,9 @@ This function is run via AWS cron every 5 minutes and does the following:
 
 ## AWS Configuration
 
-Here's a high level overview of the AWS configuration
+Here's a high level overview of the AWS configuration.
+For Swagger definitions look in the [aws_configuration](./aws_configuration) folder.
+You can [create an API in API Gateway](http://docs.aws.amazon.com/apigateway/latest/developerguide/create-api-using-swagger.html) by importing these Swagger definitions.
 
 ### The following functions are configured as api endpoints within API Gateway:
 
@@ -140,6 +142,10 @@ For example:
 * a stage named `test` would use the `test-d43-catalog-errors` db for reporting errors.
 
 #### Stage Variables
+
+Stage variables are configured within the stage defined in API Gateway.
+These variables are accessible within lambdas from the `event` parameter.
+e.g. `event['stage-variables']`
 
 * `cdn_bucket`
 * `cdn_url`

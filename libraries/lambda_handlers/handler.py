@@ -70,7 +70,8 @@ class Handler(object):
                                       table=table_name,
                                       request_id=self.aws_request_id,
                                       to_email=to_email,
-                                      from_email=from_email)
+                                      from_email=from_email,
+                                      error_threshold=8)
 
     def __find_stage_var(self, key, dict):
         """
