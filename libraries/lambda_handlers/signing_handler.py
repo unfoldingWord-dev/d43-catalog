@@ -196,7 +196,11 @@ class SigningHandler(InstanceHandler):
             self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
             return (True, True)
 
-        headers = self.url_headers(format['url'])
+        try:
+            headers = self.url_headers(format['url'])
+        except Exception as e:
+            self.report_error('Could not read headers from {}: {}'.format(format['url'], e))
+            return (False, False)
 
         # skip files that are too large
         size = int(headers.get('content-length', 0))
@@ -223,8 +227,7 @@ class SigningHandler(InstanceHandler):
                 src_temp_key = 'temp/{}/{}/{}'.format(item['repo_name'], item['commit_id'], src_key)
                 self.cdn_handler.download_file(src_temp_key, file_to_sign)
         except Exception as e:
-            if self.logger:
-                self.logger.warning('The file "{}" could not be downloaded: {}'.format(base_name, e))
+            self.report_error('The file "{}" could not be downloaded: {}'.format(base_name, e))
             return (False, False)
 
         # strip print script from html

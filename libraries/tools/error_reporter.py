@@ -5,9 +5,8 @@ import json
 from d43_aws_tools import DynamoDBHandler, SESHandler
 
 class ErrorReporter(object):
-    ERROR_THRESHOLD = 4
 
-    def __init__(self, reporter, table, request_id, to_email, from_email):
+    def __init__(self, reporter, table, request_id, to_email, from_email, error_threshold=4):
         """
 
         :param reporter: the name of the lambda reporting the error
@@ -19,6 +18,7 @@ class ErrorReporter(object):
         self.__request_id = request_id
         self.__to_email = to_email
         self.__from_email = from_email
+        self.__threshold = error_threshold
         self._report = None
 
         self.logger = logging.getLogger()  # type: logging._loggerClass
@@ -94,7 +94,7 @@ class ErrorReporter(object):
         This includes saving the report and emailing administrators if necessary.
         :return:
         """
-        if self._report and len(self._report['reporters']) >= self.ERROR_THRESHOLD:
+        if self._report and len(self._report['reporters']) >= self.__threshold:
             try:
                 self._send_report()
                 self._clear_report()
