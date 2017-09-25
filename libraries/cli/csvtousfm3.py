@@ -66,7 +66,7 @@ def convert(lang, csv_file):
                 lastverse = None
                 usfm.append('')
                 usfm.append('\\c {}'.format(int(chp)))
-                usfm.append('\\p');
+                usfm.append('\\p')
 
             if not lastverse or vrs > lastverse:
                 usfm.append('')
@@ -119,6 +119,7 @@ def split_puncuation(punctuation):
     closing = []
     for char in punctuation:
         if char in opening_characters:
+            if char == u'¶': char = '\\p\n' # make usfm paragraph
             opening.append(char)
         else:
             closing.append(char)

@@ -109,7 +109,7 @@ class TestCSVtoUSFM3(TestCase):
             'WORD': 'biblos',
             'ORDER': '1'
         }
-        output = '¶“\w \xce\x92\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82|lemma="\xce\xb2\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*.”'.decode('utf-8') # note the trailing comma
+        output = '\p\n“\w \xce\x92\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82|lemma="\xce\xb2\xce\xaf\xce\xb2\xce\xbb\xce\xbf\xcf\x82" strongs="G09760" x-morph="Gr,N,,,,,NFS,"\w*.”'.decode('utf-8') # note the trailing comma
 
         self.assertIsInstance(output, unicode)
         usfm3 = csvtousfm3.convert_row(lang='Gr',
