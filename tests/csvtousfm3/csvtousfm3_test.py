@@ -1,9 +1,8 @@
 import os
 from unittest import TestCase
 
+from libraries.cli import csvtousfm3
 from libraries.tools.file_utils import read_file
-
-from libraries.tools import csvtousfm3
 
 
 class TestCSVtoUSFM3(TestCase):

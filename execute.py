@@ -19,6 +19,6 @@ if __name__ == '__main__':
         if cmd[-3:] != '.py':
             cmd += '.py'
 
-        with open('tools/' + cmd) as f:
+        with open('libraries/cli/' + cmd) as f:
             code = compile(f.read(), cmd, 'exec')
             exec(code)
