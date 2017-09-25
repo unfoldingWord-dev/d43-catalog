@@ -10,9 +10,9 @@ import argparse
 import csv
 import os
 import sys
+import re
 
 from libraries.tools.file_utils import write_file
-
 
 def convert(lang, csv_file):
     """
@@ -95,28 +95,34 @@ def convert_row(lang, row):
     :param row: a row from a CSV file
     :return: the generated USFM3
     """
-    word, punctuation = split_puncuation(row['UMEDIEVAL'].decode('utf-8'))
-    return u'\w {}|lemma="{}" strongs="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
-        word,
+    opening_punctuation, closing_punctuation = split_puncuation(row['PUNC'].decode('utf-8'))
+    return u'{}\w {}|lemma="{}" strongs="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
+        opening_punctuation,
+        row['UMEDIEVAL'].decode('utf-8'),
         row['ULEMMA'].decode('utf-8'),
         row['LEXEME'].zfill(5),
         row['SYN'].replace('.', ','),
         row['MORPH'].replace('.', ','),
         row['LEX'].replace('.', ','),
-        punctuation
+        closing_punctuation
     )
 
-def split_puncuation(word):
+def split_puncuation(punctuation):
     """
-    Separates punctuation from a word
-    :param word:
-    :return: a tuple containing the cleaned word, and punctuation
+    Separates the punctuation into opening and closing groups.
+
+    :param punctuation:
+    :return: a tuple containing the opening and closing punctuation
     """
-    punctuation = ['.', ',']
-    if word[-1:] in punctuation:
-        return word[:-1], word[-1:]
-    else:
-        return word, ''
+    opening_characters = [u'¶', u'“']
+    opening = []
+    closing = []
+    for char in punctuation:
+        if char in opening_characters:
+            opening.append(char)
+        else:
+            closing.append(char)
+    return ''.join(opening), ''.join(closing)
 
 def apply_nt_offset(book_id):
     """
