@@ -49,6 +49,19 @@ def index_obs(lid, rid, format, temp_dir=None, downloader=None):
                 'language': dc['language']['identifier']
             }
 
+def __extract_chapter_number(json):
+    try:
+        return int(json['number'])
+    except KeyError:
+        return 0
+
+def __extract_frame_id(json):
+    try:
+        id = json['id']
+        # the second half of the id is the frame id
+        return int(id.split('-')[1])
+    except KeyError:
+        return 0
 
 def _obs_chapters_to_json(dir):
     """
@@ -59,7 +72,7 @@ def _obs_chapters_to_json(dir):
     """
     obs_title_re = re.compile('^\s*#+\s*(.*)', re.UNICODE)
     obs_footer_re = re.compile('\_+([^\_]*)\_+$', re.UNICODE)
-    obs_image_re = re.compile('.*!\[OBS Image\]\(.*\).*', re.IGNORECASE | re.UNICODE)
+    obs_image_re = re.compile('.*!\[[^\]]*\]\(.*\).*', re.IGNORECASE | re.UNICODE)
     chapters = []
     for chapter_file in os.listdir(dir):
         if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
@@ -100,6 +113,7 @@ def _obs_chapters_to_json(dir):
                     'img': 'https://cdn.door43.org/obs/jpg/360px/obs-en-{}.jpg'.format(id),
                     'text': chunk
                 })
+            frames.sort(key=__extract_frame_id, reverse=False)
             chapters.append({
                 'frames': frames,
                 'number': chapter_slug,
@@ -107,4 +121,5 @@ def _obs_chapters_to_json(dir):
                 'title': title
             })
 
+    chapters.sort(key=__extract_chapter_number, reverse=False)
     return chapters
