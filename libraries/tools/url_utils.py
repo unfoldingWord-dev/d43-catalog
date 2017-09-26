@@ -29,10 +29,10 @@ def url_headers(url):
     conn = httplib.HTTPConnection(p.netloc)
     conn.request('HEAD', p.path)
     resp = conn.getresponse()
-    return HeaderReader(resp.getheaders())
+    return HeaderReader(resp.getheaders(), resp.status)
 
 class HeaderReader(object):
-    def __init__(self, header_list):
+    def __init__(self, header_list, status=200):
         """
         Initializes a new reader
         :param header_list:
@@ -40,6 +40,8 @@ class HeaderReader(object):
         self.headers = {}
         for key, value in header_list:
             self.headers[key] = value
+
+        self.status = status
 
     def get(self, key, default=None):
         """

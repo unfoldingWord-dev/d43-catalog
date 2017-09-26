@@ -107,12 +107,18 @@ class TestSigningHandler(TestCase):
         # self.assertIn('Skipping unit-test. Bad Manifest: No JSON object could be decoded', mock_logger._messages)
         mock_instance.add_error.assert_called_once_with('Skipping unit-test. Bad Manifest: No JSON object could be decoded')
 
-    def test_signing_handler_text_missing_file(self, mock_reporter):
+    @patch('libraries.lambda_handlers.signing_handler.url_headers')
+    def test_signing_handler_text_missing_file(self, mock_url_headers, mock_reporter):
         """
         Signing will continue to run even if a file is missing.
         The missing file will just be ignored.
         :return:
         """
+        mock_url_headers.return_value = HeaderReader([
+            ('last-modified', 'Fri, 03 Jun 2017 20:23:12 GMT'),
+            ('content-length', 12345)
+        ])
+
         mock_instance = MagicMock()
         mock_instance.add_error = MagicMock()
         mock_reporter.return_value = mock_instance
