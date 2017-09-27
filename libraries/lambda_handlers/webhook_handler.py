@@ -132,6 +132,7 @@ class WebhookHandler(Handler):
                 if 'uploads' in data:
                     self.logger.debug('Uploading files for "{}"'.format(self.repo_name))
                     for upload in data['uploads']:
+                        self.logger.debug('^...{}'.format(upload['key']))
                         self.s3_handler.upload_file(upload['path'], upload['key'])
                     del data['uploads']
                 else:
