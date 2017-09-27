@@ -187,6 +187,8 @@ class SigningHandler(InstanceHandler):
         # TRICKY: some html content is on the api
         if 'html_format' in build_rules:
             valid_hosts.append(self.api_bucket)
+            prod_api_bucket = self.api_bucket.lstrip(self.stage_prefix())
+            valid_hosts.append(prod_api_bucket)
 
         # verify url is on the cdn
         if not url_info.hostname in valid_hosts:
