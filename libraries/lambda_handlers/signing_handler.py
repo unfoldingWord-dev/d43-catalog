@@ -204,11 +204,6 @@ class SigningHandler(InstanceHandler):
             self.report_error('Could not read headers from {}: {}'.format(format['url'], e))
             return (False, False)
 
-        # report error if response is 400+
-        if headers.status >= 400:
-            self.report_error('Resource not available at {}'.format(format['url']))
-            return (False, False)
-
         # skip files that are too large
         size = int(headers.get('content-length', 0))
         if size > SigningHandler.max_file_size:
@@ -228,6 +223,11 @@ class SigningHandler(InstanceHandler):
         # download file
         try:
             if 'sign_given_url' in build_rules or 'html_format' in build_rules:
+                # report error if response is 400+
+                if headers.status >= 400:
+                    self.report_error('Resource not available at {}'.format(format['url']))
+                    return (False, False)
+
                 self.download_file(format['url'], file_to_sign)
             else:
                 # TRICKY: most files to be signed are stored in a temp directory
