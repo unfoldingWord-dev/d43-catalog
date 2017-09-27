@@ -31,7 +31,7 @@ class ErrorReporter(object):
         """
         if isinstance(message, list):
             self.logger.info('Reporting Error: {}'.format(json.dumps(message)), exc_info=1)
-        elif isinstance(message, str):
+        elif isinstance(message, str) or isinstance(message, unicode):
             self.logger.info('Reporting Error: {}'.format(message), exc_info=1)
         else:
             self.logger.warning('Unable to report error. Invalid type "{}"'.format(type(message)), exc_info=1)
