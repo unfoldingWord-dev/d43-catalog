@@ -36,4 +36,4 @@ projects:
        identifier: 'pdf'
        version: '{latest}'
        contributor: []
-       url: 'https://cdn.door43.org/en/ulb/v{latest}/{identifier}/02-EXO.pdf'
+       url: 'https://cdn.door43.org/en/ulb/v{version}/{identifier}/02-EXO.pdf'

@@ -336,3 +336,12 @@ class TestWebhook(TestCase):
 
         media_formats = handler._build_media_formats(rc_dir, manifest, media)
         assert_object_equals_file(self, media_formats, os.path.join(rc_dir, 'expected-formats.json'))
+
+    def test_replace_keys(self, mock_reporter, mock_url_exists):
+        url = 'https://example.com/{mykey}/hi/what_{what}/0'
+        dict = {
+            'mykey':'myvalue',
+            'what': 'you'
+        }
+        new_url = WebhookHandler._replace_keys(url, dict)
+        self.assertEqual('https://example.com/myvalue/hi/what_you/0', new_url)

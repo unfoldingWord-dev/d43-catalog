@@ -15,6 +15,8 @@ import tempfile
 import arrow
 import sys
 import yaml
+import copy
+import re
 
 from glob import glob
 from d43_aws_tools import DynamoDBHandler, S3Handler
@@ -345,14 +347,25 @@ class WebhookHandler(Handler):
         :param media:
         :return:
         """
+        content_version = manifest['dublin_core']['version']
         formats = {}
         for project in media['projects']:
             pid = self.sanitize_identifier(project['identifier'])
+            project['version'] = project['version'].replace('{latest}', content_version)
             project_formats = []
             for media in project['media']:
+                media['version'] = media['version'].replace('{latest}', content_version)
+
+                expansion_vars = copy.copy(media)
+                del expansion_vars['url']
+                if 'chapter_url' in expansion_vars:
+                    del expansion_vars['chapter_url']
+
                 if 'quality' in media and len(media['quality']) > 0:
                     # build format for each quality
                     for quality in media['quality']:
+                        expansion_vars['quality'] = quality
+
                         format = {
                             'format': '',
                             'modified': '',
@@ -361,14 +374,15 @@ class WebhookHandler(Handler):
                             'version': media['version'],
                             'quality': quality,
                             'contributor': media['contributor'],
-                            'url': media['url'].replace('{quality}', quality),
+                            'url': self._replace_keys(media['url'], expansion_vars),
                             'signature': '',
                             'build_rules': [
                                 'signing.sign_given_url'
                             ]
                         }
+
                         if 'chapter_url' in media:
-                            chapter_url = media['chapter_url'].replace('{quality}', quality)
+                            chapter_url = self._replace_keys(media['chapter_url'], expansion_vars)
                             chapters = self._build_media_chapters(rc_dir, manifest, pid, chapter_url)
                             if chapters:
                                 format['chapters'] = chapters
@@ -384,7 +398,7 @@ class WebhookHandler(Handler):
                         'source_version': project['version'],
                         'version': media['version'],
                         'contributor': media['contributor'],
-                        'url': media['url'],
+                        'url': self._replace_keys(media['url'], expansion_vars),
                         'signature': '',
                         'build_rules': [
                             'signing.sign_given_url'
@@ -399,6 +413,21 @@ class WebhookHandler(Handler):
                     project_formats.append(format)
             formats[project['identifier']] = project_formats
         return formats
+
+    @staticmethod
+    def _replace_keys(str, dict):
+        """
+        Replaces all the dict keys found in the string with the dict values.
+        Keys in the string must be delimited by brackets {}
+        :param str:
+        :param dict:
+        :return:
+        """
+        new_str = str + ''
+        for key in dict:
+            if not isinstance(dict[key], list):
+                new_str = re.sub(r'{' + key + '}', '{}'.format(dict[key]), new_str)
+        return new_str
 
     def _build_media_chapters(self, rc_dir, manifest, pid, chapter_url):
         """
