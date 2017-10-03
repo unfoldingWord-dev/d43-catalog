@@ -203,7 +203,10 @@ class WebhookHandler(Handler):
         manifest['dublin_core']['identifier'] = self.sanitize_identifier(manifest['dublin_core']['identifier'])
 
         # build media formats
-        media_formats = {}
+        media_formats = {
+            'resource': [],
+            'projects': {}
+        }
         media_path = os.path.join(self.repo_dir, 'media.yaml')
         if os.path.isfile(media_path):
             try:
@@ -290,9 +293,12 @@ class WebhookHandler(Handler):
         # add media to projects
         for project in manifest['projects']:
             pid = self.sanitize_identifier(project['identifier'])
-            if pid in media_formats:
+            if pid in media_formats['projects']:
                 if 'formats' not in project: project['formats'] = []
-                project['formats'] = project['formats'] + media_formats[pid]
+                project['formats'] = project['formats'] + media_formats['projects'][pid]
+
+        # add media to resource
+        manifest['formats'] = manifest['formats'] + media_formats['resource']
 
         # add html format
         # TRICKY: these URLS are only available in prod
@@ -348,46 +354,40 @@ class WebhookHandler(Handler):
         :return:
         """
         content_version = manifest['dublin_core']['version']
-        formats = {}
-        for project in media['projects']:
-            pid = self.sanitize_identifier(project['identifier'])
-            project['version'] = project['version'].replace('{latest}', content_version)
-            project_formats = []
-            for media in project['media']:
-                media['version'] = media['version'].replace('{latest}', content_version)
+        formats = {
+            'resource': [],
+            'projects': {}
+        }
 
-                expansion_vars = copy.copy(media)
+        # resource media
+        if 'resource' in media:
+            resource = media['resource']
+            resource['version'] = self._replace(resource['version'], 'latest', content_version)
+            for m in resource['media']:
+                m['version'] = self._replace(m['version'], 'latest', content_version)
+                expansion_vars = copy.copy(m)
                 del expansion_vars['url']
-                if 'chapter_url' in expansion_vars:
-                    del expansion_vars['chapter_url']
 
-                if 'quality' in media and len(media['quality']) > 0:
+                if 'quality' in m and len(m['quality']) > 0:
                     # build format for each quality
-                    for quality in media['quality']:
+                    for quality in m['quality']:
                         expansion_vars['quality'] = quality
 
                         format = {
                             'format': '',
                             'modified': '',
                             'size': 0,
-                            'source_version': project['version'],
-                            'version': media['version'],
+                            'source_version': resource['version'],
+                            'version': m['version'],
                             'quality': quality,
-                            'contributor': media['contributor'],
-                            'url': self._replace_keys(media['url'], expansion_vars),
+                            'contributor': m['contributor'],
+                            'url': self._replace_keys(m['url'], expansion_vars),
                             'signature': '',
                             'build_rules': [
                                 'signing.sign_given_url'
                             ]
                         }
-
-                        if 'chapter_url' in media:
-                            chapter_url = self._replace_keys(media['chapter_url'], expansion_vars)
-                            chapters = self._build_media_chapters(rc_dir, manifest, pid, chapter_url)
-                            if chapters:
-                                format['chapters'] = chapters
-
-                        project_formats.append(format)
+                        formats['resource'].append(format)
 
                 else:
                     # build single format
@@ -395,23 +395,83 @@ class WebhookHandler(Handler):
                         'format': '',
                         'modified': '',
                         'size': 0,
-                        'source_version': project['version'],
-                        'version': media['version'],
-                        'contributor': media['contributor'],
-                        'url': self._replace_keys(media['url'], expansion_vars),
+                        'source_version': resource['version'],
+                        'version': m['version'],
+                        'contributor': m['contributor'],
+                        'url': self._replace_keys(m['url'], expansion_vars),
                         'signature': '',
                         'build_rules': [
                             'signing.sign_given_url'
                         ]
                     }
-                    if 'chapter_url' in media:
-                        chapters = self._build_media_chapters(rc_dir, manifest, pid, media['chapter_url'])
-                        if chapters:
-                            format['chapters'] = chapters
-                        pass
+                    formats['resource'].append(format)
 
-                    project_formats.append(format)
-            formats[project['identifier']] = project_formats
+
+        # project media
+        if 'projects' in media:
+            for project in media['projects']:
+                pid = self.sanitize_identifier(project['identifier'])
+                project['version'] = self._replace(project['version'], 'latest', content_version)
+                project_formats = []
+                for m in project['media']:
+                    m['version'] = self._replace(m['version'], 'latest', content_version)
+
+                    expansion_vars = copy.copy(m)
+                    del expansion_vars['url']
+                    if 'chapter_url' in expansion_vars:
+                        del expansion_vars['chapter_url']
+
+                    if 'quality' in m and len(m['quality']) > 0:
+                        # build format for each quality
+                        for quality in m['quality']:
+                            expansion_vars['quality'] = quality
+
+                            format = {
+                                'format': '',
+                                'modified': '',
+                                'size': 0,
+                                'source_version': project['version'],
+                                'version': m['version'],
+                                'quality': quality,
+                                'contributor': m['contributor'],
+                                'url': self._replace_keys(m['url'], expansion_vars),
+                                'signature': '',
+                                'build_rules': [
+                                    'signing.sign_given_url'
+                                ]
+                            }
+
+                            if 'chapter_url' in m:
+                                chapter_url = self._replace_keys(m['chapter_url'], expansion_vars)
+                                chapters = self._build_media_chapters(rc_dir, manifest, pid, chapter_url)
+                                if chapters:
+                                    format['chapters'] = chapters
+
+                            project_formats.append(format)
+
+                    else:
+                        # build single format
+                        format = {
+                            'format': '',
+                            'modified': '',
+                            'size': 0,
+                            'source_version': project['version'],
+                            'version': m['version'],
+                            'contributor': m['contributor'],
+                            'url': self._replace_keys(m['url'], expansion_vars),
+                            'signature': '',
+                            'build_rules': [
+                                'signing.sign_given_url'
+                            ]
+                        }
+                        if 'chapter_url' in m:
+                            chapters = self._build_media_chapters(rc_dir, manifest, pid, m['chapter_url'])
+                            if chapters:
+                                format['chapters'] = chapters
+                            pass
+
+                        project_formats.append(format)
+                formats['projects'][project['identifier']] = project_formats
         return formats
 
     @staticmethod
@@ -428,6 +488,18 @@ class WebhookHandler(Handler):
             if not isinstance(dict[key], list):
                 new_str = re.sub(r'{' + key + '}', '{}'.format(dict[key]), new_str)
         return new_str
+
+    @staticmethod
+    def _replace(str, key, value):
+        """
+        A safe way to replace values in a string.
+        This allow replacing with numbers
+        :param str:
+        :param key:
+        :param value: any scalar value
+        :return:
+        """
+        return re.sub(r'{' + key + '}', '{}'.format(value), '{}'.format(str))
 
     def _build_media_chapters(self, rc_dir, manifest, pid, chapter_url):
         """
@@ -458,7 +530,7 @@ class WebhookHandler(Handler):
                             'length': 0,
                             'modified': '',
                             'identifier': chapter,
-                            'url': chapter_url.replace('{chapter}', chapter),
+                            'url': self._replace(chapter_url, 'chapter', chapter),
                             'signature': '',
                             'build_rules': [
                                 'signing.sign_given_url'
