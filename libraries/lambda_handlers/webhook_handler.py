@@ -482,7 +482,7 @@ class WebhookHandler(Handler):
             chunk_file = os.path.join(temp_dir, book['identifier'] + '.json')
             write_file(chunk_file, json.dumps(book['chunks'], sort_keys=True))
             # for now we bypass signing and upload chunks directly
-            upload_key = 'bible/{}/{}/v{}/chunks.json'.format(book['identifier'], self.api_version)
+            upload_key = 'bible/{}/v{}/chunks.json'.format(book['identifier'], self.api_version)
             uploads.append({
                 'key': upload_key,
                 'path': chunk_file

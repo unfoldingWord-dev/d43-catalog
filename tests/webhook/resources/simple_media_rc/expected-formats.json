@@ -1,0 +1,81 @@
+{
+  "obs": [
+    {
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "contributor": [],
+      "format": "",
+      "modified": "",
+      "signature": "",
+      "size": 0,
+      "source_version": "4",
+      "url": "https://cdn.door43.org/obs/txt/1/en/obs-en-v4.pdf",
+      "version": "1"
+    },
+    {
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "contributor": [
+        "Narrator: Steve Lossing",
+        "Checker: Brad Harrington",
+        "Engineer: Brad Harrington"
+      ],
+      "format": "",
+      "modified": "",
+      "quality": "64kbps",
+      "signature": "",
+      "size": 0,
+      "source_version": "4",
+      "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip",
+      "version": "1"
+    },
+    {
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "contributor": [
+        "Narrator: Steve Lossing",
+        "Checker: Brad Harrington",
+        "Engineer: Brad Harrington"
+      ],
+      "format": "",
+      "modified": "",
+      "quality": "32kbps",
+      "signature": "",
+      "size": 0,
+      "source_version": "4",
+      "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip",
+      "version": "1"
+    },
+    {
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "contributor": [],
+      "format": "",
+      "modified": "",
+      "quality": "720p",
+      "signature": "",
+      "size": 0,
+      "source_version": "4",
+      "url": "https://cdn.door43.org/en/obs/v4/720p/en_obs_720p.zip",
+      "version": "1"
+    },
+    {
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "contributor": [],
+      "format": "",
+      "modified": "",
+      "quality": "360p",
+      "signature": "",
+      "size": 0,
+      "source_version": "4",
+      "url": "https://cdn.door43.org/en/obs/v4/360p/en_obs_360p.zip",
+      "version": "1"
+    }
+  ]
+}

@@ -98,6 +98,17 @@ def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
         if not os.access(dir_name, os.R_OK | os.W_OK | os.X_OK):
             raise IOError('Directory {0} is not writable.'.format(dir_name))
 
+def load_yaml_object(file_name, default=None):
+    """
+    Deserialized <file_name> into a Python object
+    :param str|unicode file_name: The name of the file to read
+    :param default: The value to return if the file is not found
+    """
+    if not os.path.isfile(file_name):
+        return default
+
+    with codecs.open(file_name, 'r', 'utf-8-sig') as stream:
+        return yaml.load(stream)
 
 def load_json_object(file_name, default=None):
     """

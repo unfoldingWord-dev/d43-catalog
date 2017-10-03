@@ -1,0 +1,62 @@
+---
+
+dublin_core:
+  conformsto: 'rc0.2'
+  contributor:
+    - 'Jesse Griffin'
+    - 'Jim Pohlig'
+    - 'Larry Sallee'
+    - 'Perry Oakes'
+    - 'Tom Warren'
+    - 'Dave Statezni'
+    - 'Bram van den Heuvel'
+    - 'C. Harry Harriss'
+    - 'Hendrik "Henry" de Vries'
+  creator: 'Wycliffe Associates'
+  description: 'An unrestricted literal Bible'
+  format: 'text/usfm'
+  identifier: 'ulb'
+  issued: '2017-07-05'
+  language:
+    direction: 'ltr'
+    identifier: 'en'
+    title: 'English'
+  modified: '2017-07-05'
+  publisher: 'unfoldingWord'
+  relation:
+    - 'en/tw'
+    - 'en/tq'
+    - 'en/tn'
+  rights: 'CC BY-SA 4.0'
+  source:
+    -
+      identifier: 'asv'
+      language: 'en'
+      version: '1901'
+  subject: 'Bible'
+  title: 'Unlocked Literal Bible'
+  type: 'bundle'
+  version: '10'
+
+checking:
+  checking_entity:
+    - 'Wycliffe Associates'
+  checking_level: '3'
+
+projects:
+
+  -
+    title: 'Genesis'
+    versification: 'ufw'
+    identifier: 'gen'
+    sort: 1
+    path: './01-GEN.usfm'
+    categories: [ 'bible-ot'  ]
+
+  -
+    title: 'Exodus'
+    versification: 'ufw'
+    identifier: 'exo'
+    sort: 2
+    path: './02-EXO.usfm'
+    categories: [ 'bible-ot'  ]

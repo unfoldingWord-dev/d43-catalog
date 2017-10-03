@@ -1,0 +1,68 @@
+{
+  "gen": [
+    {
+      "contributor": [],
+      "version": "10",
+      "url": "https://cdn.door43.org/en/ulb/v10/pdf/01-GEN.pdf",
+      "format": "",
+      "source_version": "10",
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "signature": "",
+      "modified": "",
+      "size": 0
+    },
+    {
+      "contributor": [
+        "Narrator: Steve Lossing",
+        "Checker: Brad Harrington",
+        "Engineer: Brad Harrington"
+      ],
+      "version": "10",
+      "url": "https://cdn.door43.org/en/ulb/v10/media/mp4/360p/gen_chapter_videos.zip",
+      "format": "",
+      "source_version": "10",
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "signature": "",
+      "quality": "360p",
+      "modified": "",
+      "size": 0
+    },
+    {
+      "contributor": [
+        "Narrator: Steve Lossing",
+        "Checker: Brad Harrington",
+        "Engineer: Brad Harrington"
+      ],
+      "version": "10",
+      "url": "https://cdn.door43.org/en/ulb/v10/media/mp4/720p/gen_chapter_videos.zip",
+      "format": "",
+      "source_version": "10",
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "signature": "",
+      "quality": "720p",
+      "modified": "",
+      "size": 0
+    }
+  ],
+  "exo": [
+    {
+      "contributor": [],
+      "version": "10",
+      "url": "https://cdn.door43.org/en/ulb/v10/pdf/02-EXO.pdf",
+      "format": "",
+      "source_version": "10",
+      "build_rules": [
+        "signing.sign_given_url"
+      ],
+      "signature": "",
+      "modified": "",
+      "size": 0
+    }
+  ]
+}
