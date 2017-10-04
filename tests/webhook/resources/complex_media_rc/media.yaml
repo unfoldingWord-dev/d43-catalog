@@ -5,7 +5,7 @@ resource:
       identifier: 'pdf'
       version: '{latest}'
       contributor: []
-      url: 'https://cdn.door43.org/en/ulb/v{version}/media/{identifier}/ulb.pdf'
+      url: 'https://cdn.door43.org/en/ulb/v{version}/media/{identifier}/ulb_v{latest}.pdf'
 
 projects:
   -

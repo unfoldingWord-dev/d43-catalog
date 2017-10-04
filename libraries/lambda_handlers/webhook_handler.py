@@ -365,8 +365,8 @@ class WebhookHandler(Handler):
             resource['version'] = self._replace(resource['version'], 'latest', content_version)
             for m in resource['media']:
                 m['version'] = self._replace(m['version'], 'latest', content_version)
-                expansion_vars = copy.copy(m)
-                del expansion_vars['url']
+
+                expansion_vars = self._make_expansion_variables(m, content_version)
 
                 if 'quality' in m and len(m['quality']) > 0:
                     # build format for each quality
@@ -416,10 +416,7 @@ class WebhookHandler(Handler):
                 for m in project['media']:
                     m['version'] = self._replace(m['version'], 'latest', content_version)
 
-                    expansion_vars = copy.copy(m)
-                    del expansion_vars['url']
-                    if 'chapter_url' in expansion_vars:
-                        del expansion_vars['chapter_url']
+                    expansion_vars = self._make_expansion_variables(m, content_version)
 
                     if 'quality' in m and len(m['quality']) > 0:
                         # build format for each quality
@@ -473,6 +470,29 @@ class WebhookHandler(Handler):
                         project_formats.append(format)
                 formats['projects'][project['identifier']] = project_formats
         return formats
+
+    @staticmethod
+    def _make_expansion_variables(media_block, content_version):
+        """
+        Creates a dictionary of expansion variables for media items.
+        :param self:
+        :param media_block:
+        :param content_version:
+        :return:
+        """
+        vars = copy.copy(media_block)
+
+        # strip black listed keys
+        black_list = ['url', 'chapter_url']
+        for key in black_list:
+            if key in vars:
+                del vars[key]
+
+        # TRICKY: using `latest` as an expansion variable in urls is not explicitly stated in the spec,
+        # but it's a common misunderstanding so we allow it.
+        vars['latest'] = content_version
+
+        return vars
 
     @staticmethod
     def _replace_keys(str, dict):
