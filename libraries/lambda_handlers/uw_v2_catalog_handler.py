@@ -13,12 +13,14 @@ import tempfile
 import time
 import sys
 
+from hashlib import md5
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.date_utils import str_to_unix_time
 from libraries.tools.dict_utils import merge_dict
-from libraries.tools.file_utils import write_file
+from libraries.tools.file_utils import write_file, read_file
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url
+from libraries.tools.usfm_utils import strip_word_data
 
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 from libraries.lambda_handlers.instance_handler import InstanceHandler
@@ -141,6 +143,8 @@ class UwV2CatalogHandler(InstanceHandler):
                 if int(mod) > last_modified:
                     last_modified = int(mod)
 
+                # TRICK:Y we are not processing the resource formats
+
                 toc = []
                 for proj in res['projects']:
                     pid = proj['identifier']
@@ -195,7 +199,31 @@ class UwV2CatalogHandler(InstanceHandler):
                                 }
                             elif rid != 'obs' and format['format'] == 'text/usfm':
                                 # process bible
-                                source = format
+                                process_id = '_'.join([lid, rid, pid])
+                                bible_key = '{}/{}/{}/{}/v{}/source.usfm'.format(self.cdn_root_path, pid, lid, rid, res['version'])
+                                if process_id not in status['processed']:
+                                    usfm = self._process_usfm(format)
+                                    upload = self._prep_data_upload(bible_key, usfm)
+                                    self.cdn_handler.upload_file(upload['path'], upload['key'])
+
+                                    # sign  file
+                                    sig_file = self.signer.sign_file(upload['path'])
+                                    try:
+                                        self.signer.verify_signature(upload['path'], sig_file)
+                                        self.cdn_handler.upload_file(sig_file, '{}.sig'.format(upload['key']))
+                                    except RuntimeError:
+                                        if self.logger:
+                                            self.logger.warning('Could not verify signature {}'.format(sig_file))
+
+                                    status['processed'].update({process_id: []})
+                                    status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    self.db_handler.update_item({'api_version': UwV2CatalogHandler.api_version}, status)
+                                else:
+                                    cat_keys = cat_keys + status['processed'][process_id]
+                                source = {
+                                    'url': '{}/{}'.format(self.cdn_url, bible_key),
+                                    'signature': '{}/{}.sig'.format(self.cdn_url, bible_key)
+                                }
                             elif 'content=audio/mp3' in format['format'] or 'content=video/mp4' in format['format']:
                                 # process media
                                 quality_value, quality_suffix = self.__parse_media_quality(format['quality'])
@@ -342,6 +370,15 @@ class UwV2CatalogHandler(InstanceHandler):
         self.db_handler.update_item(
             {'api_version': UwV2CatalogHandler.api_version},
             status)
+
+    def _process_usfm(self, format):
+        url = format['url']
+        usfm_file = os.path.join(self.temp_dir, md5(url).hexdigest())
+        self.download_file(url, usfm_file)
+        usfm = read_file(usfm_file)
+        # TODO: also swap chunk markers
+        return strip_word_data(usfm)
+
 
     def _get_status(self):
         """
