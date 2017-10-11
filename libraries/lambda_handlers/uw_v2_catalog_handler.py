@@ -174,7 +174,7 @@ class UwV2CatalogHandler(InstanceHandler):
                                 obs_key = '{}/{}/{}/{}/v{}/source.json'.format(self.cdn_root_path, pid, lid, rid, res['version'])
                                 if process_id not in status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
-                                    upload = self._prep_data_upload(obs_key, obs_json)
+                                    upload = self._prep_json_upload(obs_key, obs_json)
                                     self.cdn_handler.upload_file(upload['path'], upload['key'])
 
                                     # sign obs file.
@@ -200,10 +200,10 @@ class UwV2CatalogHandler(InstanceHandler):
                             elif rid != 'obs' and format['format'] == 'text/usfm':
                                 # process bible
                                 process_id = '_'.join([lid, rid, pid])
-                                bible_key = '{}/{}/{}/{}/v{}/source.usfm'.format(self.cdn_root_path, pid, lid, rid, res['version'])
+                                bible_key = '{0}/{1}/{2}/{3}/v{4}/{1}.usfm'.format(self.cdn_root_path, pid, lid, rid, res['version'])
                                 if process_id not in status['processed']:
                                     usfm = self._process_usfm(format)
-                                    upload = self._prep_data_upload(bible_key, usfm)
+                                    upload = self._prep_text_upload(bible_key, usfm)
                                     self.cdn_handler.upload_file(upload['path'], upload['key'])
 
                                     # sign  file
@@ -349,7 +349,7 @@ class UwV2CatalogHandler(InstanceHandler):
                 'langs': langs
             })
 
-        catalog_upload = self._prep_data_upload('catalog.json', catalog)
+        catalog_upload = self._prep_json_upload('catalog.json', catalog)
         uploads.append(catalog_upload)
         # TRICKY: also upload to legacy path for backwards compatibility
         uploads.append({
@@ -420,7 +420,7 @@ class UwV2CatalogHandler(InstanceHandler):
 
         return (status, source_status)
 
-    def _prep_data_upload(self, key, data):
+    def _prep_json_upload(self, key, data):
         """
         Prepares some data for upload to s3
         :param key:
@@ -429,6 +429,20 @@ class UwV2CatalogHandler(InstanceHandler):
         """
         temp_file = os.path.join(self.temp_dir, key)
         write_file(temp_file, json.dumps(data, sort_keys=True))
+        return {
+            'key': key,
+            'path': temp_file
+        }
+
+    def _prep_text_upload(self, key, data):
+        """
+        Prepares some data for upload to s3
+        :param key:
+        :param data:
+        :return:
+        """
+        temp_file = os.path.join(self.temp_dir, key)
+        write_file(temp_file, data)
         return {
             'key': key,
             'path': temp_file
