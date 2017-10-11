@@ -5,7 +5,7 @@ from libraries.tools.file_utils import load_json_object
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockSigner, MockLogger
 from mock import patch
 from libraries.lambda_handlers.uw_v2_catalog_handler import UwV2CatalogHandler
-from libraries.tools.test_utils import assert_s3_equals_api_json
+from libraries.tools.test_utils import assert_s3_equals_api_json, assert_s3_equals_api_text
 
 
 # This is here to test importing main
@@ -193,6 +193,8 @@ class TestUwV2Catalog(TestCase):
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/catalog.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/uw/obs/en/obs/v4/source.json')
+        assert_s3_equals_api_text(self, mockS3, mockV2Api, 'v2/uw/gen/en/udb/v7/gen.usfm')
+        assert_s3_equals_api_text(self, mockS3, mockV2Api, 'v2/uw/1ch/en/ulb/v7/1ch.usfm')
         self.assertIn('v2/uw/obs/en/obs/v4/source.json.sig', mockS3._recent_uploads)
         self.assertIn('uw/txt/2/catalog.json', mockS3._recent_uploads)
         self.assertIn(

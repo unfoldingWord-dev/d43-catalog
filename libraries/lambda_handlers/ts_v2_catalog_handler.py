@@ -21,7 +21,7 @@ import yaml
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.file_utils import write_file, read_file, download_rc
 from libraries.tools.legacy_utils import index_obs
-from libraries.tools.usfm_utils import strip_word_data
+from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from usfm_tools.transform import UsfmTransform
 
@@ -672,7 +672,7 @@ class TsV2CatalogHandler(InstanceHandler):
         for name in files:
             f = os.path.join(usfm_dir, name)
             usfm = read_file(f)
-            write_file(f, strip_word_data(usfm))
+            write_file(f, convert_chunk_markers(strip_word_data(usfm)))
 
         UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
 

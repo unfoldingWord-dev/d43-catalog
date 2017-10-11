@@ -6,7 +6,7 @@ import unittest
 from libraries.tools.test_utils import is_travis, Bunch
 from unittest import TestCase
 
-from libraries.tools.usfm_utils import strip_word_data
+from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.mocks import MockDynamodbHandler
 from libraries.tools.lambda_utils import wipe_temp, is_lambda_running, set_lambda_running, clear_lambda_running, lambda_min_remaining
@@ -55,9 +55,15 @@ class TestTools(TestCase):
         self.assertEqual(0, len(files_after))
 
     def test_strip_usfm_word_data(self):
-        input = '\v 1 Ce \w qui|strong="G3739"\w* \w était|strong="G2258" x-morph="strongMorph:TG5713"\w* \w dès|strong="G575"\w*'
-        expected = '\v 1 Ce qui était dès'
+        input = '\\v 1 Ce \w qui|strong="G3739"\w* \w était|strong="G2258" x-morph="strongMorph:TG5713"\w* \w dès|strong="G575"\w*'
+        expected = '\\v 1 Ce qui était dès'
         output = strip_word_data(input)
+        self.assertEqual(expected, output)
+
+    def test_convert_chunk_markers(self):
+        input = '\\ts\n\\v 1 Ce qui était dès\n\\ts\n\\v 2 Ce qui était dès'
+        expected = '\\s5\n\\v 1 Ce qui était dès\n\\s5\n\\v 2 Ce qui était dès'
+        output = convert_chunk_markers(input)
         self.assertEqual(expected, output)
 
     @unittest.skipIf(is_travis(), 'Skipping test_is_lambda_not_running on travis')

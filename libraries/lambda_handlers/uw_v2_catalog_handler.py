@@ -20,7 +20,7 @@ from libraries.tools.dict_utils import merge_dict
 from libraries.tools.file_utils import write_file, read_file
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url
-from libraries.tools.usfm_utils import strip_word_data
+from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers
 
 from libraries.tools.signer import Signer, ENC_PRIV_PEM_PATH
 from libraries.lambda_handlers.instance_handler import InstanceHandler
@@ -376,8 +376,7 @@ class UwV2CatalogHandler(InstanceHandler):
         usfm_file = os.path.join(self.temp_dir, md5(url).hexdigest())
         self.download_file(url, usfm_file)
         usfm = read_file(usfm_file)
-        # TODO: also swap chunk markers
-        return strip_word_data(usfm)
+        return convert_chunk_markers(strip_word_data(usfm))
 
 
     def _get_status(self):

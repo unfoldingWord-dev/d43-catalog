@@ -75,6 +75,21 @@ def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
     api_obj = json.loads(mock_api.get_url(key))
     assert_object_equals(unit_test, s3_obj, api_obj)
 
+def assert_s3_equals_api_text(unit_test, mock_s3, mock_api, key):
+    """
+    Asserts that the s3 file identified by the given key matches
+    the equivalent file in the api
+    :param unit_test: an instance of UnitTest
+    :param mock_s3:
+    :param mock_api:
+    :param key: the relative path to the key
+    :return:
+    """
+    unit_test.assertIn(key, mock_s3._recent_uploads)
+    s3_text = read_file(mock_s3._recent_uploads[key])
+    api_text = mock_api.get_url(key)
+    unit_test.assertEquals(s3_text, api_text)
+
 
 def is_travis():
     """
