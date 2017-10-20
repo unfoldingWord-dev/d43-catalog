@@ -17,6 +17,7 @@ import sys
 import dateutil.parser
 import markdown
 import yaml
+import traceback
 
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.file_utils import write_file, read_file, download_rc
@@ -79,7 +80,8 @@ class TsV2CatalogHandler(InstanceHandler):
         try:
             return self.__execute()
         except Exception as e:
-            self.report_error(e.message)
+            trace = traceback.format_exc()
+            self.report_error('{}: {}'.format(e.message, trace))
             raise Exception, Exception(e), sys.exc_info()[2]
 
     def __execute(self):
