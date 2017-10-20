@@ -3,6 +3,7 @@ import arrow
 from d43_aws_tools import DynamoDBHandler
 from libraries.lambda_handlers.handler import Handler
 
+
 class StatusHandler(Handler):
 
     def _run(self):
