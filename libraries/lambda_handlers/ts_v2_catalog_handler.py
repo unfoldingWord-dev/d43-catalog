@@ -848,12 +848,15 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # bible projects have usfm
         if pid != 'obs':
-            for format in project['formats']:
-                if 'text/usfm' == format['format']:
-                    res.update({
-                        'usfm': '{}?date_modified={}'.format(format['url'], r_modified)
-                    })
-                    break
+            if 'formats' in project:
+                for format in project['formats']:
+                    if 'text/usfm' == format['format']:
+                        res.update({
+                            'usfm': '{}?date_modified={}'.format(format['url'], r_modified)
+                        })
+                        break
+            else:
+                raise Exception('Missing `formats` key in project {}_{}_{}'.format(lid, rid, pid))
 
         # language
         lang = catalog[pid]['_langs'][lid]
