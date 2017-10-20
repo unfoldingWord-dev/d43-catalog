@@ -80,8 +80,7 @@ class TsV2CatalogHandler(InstanceHandler):
         try:
             return self.__execute()
         except Exception as e:
-            trace = traceback.format_exc()
-            self.report_error('{}: {}'.format(e.message, trace))
+            self.report_error(e.message)
             raise Exception, Exception(e), sys.exc_info()[2]
 
     def __execute(self):
@@ -855,8 +854,6 @@ class TsV2CatalogHandler(InstanceHandler):
                             'usfm': '{}?date_modified={}'.format(format['url'], r_modified)
                         })
                         break
-            else:
-                raise Exception('Missing `formats` key in project {}_{}_{}'.format(lid, rid, pid))
 
         # language
         lang = catalog[pid]['_langs'][lid]
