@@ -540,10 +540,14 @@ class TsV2CatalogHandler(InstanceHandler):
                     if not os.path.isdir(cat_dir): continue
                     word_files = os.listdir(cat_dir)
                     for word in word_files:
-                        if word in ['.', '..']: continue
+                        if word in ['.', '..', '.DS_Store']: continue
                         word_path = os.path.join(cat_dir, word)
                         word_id = word.split('.md')[0]
-                        word_content = read_file(word_path)
+                        try:
+                            word_content = read_file(word_path)
+                        except Exception as e:
+                            self.report_error('Failed to read file {}: {}'.format(word_path, e.message))
+                            raise
 
                         # TRICKY: the title is always at the top
                         title_match = word_title_re.match(word_content)
