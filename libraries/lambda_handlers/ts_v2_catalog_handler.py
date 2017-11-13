@@ -227,7 +227,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     if modified is None:
                         modified = time.strftime('%Y%m%d')
-                        self.logger.warning('Could not find date_modified for {}_{}_{} from "{}"'.format(lid, rid, pid, rc_format['modified']))
+                        self.logger.warning('Could not find date modified for {}_{}_{} from "{}"'.format(lid, rid, pid, rc_format['modified']))
 
                     if rc_type == 'book' or rc_type == 'bundle':
                         self._build_catalog_node(cat_dict, lang, res, project, modified)
@@ -746,6 +746,11 @@ class TsV2CatalogHandler(InstanceHandler):
 
         if rc_type == 'help':
             pid = self.sanitize_identifier(project['identifier'])
+
+            # tricky some languages may only have supplementary resources and no books
+            # so no catalog node will have been built. Therefore we init them here.
+            self._init_catalog_node(catalog, pid, lid)
+
             for rid in catalog[pid]['_langs'][lid]['_res']:
                 res = catalog[pid]['_langs'][lid]['_res'][rid]
                 if 'tn' in self.sanitize_identifier(resource['identifier']):
@@ -764,9 +769,10 @@ class TsV2CatalogHandler(InstanceHandler):
                     })
         elif rc_type == 'dict':
             for pid in catalog:
-                if lid not in catalog[pid]['_langs']:
-                    self.logger.warning('Expected "{}" as a language in "{}" but could not find it.'.format(lid, pid))
-                    continue
+                # tricky some languages may only have supplementary resources and no books
+                # so no catalog node will have been built. Therefore we init them here.
+                self._init_catalog_node(catalog, pid, lid)
+
                 for rid in catalog[pid]['_langs'][lid]['_res']:
                     res = catalog[pid]['_langs'][lid]['_res'][rid]
                     # TRICKY: obs and Bible now use the same words
@@ -776,6 +782,21 @@ class TsV2CatalogHandler(InstanceHandler):
                             TsV2CatalogHandler.cdn_root_path,
                             lid, modified)
                     })
+
+    def _init_catalog_node(self, catalog, pid, lid=None, rid=None):
+        """
+        Initializes a node in the catalog.
+        :param catalog: the v2 catalog dictionary
+        :param pid: the project id to include in the catalog
+        :param lid: the language id to include in the catalog
+        :param rid: the resource id to include in the catalog
+        :return:
+        """
+        if pid not in catalog: catalog[pid] = {'_langs': {}}
+        if lid is not None:
+            if lid not in catalog[pid]['_langs']: catalog[pid]['_langs'][lid] = {'_res': {}, 'language': {}}
+        if lid is not None and rid is not None:
+            if rid not in catalog[pid]['_langs'][lid]['_res']: catalog[pid]['_langs'][lid]['_res'][rid] = {}
 
     def _build_catalog_node(self, catalog, language, resource, project, modified):
         """
@@ -794,10 +815,7 @@ class TsV2CatalogHandler(InstanceHandler):
         # TRICKY: v2 api sorted obs with 1
         if pid == 'obs': project['sort'] = 1
 
-        # init catalog nodes
-        if pid not in catalog: catalog[pid] = {'_langs': {}}
-        if lid not in catalog[pid]['_langs']: catalog[pid]['_langs'][lid] = {'_res': {}, 'language': {}}
-        if rid not in catalog[pid]['_langs'][lid]['_res']: catalog[pid]['_langs'][lid]['_res'][rid] = {}
+        self._init_catalog_node(catalog, pid, lid, rid)
 
         # TRICKY: we must process the modified date in the order of resource, language, project to propagate dates correctly
 
