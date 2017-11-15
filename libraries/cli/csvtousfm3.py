@@ -96,7 +96,7 @@ def convert_row(lang, row):
     :return: the generated USFM3
     """
     opening_punctuation, closing_punctuation = split_puncuation(row['PUNC'].decode('utf-8'))
-    return u'{}\w {}|lemma="{}" strongs="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
+    return u'{}\w {}|lemma="{}" strong="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
         opening_punctuation,
         row['UMEDIEVAL'].decode('utf-8'),
         row['ULEMMA'].decode('utf-8'),
