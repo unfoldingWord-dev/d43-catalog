@@ -24,6 +24,7 @@ setup(
         'python-dateutil==2.6.0',
         'pytz==2017.2',
         'grequests==0.3.0',
+        'resource_container==1.0',
         'mock'  # travis reports syntax error in mock setup.cfg if we give version
     ],
     test_suite='tests'
