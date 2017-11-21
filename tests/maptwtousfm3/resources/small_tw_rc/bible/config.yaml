@@ -1,0 +1,20 @@
+---
+12tribesofisrael:
+  false_positives: []
+  occurrences:
+  - rc://en/ulb/book/luk/22/30
+  - rc://en/ulb/book/mat/19/28
+test:
+  false_positives: []
+  occurrences:
+  - rc://en/ulb/book/mat/19/28
+abel:
+  false_positives: []
+  occurrences:
+  - rc://en/ulb/book/heb/11/04
+  - rc://en/ulb/book/mat/23/35
+abomination:
+  false_positives: []
+  occurrences:
+  - rc://en/ulb/book/mat/24/15
+  - rc://en/ulb/book/mrk/13/14
