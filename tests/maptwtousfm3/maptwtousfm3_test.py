@@ -17,7 +17,7 @@ class TestMapTWtoUSFM3(TestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_index_words(self):
-        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         index = maptwtousfm3.indexWords(rc)
         self.assertIn('heb/11/4', index)
         self.assertIn('luk/22/30', index)
@@ -27,7 +27,7 @@ class TestMapTWtoUSFM3(TestCase):
         self.assertIn('12tribesofisrael', index['mat/19/28'])
 
     def test_load_strongs(self):
-        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         strongs = maptwtousfm3.loadStrongs('abomination', rc)
         self.assertEqual(['H887', 'H6292', 'H8251', 'H8262', 'H8441', 'G946', 'G11610'], strongs)
 
@@ -43,13 +43,13 @@ class TestMapTWtoUSFM3(TestCase):
 
     def test_map_usfm(self):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
-        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         words_index = maptwtousfm3.indexWords(rc)
         mappedUSFM = maptwtousfm3.mapUSFM(usfm, rc, words_index)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 
     def test_map_dir(self):
-        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         out_dir = os.path.join(self.temp_dir, 'mapped_usfm')
         maptwtousfm3.mapDir(os.path.join(self.resources_dir, 'usfm'), rc, out_dir)
