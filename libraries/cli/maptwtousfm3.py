@@ -19,13 +19,13 @@ import re
 from resource_container import factory, ResourceContainer
 from libraries.tools.file_utils import write_file, read_file
 
-def indexLocationWords(words_rc):
+def indexWords(words_rc):
     """
     Generates an index of word occurrences where words may be looked up by
     textual occurrence.
     :param words_rc:
     :type words_rc: ResourceContainer.RC
-    :return:
+    :return: a dictionary of words keyed by location
     """
     index = {}
     config = words_rc.config()
@@ -47,13 +47,13 @@ def indexLocationWords(words_rc):
                     index[location] = [word]
     return index
 
-def getStrongNumbers(word, words_rc):
+def loadStrongs(word, words_rc):
     """
-    Retrieves the strong numbers for a word
+    Retrieves the strong numbers for a word from it's data file
     :param word: the word to index
     :param words_rc:
     :type words_rc: ResourceContainer.RC
-    :return:
+    :return: a list of strongs
     """
 
     # TRICKY: the config.yaml does not provide sufficient information to
@@ -78,56 +78,70 @@ def getStrongNumbers(word, words_rc):
     return numbers
 
 
-def getLocationWords(location, occurrences_index):
+def getWords(location, words_index):
     """
     Retrieves the words found at the passage location
     :param location:
-    :param occurrences_index:
-    :return:
+    :param words_index:
+    :return: a list of words
     """
-    if location in occurrences_index:
-        return occurrences_index[location]
+    if location in words_index:
+        return words_index[location]
     else:
         return []
 
-def indexLocationStrongs(location, occurrences_index, words_rc):
+def indexStrongs(location, words_index, words_rc):
     """
     Generates an index of word strongs found in the given lcoation
     :param location:
-    :param occurrences_index:
+    :param words_index:
     :param words_rc:
-    :return:
+    :return: a dictionary of strongs keyed by word
     """
-    words = getLocationWords(location, occurrences_index)
+    words = getWords(location, words_index)
     index = {}
     for word in words:
-        index[word] = getStrongNumbers(word, words_rc)
+        index[word] = loadStrongs(word, words_rc)
     return index
 
-def mapWord(strongs, words_rc, word_index):
+def getStrongs(word, strongs_index):
     """
-    Attepts to lookup a tW word by a strongs number.
-    :param strongs:
-    :param words_rc:
-    :type words_rc: ResourceContainer.RC
-    :param word_index:
-    :return:
+    Retrieves the strongs found for a word
+    :param word:
+    :param strongs_index:
+    :return: a list of strong numbers
     """
-    pass
+    if word in strongs_index:
+        return strongs_index[word]
+    else:
+        return []
+
+def mapWord(strong_number, words, strongs_index):
+    """
+    Maps words to a strong number
+    :param strong_number:
+    :param words: a list of words available for mapping. These are available based on the passage location.
+    :return: the word or None
+    """
+    for word in words:
+        strongs = getStrongs(word, strongs_index)
+        for strong in strongs:
+            if strong == strong_number:
+                return word
+    return None
 
 
-def mapWords(usfm, words_rc):
+def mapWordsToUSFM(usfm, words_rc):
     """
     Injects tW links into the usfm
-    :param usfm_dir:
-    :param words_rc_dir: tW resource container
-    :return:
+    :param usfm:
+    :param words_rc:
+    :type words_rc: ResourceContainer.RC
+    :return: the newly mapped usfm
     """
-    if sys.version_info >= (3,0,0):
-        raise Exception('Only python 2.7 is supported')
-    rc = factory.load(words_rc)
 
-    return []
+
+    return ''
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,

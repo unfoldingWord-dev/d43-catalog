@@ -8,9 +8,9 @@ from resource_container import factory
 class TestMapTWtoUSFM3(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
-    def test_index_tw(self):
+    def test_index_words(self):
         rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
-        index = maptwtousfm3.indexLocationWords(rc)
+        index = maptwtousfm3.indexWords(rc)
         self.assertIn('heb/11/4', index)
         self.assertIn('luk/22/30', index)
         self.assertIn('mat/19/28', index)
@@ -18,14 +18,23 @@ class TestMapTWtoUSFM3(TestCase):
         self.assertIn('test', index['mat/19/28'])
         self.assertIn('12tribesofisrael', index['mat/19/28'])
 
-    def test_get_strongs(self):
+    def test_load_strongs(self):
         rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
-        strongs = maptwtousfm3.getStrongNumbers('abomination', rc)
+        strongs = maptwtousfm3.loadStrongs('abomination', rc)
         self.assertEqual(['H887', 'H6292', 'H8251', 'H8262', 'H8263', 'H8441', 'G946'], strongs)
 
     def test_map_word(self):
-        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
-        maptwtousfm3.mapWord('H887', rc, )
+        strongs_index = {
+            '12tribesofisrael': ['H3478', 'H7626'],
+            'abomination': ['H887', 'H6292', 'H8251'],
+            'abel': ['H3478', 'H7626']
+        }
+        words = ['12tribesofisrael', 'abomination', 'abel']
+        mapped_word = maptwtousfm3.mapWord('H6292', words, strongs_index)
+        self.assertEqual('abomination', mapped_word)
 
     def test_map_file(self):
-        usfm = maptwtousfm3.mapWords(os.path.join(self.resources_dir, 'usfm'), os.path.join(self.resources_dir, 'tw_rc'))
+        usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
+        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        mappedUSFM = maptwtousfm3.mapWordsToUSFM(usfm, rc)
+        self.assertEqual(mappedUSFM, '')
