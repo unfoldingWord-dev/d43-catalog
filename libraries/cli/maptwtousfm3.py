@@ -174,15 +174,18 @@ def getStrongs(word, strongs_index):
 
 def mapWord(strong_number, words, strongs_index):
     """
-    Maps words to a strong number
+    Returns a word that is mapped to the strong's number
     :param strong_number:
     :param words: a list of words available for mapping. These are available based on the passage location.
+    :param strongs_index: an index of strong's numbers from which to read
     :return: the word or None
     """
     for word in words:
         strongs = getStrongs(word, strongs_index)
         for strong in strongs:
-            if strong.lower() == strong_number.lower():
+            # TRICKY: reverse zero pad numbers from the index to match the length
+            formatted_strong = (strong + '000000')[:len(strong_number)]
+            if formatted_strong.lower() == strong_number.lower():
                 return word
     return None
 
@@ -200,6 +203,7 @@ def mapUSFM(usfm, words_rc, words_index, strongs_index={}):
     :param strongs_index: the index of word strong numbers.
     :return: the newly mapped usfm
     """
+    logger = logging.getLogger(LOGGER_NAME)
     lines = usfm.splitlines()
     line = ''
     book = None
@@ -260,6 +264,9 @@ def mapUSFM(usfm, words_rc, words_index, strongs_index={}):
                 # inject link at end
                 link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
                 lines[index] = line.replace('\w*', ' ' + link + ' \w*')
+            elif len(words):
+                pass
+                # logger.warning('No match found for {} at {}'.format(strong, location))
         elif line.startswith('\\w'):
             raise Exception('Malformed USFM. USFM tags appear to be out of order.')
 
