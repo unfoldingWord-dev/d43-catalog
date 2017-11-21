@@ -15,9 +15,12 @@ import argparse
 import os
 import sys
 import re
+import logging
 
 from resource_container import factory, ResourceContainer
 from libraries.tools.file_utils import write_file, read_file
+
+LOGGER_NAME='map_tw_to_usfm'
 
 def indexWords(words_rc):
     """
@@ -27,25 +30,38 @@ def indexWords(words_rc):
     :type words_rc: ResourceContainer.RC
     :return: a dictionary of words keyed by location
     """
+    logger = logging.getLogger(LOGGER_NAME)
     index = {}
     config = words_rc.config()
     for word in config:
         word_obj = config[word]
         if 'occurrences' in word_obj:
             for location in word_obj['occurrences']:
-                parts = location.split('/')
-                length = len(parts)
-                verse = '{}'.format(int(parts[length-1]))
-                chapter = '{}'.format(int(parts[length-2]))
-                book = parts[length - 3]
-                location = '{}/{}/{}'.format(book, chapter, verse)
-                if location in index:
-                    # append to index
-                    index[location].append(word)
-                else:
-                    # create index
-                    index[location] = [word]
+                try:
+                    parts = location.split('/')
+                    length = len(parts)
+                    verse = _unzpad(parts[length-1])
+                    chapter = _unzpad(parts[length-2])
+                    book = parts[length - 3]
+                    location = '{}/{}/{}'.format(book, chapter, verse)
+                    if location in index:
+                        # append to index
+                        index[location].append(word)
+                    else:
+                        # create index
+                        index[location] = [word]
+                except Exception as e:
+                    logger.error('Failed to parse location: {}'.format(location))
+                    raise e
     return index
+
+def _unzpad(strint):
+    """
+    Removes zpadding from an integer string
+    :param strint: a string that contains an integer value
+    :return:
+    """
+    return '{}'.format(int(strint))
 
 def loadStrongs(word, words_rc):
     """
@@ -59,6 +75,8 @@ def loadStrongs(word, words_rc):
     # TRICKY: the config.yaml does not provide sufficient information to
     # locate the word, however we only have 3 options.
     # There should not be any duplicate within these folders.
+    logger = logging.getLogger(LOGGER_NAME)
+
     numbers = []
     data = words_rc.read_chunk('kt', word)
     if not data:
@@ -66,14 +84,16 @@ def loadStrongs(word, words_rc):
     if not data:
         data = words_rc.read_chunk('other', word)
     if not data:
-        raise Exception('Failed to look up word {}'.format(word))
+        logger.warning('Failed to look up word "{}"'.format(word))
+        return numbers
 
     header = re.findall('^#+\s*Word\s+Data\s*\:?.*', data, re.MULTILINE|re.IGNORECASE)
     if(len(header)):
         word_data = data.split(header[0])[1]
         numbers = re.findall('[HG]\d+', word_data, re.MULTILINE | re.IGNORECASE)
     else:
-        raise Exception('Missing Word Data section in word {}'.format(word))
+        category = _getWordCategory(word, words_rc)
+        logger.error('Missing Word Data section in word "{}/{}"'.format(category, word))
 
     return numbers
 
@@ -85,6 +105,8 @@ def _getWordCategory(word, words_rc):
     :type words_rc: ResourceContainer.RC
     :return:
     """
+    # TRICKY: the config.yaml does not provide enough information for us to backtrack words.
+    # however, we know there are only 3 locations
     categories = ['kt', 'names', 'other']
     for cat in categories:
         if '{}.md'.format(word) in words_rc.chunks(cat):
@@ -207,7 +229,7 @@ def mapUSFM(usfm, words_rc, words_index, strongs_index={}):
         if re.match(r'\\c\b', line):
             match = re.findall(r'^\\c\s+(\d+)', line, re.IGNORECASE|re.UNICODE)
             if match and len(match):
-                chapter = match[0]
+                chapter = _unzpad(match[0])
                 verse = None
             else:
                 raise Exception('Malformed USFM. Unable to parse chapter number: {}'.format(line))
@@ -216,7 +238,7 @@ def mapUSFM(usfm, words_rc, words_index, strongs_index={}):
         if re.match(r'\\v\b', line):
             match = re.findall(r'^\\v\s+(\d+)', line, re.IGNORECASE|re.UNICODE)
             if match and len(match):
-                verse = match[0]
+                verse = _unzpad(match[0])
             else:
                 raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(line))
 
@@ -261,11 +283,13 @@ def mapDir(usfm_dir, words_rc, output_dir):
         break
 
     for file_name in usfm_files:
+        if not file_name.endswith('.usfm'):
+            continue
+
         file = os.path.join(usfm_dir, file_name)
-        print('Mapping {}'.format(file))
+        print('{}'.format(file_name))
         usfm = mapUSFM(read_file(file), words_rc, words_index)
         outfile = os.path.join(output_dir, os.path.basename(file))
-        print('Writing {}'.format(outfile))
         write_file(outfile, usfm)
 
 
@@ -281,4 +305,30 @@ if __name__ == '__main__':
         raise Exception('Output must be a directory')
 
     rc = factory.load(args.words)
+
+    errors_log_file = os.path.join(args.output, 'errors.log')
+    if os.path.isfile(errors_log_file):
+        os.remove(errors_log_file)
+
+    # configure logger
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.WARNING)
+    handler = logging.FileHandler(errors_log_file)
+    handler.setLevel(logging.WARNING)
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    # start
     mapDir(args.usfm, rc, args.output)
+
+    # announce errors or clean up log file
+    if os.path.isfile(errors_log_file):
+        statinfo = os.stat(errors_log_file)
+        if statinfo.st_size > 0:
+            print('WARNING: errors were detected. See {} for details'.format(errors_log_file))
+        else:
+            os.remove(errors_log_file)
+
+    print('Finished')
+
