@@ -21,7 +21,7 @@ class TestMapTWtoUSFM3(TestCase):
     def test_load_strongs(self):
         rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
         strongs = maptwtousfm3.loadStrongs('abomination', rc)
-        self.assertEqual(['H887', 'H6292', 'H8251', 'H8262', 'H8263', 'H8441', 'G946'], strongs)
+        self.assertEqual(['H887', 'H6292', 'H8251', 'H8262', 'H8441', 'G946', 'G11610'], strongs)
 
     def test_map_word(self):
         strongs_index = {
@@ -36,5 +36,7 @@ class TestMapTWtoUSFM3(TestCase):
     def test_map_file(self):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
         rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
-        mappedUSFM = maptwtousfm3.mapWordsToUSFM(usfm, rc)
-        self.assertEqual(mappedUSFM, '')
+        words_index = maptwtousfm3.indexWords(rc)
+        mappedUSFM = maptwtousfm3.mapWordsToUSFM(usfm, rc, words_index)
+        expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
+        self.assertEqual(mappedUSFM, expected_usfm)

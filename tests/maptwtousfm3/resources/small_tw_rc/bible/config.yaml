@@ -8,13 +8,15 @@ test:
   false_positives: []
   occurrences:
   - rc://en/ulb/book/mat/19/28
+  - rc://en/ulb/book/mat/01/01
 abel:
   false_positives: []
   occurrences:
+  - rc://en/ulb/book/mat/01/13
   - rc://en/ulb/book/heb/11/04
   - rc://en/ulb/book/mat/23/35
 abomination:
   false_positives: []
   occurrences:
-  - rc://en/ulb/book/mat/24/15
+  - rc://en/ulb/book/mat/05/22
   - rc://en/ulb/book/mrk/13/14

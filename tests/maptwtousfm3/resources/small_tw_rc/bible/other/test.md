@@ -26,4 +26,4 @@ The term "abomination" is used to refer to something that causes disgust or extr
 
 ## Word Data: ##
 
-* Strong's: H887, H6292, H8251, H8262, H8441, G946, G11610
+* Strong's: H887, H6292, H8251, H8262, H8263, H8441, G946, G09760

@@ -77,11 +77,38 @@ def loadStrongs(word, words_rc):
 
     return numbers
 
+def _getWordCategory(word, words_rc):
+    """
+    Retrieves the category of a word
+    :param word:
+    :param words_rc:
+    :type words_rc: ResourceContainer.RC
+    :return:
+    """
+    categories = ['kt', 'names', 'other']
+    for cat in categories:
+        if '{}.md'.format(word) in words_rc.chunks(cat):
+            return cat
+    return None
 
-def getWords(location, words_index):
+def _makeWordLink(word, words_rc):
+    """
+    Generates a language agnostic link to a tW
+    :param word:
+    :param words_rc:
+    :type words_rc: ResourceContainer.RC
+    :return: a new rc link
+    """
+    category = _getWordCategory(word, words_rc)
+    if not category:
+        raise Exception('Failed to look up category for word {}'.format(word))
+
+    return 'rc://*/tw/dict/bible/{}/{}'.format(category, word)
+
+def _getWords(location, words_index):
     """
     Retrieves the words found at the passage location
-    :param location:
+    :param location: The passage location e.g. book/chapter/verse without z-padding
     :param words_index:
     :return: a list of words
     """
@@ -90,18 +117,25 @@ def getWords(location, words_index):
     else:
         return []
 
-def indexStrongs(location, words_index, words_rc):
+def indexStrongs(location, words_index, words_rc, strongs_index=None):
     """
-    Generates an index of word strongs found in the given lcoation
+    Generates an index of strong numbers associated with a word found in the given location.
+    If the existing index is provided this may not hit the filesystem.
     :param location:
     :param words_index:
     :param words_rc:
-    :return: a dictionary of strongs keyed by word
+    :param strongs_index: the existing index. This will be updated if set
+    :return: a dictionary of strong numbers keyed by word
     """
-    words = getWords(location, words_index)
-    index = {}
+    words = _getWords(location, words_index)
+    if strongs_index:
+        index = strongs_index
+    else:
+        index = {}
+
     for word in words:
-        index[word] = loadStrongs(word, words_rc)
+        if word not in index:
+            index[word] = loadStrongs(word, words_rc)
     return index
 
 def getStrongs(word, strongs_index):
@@ -126,22 +160,92 @@ def mapWord(strong_number, words, strongs_index):
     for word in words:
         strongs = getStrongs(word, strongs_index)
         for strong in strongs:
-            if strong == strong_number:
+            if strong.lower() == strong_number.lower():
                 return word
     return None
 
 
-def mapWordsToUSFM(usfm, words_rc):
+def mapWordsToUSFM(usfm, words_rc, words_index, default_strongs_index=None):
     """
-    Injects tW links into the usfm
+    Injects tW links into the usfm.
+    If you are operating on multiple files you can
     :param usfm:
+    :type usfm: basestring
     :param words_rc:
     :type words_rc: ResourceContainer.RC
+    :param words_index: the index of words keyed by location.
+    :param default_strongs_index: the index of word strong numbers.
     :return: the newly mapped usfm
     """
+    lines = usfm.splitlines()
+    line = ''
+    book = None
+    chapter = None
+    verse = None
+    header = []
 
+    if default_strongs_index:
+        strongs_index = default_strongs_index
+    else:
+        strongs_index = {}
 
-    return ''
+    # locate book id
+    while not book and not line.startswith('\\c ') and len(lines):
+        line = lines.pop(0)
+        header.append(line)
+        if line.startswith('\\id'):
+            # get id
+            match = re.findall('^\\\id\s+(\w+)\s+.*', line, re.IGNORECASE|re.UNICODE)
+            if match and len(match):
+                book = match[0].lower()
+            else:
+                raise Exception('Malformed USFM. Unable to parse book id: {}'.format(line))
+
+    if not book:
+        raise Exception('Malformed USFM. Could not find book id.')
+
+    for index, line in enumerate(lines):
+        strong = None
+
+        # start chapter
+        if re.match(r'\\c\b', line):
+            match = re.findall(r'^\\c\s+(\d+)', line, re.IGNORECASE|re.UNICODE)
+            if match and len(match):
+                chapter = match[0]
+                verse = None
+            else:
+                raise Exception('Malformed USFM. Unable to parse chapter number: {}'.format(line))
+
+        # start verse
+        if re.match(r'\\v\b', line):
+            match = re.findall(r'^\\v\s+(\d+)', line, re.IGNORECASE|re.UNICODE)
+            if match and len(match):
+                verse = match[0]
+            else:
+                raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(line))
+
+        # start original language word
+        if re.match(r'\\w\b', line):
+            match = re.findall(r'strong="([\w]+)"', line, re.IGNORECASE|re.UNICODE)
+            if match and len(match):
+                strong = match[0]
+            else:
+                raise Exception('Malformed USFM. Unable to parse strong number: {}'.format(line))
+
+        # map word
+        if chapter and verse and strong:
+            location = '{}/{}/{}'.format(book, chapter, verse)
+            words = _getWords(location, words_index)
+            strongs_index = indexStrongs(location, words_index, words_rc, strongs_index)
+            word = mapWord(strong, words, strongs_index)
+            if word:
+                # inject link at end
+                link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
+                lines[index] = line.replace('\w*', ' ' + link + ' \w*')
+        elif line.startswith('\\w'):
+            raise Exception('Malformed USFM. USFM tags appear to be out of order.')
+
+    return '\n'.join(header + lines)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,
