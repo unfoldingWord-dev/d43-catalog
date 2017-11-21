@@ -14,15 +14,15 @@ Assumptions:
 import argparse
 import os
 import sys
+import re
 
 from resource_container import factory, ResourceContainer
 from libraries.tools.file_utils import write_file, read_file
 
-def indexOccurrences(words_rc):
+def indexLocationWords(words_rc):
     """
-    Generates an index of word occurrences where strong numbers may be looked up by
-    textual occurrence. passage occurrence -> word -> strong.
-    e.g. rc://en/ulb/book/1co/01/01 -> jesus -> G2424, G5547
+    Generates an index of word occurrences where words may be looked up by
+    textual occurrence.
     :param words_rc:
     :type words_rc: ResourceContainer.RC
     :return:
@@ -47,14 +47,73 @@ def indexOccurrences(words_rc):
                     index[location] = [word]
     return index
 
-def indexStrongs(word, words_rc):
-    pass
+def getStrongNumbers(word, words_rc):
+    """
+    Retrieves the strong numbers for a word
+    :param word: the word to index
+    :param words_rc:
+    :type words_rc: ResourceContainer.RC
+    :return:
+    """
 
-def getLocationWords(location, index, rc_cache):
-    if location in index:
-        return index[location]
+    # TRICKY: the config.yaml does not provide sufficient information to
+    # locate the word, however we only have 3 options.
+    # There should not be any duplicate within these folders.
+    numbers = []
+    data = words_rc.read_chunk('kt', word)
+    if not data:
+        data = words_rc.read_chunk('names', word)
+    if not data:
+        data = words_rc.read_chunk('other', word)
+    if not data:
+        raise Exception('Failed to look up word {}'.format(word))
+
+    header = re.findall('^#+\s*Word\s+Data\s*\:?.*', data, re.MULTILINE|re.IGNORECASE)
+    if(len(header)):
+        word_data = data.split(header[0])[1]
+        numbers = re.findall('[HG]\d+', word_data, re.MULTILINE | re.IGNORECASE)
+    else:
+        raise Exception('Missing Word Data section in word {}'.format(word))
+
+    return numbers
+
+
+def getLocationWords(location, occurrences_index):
+    """
+    Retrieves the words found at the passage location
+    :param location:
+    :param occurrences_index:
+    :return:
+    """
+    if location in occurrences_index:
+        return occurrences_index[location]
     else:
         return []
+
+def indexLocationStrongs(location, occurrences_index, words_rc):
+    """
+    Generates an index of word strongs found in the given lcoation
+    :param location:
+    :param occurrences_index:
+    :param words_rc:
+    :return:
+    """
+    words = getLocationWords(location, occurrences_index)
+    index = {}
+    for word in words:
+        index[word] = getStrongNumbers(word, words_rc)
+    return index
+
+def mapWord(strongs, words_rc, word_index):
+    """
+    Attepts to lookup a tW word by a strongs number.
+    :param strongs:
+    :param words_rc:
+    :type words_rc: ResourceContainer.RC
+    :param word_index:
+    :return:
+    """
+    pass
 
 
 def mapWords(usfm, words_rc):

@@ -10,13 +10,22 @@ class TestMapTWtoUSFM3(TestCase):
 
     def test_index_tw(self):
         rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
-        index = maptwtousfm3.indexOccurrences(rc)
+        index = maptwtousfm3.indexLocationWords(rc)
         self.assertIn('heb/11/4', index)
         self.assertIn('luk/22/30', index)
         self.assertIn('mat/19/28', index)
 
         self.assertIn('test', index['mat/19/28'])
         self.assertIn('12tribesofisrael', index['mat/19/28'])
+
+    def test_get_strongs(self):
+        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        strongs = maptwtousfm3.getStrongNumbers('abomination', rc)
+        self.assertEqual(['H887', 'H6292', 'H8251', 'H8262', 'H8263', 'H8441', 'G946'], strongs)
+
+    def test_map_word(self):
+        rc = factory.load(os.path.join(self.resources_dir, 'small_tw_rc'))
+        maptwtousfm3.mapWord('H887', rc, )
 
     def test_map_file(self):
         usfm = maptwtousfm3.mapWords(os.path.join(self.resources_dir, 'usfm'), os.path.join(self.resources_dir, 'tw_rc'))
