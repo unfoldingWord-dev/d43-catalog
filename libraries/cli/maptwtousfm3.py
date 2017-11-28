@@ -293,12 +293,14 @@ def indexWordByStrongs(words_rc):
             except Exception as e:
                 logger.error('{} in word "{}/{}"'.format(e, category, word))
             for num in numbers:
-                if num in index:
+                # TRICKY: strongs are 6 characters long
+                strong = normalizeStrongPadding(num, '000000').upper()
+                if strong in index:
                     # append word to strong
-                    index[num].append(word)
+                    index[strong].append(word)
                 else:
                     # create index
-                    index[num] = [word]
+                    index[strong] = [word]
     return index
 
 def indexLocationStrongs(location, words_index, words_rc, strongs_index=None):
@@ -346,10 +348,19 @@ def mapWord(strong_number, words, strongs_index):
         strongs = getStrongs(word, strongs_index)
         for strong in strongs:
             # TRICKY: reverse zero pad numbers from the index to match the length
-            formatted_strong = (strong + '000000')[:len(strong_number)]
+            formatted_strong = normalizeStrongPadding(strong, strong_number)
             if formatted_strong.lower() == strong_number.lower():
                 return word
     return None
+
+def normalizeStrongPadding(strong, strong_template):
+    """
+    Normalizes the padding on a strong number so it matches the template
+    :param strong:
+    :param strong_template:
+    :return:
+    """
+    return (strong + '000000')[:len(strong_template)]
 
 def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_positives_index):
     """

@@ -1,12 +1,13 @@
 ---
 12tribesofisrael:
   false_positives:
-  - rc://en/ulb/book/mat/1/13
+  - rc://en/ulb/book/mat/1/1
   occurrences:
   - rc://en/ulb/book/luk/22/30
   - rc://en/ulb/book/mat/19/28
 test:
-  false_positives: []
+  false_positives:
+  - rc://en/ulb/book/mat/1/13
   occurrences:
   - rc://en/ulb/book/mat/19/28
   - rc://en/ulb/book/mat/01/01
