@@ -127,7 +127,7 @@ class USFMWordReader:
         raise StopIteration
 
 
-def indexWords(words_rc):
+def indexWordsLocation(words_rc):
     """
     Generates an index of word occurrences where words may be looked up by
     textual occurrence.
@@ -136,28 +136,31 @@ def indexWords(words_rc):
     :return: a dictionary of words keyed by location
     """
     logger = logging.getLogger(LOGGER_NAME)
-    index = {}
     config = words_rc.config()
+    location_categories = ['occurrences', 'false_positives']
+    index = {name:{} for name in location_categories}
     for word in config:
         word_obj = config[word]
-        if 'occurrences' in word_obj:
-            for location in word_obj['occurrences']:
-                try:
-                    parts = location.split('/')
-                    length = len(parts)
-                    verse = _unzpad(parts[length-1])
-                    chapter = _unzpad(parts[length-2])
-                    book = parts[length - 3]
-                    location = '{}/{}/{}'.format(book, chapter, verse)
-                    if location in index:
-                        # append to index
-                        index[location].append(word)
-                    else:
-                        # create index
-                        index[location] = [word]
-                except Exception as e:
-                    logger.error('Failed to parse location: {}'.format(location))
-                    raise e
+        for location_category in word_obj:
+            if location_category in location_categories:
+                locations = word_obj[location_category]
+                for location in locations:
+                    try:
+                        parts = location.split('/')
+                        length = len(parts)
+                        verse = _unzpad(parts[length-1])
+                        chapter = _unzpad(parts[length-2])
+                        book = parts[length - 3]
+                        path = '{}/{}/{}'.format(book, chapter, verse)
+                        if path in index[location_category]:
+                            # append to index
+                            index[location_category][path].append(word)
+                        else:
+                            # create index
+                            index[location_category][path] = [word]
+                    except Exception as e:
+                        logger.error('Failed to parse location: {}'.format(location))
+                        raise e
     return index
 
 def _unzpad(strint):
@@ -168,7 +171,7 @@ def _unzpad(strint):
     """
     return '{}'.format(int(strint))
 
-def loadStrongs(word, words_rc):
+def findStrongs(word, words_rc):
     """
     Retrieves the strong numbers for a word from it's data file
     :param word: the word to index
@@ -192,15 +195,26 @@ def loadStrongs(word, words_rc):
         # TRICKY: ignore missing words. The config.yaml file was inaccurate
         return numbers
 
-    header = re.findall('^#+\s*Word\s+Data\s*\:?.*', data, re.MULTILINE|re.IGNORECASE)
-    if header:
-        word_data = data.split(header[0])[1]
-        numbers = re.findall('[HG]\d+', word_data, re.MULTILINE | re.IGNORECASE)
-    else:
+    try:
+        numbers = parseStrongs(data)
+    except Exception as e:
         category = _getWordCategory(word, words_rc)
-        logger.error('Missing Word Data section in word "{}/{}"'.format(category, word))
+        logger.error('{} in word "{}/{}"'.format(e, category, word))
 
     return numbers
+
+def parseStrongs(word_data):
+    """
+    Parses the strong's numbers from word data
+    :param word_data:
+    :return:
+    """
+    header = re.findall('^#+\s*Word\s+Data\s*\:?.*', word_data, re.MULTILINE | re.IGNORECASE)
+    if header:
+        word_data = word_data.split(header[0])[1]
+        return re.findall('[HG]\d+', word_data, re.MULTILINE | re.IGNORECASE)
+    else:
+        raise Exception('Missing Word Data section')
 
 def _getWordCategory(word, words_rc):
     """
@@ -232,7 +246,7 @@ def _makeWordLink(word, words_rc):
 
     return 'rc://*/tw/dict/bible/{}/{}'.format(category, word)
 
-def _getWords(location, words_index):
+def _getLocationWords(location, words_index):
     """
     Retrieves the words found at the passage location
     :param location: The passage location e.g. book/chapter/verse without z-padding
@@ -244,9 +258,48 @@ def _getWords(location, words_index):
     else:
         return []
 
-def indexStrongs(location, words_index, words_rc, strongs_index=None):
+def _getWords(strongs, words_strongs_index):
     """
-    Generates an index of strong numbers associated with a word found in the given location.
+    Returns a list of words that match the strong's number.
+    :param strongs:
+    :param words_strongs_index:
+    :param words_false_positives_index:
+    :return:
+    """
+    if strongs in words_strongs_index:
+        return words_strongs_index[strongs]
+    else:
+        return []
+
+def indexWordByStrongs(words_rc):
+    """
+    Generates an index of words keyed by strong numbers
+    :param words_rc:
+    :type words_rc: ResourceContainer.RC
+    :return: a dictionary of words keyed by strong's
+    """
+    logger = logging.getLogger(LOGGER_NAME)
+    index = {}
+    for category in words_rc.chapters():
+        for word in words_rc.chunks(category):
+            data = words_rc.read_chunk(category, word)
+            numbers = []
+            try:
+                numbers = parseStrongs(data)
+            except Exception as e:
+                logger.error('{} in word "{}/{}"'.format(e, category, word))
+            for num in numbers:
+                if num in index:
+                    # append word to strong
+                    index[num].append(word)
+                else:
+                    # create index
+                    index[num] = [word]
+    return index
+
+def indexLocationStrongs(location, words_index, words_rc, strongs_index=None):
+    """
+    Generates an index of strong numbers associated with words found in the given location.
     If the existing index is provided this may not hit the filesystem.
     :param location:
     :param words_index:
@@ -254,7 +307,7 @@ def indexStrongs(location, words_index, words_rc, strongs_index=None):
     :param strongs_index: the existing index. This will be updated if set
     :return: a dictionary of strong numbers keyed by word
     """
-    words = _getWords(location, words_index)
+    words = _getLocationWords(location, words_index)
     if strongs_index:
         index = strongs_index
     else:
@@ -262,7 +315,7 @@ def indexStrongs(location, words_index, words_rc, strongs_index=None):
 
     for word in words:
         if word not in index:
-            index[word] = loadStrongs(word, words_rc)
+            index[word] = findStrongs(word, words_rc)
     return index
 
 def getStrongs(word, strongs_index):
@@ -294,18 +347,32 @@ def mapWord(strong_number, words, strongs_index):
                 return word
     return None
 
-# TRICKY: we purposely make strongs_index a mutable parameter
-# this allows us to maintain the strong's index.
-def mapUSFMByGlobalSearch(usfm, words_rc, words_index, strongs_index={}):
-    lines = usfm.splitlines()
+def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_positives_index):
+    """
+    Injects tW links into un-matched usfm words as matches are found in the global index.
+    :param usfm:
+    :param words_rc:
+    :param words_strongs_index:
+    :param words_false_positives_index:
+    :return:
+    """
+    reader = USFMWordReader(usfm)
+    for line, strong in reader:
+        book, chapter, verse = reader.location()
+        location = '{}/{}/{}'.format(book, chapter, verse)
+        words = _getWords(strong, words_strongs_index)
+        # exclude words marked as false positives
+        false_positives = _getLocationWords(location, words_false_positives_index)
+        filtered = [w for w in words if not w in false_positives]
+        if filtered:
+            print('found word for {}'.format(strong))
     return usfm
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
 def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     """
-    Injects tW links into the usfm.
-    If you are operating on multiple files you can
+    Injects tW links into the usfm as matches are found in the list of occurrences.
     :param usfm:
     :type usfm: basestring
     :param words_rc:
@@ -320,8 +387,8 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     for line, strong in reader:
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
-        words = _getWords(location, words_index)
-        strongs_index = indexStrongs(location, words_index, words_rc, strongs_index)
+        words = _getLocationWords(location, words_index)
+        strongs_index = indexLocationStrongs(location, words_index, words_rc, strongs_index)
         word = mapWord(strong, words, strongs_index)
         if word:
             # inject link at end
@@ -342,11 +409,14 @@ def mapDir(usfm_dir, words_rc, output_dir):
     :return:
     """
     usfm_files = []
-    words_index = {}
+    location_index = {}
+    strongs_index = {}
     for root, dirs, files in os.walk(usfm_dir):
         usfm_files.extend(files)
-        print('Generating tW index')
-        words_index = indexWords(words_rc)
+        print('Generating occurrences index')
+        location_index = indexWordsLocation(words_rc)
+        print('Generating strongs index')
+        strongs_index = indexWordByStrongs(words_rc)
         break
 
     for file_name in usfm_files:
@@ -355,22 +425,10 @@ def mapDir(usfm_dir, words_rc, output_dir):
 
         file = os.path.join(usfm_dir, file_name)
         print('{}'.format(file_name))
-        usfm = mapUSFMByOccurrence(read_file(file), words_rc, words_index)
-        usfm = mapUSFMByGlobalSearch(usfm, words_rc, words_index)
+        usfm = mapUSFMByOccurrence(read_file(file), words_rc, location_index['occurrences'])
+        usfm = mapUSFMByGlobalSearch(usfm, words_rc, strongs_index, location_index['false_positives'])
         outfile = os.path.join(output_dir, os.path.basename(file))
         write_file(outfile, usfm)
-
-    # print('Mapping by global search')
-    # for file_name in usfm_files:
-    #     if not file_name.endswith('.usfm'):
-    #         continue
-    #
-    #     file = os.path.join(usfm_dir, file_name)
-    #     print('{}'.format(file_name))
-    #     usfm = mapUSFMByGlobalSearch(read_file(file), words_rc, words_index)
-    #     outfile = os.path.join(output_dir, os.path.basename(file))
-    #     write_file(outfile, usfm)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,

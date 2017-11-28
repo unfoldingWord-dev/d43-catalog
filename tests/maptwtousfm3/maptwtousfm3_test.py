@@ -18,17 +18,17 @@ class TestMapTWtoUSFM3(TestCase):
 
     def test_index_words(self):
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
-        index = maptwtousfm3.indexWords(rc)
-        self.assertIn('heb/11/4', index)
-        self.assertIn('luk/22/30', index)
-        self.assertIn('mat/19/28', index)
+        index = maptwtousfm3.indexWordsLocation(rc)
+        self.assertIn('heb/11/4', index['occurrences'])
+        self.assertIn('luk/22/30', index['occurrences'])
+        self.assertIn('mat/19/28', index['occurrences'])
 
-        self.assertIn('test', index['mat/19/28'])
-        self.assertIn('12tribesofisrael', index['mat/19/28'])
+        self.assertIn('test', index['occurrences']['mat/19/28'])
+        self.assertIn('12tribesofisrael', index['occurrences']['mat/19/28'])
 
     def test_load_strongs(self):
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
-        strongs = maptwtousfm3.loadStrongs('abomination', rc)
+        strongs = maptwtousfm3.findStrongs('abomination', rc)
         self.assertEqual(['H887', 'H6292', 'H8251', 'H8262', 'H8441', 'G946', 'G11610'], strongs)
 
     def test_map_word(self):
@@ -44,8 +44,8 @@ class TestMapTWtoUSFM3(TestCase):
     def test_map_usfm(self):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
-        words_index = maptwtousfm3.indexWords(rc)
-        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index)
+        words_index = maptwtousfm3.indexWordsLocation(rc)
+        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index['occurrences'])
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 
