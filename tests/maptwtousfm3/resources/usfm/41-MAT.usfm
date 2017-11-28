@@ -12,6 +12,7 @@
 \v 1
 \w Βίβλος|lemma="βίβλος" strong="G09760" x-morph="Gr,N,,,,,NFS,"\w*
 \w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS,"\w*
+\w test|lemma="γένεσις" strong="H34780" x-morph="Gr,N,,,,,GFS,"\w*
 
 \v 13
 \w τὸν|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMS,"\w*

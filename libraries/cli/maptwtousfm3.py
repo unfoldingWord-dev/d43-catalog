@@ -282,6 +282,7 @@ def indexWordByStrongs(words_rc):
     index = {}
     for category in words_rc.chapters():
         for word in words_rc.chunks(category):
+            word = os.path.splitext(word)[0]
             data = words_rc.read_chunk(category, word)
             numbers = []
             try:
@@ -356,8 +357,13 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
     :param words_false_positives_index:
     :return:
     """
+    logger = logging.getLogger(LOGGER_NAME)
     reader = USFMWordReader(usfm)
     for line, strong in reader:
+        if re.match(r'.*x-tw=', line):
+            # skip lines already mapped
+            continue
+
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
         words = _getWords(strong, words_strongs_index)
@@ -365,8 +371,13 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
         false_positives = _getLocationWords(location, words_false_positives_index)
         filtered = [w for w in words if not w in false_positives]
         if filtered:
-            print('found word for {}'.format(strong))
-    return usfm
+            if len(filtered) == 1:
+                # inject link at end
+                link = 'x-tw="{}"'.format(_makeWordLink(filtered[0], words_rc))
+                reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
+            else:
+                logger.info('Multiple matches found for {}'.format(strong))
+    return unicode(reader)
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
