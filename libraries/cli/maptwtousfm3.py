@@ -282,6 +282,9 @@ def indexWordByStrongs(words_rc):
     index = {}
     for category in words_rc.chapters():
         for word in words_rc.chunks(category):
+            if not word.endswith('.md'):
+                # TRICKY: exclude erroneous files such as .DS_Store
+                continue
             word = os.path.splitext(word)[0]
             data = words_rc.read_chunk(category, word)
             numbers = []
@@ -373,10 +376,13 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
         if filtered:
             if len(filtered) == 1:
                 # inject link at end
+                print('Mapped globally {}'.format(strong))
                 link = 'x-tw="{}"'.format(_makeWordLink(filtered[0], words_rc))
                 reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
             else:
                 logger.info('Multiple matches found for {}'.format(strong))
+        elif words:
+            print('Skipped false positives')
     return unicode(reader)
 
 # TRICKY: we purposely make strongs_index a mutable parameter
@@ -436,7 +442,8 @@ def mapDir(usfm_dir, words_rc, output_dir):
 
         file = os.path.join(usfm_dir, file_name)
         print('{}'.format(file_name))
-        usfm = mapUSFMByOccurrence(read_file(file), words_rc, location_index['occurrences'])
+        usfm = read_file(file)
+        usfm = mapUSFMByOccurrence(usfm, words_rc, location_index['occurrences'])
         usfm = mapUSFMByGlobalSearch(usfm, words_rc, strongs_index, location_index['false_positives'])
         outfile = os.path.join(output_dir, os.path.basename(file))
         write_file(outfile, usfm)
