@@ -45,7 +45,7 @@ class TestMapTWtoUSFM3(TestCase):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         words_index = maptwtousfm3.indexWords(rc)
-        mappedUSFM = maptwtousfm3.mapUSFM(usfm, rc, words_index)
+        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 

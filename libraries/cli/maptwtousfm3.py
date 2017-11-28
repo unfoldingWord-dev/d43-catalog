@@ -24,6 +24,109 @@ from libraries.tools.file_utils import write_file, read_file
 
 LOGGER_NAME='map_tw_to_usfm'
 
+class USFMWordReader:
+    """
+    A utility for reading words from a USFM file and writing changes to
+    the words
+    """
+    def __init__(self, usfm):
+        self.lines = usfm.splitlines()
+        self.line = ''
+        self.book = None
+        self.chapter = None
+        self.verse = None
+        self.header = []
+        self.read_lines = []
+
+        # locate book id
+        while not self.book and not self.line.startswith('\\c ') and self.lines:
+            self.line = self.lines.pop(0)
+            self.header.append(self.line)
+            if self.line.startswith('\\id'):
+                # get id
+                match = re.findall('^\\\id\s+(\w+)\s+.*', self.line, re.IGNORECASE | re.UNICODE)
+                if match:
+                    self.book = match[0].lower()
+                else:
+                    raise Exception('Malformed USFM. Unable to parse book id: {}'.format(self.line))
+
+        if not self.book:
+            raise Exception('Malformed USFM. Could not find book id.')
+
+    def __str__(self):
+        return '\n'.join(self.header + self.read_lines + self.lines)
+
+    def __iter__(self):
+        return self
+
+    # Python 3
+    def __next__(self):
+        return self.findNextWord()
+
+    # Python 2
+    def next(self):
+        return self.findNextWord()
+
+    def amendLine(self, newLine):
+        """
+        Amends the line that was last read
+        :param newLine:
+        :return:
+        """
+        self.read_lines[-1] = newLine
+
+    def location(self):
+        """
+        Returns the location of the current line
+        :return:
+        """
+        return self.book, self.chapter, self.verse
+
+    def findNextWord(self):
+        """
+        Returns the next word in the USFM.
+        :return: line, strong
+        """
+        self.line = ''
+        while (not self.line or not self.line.startswith('\\w ')) and self.lines:
+            strong = None
+            self.line = self.lines.pop(0)
+            self.read_lines.append(self.line)
+
+            # start chapter
+            if re.match(r'\\c\b', self.line):
+                match = re.findall(r'^\\c\s+(\d+)', self.line, re.IGNORECASE | re.UNICODE)
+                if match:
+                    self.chapter = _unzpad(match[0])
+                    self.verse = None
+                else:
+                    raise Exception('Malformed USFM. Unable to parse chapter number: {}'.format(self.line))
+
+            # start verse
+            if re.match(r'\\v\b', self.line):
+                match = re.findall(r'^\\v\s+(\d+)', self.line, re.IGNORECASE | re.UNICODE)
+                if match:
+                    self.verse = _unzpad(match[0])
+                else:
+                    raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(self.line))
+
+            # start original language word
+            if re.match(r'\\w\b', self.line):
+                match = re.findall(r'strong="([\w]+)"', self.line, re.IGNORECASE | re.UNICODE)
+                if match:
+                    strong = match[0]
+                else:
+                    raise Exception('Malformed USFM. Unable to parse strong number: {}'.format(self.line))
+
+            # validate
+            if self.chapter and self.verse and strong:
+                return self.line, strong
+            elif self.line.startswith('\\w'):
+                raise Exception('Malformed USFM. USFM tags appear to be out of order.')
+
+        raise StopIteration
+
+
 def indexWords(words_rc):
     """
     Generates an index of word occurrences where words may be looked up by
@@ -90,7 +193,7 @@ def loadStrongs(word, words_rc):
         return numbers
 
     header = re.findall('^#+\s*Word\s+Data\s*\:?.*', data, re.MULTILINE|re.IGNORECASE)
-    if(len(header)):
+    if header:
         word_data = data.split(header[0])[1]
         numbers = re.findall('[HG]\d+', word_data, re.MULTILINE | re.IGNORECASE)
     else:
@@ -193,7 +296,13 @@ def mapWord(strong_number, words, strongs_index):
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
-def mapUSFM(usfm, words_rc, words_index, strongs_index={}):
+def mapUSFMByGlobalSearch(usfm, words_rc, words_index, strongs_index={}):
+    lines = usfm.splitlines()
+    return usfm
+
+# TRICKY: we purposely make strongs_index a mutable parameter
+# this allows us to maintain the strong's index.
+def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     """
     Injects tW links into the usfm.
     If you are operating on multiple files you can
@@ -205,78 +314,27 @@ def mapUSFM(usfm, words_rc, words_index, strongs_index={}):
     :param strongs_index: the index of word strong numbers.
     :return: the newly mapped usfm
     """
-    logger = logging.getLogger(LOGGER_NAME)
-    lines = usfm.splitlines()
-    line = ''
-    book = None
-    chapter = None
-    verse = None
-    header = []
+    # logger = logging.getLogger(LOGGER_NAME)
 
-    # locate book id
-    while not book and not line.startswith('\\c ') and len(lines):
-        line = lines.pop(0)
-        header.append(line)
-        if line.startswith('\\id'):
-            # get id
-            match = re.findall('^\\\id\s+(\w+)\s+.*', line, re.IGNORECASE|re.UNICODE)
-            if match and len(match):
-                book = match[0].lower()
-            else:
-                raise Exception('Malformed USFM. Unable to parse book id: {}'.format(line))
-
-    if not book:
-        raise Exception('Malformed USFM. Could not find book id.')
-
-    for index, line in enumerate(lines):
-        strong = None
-
-        # start chapter
-        if re.match(r'\\c\b', line):
-            match = re.findall(r'^\\c\s+(\d+)', line, re.IGNORECASE|re.UNICODE)
-            if match and len(match):
-                chapter = _unzpad(match[0])
-                verse = None
-            else:
-                raise Exception('Malformed USFM. Unable to parse chapter number: {}'.format(line))
-
-        # start verse
-        if re.match(r'\\v\b', line):
-            match = re.findall(r'^\\v\s+(\d+)', line, re.IGNORECASE|re.UNICODE)
-            if match and len(match):
-                verse = _unzpad(match[0])
-            else:
-                raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(line))
-
-        # start original language word
-        if re.match(r'\\w\b', line):
-            match = re.findall(r'strong="([\w]+)"', line, re.IGNORECASE|re.UNICODE)
-            if match and len(match):
-                strong = match[0]
-            else:
-                raise Exception('Malformed USFM. Unable to parse strong number: {}'.format(line))
-
-        # map word
-        if chapter and verse and strong:
-            location = '{}/{}/{}'.format(book, chapter, verse)
-            words = _getWords(location, words_index)
-            strongs_index = indexStrongs(location, words_index, words_rc, strongs_index)
-            word = mapWord(strong, words, strongs_index)
-            if word:
-                # inject link at end
-                link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
-                lines[index] = line.replace('\w*', ' ' + link + ' \w*')
-            elif len(words):
-                pass
-                # logger.warning('No match found for {} at {}'.format(strong, location))
-        elif line.startswith('\\w'):
-            raise Exception('Malformed USFM. USFM tags appear to be out of order.')
-
-    return '\n'.join(header + lines)
+    reader = USFMWordReader(usfm)
+    for line, strong in reader:
+        book, chapter, verse = reader.location()
+        location = '{}/{}/{}'.format(book, chapter, verse)
+        words = _getWords(location, words_index)
+        strongs_index = indexStrongs(location, words_index, words_rc, strongs_index)
+        word = mapWord(strong, words, strongs_index)
+        if word:
+            # inject link at end
+            link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
+            reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
+        elif words:
+            pass
+            # logger.warning('No match found for {} at {}'.format(strong, location))
+    return unicode(reader)
 
 def mapDir(usfm_dir, words_rc, output_dir):
     """
-
+    Maps tW to words within each USFM file found in the directory.
     :param usfm_dir: a directory containing USFM files generated by `csvtousfm3`
     :param words_rc: the tW resource container
     :type words_rc: ResourceContainer.RC
@@ -297,9 +355,21 @@ def mapDir(usfm_dir, words_rc, output_dir):
 
         file = os.path.join(usfm_dir, file_name)
         print('{}'.format(file_name))
-        usfm = mapUSFM(read_file(file), words_rc, words_index)
+        usfm = mapUSFMByOccurrence(read_file(file), words_rc, words_index)
+        usfm = mapUSFMByGlobalSearch(usfm, words_rc, words_index)
         outfile = os.path.join(output_dir, os.path.basename(file))
         write_file(outfile, usfm)
+
+    # print('Mapping by global search')
+    # for file_name in usfm_files:
+    #     if not file_name.endswith('.usfm'):
+    #         continue
+    #
+    #     file = os.path.join(usfm_dir, file_name)
+    #     print('{}'.format(file_name))
+    #     usfm = mapUSFMByGlobalSearch(read_file(file), words_rc, words_index)
+    #     outfile = os.path.join(output_dir, os.path.basename(file))
+    #     write_file(outfile, usfm)
 
 
 if __name__ == '__main__':
