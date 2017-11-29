@@ -387,11 +387,13 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
         if filtered:
             if len(filtered) == 1:
                 # inject link at end
-                print('Mapped globally {}'.format(strong))
                 link = 'x-tw="{}"'.format(_makeWordLink(filtered[0], words_rc))
                 reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
             else:
-                logger.info('Multiple matches found for {}'.format(strong))
+                links = []
+                for word in filtered:
+                    links.append(_makeWordLink(word, words_rc).split('bible/')[1])
+                logger.warning('Multiple matches found at {} {}:{} {} --- {}'.format(book, chapter, verse, line, '; '.join(links)))
         elif words:
             print('Skipped false positives')
     return unicode(reader)
