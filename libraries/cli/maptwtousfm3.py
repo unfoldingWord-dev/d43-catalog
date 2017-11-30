@@ -396,6 +396,8 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
                 logger.warning('Multiple matches found at {} {}:{} {} --- {}'.format(book, chapter, verse, line, '; '.join(links)))
         elif words:
             print('Skipped false positives')
+        else:
+            logger.warning('No matches found for {} {}:{} {}'.format(book, chapter, verse, line))
     return unicode(reader)
 
 # TRICKY: we purposely make strongs_index a mutable parameter
@@ -449,6 +451,9 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False):
         print('Generating strongs index')
         strongs_index = indexWordByStrongs(words_rc)
         break
+
+    if global_search:
+        print('Running with global search')
 
     for file_name in usfm_files:
         if not file_name.endswith('.usfm'):
