@@ -62,6 +62,18 @@ class SigningHandler(InstanceHandler):
     def __del__(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
+    def _safe_url_exists(self, url):
+        """
+        Safely checks if a url exists.
+        :param url:
+        :return:
+        """
+        try:
+            return self.url_exists(url)
+        except Exception as e:
+            self.report_error('Failed to read url "{}": {}'.format(url, e.message))
+            return False
+
     def _run(self):
         items = self.db_handler.query_items({
             'signed': False
@@ -83,7 +95,7 @@ class SigningHandler(InstanceHandler):
                 self.logger.info('No items found for signing')
             return found_items
         except Exception as e:
-            self.report_error(e.message)
+            self.report_error('Failed processing an item: {}'.format(e.message))
             raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             if os.path.isdir(self.temp_dir):
@@ -117,7 +129,7 @@ class SigningHandler(InstanceHandler):
                         sanitized_chapters = []
                         for chapter in format['chapters']:
                             # TRICKY: only process/keep chapters that actually have a valid url
-                            if 'url' not in chapter or not self.url_exists(chapter['url']):
+                            if 'url' not in chapter or not self._safe_url_exists(chapter['url']):
                                 if 'url' not in chapter:
                                     missing_url = 'empty url'
                                 else:
@@ -208,7 +220,7 @@ class SigningHandler(InstanceHandler):
         size = int(headers.get('content-length', 0))
         if size > SigningHandler.max_file_size:
             sig_url = '{}.sig'.format(format['url'])
-            if not self.url_exists(sig_url):
+            if not self._safe_url_exists(sig_url):
                 # wait for signature to be manually uploaded
                 self.report_error('File is too large to sign {}'.format(format['url']))
                 return (False, False)

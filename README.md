@@ -203,4 +203,12 @@ You may execute the following command to learn how to use the tool.
 python execute.py maptwtousfm3 -h
 ```
 
+## Testing
+
+You can run tests be executing the following:
+
+```bash
+python -m unittest discover -s tests
+```
+
 [Door43 Catalog]:https://git.door43.org/Door43-Catalog
