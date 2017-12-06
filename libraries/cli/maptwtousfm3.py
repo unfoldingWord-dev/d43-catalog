@@ -426,7 +426,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
         if words:
             # inject link at end
             if len(words) > 1:
-                logger.warn(u'Injecting multiple words at {} {}:{} {}'.format(book, chapter, verse, line))
+                logger.info(u'Injecting multiple words at {} {}:{} {}'.format(book, chapter, verse, line))
             for word in words:
                 link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
                 line = line.replace('\w*', ' ' + link + ' \w*')
