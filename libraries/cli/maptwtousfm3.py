@@ -21,111 +21,10 @@ import logging
 
 from resource_container import factory, ResourceContainer
 from libraries.tools.file_utils import write_file, read_file
+from libraries.tools.str_utils import unzpad
+from libraries.tools.usfm_utils import USFMReader
 
 LOGGER_NAME='map_tw_to_usfm'
-
-class USFMWordReader:
-    """
-    A utility for reading words from a USFM file and writing changes to
-    the words
-    """
-    def __init__(self, usfm):
-        self.lines = usfm.splitlines()
-        self.line = ''
-        self.book = None
-        self.chapter = None
-        self.verse = None
-        self.header = []
-        self.read_lines = []
-
-        # locate book id
-        while not self.book and not self.line.startswith('\\c ') and self.lines:
-            self.line = self.lines.pop(0)
-            self.header.append(self.line)
-            if self.line.startswith('\\id'):
-                # get id
-                match = re.findall('^\\\id\s+(\w+)\s+.*', self.line, re.IGNORECASE | re.UNICODE)
-                if match:
-                    self.book = match[0].lower()
-                else:
-                    raise Exception('Malformed USFM. Unable to parse book id: {}'.format(self.line))
-
-        if not self.book:
-            raise Exception('Malformed USFM. Could not find book id.')
-
-    def __str__(self):
-        return '\n'.join(self.header + self.read_lines + self.lines)
-
-    def __iter__(self):
-        return self
-
-    # Python 3
-    def __next__(self):
-        return self.findNextWord()
-
-    # Python 2
-    def next(self):
-        return self.findNextWord()
-
-    def amendLine(self, newLine):
-        """
-        Amends the line that was last read
-        :param newLine:
-        :return:
-        """
-        self.read_lines[-1] = newLine
-
-    def location(self):
-        """
-        Returns the location of the current line
-        :return:
-        """
-        return self.book, self.chapter, self.verse
-
-    def findNextWord(self):
-        """
-        Returns the next word in the USFM.
-        :return: line, strong
-        """
-        self.line = ''
-        while (not self.line or not self.line.startswith('\\w ')) and self.lines:
-            strong = None
-            self.line = self.lines.pop(0)
-            self.read_lines.append(self.line)
-
-            # start chapter
-            if re.match(r'\\c\b', self.line):
-                match = re.findall(r'^\\c\s+(\d+)', self.line, re.IGNORECASE | re.UNICODE)
-                if match:
-                    self.chapter = _unzpad(match[0])
-                    self.verse = None
-                else:
-                    raise Exception('Malformed USFM. Unable to parse chapter number: {}'.format(self.line))
-
-            # start verse
-            if re.match(r'\\v\b', self.line):
-                match = re.findall(r'^\\v\s+(\d+)', self.line, re.IGNORECASE | re.UNICODE)
-                if match:
-                    self.verse = _unzpad(match[0])
-                else:
-                    raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(self.line))
-
-            # start original language word
-            if re.match(r'\\w\b', self.line):
-                match = re.findall(r'strong="([\w]+)"', self.line, re.IGNORECASE | re.UNICODE)
-                if match:
-                    strong = match[0]
-                else:
-                    raise Exception('Malformed USFM. Unable to parse strong number: {}'.format(self.line))
-
-            # validate
-            if self.chapter and self.verse and strong:
-                return self.line, strong
-            elif self.line.startswith('\\w'):
-                raise Exception('Malformed USFM. USFM tags appear to be out of order.')
-
-        raise StopIteration
-
 
 def indexWordsLocation(words_rc):
     """
@@ -148,8 +47,8 @@ def indexWordsLocation(words_rc):
                     try:
                         parts = location.split('/')
                         length = len(parts)
-                        verse = _unzpad(parts[length-1])
-                        chapter = _unzpad(parts[length-2])
+                        verse = unzpad(parts[length-1])
+                        chapter = unzpad(parts[length-2])
                         book = parts[length - 3]
                         path = '{}/{}/{}'.format(book, chapter, verse)
                         if path in index[location_category]:
@@ -162,14 +61,6 @@ def indexWordsLocation(words_rc):
                         logger.error('Failed to parse location: {}'.format(location))
                         raise e
     return index
-
-def _unzpad(strint):
-    """
-    Removes zpadding from an integer string
-    :param strint: a string that contains an integer value
-    :return:
-    """
-    return '{}'.format(int(strint))
 
 def findStrongs(word, words_rc):
     """
@@ -373,7 +264,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
     :return:
     """
     logger = logging.getLogger(LOGGER_NAME)
-    reader = USFMWordReader(usfm)
+    reader = USFMReader(usfm)
     for line, strong in reader:
         if re.match(r'.*x-tw=', line):
             # skip lines already mapped
@@ -399,7 +290,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
             print('Skipped false positives')
         else:
             logger.warning(u'No matches found for {} {}:{} {}'.format(book, chapter, verse, line))
-    return unicode(reader)
+    return unicode(reader, 'utf-8')
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
@@ -416,7 +307,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     """
     logger = logging.getLogger(LOGGER_NAME)
 
-    reader = USFMWordReader(usfm)
+    reader = USFMReader(usfm)
     for line, strong in reader:
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
@@ -434,7 +325,30 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
         elif location_words:
             pass
             # logger.warning('No match found for {} at {}'.format(strong, location))
-    return unicode(reader)
+    return unicode(reader, 'utf-8')
+
+def mapPhrases(usfm, words_rc, words_strongs_index):
+    """
+    Converts phrases to usfm milestones.
+    :param usfm:
+    :param words_rc:
+    :param words_strongs_index:
+    :return:
+    """
+    logger = logging.getLogger(LOGGER_NAME)
+    reader = USFMReader(usfm)
+    phrase_strongs = []
+    phrase_links = []
+    for line, strong in reader:
+        links = reader.twLinks()
+
+        if not links:
+            phrase_strongs = []
+            phrase_links = []
+            continue
+
+
+        phrase_links = list(set(phrase_links).union(set(links)))
 
 def mapDir(usfm_dir, words_rc, output_dir, global_search=False):
     """

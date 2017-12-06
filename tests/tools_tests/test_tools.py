@@ -6,13 +6,16 @@ import unittest
 from libraries.tools.test_utils import is_travis, Bunch
 from unittest import TestCase
 
-from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers
+from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers, tWPhrase
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.mocks import MockDynamodbHandler
 from libraries.tools.lambda_utils import wipe_temp, is_lambda_running, set_lambda_running, clear_lambda_running, lambda_min_remaining
+from libraries.tools.file_utils import read_file
 
 
 class TestTools(TestCase):
+
+    resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp(prefix='test_tools_')
@@ -65,6 +68,39 @@ class TestTools(TestCase):
         expected = '\\s5\n\\v 1 Ce qui était dès\n\\s5\n\\v 2 Ce qui était dès'
         output = convert_chunk_markers(input)
         self.assertEqual(expected, output)
+
+    def test_tw_phrase_validate_empty(self):
+        phrase = tWPhrase(1)
+        self.assertTrue(phrase.isValid('\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*'))
+        self.assertTrue(phrase.isValid('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'))
+        self.assertFalse(phrase.isValid('\w δοῦλος|lemma="δοῦλος" strong="G14010" x-morph="Gr,N,,,,,NMS,"\w*'))
+
+    def test_tw_phrase_validate_filled(self):
+        phrase = tWPhrase(1)
+        phrase.addLine('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,')
+
+        self.assertFalse(phrase.isValid('\w δοῦλος|lemma="δοῦλος" strong="G14010" x-morph="Gr,N,,,,,NMS,"\w*'))
+        self.assertTrue(phrase.isValid('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'))
+        self.assertFalse(phrase.isValid('\w Θεοῦ|lemma="θεός" strong="G23160" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/god"  x-tw="rc://*/tw/dict/bible/kt/godly" \w*,'))
+
+    def test_tw_phrase_add(self):
+        phrase = tWPhrase(1)
+        phrase.addLine('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,')
+        self.assertEqual(1, len(phrase.lines()))
+        self.assertEqual(2, len(phrase.links()))
+
+        # TRICKY: adding word with only one common link will reduce link set
+        phrase.addLine('\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
+        self.assertEqual(2, len(phrase.lines()))
+        self.assertEqual(1, len(phrase.links()))
+
+    def test_tw_phrase_print(self):
+        phrase = tWPhrase(1)
+        phrase.addLine('\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
+        phrase.addLine('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,')
+
+        expected = read_file(os.path.join(self.resources_dir, 'usfm_milestone.usfm'))
+        self.assertEqual(expected, unicode(str(phrase), 'utf-8'))
 
     @unittest.skipIf(is_travis(), 'Skipping test_is_lambda_not_running on travis')
     def test_is_lambda_is_not_running(self):
