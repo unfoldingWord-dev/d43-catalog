@@ -22,7 +22,7 @@ import logging
 from resource_container import factory, ResourceContainer
 from libraries.tools.file_utils import write_file, read_file
 from libraries.tools.str_utils import unzpad
-from libraries.tools.usfm_utils import USFMReader
+from libraries.tools.usfm_utils import USFMWordReader, tWPhrase
 
 LOGGER_NAME='map_tw_to_usfm'
 
@@ -264,7 +264,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
     :return:
     """
     logger = logging.getLogger(LOGGER_NAME)
-    reader = USFMReader(usfm)
+    reader = USFMWordReader(usfm)
     for line, strong in reader:
         if re.match(r'.*x-tw=', line):
             # skip lines already mapped
@@ -307,7 +307,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     """
     logger = logging.getLogger(LOGGER_NAME)
 
-    reader = USFMReader(usfm)
+    reader = USFMWordReader(usfm)
     for line, strong in reader:
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
@@ -336,19 +336,22 @@ def mapPhrases(usfm, words_rc, words_strongs_index):
     :return:
     """
     logger = logging.getLogger(LOGGER_NAME)
-    reader = USFMReader(usfm)
-    phrase_strongs = []
-    phrase_links = []
-    for line, strong in reader:
-        links = reader.twLinks()
+    reader = USFMWordReader(usfm)
+    phrase = None
+    for line, strong, index in reader:
+        if not phrase:
+            phrase = tWPhrase(index)
 
-        if not links:
-            phrase_strongs = []
-            phrase_links = []
+        if phrase.isLineValid(line):
+            phrase.addLine(line)
             continue
+        elif phrase.isComplete():
+            print('found phrase')
+            reader.amendPhrase(phrase)
 
+        phrase = None
 
-        phrase_links = list(set(phrase_links).union(set(links)))
+    return unicode(reader)
 
 def mapDir(usfm_dir, words_rc, output_dir, global_search=False):
     """

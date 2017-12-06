@@ -71,17 +71,17 @@ class TestTools(TestCase):
 
     def test_tw_phrase_validate_empty(self):
         phrase = tWPhrase(1)
-        self.assertTrue(phrase.isValid('\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*'))
-        self.assertTrue(phrase.isValid('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'))
-        self.assertFalse(phrase.isValid('\w δοῦλος|lemma="δοῦλος" strong="G14010" x-morph="Gr,N,,,,,NMS,"\w*'))
+        self.assertTrue(phrase.isLineValid('\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*'))
+        self.assertTrue(phrase.isLineValid('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'))
+        self.assertFalse(phrase.isLineValid('\w δοῦλος|lemma="δοῦλος" strong="G14010" x-morph="Gr,N,,,,,NMS,"\w*'))
 
     def test_tw_phrase_validate_filled(self):
         phrase = tWPhrase(1)
         phrase.addLine('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,')
 
-        self.assertFalse(phrase.isValid('\w δοῦλος|lemma="δοῦλος" strong="G14010" x-morph="Gr,N,,,,,NMS,"\w*'))
-        self.assertTrue(phrase.isValid('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'))
-        self.assertFalse(phrase.isValid('\w Θεοῦ|lemma="θεός" strong="G23160" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/god"  x-tw="rc://*/tw/dict/bible/kt/godly" \w*,'))
+        self.assertFalse(phrase.isLineValid('\w δοῦλος|lemma="δοῦλος" strong="G14010" x-morph="Gr,N,,,,,NMS,"\w*'))
+        self.assertTrue(phrase.isLineValid('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'))
+        self.assertFalse(phrase.isLineValid('\w Θεοῦ|lemma="θεός" strong="G23160" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/god"  x-tw="rc://*/tw/dict/bible/kt/godly" \w*,'))
 
     def test_tw_phrase_add(self):
         phrase = tWPhrase(1)

@@ -104,3 +104,11 @@ class TestMapTWtoUSFM3(TestCase):
         mapped_usfm = read_file(os.path.join(out_dir, '41-MAT.usfm'))
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
         self.assertEqual(mapped_usfm, expected_usfm)
+
+    def test_map_phrases(self):
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
+        strongs_index = maptwtousfm3.indexWordByStrongs(rc)
+        usfm = read_file(os.path.join(self.resources_dir, 'mapped_tit.usfm'))
+        mapped_usfm = maptwtousfm3.mapPhrases(usfm, rc, strongs_index)
+        expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_phrases_tit.usfm'))
+        self.assertEqual(mapped_usfm, expected_usfm)

@@ -19,7 +19,7 @@ class tWPhrase:
         # a set of unique links that are common between all words in this phrase
         self.__link_set = set()
 
-    def isValid(self, line):
+    def isLineValid(self, line):
         """
         Checks if a line is a valid addition to this phrase.
         Must have links and strong number.
@@ -43,7 +43,7 @@ class tWPhrase:
         A link set greater than 1 is a sure indicator that it is missing words.
         :return:
         """
-        return len(self.__link_set) == 1
+        return len(self.__link_set) == 1 and len(self.__lines) > 1
 
 
     def addLine(self, line):
@@ -59,7 +59,25 @@ class tWPhrase:
             self.__link_set = set(links)
         self.__lines.append(line)
 
+    def startIndex(self):
+        """
+        Returns the index of the starting line in this phrase
+        :return:
+        """
+        return self.__index
+
+    def endIndex(self):
+        """
+        Returns the calculated index of the ending line in this phrase
+        :return:
+        """
+        return self.__index + len(self.__lines)
+
     def lines(self):
+        """
+        Returns a list of lines that make up this phrase
+        :return:
+        """
         return self.__lines
 
     def links(self):
@@ -93,7 +111,7 @@ class tWPhrase:
 
         return '\n'.join(milestone)
 
-class USFMReader:
+class USFMWordReader:
     """
     A utility for reading words from a USFM file and writing changes to
     the words
@@ -161,7 +179,7 @@ class USFMReader:
     def findNextWord(self):
         """
         Returns the next word in the USFM.
-        :return: line, strong
+        :return: line, strong, index
         """
         self.line = ''
         while (not self.line or not self.line.startswith('\\w ')) and self.lines:
@@ -191,11 +209,25 @@ class USFMReader:
 
             # validate
             if self.chapter and self.verse and strong:
-                return self.line, strong
+                return self.line, strong, len(self.read_lines) - 1
             elif self.line.startswith('\\w'):
                 raise Exception('Malformed USFM. USFM tags appear to be out of order.')
 
         raise StopIteration
+
+    def amendPhrase(self, phrase):
+        """
+        Amends a set of lines with a phrase
+        :param phrase:
+        :type phrase: tWPhrase
+        :return:
+        """
+        new_lines = unicode(phrase).splitlines()
+        if len(self.read_lines) > phrase.startIndex() and len(self.read_lines) > phrase.endIndex():
+            self.read_lines = self.read_lines[:phrase.startIndex()] + new_lines + self.read_lines[phrase.endIndex():]
+        else:
+            raise Exception('Phrase indices out of range: {}'.format(phrase))
+
 
 def get_usfm3_word_links(usfm3_line):
     """
