@@ -5,6 +5,7 @@ import shutil
 from unittest import TestCase
 from libraries.cli import maptwtousfm3
 from libraries.tools.file_utils import read_file
+from libraries.tools.test_utils import assert_object_equals_file
 from resource_container import factory
 
 class TestMapTWtoUSFM3(TestCase):
@@ -38,8 +39,9 @@ class TestMapTWtoUSFM3(TestCase):
             'abel': ['H3478', 'H7626']
         }
         words = ['12tribesofisrael', 'abomination', 'abel']
-        mapped_word = maptwtousfm3.mapWord('H6292', words, strongs_index)
-        self.assertEqual('abomination', mapped_word)
+        mapped_word = maptwtousfm3.getStrongWords('H6292', words, strongs_index)
+        self.assertTrue(len(mapped_word) == 1)
+        self.assertEqual('abomination', mapped_word[0])
 
     def test_map_usfm_by_occurrence(self):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
@@ -47,6 +49,18 @@ class TestMapTWtoUSFM3(TestCase):
         words_index = maptwtousfm3.indexWordsLocation(rc)
         mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index['occurrences'])
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
+        self.assertEqual(mappedUSFM, expected_usfm)
+
+    def test_titus_multiple_word_match(self):
+        """
+        Ensures we are correctly finding multiple word matches in Titus.
+        :return:
+        """
+        usfm = read_file(os.path.join(self.resources_dir, 'usfm/57-TIT.usfm'))
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
+        words_index = maptwtousfm3.indexWordsLocation(rc)
+        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index['occurrences'])
+        expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_tit.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 
     def test_index_words_by_strongs(self):
@@ -72,7 +86,7 @@ class TestMapTWtoUSFM3(TestCase):
           "H82510": ["abomination","test"],
           "H01893": ["abel"]
         }
-        self.assertEqual(strongs_index, expected)
+        assert_object_equals_file(self, strongs_index, os.path.join(self.resources_dir, 'expected_strongs_index.json'))
 
     def test_map_usfm_by_global_search(self):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))

@@ -22,3 +22,52 @@ abomination:
   occurrences:
   - rc://en/ulb/book/mat/05/22
   - rc://en/ulb/book/mrk/13/14
+god:
+  false_positives:
+  - rc://en/ulb/book/mrk/02/07
+  - rc://en/ulb/book/mrk/02/26
+  - rc://en/ulb/book/mrk/12/32
+  - rc://en/ulb/book/tit/01/01
+  occurrences:
+  - rc://en/ulb/book/mat/01/23
+  - rc://en/ulb/book/mat/05/08
+  - rc://en/ulb/book/mat/05/09
+  - rc://en/ulb/book/mat/05/34
+  - rc://en/ulb/book/mrk/03/11
+  - rc://en/ulb/book/mrk/03/35
+  - rc://en/ulb/book/tit/01/01
+  - rc://en/ulb/book/tit/01/02
+  - rc://en/ulb/book/tit/01/03
+  - rc://en/ulb/book/tit/01/04
+  - rc://en/ulb/book/tit/01/07
+  - rc://en/ulb/book/tit/01/16
+  - rc://en/ulb/book/tit/02/05
+  - rc://en/ulb/book/tit/02/10
+  - rc://en/ulb/book/tit/02/11
+  - rc://en/ulb/book/tit/02/13
+  - rc://en/ulb/book/tit/03/04
+  - rc://en/ulb/book/tit/03/06
+  - rc://en/ulb/book/tit/03/08
+godly:
+  false_positives: []
+  occurrences:
+  - rc://en/ulb/book/mat/27/52
+  - rc://en/ulb/book/tit/01/01
+  - rc://en/ulb/book/tit/01/08
+  - rc://en/ulb/book/tit/02/12
+jesus:
+  false_positives:
+  - rc://en/ulb/book/mrk/03/05
+  occurrences:
+  - rc://en/ulb/book/tit/01/01
+  - rc://en/ulb/book/tit/01/04
+  - rc://en/ulb/book/tit/02/13
+  - rc://en/ulb/book/tit/02/14
+  - rc://en/ulb/book/tit/03/06
+christ:
+  false_positives: []
+  occurrences:
+  - rc://en/ulb/book/tit/01/01
+  - rc://en/ulb/book/tit/01/04
+  - rc://en/ulb/book/tit/02/13
+  - rc://en/ulb/book/tit/03/06

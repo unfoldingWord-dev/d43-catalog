@@ -336,22 +336,23 @@ def getStrongs(word, strongs_index):
     else:
         return []
 
-def mapWord(strong_number, words, strongs_index):
+def getStrongWords(strong_number, available_words, strongs_index):
     """
-    Returns a word that is mapped to the strong's number
+    Returns words that are mapped to the strong's number
     :param strong_number:
     :param words: a list of words available for mapping. These are available based on the passage location.
     :param strongs_index: an index of strong's numbers from which to read
-    :return: the word or None
+    :return:
     """
-    for word in words:
+    words = []
+    for word in available_words:
         strongs = getStrongs(word, strongs_index)
         for strong in strongs:
             # TRICKY: reverse zero pad numbers from the index to match the length
             formatted_strong = normalizeStrongPadding(strong, strong_number)
             if formatted_strong.lower() == strong_number.lower():
-                return word
-    return None
+                words.append(word)
+    return words
 
 def normalizeStrongPadding(strong, strong_template):
     """
@@ -413,20 +414,24 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     :param strongs_index: the index of word strong numbers.
     :return: the newly mapped usfm
     """
-    # logger = logging.getLogger(LOGGER_NAME)
+    logger = logging.getLogger(LOGGER_NAME)
 
     reader = USFMWordReader(usfm)
     for line, strong in reader:
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
-        words = _getLocationWords(location, words_index)
+        location_words = _getLocationWords(location, words_index)
         strongs_index = indexLocationStrongs(location, words_index, words_rc, strongs_index)
-        word = mapWord(strong, words, strongs_index)
-        if word:
+        words = getStrongWords(strong, location_words, strongs_index)
+        if words:
             # inject link at end
-            link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
-            reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
-        elif words:
+            if len(words) > 1:
+                logger.warn(u'Injecting multiple words at {} {}:{} {}'.format(book, chapter, verse, line))
+            for word in words:
+                link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
+                line = line.replace('\w*', ' ' + link + ' \w*')
+            reader.amendLine(line)
+        elif location_words:
             pass
             # logger.warning('No match found for {} at {}'.format(strong, location))
     return unicode(reader)

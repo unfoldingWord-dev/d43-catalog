@@ -483,7 +483,7 @@ class TsV2CatalogHandler(InstanceHandler):
                                     'q': question[0].strip(),
                                     'a': question[1].strip(),
                                     'ref': [
-                                        '{}-{}'.format(chapter, chunk)
+                                        u'{}-{}'.format(chapter, chunk)
                                     ]
                                 }
                             else:
