@@ -265,7 +265,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
     """
     logger = logging.getLogger(LOGGER_NAME)
     reader = USFMWordReader(usfm)
-    for line, strong in reader:
+    for line, strong, index in reader:
         if re.match(r'.*x-tw=', line):
             # skip lines already mapped
             continue
@@ -290,7 +290,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
             print('Skipped false positives')
         else:
             logger.warning(u'No matches found for {} {}:{} {}'.format(book, chapter, verse, line))
-    return unicode(reader, 'utf-8')
+    return unicode(reader)
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
@@ -308,7 +308,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     logger = logging.getLogger(LOGGER_NAME)
 
     reader = USFMWordReader(usfm)
-    for line, strong in reader:
+    for line, strong, index in reader:
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
         location_words = _getLocationWords(location, words_index)
@@ -325,7 +325,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
         elif location_words:
             pass
             # logger.warning('No match found for {} at {}'.format(strong, location))
-    return unicode(reader, 'utf-8')
+    return unicode(reader)
 
 def mapPhrases(usfm, words_rc, words_strongs_index):
     """
