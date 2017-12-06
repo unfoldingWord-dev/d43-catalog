@@ -105,7 +105,11 @@ class tWPhrase:
         punctuation = re.findall(r'\\w\*(.*)$', milestone[-1])
         milestone[-1] = re.sub(r'(\\w\*).*$', r'\g<1>', milestone[-1])
         if punctuation:
-            closing = '{}{}'.format(closing, punctuation[0])
+            try:
+                closing = '{}{}'.format(closing, punctuation[0])
+            except Exception as e:
+                print(u'Failed to move punctuation "{}" from {} '.format(punctuation[0], milestone[-1]))
+                raise e
 
         milestone.append(closing)
 

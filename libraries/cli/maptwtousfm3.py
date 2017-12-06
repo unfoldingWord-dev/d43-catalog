@@ -337,6 +337,7 @@ def mapPhrases(usfm):
     reader = USFMWordReader(usfm)
     phrase = None
     for line, strong, index in reader:
+        book, chapter, verse = reader.location()
         if not phrase:
             phrase = tWPhrase(index)
 
@@ -344,7 +345,7 @@ def mapPhrases(usfm):
             phrase.addLine(line)
             continue
         elif phrase.isComplete():
-            print('found phrase')
+            print('Found phrase at {} {}:{} {}'.format(book, chapter, verse, phrase.links()[0]))
             reader.amendPhrase(phrase)
 
         phrase = None

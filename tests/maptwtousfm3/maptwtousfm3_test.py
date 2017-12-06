@@ -109,6 +109,6 @@ class TestMapTWtoUSFM3(TestCase):
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         strongs_index = maptwtousfm3.indexWordByStrongs(rc)
         usfm = read_file(os.path.join(self.resources_dir, 'mapped_tit.usfm'))
-        mapped_usfm = maptwtousfm3.mapPhrases(usfm, rc, strongs_index)
+        mapped_usfm = maptwtousfm3.mapPhrases(usfm)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_phrases_tit.usfm'))
         self.assertEqual(mapped_usfm, expected_usfm)
