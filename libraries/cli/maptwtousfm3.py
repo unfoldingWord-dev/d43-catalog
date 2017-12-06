@@ -327,12 +327,10 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
             # logger.warning('No match found for {} at {}'.format(strong, location))
     return unicode(reader)
 
-def mapPhrases(usfm, words_rc, words_strongs_index):
+def mapPhrases(usfm):
     """
     Converts phrases to usfm milestones.
     :param usfm:
-    :param words_rc:
-    :param words_strongs_index:
     :return:
     """
     logger = logging.getLogger(LOGGER_NAME)
@@ -385,8 +383,11 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False):
         print('{}'.format(file_name))
         usfm = read_file(file)
         usfm = mapUSFMByOccurrence(usfm, words_rc, location_index['occurrences'])
+        usfm = mapPhrases(usfm)
         if global_search:
             usfm = mapUSFMByGlobalSearch(usfm, words_rc, strongs_index, location_index['false_positives'])
+            # NOTE: if we need to add phrase mapping to global search un-comment this line
+            # usfm = mapPhrases(usfm)
         outfile = os.path.join(output_dir, os.path.basename(file))
         write_file(outfile, usfm)
 
