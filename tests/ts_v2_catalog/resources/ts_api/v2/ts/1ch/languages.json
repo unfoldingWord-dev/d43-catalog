@@ -15,5 +15,22 @@
       "sort": "13"
     },
     "res_catalog": "https://cdn.door43.org/v2/ts/1ch/en/resources.json?date_modified=20170607"
+  },
+  {
+    "language": {
+      "date_modified": "20170607",
+      "direction": "ltr",
+      "name": "English2",
+      "slug": "en2"
+    },
+    "project": {
+      "desc": "",
+      "meta": [
+        "Bible: OT"
+      ],
+      "name": "1 Chronicles",
+      "sort": "13"
+    },
+    "res_catalog": "https://cdn.door43.org/v2/ts/1ch/en2/resources.json?date_modified=20170607"
   }
 ]

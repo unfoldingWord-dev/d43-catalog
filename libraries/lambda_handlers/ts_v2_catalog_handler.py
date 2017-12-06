@@ -280,7 +280,11 @@ class TsV2CatalogHandler(InstanceHandler):
                 api_uploads.append(self._prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat))
 
                 del lang['_res']
-                lang_cat.append(lang)
+                if('project' in lang):
+                    # skip empty artifacts
+                    lang_cat.append(lang)
+                else:
+                    self.logger.warning('Excluding empty language artifact in {}'.format(pid))
             api_uploads.append(self._prep_data_upload('{}/languages.json'.format(pid), lang_cat))
 
             del  project['_langs']

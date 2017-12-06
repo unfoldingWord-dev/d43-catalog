@@ -397,7 +397,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
         elif words:
             print('Skipped false positives')
         else:
-            logger.warning('No matches found for {} {}:{} {}'.format(book, chapter, verse, line))
+            logger.warning(u'No matches found for {} {}:{} {}'.format(book, chapter, verse, line))
     return unicode(reader)
 
 # TRICKY: we purposely make strongs_index a mutable parameter

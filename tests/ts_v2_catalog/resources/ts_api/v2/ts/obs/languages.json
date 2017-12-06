@@ -12,5 +12,19 @@
       "name": "Open Bible Stories"
     },
     "res_catalog": "https://cdn.door43.org/v2/ts/obs/en/resources.json?date_modified=20170614"
+  },
+  {
+    "language": {
+      "date_modified": "20170614",
+      "direction": "ltr",
+      "name": "English2",
+      "slug": "en2"
+    },
+    "project": {
+      "desc": "An unrestricted visual mini-Bible in any language",
+      "meta": [],
+      "name": "Open Bible Stories"
+    },
+    "res_catalog": "https://cdn.door43.org/v2/ts/obs/en2/resources.json?date_modified=20170614"
   }
 ]
