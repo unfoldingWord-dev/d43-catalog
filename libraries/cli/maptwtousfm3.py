@@ -380,10 +380,11 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False, map_phrases=True
 
     print('Generating occurrences index')
     location_index = indexWordsLocation(words_rc)
-
+    if map_phrases:
+        print('Phrase mapping enabled.')
     if global_search:
-        print('Running with global search')
-        print('Generating strongs index')
+        print('Global search enabled.')
+        print('Generating strongs index.')
         strongs_index = indexWordByStrongs(words_rc)
 
     for file_name in usfm_files:
@@ -417,7 +418,7 @@ if __name__ == '__main__':
                         default=False,
                         help='Performs a global word-by-word search in addition to the standard search by occurrences.')
     parser.add_argument('-p', '--phrase', dest='map_phrases', required=False,
-                        default=True,
+                        default='True',
                         help='Groups phrases into USFM milestones.')
 
     args = parser.parse_args(sys.argv[1:])
@@ -440,7 +441,7 @@ if __name__ == '__main__':
     logger.addHandler(handler)
 
     # start
-    mapDir(args.usfm, rc, args.output, args.global_search, args.map_phrases)
+    mapDir(args.usfm, rc, args.output, args.global_search, args.map_phrases.lower() == 'true')
 
     # announce errors or clean up log file
     if os.path.isfile(errors_log_file):
