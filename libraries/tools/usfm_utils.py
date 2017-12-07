@@ -106,12 +106,12 @@ class tWPhrase:
         milestone[-1] = re.sub(r'(\\w\*).*$', r'\g<1>', milestone[-1])
         if punctuation:
             try:
-                closing = '{}{}'.format(closing, punctuation[0])
+                closing = '{}{}'.format(closing, punctuation[0].encode('utf8'))
             except Exception as e:
-                print(u'Failed to move punctuation "{}" from {} '.format(punctuation[0], milestone[-1]))
+                print(u'Failed to move punctuation "{}" from {} at index: {}'.format(punctuation[0], milestone[-1], self.__index))
                 raise e
 
-        milestone.append(closing)
+        milestone.append(closing.decode('utf8'))
 
         return '\n'.join(milestone)
 
@@ -221,7 +221,8 @@ class USFMWordReader:
 
     def amendPhrase(self, phrase):
         """
-        Amends a set of lines with a phrase
+        Amends a set of lines with a phrase.
+        TRICKY: this changes the line count so don't reuse the index after calling this.
         :param phrase:
         :type phrase: tWPhrase
         :return:
