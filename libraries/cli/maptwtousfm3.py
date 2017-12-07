@@ -355,7 +355,7 @@ def mapPhrases(usfm):
             phrase.addLine(line)
             continue
         elif phrase.isComplete():
-            print('Found phrase at {} {}:{} {} on line {}'.format(book, chapter, verse, phrase.links()[0], index))
+            # print('Found phrase at {} {}:{} {} on line {}'.format(book, chapter, verse, phrase.links()[0], index))
             reader.amendPhrase(phrase)
 
         phrase = None
