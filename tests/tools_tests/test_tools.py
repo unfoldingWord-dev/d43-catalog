@@ -103,11 +103,11 @@ class TestTools(TestCase):
 
     def test_tw_phrase_print(self):
         phrase = tWPhrase(1)
-        phrase.addLine('\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
-        phrase.addLine('\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,')
+        phrase.addLine(u'\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
+        phrase.addLine(u'\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,')
 
         expected = read_file(os.path.join(self.resources_dir, 'usfm_milestone.usfm'))
-        self.assertEqual(expected, unicode(str(phrase), 'utf-8'))
+        self.assertEqual(unicode(expected), unicode(phrase))
 
     @unittest.skipIf(is_travis(), 'Skipping test_is_lambda_not_running on travis')
     def test_is_lambda_is_not_running(self):

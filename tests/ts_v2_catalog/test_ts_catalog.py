@@ -60,7 +60,8 @@ class TestTsV2Catalog(TestCase):
         # assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/questions.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/tw_cat.json')
+        # we have frozen tw_cat
+        self.assertNotIn('v2/ts/obs/en/tw_cat.json', mockS3._recent_uploads)
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/resources.json')
@@ -131,14 +132,16 @@ class TestTsV2Catalog(TestCase):
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/obs/v4/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/questions.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/obs/en/tw_cat.json')
+        # we have frozen tw_cat
+        self.assertNotIn('v2/ts/obs/en/tw_cat.json', mockS3._recent_uploads)
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/languages.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/resources.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/ulb/v7/source.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/notes.json')
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/questions.json')
-        assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/1ch/en/tw_cat.json')
+        # we have frozen tw_cat
+        self.assertNotIn('v2/ts/1ch/en/tw_cat.json', mockS3._recent_uploads)
 
         assert_s3_equals_api_json(self, mockS3, mockV2Api, 'v2/ts/bible/en/words.json')
 
@@ -176,7 +179,8 @@ class TestTsV2Catalog(TestCase):
                     if terms_path:
                         self.assertIn(terms_path, mockS3._recent_uploads, url_err_msg.format(terms_path))
                     if terms_map_path:
-                        self.assertIn(terms_map_path, mockS3._recent_uploads, url_err_msg.format(terms_map_path))
+                        # we have frozen tw_cat
+                        self.assertNotIn(terms_map_path, mockS3._recent_uploads, url_err_msg.format(terms_map_path))
 
     def test_complete_status(self, mock_reporter):
         mockV3Api = MockAPI(self.resources_dir, 'https://cdn.door43.org/')

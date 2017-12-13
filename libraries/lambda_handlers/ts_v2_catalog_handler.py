@@ -135,7 +135,6 @@ class TsV2CatalogHandler(InstanceHandler):
                             if process_id not in self.status['processed']:
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format, process_id)
                                 if tn or tw_cat:
-                                    self._upload_all(tw_cat)
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tw_cat.keys() + tn.keys()
                                     cat_keys = cat_keys + tn.keys() + tw_cat.keys()
@@ -196,7 +195,6 @@ class TsV2CatalogHandler(InstanceHandler):
                             if process_id not in self.status['processed']:
                                 (tn, tw_cat) = self._index_note_files(lid, rid, format, process_id)
                                 if tn or tw_cat:
-                                    self._upload_all(tw_cat)
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tn.keys() + tw_cat.keys()
                                     cat_keys = cat_keys + tn.keys() + tw_cat.keys()
@@ -428,12 +426,8 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 if tw_chapters:
                     tw_cat_key = '_'.join([lid, '*', pid, 'tw'])
-                    tw_cat_json = {
-                        "chapters": tw_chapters,
-                        "date_modified": dc['modified'].replace('-', '')
-                    }
-                    tw_upload = self._prep_data_upload('{}/{}/tw_cat.json'.format(pid, lid), tw_cat_json)
-                    tw_cat_uploads[tw_cat_key] = tw_upload
+                    # TRICKY: we are freezing tw_cat but we still need the keys
+                    tw_cat_uploads[tw_cat_key] = ''
 
                 if note_json:
                     tn_key = '_'.join([lid, '*', pid, 'tn'])
