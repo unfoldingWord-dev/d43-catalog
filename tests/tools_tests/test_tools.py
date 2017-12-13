@@ -6,7 +6,7 @@ import unittest
 from libraries.tools.test_utils import is_travis, Bunch
 from unittest import TestCase
 
-from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers, tWPhrase
+from libraries.tools.usfm_utils import strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.mocks import MockDynamodbHandler
 from libraries.tools.lambda_utils import wipe_temp, is_lambda_running, set_lambda_running, clear_lambda_running, lambda_min_remaining
@@ -67,6 +67,13 @@ class TestTools(TestCase):
         input = '\\ts\n\\v 1 Ce qui était dès\n\\ts\n\\v 2 Ce qui était dès'
         expected = '\\s5\n\\v 1 Ce qui était dès\n\\s5\n\\v 2 Ce qui était dès'
         output = convert_chunk_markers(input)
+        self.assertEqual(expected, output)
+
+    def test_strip_some_tw_link(self):
+        links = ['rc://*/tw/dict/bible/kt/jesus', 'rc://*/tw/dict/bible/kt/test']
+        input = '\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" x-tw="{}" x-tw="{}" \w*,'.format(links[0], links[1])
+        expected = '\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*,'
+        output = strip_tw_links(input, links)
         self.assertEqual(expected, output)
 
     def test_tw_phrase_validate_empty(self):

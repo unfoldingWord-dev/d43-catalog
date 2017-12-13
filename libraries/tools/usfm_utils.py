@@ -99,7 +99,7 @@ class tWPhrase:
         formatted_links = list(map((lambda l: 'x-tw="{}"'.format(l)), self.__link_set))
         milestone = ['\k-s | {}'.format(' '.join(formatted_links))]
         for line in self.__lines:
-            milestone.append(strip_tw_links(line))
+            milestone.append(strip_tw_links(line, self.__link_set))
         closing = '\k-e\*'
         # TRICKY: move punctuation to end of milestone
         punctuation = re.findall(r'\\w\*(.*)$', milestone[-1])
@@ -260,13 +260,20 @@ def get_usfm3_word_strongs(usfm3_line):
             raise Exception('Malformed USFM. Unable to parse strong number: {}'.format(usfm3_line))
     return strong
 
-def strip_tw_links(usfm):
+def strip_tw_links(usfm, links=None):
     """
     Removes tW links from a usfm string
     :param usfm:
+    :param links:
     :return:
     """
-    return re.sub(r'x-tw="([^"]*)"\s*', '', usfm)
+    updated_usfm=usfm
+    if links:
+        for link in links:
+            updated_usfm = re.sub(r'x-tw="' + re.escape(link) + '"\s*', '', updated_usfm)
+    else:
+        updated_usfm = re.sub(r'x-tw="([^"]*)"\s*', '', usfm)
+    return updated_usfm
 
 def strip_word_data(usfm):
     """
