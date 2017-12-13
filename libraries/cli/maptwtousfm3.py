@@ -239,11 +239,19 @@ def getStrongWords(strong_number, available_words, strongs_index):
     for word in available_words:
         strongs = getStrongs(word, strongs_index)
         for strong in strongs:
-            # TRICKY: reverse zero pad numbers from the index to match the length
-            formatted_strong = normalizeStrongPadding(strong, strong_number)
-            if formatted_strong.lower() == strong_number.lower():
+            if strongs_equal(strong, strong_number):
                 words.append(word)
     return words
+
+def strongs_equal(strong, strong_template):
+    """
+    Compares two strong's for equality
+    :param strong:
+    :param strong_template: the number that will be the template  (for string length)
+    :return:
+    """
+    formatted_strong = normalizeStrongPadding(strong, strong_template)
+    return formatted_strong.lower() == strong_template.lower()
 
 def normalizeStrongPadding(strong, strong_template):
     """
