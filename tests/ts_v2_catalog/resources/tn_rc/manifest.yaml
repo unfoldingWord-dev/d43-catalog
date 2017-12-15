@@ -1,0 +1,40 @@
+dublin_core:
+  conformsto: 'rc0.2'
+  contributor:
+  - 'Door43 World Missions Community'
+  creator: 'Door43 World Missions Community'
+  description: 'Open-licensed exegetical notes that provide historical, cultural, and linguistic information for translators. It provides translators and checkers with pertinent, just-in-time information to help them make the best possible translation decisions.'
+  format: 'text/markdown'
+  identifier: 'tn'
+  issued: '2017-11-29'
+  language:
+    direction: 'ltr'
+    identifier: 'en'
+    title: 'English'
+  modified: '2017-11-29'
+  publisher: 'unfoldingWord'
+  relation:
+  - 'en/ulb'
+  - 'en/udb'
+  rights: 'CC BY-SA 4.0'
+  source:
+  - identifier: 'tn'
+    language: 'en'
+    version: '11'
+  subject: 'Translator Notes'
+  title: 'translationNotes'
+  type: 'help'
+  version: '11'
+
+checking:
+  checking_entity:
+  - 'unfoldingWord'
+  checking_level: '3'
+
+projects:
+- categories: []
+  identifier: tit
+  path: ./tit
+  sort: 0
+  title: Titus translationNotes
+  versification: ''

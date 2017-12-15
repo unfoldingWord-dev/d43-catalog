@@ -107,25 +107,29 @@ class Handler(object):
         else:
             self.logger.setLevel(logging.DEBUG)
 
-    def sanitize_identifier(self, identifier, lower=True):
+    @staticmethod
+    def sanitize_identifier(identifier, lower=True, logger=None):
         """
         Sanitizes an identifier.
         Warnings will be produced if the identifier is malformed
         :param string identifier:
         :param bool lower: returns the identifier in lower case
+        :param logger:
         :return:
         """
         # errors
         if not isinstance(identifier, basestring):
-            self.logger.error('Identifier "{}" is not a string'.format(identifier))
+            if logger:
+                logger.error('Identifier "{}" is not a string'.format(identifier))
             return identifier
         if not identifier.strip():
-            self.logger.error('Identifier "{}" is empty'.format(identifier))
+            if logger:
+                logger.error('Identifier "{}" is empty'.format(identifier))
             return identifier
 
         # warnings
-        if '_' in identifier:
-            self.logger.warning('Identifier "{}" contains an underscore'.format(identifier))
+        if '_' in identifier and logger:
+            logger.warning('Identifier "{}" contains an underscore'.format(identifier))
 
         if lower:
             return identifier.strip().lower()

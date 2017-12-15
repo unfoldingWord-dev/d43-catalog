@@ -28,6 +28,17 @@ def assert_object_equals_file(unit_test, obj, path):
     expected_obj = json.loads(read_file(path))
     assert_object_equals(unit_test, expected_obj, obj)
 
+def assert_json_files_equal(unit_test, path1, path2):
+    """
+    Asserts that two files containing json are equal
+    :param unit_test:
+    :param path1:
+    :param path2:
+    :return:
+    """
+    obj1 = json.loads(read_file(path1))
+    obj2 = json.loads(read_file(path2))
+    assert_object_equals(unit_test, obj1, obj2)
 
 def assert_object_equals(unit_test, obj1, obj2):
     """
