@@ -262,7 +262,7 @@ def get_usfm3_word_strongs(usfm3_line):
 
 def strip_tw_links(usfm, links=None):
     """
-    Removes tW links from a usfm string
+    Removes tW links from a usfm string for backwards compatibility with the legacy tS api
     :param usfm:
     :param links:
     :return:
@@ -277,7 +277,7 @@ def strip_tw_links(usfm, links=None):
 
 def strip_word_data(usfm):
     """
-    Removes word data from a usfm string
+    Removes word data from a USFM 3 string for backwards compatibility with USFM 2
     :param usfm:
     :return:
     """
@@ -285,8 +285,16 @@ def strip_word_data(usfm):
 
 def convert_chunk_markers(str):
     """
-    Replaces \ts chunk markers to \s5 for backwards compatibility
+    Replaces \ts chunk markers to \s5 for backwards compatibility with the legacy tS api
     :param str:
     :return: the converted string
     """
     return re.sub(r'\\ts\b', '\\s5', str)
+
+def usfm3_to_usfm2(usfm3):
+    """
+    Converts a USFM 3 string to a USFM 2 compatible string
+    :param usfm3:
+    :return: the USFM 2 version of the string
+    """
+    return convert_chunk_markers(strip_word_data(strip_tw_links(usfm3)))
