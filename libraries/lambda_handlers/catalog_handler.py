@@ -208,6 +208,9 @@ class CatalogHandler(InstanceHandler):
             if not errors:
                 self._strip_build_rules(fmt)
                 formats.append(fmt)
+                # create backwards compatible usfm2
+                if dc['format'] == 'text/usfm3' and 'usfm' in fmt['format']:
+                    formats.append(self._make_usfm2_format(fmt))
 
         if len(formats) > 0:
             resource = copy.deepcopy(dc)
@@ -223,9 +226,15 @@ class CatalogHandler(InstanceHandler):
             # store projects
             for project in manifest['projects']:
                 if 'formats' in project:
+                    project_formats = []
                     for fmt in project['formats']:
                         self._strip_build_rules(fmt)
                         checker.check_format(fmt, item)
+                        project_formats.append(fmt)
+                        # create backwards compatible usfm2
+                        if dc['format'] == 'text/usfm3' and 'usfm' in fmt['format']:
+                            project_formats.append(self._make_usfm2_format(fmt))
+                    project['formats'] = project_formats
                 if not project['categories']:
                     project['categories'] = []
                 del project['path']
@@ -249,6 +258,17 @@ class CatalogHandler(InstanceHandler):
             return True
 
         return False
+
+    @staticmethod
+    def _make_usfm2_format(fmt):
+        """
+        Converts a usfm3 format into a usfm2 format
+        :param fmt:
+        :return: the usfm2 format
+        """
+        if 'usfm' not in fmt['format']:
+            raise Exception('Unexpected format. Expected USFM format for coversion to USFM2')
+        return fmt
 
     def _strip_build_rules(self, obj):
         """
