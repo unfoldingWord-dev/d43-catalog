@@ -9,23 +9,102 @@ import argparse
 import os
 import sys
 import xml.etree.ElementTree
+import logging
 
 from libraries.tools.file_utils import write_file
+
+LOGGER_NAME='convert_osis_to_usfm'
 
 def convertFile(lang, osis_file):
     """
     Converts an OSIS file to USFM3
     :param lang: the language represented in the OSIS file
     :param osis_file: the OSIS file to be converted to USFM
-    :return:
+    :return: a usfm string
     """
+    logger = logging.getLogger(LOGGER_NAME)
     if sys.version_info >= (3,0,0):
         raise Exception('Only python 2.7 is supported')
     with open(osis_file) as file:
-        usfm = u''
-        tree = xml.etree.ElementTree.parse(osis_file).getroot()
-        # TODO: parse xml and remove word attributes and links
-        return usfm
+        usfm = []
+        root = xml.etree.ElementTree.parse(osis_file).getroot()
+        books = getXmlBooks(root)
+        if len(books) > 1:
+            logger.error('Found {} books in {} but expected 1'.format(len(books), osis_file))
+            return None
+        if not len(books):
+            logger.warn('No books found in {}'.format(len(books), osis_file))
+            return None
+
+        book = books[0]
+        bookId = book.attrib['osisID']
+        # header
+        for chapter in book:
+            chapterId = chapter.attrib['osisID']
+            chapterNum = int(chapterId.split('.')[1])
+
+            # chapter
+            usfm.append('')
+            usfm.append('\\c {}'.format(chapterNum))
+            usfm.append('\\p')
+
+            for verse in chapter:
+                verseId = verse.attrib['osisID']
+                verseNum = int(verseId.split('.')[2])
+
+                # verse
+                usfm.append('')
+                usfm.append('\\v {}'.format(verseNum))
+                for word in verse:
+
+                    # word
+                    if word.tag.endswith('}seg'):
+                        usfm.append(word.text)
+                    else:
+                        usfm.append(convertWord(word))
+
+        return '\n'.join(usfm)
+
+def convertWord(word):
+    logger = logging.getLogger(LOGGER_NAME)
+    morph = ''
+    if 'morph' in word.attrib:
+        morph = word.attrib['morph']
+    else:
+        logger.warn('Missing morph in {}'.format(word))
+    lemma = ''
+    if 'lemma' in word.attrib:
+        lemma = word.attrib['lemma'].decode('utf-8')
+    else:
+        logger.warn('Missing lemma in {}'.format(word))
+    return u'{}\w {}|lemma="{}" strong="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
+        '',
+        word.text,#.decode('utf-8'),
+        lemma,
+        ''.zfill(5),
+        '',
+        morph,
+        '',
+        ''
+    )
+
+def getXmlBooks(xml):
+    """
+    Returns a list of book xml trees found within the xml.
+    Books without any children will be ignored
+    :param xml: osis xml
+    :type xml: xml.etree.ElementTree
+    :return:
+    """
+    if not len(xml):
+        return []
+    if 'type' in xml.attrib and xml.attrib['type'] == 'book':
+        return [xml]
+    books = []
+    for child in xml:
+        books += getXmlBooks(child)
+    return books
+
 
 def convertDir():
     pass
@@ -42,6 +121,19 @@ if __name__ == '__main__':
         raise Exception('Input must be a directory')
     if os.path.isfile(args.output):
         raise Exception('Output must be a directory')
+
+    errors_log_file = os.path.join(args.output, 'errors.log')
+    if os.path.isfile(errors_log_file):
+        os.remove(errors_log_file)
+
+    # configure logger
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.WARNING)
+    handler = logging.FileHandler(errors_log_file)
+    handler.setLevel(logging.WARNING)
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     convertDir()
 
