@@ -15,7 +15,24 @@ from libraries.tools.file_utils import write_file
 
 LOGGER_NAME='convert_osis_to_usfm'
 
-def convertFile(lang, osis_file):
+def getLemma(lexicon, strong):
+    """
+    Retrieves the lemma from the lexicon using the strong's number as the key
+    :param lexicon:
+    :type lexicon: xml.etree.ElementTree
+    :param strong:
+    :return:
+    """
+    if lexicon:
+        for entry in lexicon:
+            if entry.tag.endswith('}entry') and 'id' in entry.attrib and entry.attrib['id'].lower() == strong.lower():
+                for element in entry:
+                    if element.tag.endswith('}w'):
+                        return element.text
+
+    return None
+
+def convertFile(lang, osis_file, lexicon):
     """
     Converts an OSIS file to USFM3
     :param lang: the language represented in the OSIS file
@@ -25,45 +42,45 @@ def convertFile(lang, osis_file):
     logger = logging.getLogger(LOGGER_NAME)
     if sys.version_info >= (3,0,0):
         raise Exception('Only python 2.7 is supported')
-    with open(osis_file) as file:
-        usfm = []
-        root = xml.etree.ElementTree.parse(osis_file).getroot()
-        books = getXmlBooks(root)
-        if len(books) > 1:
-            logger.error('Found {} books in {} but expected 1'.format(len(books), osis_file))
-            return None
-        if not len(books):
-            logger.warn('No books found in {}'.format(len(books), osis_file))
-            return None
 
-        book = books[0]
-        bookId = book.attrib['osisID']
-        # header
-        for chapter in book:
-            chapterId = chapter.attrib['osisID']
-            chapterNum = int(chapterId.split('.')[1])
+    usfm = []
+    root = xml.etree.ElementTree.parse(osis_file).getroot()
+    books = getXmlBooks(root)
+    if len(books) > 1:
+        logger.error('Found {} books in {} but expected 1'.format(len(books), osis_file))
+        return None
+    if not len(books):
+        logger.warn('No books found in {}'.format(len(books), osis_file))
+        return None
 
-            # chapter
+    book = books[0]
+    bookId = book.attrib['osisID']
+    # header
+    for chapter in book:
+        chapterId = chapter.attrib['osisID']
+        chapterNum = int(chapterId.split('.')[1])
+
+        # chapter
+        usfm.append('')
+        usfm.append('\\c {}'.format(chapterNum))
+        usfm.append('\\p')
+
+        for verse in chapter:
+            verseId = verse.attrib['osisID']
+            verseNum = int(verseId.split('.')[2])
+
+            # verse
             usfm.append('')
-            usfm.append('\\c {}'.format(chapterNum))
-            usfm.append('\\p')
+            usfm.append('\\v {}'.format(verseNum))
+            for word in verse:
 
-            for verse in chapter:
-                verseId = verse.attrib['osisID']
-                verseNum = int(verseId.split('.')[2])
+                # word
+                if word.tag.endswith('}seg'):
+                    usfm.append(word.text)
+                else:
+                    usfm.append(convertWord(word))
 
-                # verse
-                usfm.append('')
-                usfm.append('\\v {}'.format(verseNum))
-                for word in verse:
-
-                    # word
-                    if word.tag.endswith('}seg'):
-                        usfm.append(word.text)
-                    else:
-                        usfm.append(convertWord(word))
-
-        return '\n'.join(usfm)
+    return '\n'.join(usfm)
 
 def convertWord(word):
     logger = logging.getLogger(LOGGER_NAME)

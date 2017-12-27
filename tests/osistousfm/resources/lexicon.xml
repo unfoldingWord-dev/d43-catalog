@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lexicon xsi:schemaLocation="http://openscriptures.github.com/morphhb/namespace StrongSchema.xsd"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://openscriptures.github.com/morphhb/namespace">
+	<entry id="H1">
+		<w pos="n-m" pron="awb" xlit="ʼâb" xml:lang="heb">אָב</w>
+		<source>a primitive word;</source>
+		<meaning><def>father</def>, in a literal and immediate, or figurative and remote application</meaning>
+		<usage>chief, (fore-) father(-less), × patrimony, principal. Compare names in 'Abi-'.</usage>
+	</entry>
+    <entry id="H2">
+		<w pos="n-m" pron="ab" xlit="ʼab" xml:lang="arc">אַב</w>
+		<source>(Aramaic) corresponding to <w src="H1">1</w></source>
+		<usage>father.</usage>
+	</entry>
+</lexicon>

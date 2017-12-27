@@ -35,3 +35,13 @@ class TestCSVtoUSFM3(TestCase):
                                    osis_file=os.path.join(self.resources_dir, 'osis/Hag.xml'))
         expected_usfm = read_file(os.path.join(self.resources_dir, 'usfm/37-HAG.usfm'))
         self.assertEqual(expected_usfm, usfm)
+
+    def test_get_unknown_lemma(self):
+        lexicon = None
+        lemma = osistousfm3.getLemma(lexicon, 'H1')
+        self.assertIsNone(lemma)
+
+    def test_get_lemma(self):
+        lexicon = ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot()
+        lemma = osistousfm3.getLemma(lexicon, 'H2')
+        self.assertEqual(u'אַב', lemma)
