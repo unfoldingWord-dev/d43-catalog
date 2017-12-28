@@ -1,13 +1,24 @@
 # coding=utf-8
 import os
+import logging
 import xml.etree.ElementTree as ET
 from unittest import TestCase
 from libraries.cli import osistousfm3
 from libraries.tools.file_utils import read_file
 
 
-class TestCSVtoUSFM3(TestCase):
+class TestOSIStoUSFM3(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+
+    def setUp(self):
+        # configure logger
+        logger = logging.getLogger(osistousfm3.LOGGER_NAME)
+        logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("[%(levelname)s] %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
     def test_get_xml_books(self):
         xml = """<div type="nothing">
@@ -31,8 +42,9 @@ class TestCSVtoUSFM3(TestCase):
             self.assertTrue(len(book) > 0)
 
     def test_convert_file(self):
-        usfm = osistousfm3.convertFile(lang='Heb',
-                                   osis_file=os.path.join(self.resources_dir, 'osis/Hag.xml'))
+        lexicon = ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot()
+        usfm = osistousfm3.convertFile(osis_file=os.path.join(self.resources_dir, 'osis/Hag.xml'),
+                                    lexicon=lexicon)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'usfm/37-HAG.usfm'))
         self.assertEqual(expected_usfm, usfm)
 

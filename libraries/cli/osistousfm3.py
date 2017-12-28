@@ -7,6 +7,7 @@ This tool reads an OSIS file and converts it into USFM3
 
 import argparse
 import os
+import re
 import sys
 import xml.etree.ElementTree
 import logging
@@ -32,11 +33,11 @@ def getLemma(lexicon, strong):
 
     return None
 
-def convertFile(lang, osis_file, lexicon):
+def convertFile(osis_file, lexicon):
     """
     Converts an OSIS file to USFM3
-    :param lang: the language represented in the OSIS file
     :param osis_file: the OSIS file to be converted to USFM
+    :param lexicon:
     :return: a usfm string
     """
     logger = logging.getLogger(LOGGER_NAME)
@@ -75,30 +76,47 @@ def convertFile(lang, osis_file, lexicon):
             for word in verse:
 
                 # word
-                if word.tag.endswith('}seg'):
-                    usfm.append(word.text)
+                if word.tag.endswith('}w'):
+                    usfm.append(convertWord(lexicon, word))
+                elif word.tag.endswith('}seg') and word.text is not None:
+                    if len(usfm) > 0:
+                        usfm[-1] = u'{}{}'.format(usfm[-1], word.text)
+                    else:
+                        usfm.append(word.text)
                 else:
-                    usfm.append(convertWord(word))
+                    logger.warn('unknown xml tag "{}"'.format(word.tag))
 
-    return '\n'.join(usfm)
+    return u'\n'.join(usfm)
 
-def convertWord(word):
+def convertWord(lexicon, word):
     logger = logging.getLogger(LOGGER_NAME)
     morph = ''
     if 'morph' in word.attrib:
         morph = word.attrib['morph']
+        if morph[0] == 'H':
+            morph = 'He,{}'.format(morph[1:])
+        elif morph[0] == 'A':
+            morph = 'Ar,{}'.format(morph[1:])
+        else:
+            raise Exception('Unknown language in morph')
+        morph = morph.replace('/', ':')
     else:
-        logger.warn('Missing morph in {}'.format(word))
-    lemma = ''
+        logger.warn(u'Missing morph in {}'.format(word.text))
+    strong = ''
     if 'lemma' in word.attrib:
-        lemma = word.attrib['lemma'].decode('utf-8')
+        strong = word.attrib['lemma'].decode('utf-8')
+        strong = re.sub(r'^([a-z]+/)+', '', strong.lower())
+        strong = re.sub(r'\s*[a-z]+$', '', strong.lower())
     else:
-        logger.warn('Missing lemma in {}'.format(word))
-    return u'{}\w {}|lemma="{}" strong="G{}" x-morph="Gr,{}{}{}"\w*{}'.format(
+        logger.warn('Missing lemma in {}'.format(word.text))
+    lemma = getLemma(lexicon, 'H{}'.format(strong))
+    if not lemma:
+        logger.error('No match found in lexicon for strong number "{}"'.format(word.attrib['lemma'].decode('utf-8')))
+    return u'{}\w {}|lemma="{}" strong="H{}" x-morph="{}{}{}" \w*{}'.format(
         '',
         word.text,#.decode('utf-8'),
         lemma,
-        ''.zfill(5),
+        strong.zfill(5),
         '',
         morph,
         '',
