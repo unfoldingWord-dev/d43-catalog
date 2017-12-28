@@ -338,8 +338,8 @@ class MockSigner(object):
 
 class MockChecker(ConsistencyChecker):
 
-    def __init__(self, quiet=False):
-        super(MockChecker, self).__init__(quiet)
+    def __init__(self, cdn_bucket='cdn.door43.org', api_bucket='api.door43.org', quiet=False):
+        super(MockChecker, self).__init__(cdn_bucket, api_bucket, quiet)
         self._urls_do_exist = True
 
     def _url_exists(self, url):

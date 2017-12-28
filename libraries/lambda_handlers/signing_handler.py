@@ -206,8 +206,8 @@ class SigningHandler(InstanceHandler):
         if not url_info.hostname in valid_hosts:
             # TODO: external media should be imported if it's not too big
             # This allows media to be hosted on third party servers
-            format['signature'] = '{}.sig'.format(format['url'])
-            self.logger.warning('cannot sign files outside of the cdn. The hosting provider should upload a signature to '.format(format['signature']))
+            format['signature'] = '' #'{}.sig'.format(format['url'])
+            self.logger.warning('cannot sign files outside of the cdn: {}'.format(format['url']))
             return (True, True)
 
         try:
