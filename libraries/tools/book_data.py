@@ -13,12 +13,14 @@ def get_book_by_sort(sort):
     :param sort: the sort order of the book to look up
     :return:
     """
-    return {
-        'osis_id': osis_ids[sort],
-        'usfm_id': usfm_ids[sort],
-        'en_name': en_names[sort],
-        'sort': sort
-    }
+    if sort in osis_ids and sort in usfm_ids and sort in en_names:
+        return {
+            'osis_id': osis_ids[sort],
+            'usfm_id': usfm_ids[sort],
+            'en_name': en_names[sort],
+            'sort': sort
+        }
+    return None
 
 def find_key(value, dict):
     """

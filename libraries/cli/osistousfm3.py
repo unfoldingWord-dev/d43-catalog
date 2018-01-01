@@ -11,6 +11,7 @@ import re
 import sys
 import xml.etree.ElementTree
 import logging
+import json
 
 from libraries.tools.file_utils import write_file
 from libraries.tools.book_data import get_book_by_osis_id
@@ -21,18 +22,42 @@ def getLemma(lexicon, strong):
     """
     Retrieves the lemma from the lexicon using the strong's number as the key
     :param lexicon:
-    :type lexicon: xml.etree.ElementTree
+    :type lexicon: json
     :param strong:
     :return:
     """
-    if lexicon:
-        for entry in lexicon:
-            if entry.tag.endswith('}entry') and 'id' in entry.attrib and entry.attrib['id'].lower() == strong.lower():
-                for element in entry:
-                    if element.tag.endswith('}w'):
-                        return element.text
+
+    if lexicon and strong.upper() in lexicon:
+        return lexicon[strong.upper()]
 
     return None
+
+def indexLexicon(lexicon):
+    """
+    Indexes the lexicon so we can perform faster queries
+    :param lexicon:
+    :return:
+    """
+    index = {}
+    if lexicon:
+        for entry in lexicon:
+            if entry.tag.endswith('}entry'):
+                strong, lemma = indexLexiconEntry(entry)
+                if strong and lemma:
+                    index[strong.upper()] = lemma
+    return index
+
+def indexLexiconEntry(entry):
+    """
+    Retrieves the strong number and lemma from an entry if it is valid
+    :param entry:
+    :return:
+    """
+    if 'id' in entry.attrib:
+        for element in entry:
+            if element.tag.endswith('}w'):
+                return entry.attrib['id'], element.text
+    return None, None
 
 def convertFile(osis_file, lexicon):
     """
@@ -184,6 +209,8 @@ def convertDir(in_dir, out_dir, lexicon):
     :param lexicon:
     :return:
     """
+    logger = logging.getLogger(LOGGER_NAME)
+
     if os.path.isfile(in_dir):
         raise Exception('Input must be a directory')
     input_files = []
@@ -192,19 +219,25 @@ def convertDir(in_dir, out_dir, lexicon):
         break
 
     for file_name in input_files:
-        if not file_name.endswith('.xml') and not file_name.endswith('.osis'):
+        if file_name.lower() == 'versemap.xml' or (not file_name.endswith('.xml') and not file_name.endswith('.osis')):
             print('Skipping file {}'.format(file_name))
             continue
+        print('Processing {}...'.format(file_name))
         usfm = convertFile(os.path.join(in_dir, file_name), lexicon)
-        book_meta = get_book_by_osis_id(os.path.basename(file_name))
-        # TODO: convert to new name with extension
-        out_file = os.path.join(out_dir, '{}-{}.usfm'.format(book_meta['sort'], book_meta['usfm_id']))
-        write_file(out_file, usfm)
+        book_id = os.path.splitext(file_name)[0]
+        book_meta = get_book_by_osis_id(book_id)
+        if book_meta:
+            out_file = os.path.join(out_dir, '{}-{}.usfm'.format(book_meta['sort'], book_meta['usfm_id']))
+            write_file(out_file, usfm)
+        else:
+            message = 'Missing book meta data for {}'.format(book_id)
+            print(message)
+            logger.error(message)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-l', '--lang', dest='lang', required=True, help='The language represented in the OSIS file')
+    parser.add_argument('-l', '--lex', dest='lexicon', required=True, help='The lexicon for mapping strong numbers to the lemma. The Hebrew lexicon is available at https://github.com/openscriptures/HebrewLexicon/blob/master/HebrewStrong.xml')
     parser.add_argument('-i', '--input', dest='input', required=True, help='OSIS file to convert')
     parser.add_argument('-o', '--output', dest='output', required=True, help='Directory where to save the generated USFM')
 
@@ -213,6 +246,9 @@ if __name__ == '__main__':
         raise Exception('Input must be a directory')
     if os.path.isfile(args.output):
         raise Exception('Output must be a directory')
+
+    if not os.path.isdir(args.output):
+        os.makedirs(args.output)
 
     errors_log_file = os.path.join(args.output, 'errors.log')
     if os.path.isfile(errors_log_file):
@@ -227,11 +263,18 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    convertDir()
+    print('Loading lexicon...')
+    lexicon = xml.etree.ElementTree.parse(args.lexicon).getroot()
+    lex_index = indexLexicon(lexicon)
+    convertDir(args.input, args.output, lex_index)
 
-    # TODO: list files in directory and process
-    # osis_books = convert(args.lang, args.input)
-    #
-    # for book in osis_books:
-    #     file_path = os.path.join(args.output, '{}-{}.usfm'.format(book['sort'], book['id']))
-    #     write_file(file_path, book['usfm'])
+
+    # announce errors or clean up log file
+    if os.path.isfile(errors_log_file):
+        statinfo = os.stat(errors_log_file)
+        if statinfo.st_size > 0:
+            print('WARNING: errors were detected. See {} for details'.format(errors_log_file))
+        else:
+            os.remove(errors_log_file)
+
+    print('Finished')

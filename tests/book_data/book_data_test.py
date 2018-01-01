@@ -28,3 +28,7 @@ class TestBookData(TestCase):
         self.assertEqual('MAL', malBook['usfm_id'])
         self.assertEqual('Mal', malBook['osis_id'])
         self.assertEqual('Malachi', malBook['en_name'])
+
+    def test_missing_data(self):
+        data = get_book_by_sort('00')
+        self.assertIsNone(data)

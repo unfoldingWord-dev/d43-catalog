@@ -5,13 +5,14 @@ import xml.etree.ElementTree as ET
 from unittest import TestCase
 from libraries.cli import osistousfm3
 from libraries.tools.file_utils import read_file
+from mock import patch, MagicMock
 
 
 class TestOSIStoUSFM3(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
     def setUp(self):
-        self.lexicon = ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot()
+        self.lexicon = osistousfm3.indexLexicon(ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot())
 
         # configure logger
         logger = logging.getLogger(osistousfm3.LOGGER_NAME)
@@ -102,3 +103,12 @@ class TestOSIStoUSFM3(TestCase):
     def test_get_lemma(self):
         lemma = osistousfm3.getLemma(self.lexicon, 'H2')
         self.assertEqual(u'אַב', lemma)
+
+    @patch('libraries.cli.osistousfm3.write_file')
+    def test_convert_dir(self, mock_write_file):
+        mock_write_file = MagicMock()
+        in_dir = os.path.join(self.resources_dir, 'osis')
+        out_dir = os.path.join(self.resources_dir, 'nothing')
+        lex_path = os.path.join(self.resources_dir, 'lexicon.xml')
+        osistousfm3.convertDir(in_dir, out_dir, lex_path)
+        mock_write_file.assert_called()
