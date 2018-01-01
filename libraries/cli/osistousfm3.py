@@ -13,6 +13,7 @@ import xml.etree.ElementTree
 import logging
 
 from libraries.tools.file_utils import write_file
+from libraries.tools.book_data import get_book_by_osis_id
 
 LOGGER_NAME='convert_osis_to_usfm'
 
@@ -175,8 +176,30 @@ def getXmlBooks(xml):
     return books
 
 
-def convertDir():
-    pass
+def convertDir(in_dir, out_dir, lexicon):
+    """
+    Converts a directory of osis files to usfm
+    :param in_dir:
+    :param out_dir:
+    :param lexicon:
+    :return:
+    """
+    if os.path.isfile(in_dir):
+        raise Exception('Input must be a directory')
+    input_files = []
+    for root, dirs, files in os.walk(in_dir):
+        input_files.extend(files)
+        break
+
+    for file_name in input_files:
+        if not file_name.endswith('.xml') and not file_name.endswith('.osis'):
+            print('Skipping file {}'.format(file_name))
+            continue
+        usfm = convertFile(os.path.join(in_dir, file_name), lexicon)
+        book_meta = get_book_by_osis_id(os.path.basename(file_name))
+        # TODO: convert to new name with extension
+        out_file = os.path.join(out_dir, '{}-{}.usfm'.format(book_meta['sort'], book_meta['usfm_id']))
+        write_file(out_file, usfm)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,
