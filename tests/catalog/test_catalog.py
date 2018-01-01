@@ -1,12 +1,15 @@
 from __future__ import unicode_literals, print_function
 
+import json
 import os
 from mock import patch, MagicMock
 from unittest import TestCase
+
+from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.mocks import MockChecker, MockDynamodbHandler, MockS3Handler, MockSESHandler, MockAPI, MockLogger
 from libraries.lambda_handlers.catalog_handler import CatalogHandler
 from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals
-
+from libraries.tools.file_utils import read_file
 
 @patch('libraries.lambda_handlers.handler.ErrorReporter')
 class TestCatalog(TestCase):
@@ -139,6 +142,34 @@ class TestCatalog(TestCase):
 
         self.assertFalse(response['success'])
         self.assertIn('has not been signed yet', response['message'])
+
+    def test_unsigned_external_content(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://google.com',
+            'signature': ''
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertEqual([], errors)
+
+    def test_unsigned_local_content(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://api.door43.org',
+            'signature': ''
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertIn("Consistency Check Failed: en_obs: url 'https://api.door43.org' has not been signed yet", errors)
 
     def test_catalog_mixed_valid_content(self, mock_reporter):
         """
