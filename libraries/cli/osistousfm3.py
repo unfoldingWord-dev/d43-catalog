@@ -114,7 +114,7 @@ def convertFile(osis_file, lexicon):
                     else:
                         usfm.append(word.text)
                 else:
-                    logger.warn('unknown xml tag "{}"'.format(word.tag))
+                    logger.debug('unknown xml tag "{}"'.format(word.tag))
 
     return u'\n'.join(usfm)
 
@@ -138,24 +138,24 @@ def convertWord(lexicon, word, passage=''):
         elif morph[0] == 'A':
             morph = 'Ar,{}'.format(morph[1:])
         else:
-            raise Exception('Unknown language in morph')
+            raise Exception('Unknown language in morph at {}'.format(passage))
         morph = morph.replace('/', ':')
     # TRICKY: the lemma field contains the strong number
     if 'lemma' in word.attrib:
         strong, formatted_strong = parseStrong(word.attrib['lemma'].decode('utf-8'))
     else:
-        logger.warn('Missing lemma in {}'.format(word.text))
+        logger.warn('Missing lemma in {} at {}'.format(word.text, passage))
     # TRICKY: look up the actual lemma from the strong
     lemma = getLemma(lexicon, 'H{}'.format(strong))
     if not lemma:
         lemma = ''
-        logger.error('No match found in lexicon for strong number "{}"'.format(word.attrib['lemma'].decode('utf-8')))
+        logger.error('No match in lexicon for strong\'s "{}" at  {}'.format(word.attrib['lemma'].decode('utf-8'), passage))
     text = re.sub(r'/', u'\u200B', word.text)
 
     if morph:
         # validate morph and word component count
         if text.count(u'\u200b') != morph.count(':'):
-            logger.warning('Word components do not align with strong\'s components at {}'.format(passage))
+            logger.warning('Word and morph components are not aligned at {}'.format(passage))
         return u'\w {}|lemma="{}" strong="{}" x-morph="{}" \w*'.format(
             text,
             lemma,
