@@ -106,9 +106,10 @@ class TestOSIStoUSFM3(TestCase):
 
     @patch('libraries.cli.osistousfm3.write_file')
     def test_convert_dir(self, mock_write_file):
-        mock_write_file = MagicMock()
+        mock_write_file.return_value = MagicMock(name='write_file')
         in_dir = os.path.join(self.resources_dir, 'osis')
         out_dir = os.path.join(self.resources_dir, 'nothing')
         lex_path = os.path.join(self.resources_dir, 'lexicon.xml')
         osistousfm3.convertDir(in_dir, out_dir, lex_path)
         mock_write_file.assert_called()
+        self.assertEqual(2, mock_write_file.call_count)

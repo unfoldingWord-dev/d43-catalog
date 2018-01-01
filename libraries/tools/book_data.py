@@ -29,7 +29,7 @@ def find_key(value, dict):
     :return:
     """
     for k, v in dict.iteritems():
-        if v.lower == value.lower:
+        if v.lower() == value.lower():
             return k
 
 osis_ids = {
