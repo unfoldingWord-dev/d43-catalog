@@ -8,12 +8,22 @@ from __future__ import print_function
 
 import json
 import logging
+import urlparse
+
 from libraries.tools.url_utils import url_exists
 
 
 class ConsistencyChecker(object):
 
-    def __init__(self, quiet=False):
+    def __init__(self, cdn_bucket, api_bucket, quiet=False):
+        """
+
+        :param cdn_bucket:
+        :param api_bucket:
+        :param quiet: log errors if set to false
+        """
+        self.cdn_bucket = cdn_bucket
+        self.api_bucket = api_bucket
         self.quiet = quiet
         self.all_errors = []
         self.errors = []
@@ -101,12 +111,16 @@ class ConsistencyChecker(object):
                 self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
         if 'url' not in format or 'signature' not in format:
             return self.errors
-        if not self._url_exists(format['url']):
-            self.log_error("{0}: {1} does not exist".format(repo_name, format['url']))
-        if not format['signature']:
-            self.log_error("{0}: {1} has not been signed yet".format(repo_name, format['url']))
-        elif not self._url_exists(format['signature']):
-            self.log_error("{0}: {1} does not exist".format(repo_name, format['signature']))
+        if not format['url'] or not self._url_exists(format['url']):
+            self.log_error("{0}: url '{1}' does not exist".format(repo_name, format['url']))
+        valid_hosts = [self.cdn_bucket, self.api_bucket]
+        url_info = urlparse.urlparse(format['url'])
+        # TRICKY: only validate signatures on our servers
+        if url_info.hostname in valid_hosts:
+            if not format['signature']:
+                self.log_error("{0}: url '{1}' has not been signed yet".format(repo_name, format['url']))
+            elif not self._url_exists(format['signature']):
+                self.log_error("{0}: signature '{1}' does not exist".format(repo_name, format['signature']))
 
         if 'chapters' in format and len(format['chapters']):
             # check format chapters
