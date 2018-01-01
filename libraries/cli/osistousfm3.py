@@ -56,6 +56,10 @@ def convertFile(osis_file, lexicon):
 
     book = books[0]
     bookId = book.attrib['osisID']
+
+    usfm.append('\\id {}'.format(bookId.upper()))
+    usfm.append('\\ide UTF-8')
+
     # header
     for chapter in book:
         chapterId = chapter.attrib['osisID']
@@ -77,7 +81,7 @@ def convertFile(osis_file, lexicon):
 
                 # word
                 if word.tag.endswith('}w'):
-                    usfm.append(convertWord(lexicon, word))
+                    usfm.append(convertWord(lexicon, word, '{} {}:{}'.format(bookId, chapterNum, verseNum)))
                 elif word.tag.endswith('}seg') and word.text is not None:
                     if len(usfm) > 0:
                         usfm[-1] = u'{}{}'.format(usfm[-1], word.text)
@@ -88,9 +92,19 @@ def convertFile(osis_file, lexicon):
 
     return u'\n'.join(usfm)
 
-def convertWord(lexicon, word):
+def convertWord(lexicon, word, passage=''):
+    """
+    Converts an osis word to usfm3
+    :param lexicon:
+    :param word:
+    :param passage: used for reporting errors.
+    :return:
+    """
     logger = logging.getLogger(LOGGER_NAME)
     morph = ''
+    strong = ''
+    formatted_strong = ''
+
     if 'morph' in word.attrib:
         morph = word.attrib['morph']
         if morph[0] == 'H':
@@ -100,28 +114,48 @@ def convertWord(lexicon, word):
         else:
             raise Exception('Unknown language in morph')
         morph = morph.replace('/', ':')
-    else:
-        logger.warn(u'Missing morph in {}'.format(word.text))
-    strong = ''
+    # TRICKY: the lemma field contains the strong number
     if 'lemma' in word.attrib:
-        strong = word.attrib['lemma'].decode('utf-8')
-        strong = re.sub(r'^([a-z]+/)+', '', strong.lower())
-        strong = re.sub(r'\s*[a-z]+$', '', strong.lower())
+        strong, formatted_strong = parseStrong(word.attrib['lemma'].decode('utf-8'))
     else:
         logger.warn('Missing lemma in {}'.format(word.text))
+    # TRICKY: look up the actual lemma from the strong
     lemma = getLemma(lexicon, 'H{}'.format(strong))
     if not lemma:
+        lemma = ''
         logger.error('No match found in lexicon for strong number "{}"'.format(word.attrib['lemma'].decode('utf-8')))
-    return u'{}\w {}|lemma="{}" strong="H{}" x-morph="{}{}{}" \w*{}'.format(
-        '',
-        word.text,#.decode('utf-8'),
-        lemma,
-        strong.zfill(5),
-        '',
-        morph,
-        '',
-        ''
-    )
+    text = re.sub(r'/', u'\u200B', word.text)
+
+    if morph:
+        # validate morph and word component count
+        if text.count(u'\u200b') != morph.count(':'):
+            logger.warning('Word components do not align with strong\'s components at {}'.format(passage))
+        return u'\w {}|lemma="{}" strong="{}" x-morph="{}" \w*'.format(
+            text,
+            lemma,
+            formatted_strong,
+            morph
+        )
+    else:
+        return u'\w {}|lemma="{}" strong="{}" \w*'.format(
+            text,
+            lemma,
+            formatted_strong
+        )
+
+def parseStrong(str):
+    """
+    Parses the strong number from a string
+    :param str:
+    :return:
+    """
+    strong = str
+    strong = re.sub(r'^([a-z]+/)+', '', strong.lower())
+    strong = re.sub(r'(\s*[a-z]+)+$', '', strong.lower())
+
+    formatted = str.replace(strong, 'H{}'.format(strong.zfill(5)))
+    formatted = re.sub(r'/', ':', formatted)
+    return strong, formatted
 
 def getXmlBooks(xml):
     """

@@ -11,6 +11,8 @@ class TestOSIStoUSFM3(TestCase):
     resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 
     def setUp(self):
+        self.lexicon = ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot()
+
         # configure logger
         logger = logging.getLogger(osistousfm3.LOGGER_NAME)
         logger.setLevel(logging.DEBUG)
@@ -41,10 +43,54 @@ class TestOSIStoUSFM3(TestCase):
         for book in books:
             self.assertTrue(len(book) > 0)
 
+    def test_convert_word(self):
+        word = ET.fromstring('<w lemma="3068" n="0.1.1.0" morph="HNp">יְהוָ֜ה</w>')
+        usfm = osistousfm3.convertWord(self.lexicon, word)
+        self.assertEqual(u'\w יְהוָ֜ה|lemma="יְהֹוָה" strong="H03068" x-morph="He,Np" \w*', usfm)
+
+    def test_convert_word_with_complex_strong(self):
+        word = ET.fromstring('<w lemma="a/3068 b" n="0.1.1.0" morph="HNp">יְהוָ֜ה</w>')
+        usfm = osistousfm3.convertWord(self.lexicon, word)
+        self.assertEqual(u'\w יְהוָ֜ה|lemma="יְהֹוָה" strong="a:H03068 b" x-morph="He,Np" \w*', usfm)
+
+    def test_convert_word_missing_morph(self):
+        word = ET.fromstring('<w lemma="3068" n="0.1.1.0">יְהוָ֜ה</w>')
+        usfm = osistousfm3.convertWord(self.lexicon, word)
+        self.assertEqual(u'\w יְהוָ֜ה|lemma="יְהֹוָה" strong="H03068" \w*', usfm)
+
+    def test_parse_strong_normal(self):
+        strong, formatted = osistousfm3.parseStrong('3027')
+        self.assertEqual('3027', strong)
+        self.assertEqual('H03027', formatted)
+
+    def test_parse_strong_with_prefix(self):
+        strong, formatted = osistousfm3.parseStrong('b/3027')
+        self.assertEqual('3027', strong)
+        self.assertEqual('b:H03027', formatted)
+
+    def test_parse_strong_with_multiple_prefix(self):
+        strong, formatted = osistousfm3.parseStrong('a/b/3027')
+        self.assertEqual('3027', strong)
+        self.assertEqual('a:b:H03027', formatted)
+
+    def test_parse_strong_with_suffix(self):
+        strong, formatted = osistousfm3.parseStrong('3027 a')
+        self.assertEqual('3027', strong)
+        self.assertEqual('H03027 a', formatted)
+
+    def test_parse_strong_with_multiple_suffix(self):
+        strong, formatted = osistousfm3.parseStrong('3027 a b')
+        self.assertEqual('3027', strong)
+        self.assertEqual('H03027 a b', formatted)
+
+    def test_parse_strong_suffix_and_prefix(self):
+        strong, formatted = osistousfm3.parseStrong('a/3027 b')
+        self.assertEqual('3027', strong)
+        self.assertEqual('a:H03027 b', formatted)
+
     def test_convert_file(self):
-        lexicon = ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot()
         usfm = osistousfm3.convertFile(osis_file=os.path.join(self.resources_dir, 'osis/Hag.xml'),
-                                    lexicon=lexicon)
+                                    lexicon=self.lexicon)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'usfm/37-HAG.usfm'))
         self.assertEqual(expected_usfm, usfm)
 
@@ -54,6 +100,5 @@ class TestOSIStoUSFM3(TestCase):
         self.assertIsNone(lemma)
 
     def test_get_lemma(self):
-        lexicon = ET.parse(os.path.join(self.resources_dir, 'lexicon.xml')).getroot()
-        lemma = osistousfm3.getLemma(lexicon, 'H2')
+        lemma = osistousfm3.getLemma(self.lexicon, 'H2')
         self.assertEqual(u'אַב', lemma)
