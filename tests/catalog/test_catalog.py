@@ -368,9 +368,3 @@ class TestCatalog(TestCase):
         new_catalog = {}
         result = state['handler']._catalog_has_changed(new_catalog)
         self.assertTrue(result)
-
-    # def test_make_usfm2_format(self, mock_reporter):
-    #     format = {}
-    #     expected_format = {}
-    #     usfm2_format = CatalogHandler._make_usfm2_format(format)
-    #     assert_object_equals(self, expected_format, usfm2_format)
