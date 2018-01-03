@@ -1,1 +1,44 @@
-hi
+\id MAT Matthew
+\ide UTF-8
+\h Matthew
+\toc1
+\toc2 Matthew
+\toc3 Mat
+\mt Matthew
+
+\c 1
+\p
+
+\v 1
+\p
+\w βίβλος|lemma="βίβλος" strong="G09760" x-morph="Gr,N,,,,,NFS,"\w*
+\w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS,"\w*
+\k-s | x-tw="rc://*/tw/dict/bible/kt/jesus"
+\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ"  \w*
+\k-e\*,
+\w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/sonofgod"  x-tw="rc://*/tw/dict/bible/kt/son" \w*
+\w Δαυεὶδ|lemma="Δαυείδ" strong="G11380" x-morph="Gr,N,,,,,GMSI" x-tw="rc://*/tw/dict/bible/names/david" \w*,
+\w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/sonofgod"  x-tw="rc://*/tw/dict/bible/kt/son" \w*
+\w Ἀβραάμ|lemma="Ἀβραάμ" strong="G00110" x-morph="Gr,N,,,,,GMSI" x-tw="rc://*/tw/dict/bible/names/abraham" \w*:
+
+\v 2
+\p
+\w Ἀβραὰμ|lemma="Ἀβραάμ" strong="G00110" x-morph="Gr,N,,,,,NMSI" x-tw="rc://*/tw/dict/bible/names/abraham" \w*
+\w ἐγέννησεν|lemma="γεννάω" strong="G10800" x-morph="Gr,V,IAA3,,S," x-tw="rc://*/tw/dict/bible/other/father" \w*
+\w τὸν|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMS,"\w*
+\w Ἰσαάκ|lemma="Ἰσαάκ" strong="G24640" x-morph="Gr,N,,,,,AMSI" x-tw="rc://*/tw/dict/bible/names/isaac" \w*,
+\w Ἰσαὰκ|lemma="Ἰσαάκ" strong="G24640" x-morph="Gr,N,,,,,NMSI" x-tw="rc://*/tw/dict/bible/names/isaac" \w*
+\w δὲ|lemma="δέ" strong="G11610" x-morph="Gr,CC,,,,,,,,"\w*
+\w ἐγέννησεν|lemma="γεννάω" strong="G10800" x-morph="Gr,V,IAA3,,S," x-tw="rc://*/tw/dict/bible/other/father" \w*
+\w τὸν|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMS,"\w*
+\w Ἰακώβ|lemma="Ἰακώβ" strong="G23840" x-morph="Gr,N,,,,,AMSI" x-tw="rc://*/tw/dict/bible/names/jacob" \w*,
+\w Ἰακὼβ|lemma="Ἰακώβ" strong="G23840" x-morph="Gr,N,,,,,NMSI" x-tw="rc://*/tw/dict/bible/names/jacob" \w*
+\w δὲ|lemma="δέ" strong="G11610" x-morph="Gr,CC,,,,,,,,"\w*
+\w ἐγέννησεν|lemma="γεννάω" strong="G10800" x-morph="Gr,V,IAA3,,S," x-tw="rc://*/tw/dict/bible/other/father" \w*
+\w τὸν|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMS,"\w*
+\w Ἰούδαν|lemma="Ἰούδας" strong="G24550" x-morph="Gr,N,,,,,AMS," x-tw="rc://*/tw/dict/bible/kt/brother" \w*
+\w καὶ|lemma="καί" strong="G25320" x-morph="Gr,CC,,,,,,,,"\w*
+\w τοὺς|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMP,"\w*
+\w ἀδελφοὺς|lemma="ἀδελφός" strong="G00800" x-morph="Gr,N,,,,,AMP,"\w*
+\w αὐτοῦ|lemma="αὐτός" strong="G08460" x-morph="Gr,RP,,,3GMS,"\w*,

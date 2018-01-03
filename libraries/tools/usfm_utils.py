@@ -262,26 +262,35 @@ def get_usfm3_word_strongs(usfm3_line):
 
 def strip_tw_links(usfm, links=None):
     """
-    Removes tW links from a usfm string for backwards compatibility with the legacy tS api
+    Removes tW links from a usfm string for backwards compatibility with the legacy tS api.
+
     :param usfm:
-    :param links:
+    :param links: only remove these links. If left None all links will be removed. Milestones are always removed.
     :return:
     """
     updated_usfm=usfm
+    # remove milestones
+    updated_usfm = re.sub(r'\\k-[es].*\n*', '', updated_usfm)
+    # remove links
     if links:
         for link in links:
             updated_usfm = re.sub(r'x-tw="' + re.escape(link) + '"\s*', '', updated_usfm)
     else:
-        updated_usfm = re.sub(r'x-tw="([^"]*)"\s*', '', usfm)
+        updated_usfm = re.sub(r'x-tw="([^"]*)"\s*', '', updated_usfm)
     return updated_usfm
 
-def strip_word_data(usfm):
+def strip_word_data(usfm3):
     """
     Removes word data from a USFM 3 string for backwards compatibility with USFM 2
-    :param usfm:
+    :param usfm3:
     :return:
     """
-    return re.sub(r'\\w\s*([^\\w\|]*)[^\\w]*\\w\*', r'\g<1>', usfm)
+    # TRICKY: place words on their own lines
+    usfm = re.sub(r'(.)([ \t]*)(\\w[^*])', r'\g<1>\n\g<3>', usfm3, re.UNICODE)
+    # remove words
+    usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, re.UNICODE)
+    # group words onto single line
+    return re.sub(r'(\n+)([^\\|\n])', r' \g<2>', usfm, re.UNICODE)
 
 def convert_chunk_markers(str):
     """
@@ -297,4 +306,4 @@ def usfm3_to_usfm2(usfm3):
     :param usfm3:
     :return: the USFM 2 version of the string
     """
-    return convert_chunk_markers(strip_word_data(strip_tw_links(usfm3)))
+    return strip_word_data(strip_tw_links(usfm3))

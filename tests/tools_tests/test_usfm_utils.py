@@ -19,8 +19,8 @@ class TestUsfmUtils(TestCase):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_strip_usfm_word_data(self):
-        input = '\\v 1 Ce \w qui|strong="G3739"\w* \w était|strong="G2258" x-morph="strongMorph:TG5713"\w* \w dès|strong="G575"\w*'
-        expected = '\\v 1 Ce qui était dès'
+        input = u'\\v 1 Ce \\w qui|strong="G3739" \\w* \\w était|strong="G2258" x-morph="strongMorph:TG5713" \\w* \\w dès|strong="G575" \\w*'
+        expected = u'\\v 1 Ce qui était dès'
         output = strip_word_data(input)
         self.assertEqual(expected, output)
 
@@ -38,7 +38,46 @@ class TestUsfmUtils(TestCase):
         output = convert_chunk_markers(input)
         self.assertEqual(expected, output)
 
-    def test_strip_some_tw_link(self):
+    def test_strip_all_complex_tw_links(self):
+        input = u'''
+\w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
+\k-s | x-tw="rc://*/tw/dict/bible/kt/jesus"
+\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*
+\k-e\*,
+\w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/sonofgod"  x-tw="rc://*/tw/dict/bible/kt/son" \w*'''
+        expected = u'''
+\w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
+\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," \w*
+\w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," \w*'''
+        output = strip_tw_links(input)
+        self.assertEqual(expected, output)
+
+    def test_strip_some_complex_tw_links(self):
+        links = ['rc://*/tw/dict/bible/kt/jesus', 'rc://*/tw/dict/bible/kt/sonofgod']
+        input = u'''
+\w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
+\k-s | x-tw="{}"
+\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*
+\k-e\*,
+\w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="{}"  x-tw="rc://*/tw/dict/bible/kt/son" \w*'''.format(links[0], links[1])
+        expected = u'''
+\w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
+\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*
+\w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/son" \w*'''
+        output = strip_tw_links(input, links)
+        self.assertEqual(expected, output)
+
+    def test_strip_all_tw_links(self):
+        input = '\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" x-tw="rc://*/tw/dict/bible/kt/jesus" \w*,'
+        expected = '\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," \w*,'
+        output = strip_tw_links(input)
+        self.assertEqual(expected, output)
+
+    def test_strip_some_tw_links(self):
         links = ['rc://*/tw/dict/bible/kt/jesus', 'rc://*/tw/dict/bible/kt/test']
         input = '\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" x-tw="{}" x-tw="{}" \w*,'.format(links[0], links[1])
         expected = '\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*,'

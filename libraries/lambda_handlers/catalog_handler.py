@@ -263,6 +263,7 @@ class CatalogHandler(InstanceHandler):
     def _make_usfm2_format(fmt):
         """
         Converts a usfm3 format into a usfm2 format
+        @deprecated the usfm generation will not be a part of the catalog.
         :param fmt:
         :return: the usfm2 format
         """
