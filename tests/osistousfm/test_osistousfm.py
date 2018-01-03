@@ -52,7 +52,7 @@ class TestOSIStoUSFM3(TestCase):
     def test_convert_word_with_complex_strong(self):
         word = ET.fromstring('<w lemma="a/3068 b" n="0.1.1.0" morph="HNp">יְהוָ֜ה</w>')
         usfm = osistousfm3.convertWord(self.lexicon, word)
-        self.assertEqual(u'\w יְהוָ֜ה|lemma="יְהֹוָה" strong="a:H03068 b" x-morph="He,Np" \w*', usfm)
+        self.assertEqual(u'\w יְהוָ֜ה|lemma="יְהֹוָה" strong="a:H03068b" x-morph="He,Np" \w*', usfm)
 
     def test_convert_word_missing_morph(self):
         word = ET.fromstring('<w lemma="3068" n="0.1.1.0">יְהוָ֜ה</w>')
@@ -77,17 +77,17 @@ class TestOSIStoUSFM3(TestCase):
     def test_parse_strong_with_suffix(self):
         strong, formatted = osistousfm3.parseStrong('3027 a')
         self.assertEqual('3027', strong)
-        self.assertEqual('H03027 a', formatted)
+        self.assertEqual('H03027a', formatted)
 
     def test_parse_strong_with_multiple_suffix(self):
         strong, formatted = osistousfm3.parseStrong('3027 a b')
         self.assertEqual('3027', strong)
-        self.assertEqual('H03027 a b', formatted)
+        self.assertEqual('H03027ab', formatted)
 
     def test_parse_strong_suffix_and_prefix(self):
         strong, formatted = osistousfm3.parseStrong('a/3027 b')
         self.assertEqual('3027', strong)
-        self.assertEqual('a:H03027 b', formatted)
+        self.assertEqual('a:H03027b', formatted)
 
     def test_convert_file(self):
         usfm = osistousfm3.convertFile(osis_file=os.path.join(self.resources_dir, 'osis/Hag.xml'),

@@ -181,6 +181,7 @@ def parseStrong(str):
 
     formatted = str.replace(strong, 'H{}'.format(strong.zfill(5)))
     formatted = re.sub(r'/', ':', formatted)
+    formatted = re.sub(r'\s+', '', formatted)
     return strong, formatted
 
 def getXmlBooks(xml):
