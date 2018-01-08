@@ -285,12 +285,12 @@ def strip_word_data(usfm3):
     :param usfm3:
     :return:
     """
-    # TRICKY: place words on their own lines
+    # TRICKY: place words on their own lines so regex doesn't break
     usfm = re.sub(r'(.)([ \t]*)(\\w[^*])', r'\g<1>\n\g<3>', usfm3, re.UNICODE)
     # remove words
     usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, re.UNICODE)
     # group words onto single line
-    return re.sub(r'(\n+)([^\\|\n])', r' \g<2>', usfm, re.UNICODE)
+    return re.sub(r'(\n+)([^\\|\n| +])', r' \g<2>', usfm, re.UNICODE)
 
 def convert_chunk_markers(str):
     """

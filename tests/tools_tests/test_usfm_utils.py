@@ -24,6 +24,22 @@ class TestUsfmUtils(TestCase):
         output = strip_word_data(input)
         self.assertEqual(expected, output)
 
+    def test_strip_usfm_mixed_word_data(self):
+        input = u'''\\v 7  \\w Fils|strong="H1121"\\w* de \\w Javan|strong="H3120"\\w*: \\w Élischa|strong="H473"\\w*, \\w Tarsisa|strong="H8659"\\w*, \\w Kittim|strong="H3794"\\w* et \\w Rodanim|strong="H1721"\\w*.
+
+\\s5
+\\v 8  \\w Fils|strong="H1121"\\w* de \\w Cham|strong="H2526"\\w*: \\w Cusch|strong="H3568"\\w*, \\w Mitsraïm|strong="H4714"\\w*, \\w Puth|strong="H6316"\\w* et \\w Canaan|strong="H3667"\\w*. -
+\\v 9  \\w Fils|strong="H1121"\\w* de \\w Cusch|strong="H3568"\\w*: \\w Saba|strong="H5434"\\w*, \\w Havila|strong="H2341"\\w*, \\w Sabta|strong="H5454"\\w*, \\w Raema|strong="H7484"\\w* et \\w Sabteca|strong="H5455"\\w*. -\\w Fils|strong="H1121"\\w* de \\w Raema|strong="H7484"\\w*: \\w Séba|strong="H7614"\\w* et \\w Dedan|strong="H1719"\\w*.
+\\v 10  \\w Cusch|strong="H3568"\\w* \\w engendra|strong="H3205" x-morph="strongMorph:TH8804"\\w* \\w Nimrod|strong="H5248"\\w*; c'est lui qui \\w commença|strong="H2490" x-morph="strongMorph:TH8689"\\w* à être \\w puissant|strong="H1368"\\w* sur la \\w terre|strong="H776"\\w*. -'''
+        expected = u'''\\v 7 Fils de Javan: Élischa, Tarsisa, Kittim et Rodanim.
+
+\\s5
+\\v 8 Fils de Cham: Cusch, Mitsraïm, Puth et Canaan. -
+\\v 9 Fils de Cusch: Saba, Havila, Sabta, Raema et Sabteca. - Fils de Raema: Séba et Dedan.
+\\v 10 Cusch engendra Nimrod; c'est lui qui commença à être puissant sur la terre. -'''
+        output = strip_word_data(input)
+        self.assertEqual(expected, output)
+
     def test_tw_phrase_print(self):
         phrase = tWPhrase(1)
         phrase.addLine(u'\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
