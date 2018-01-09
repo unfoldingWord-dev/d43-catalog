@@ -286,7 +286,7 @@ def strip_word_data(usfm3):
     :return:
     """
     # TRICKY: place words on their own lines so regex doesn't break
-    usfm = re.sub(r'(\\w[^*])', r'\n\g<1>', usfm3, re.UNICODE)
+    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm3, re.UNICODE)
     # remove words
     usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, re.UNICODE)
     # group words onto single line
