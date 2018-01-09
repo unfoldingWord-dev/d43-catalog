@@ -52,7 +52,7 @@ class CatalogHandler(InstanceHandler):
         if 'consistency_checker' in kwargs:
             self.checker = kwargs['consistency_checker']()
         else:
-            self.checker = ConsistencyChecker() # pragma: no cover
+            self.checker = ConsistencyChecker(self.cdn_bucket, self.api_bucket) # pragma: no cover
         if 'get_url_handler' in kwargs:
             self.get_url = kwargs['get_url_handler']
         else:
