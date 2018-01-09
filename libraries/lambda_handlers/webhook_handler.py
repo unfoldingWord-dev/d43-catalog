@@ -201,6 +201,8 @@ class WebhookHandler(Handler):
 
         # identifiers must be lowercase
         manifest['dublin_core']['identifier'] = self.sanitize_identifier(manifest['dublin_core']['identifier'])
+        # resource version must be string
+        manifest['dublin_core']['version'] = '{}'.format(manifest['dublin_core']['version'])
 
         # build media formats
         media_formats = {
@@ -490,7 +492,7 @@ class WebhookHandler(Handler):
 
         # TRICKY: using `latest` as an expansion variable in urls is not explicitly stated in the spec,
         # but it's a common misunderstanding so we allow it.
-        vars['latest'] = content_version
+        vars['latest'] = '{}'.format(content_version)
 
         return vars
 
@@ -513,7 +515,7 @@ class WebhookHandler(Handler):
     def _replace(str, key, value):
         """
         A safe way to replace values in a string.
-        This allow replacing with numbers
+        This allows replacing with numbers
         :param str:
         :param key:
         :param value: any scalar value
