@@ -83,8 +83,10 @@ def assert_s3_equals_api_json(unit_test, mock_s3, mock_api, key):
     :return:
     """
     unit_test.assertIn(key, mock_s3._recent_uploads)
-    s3_obj = json.loads(read_file(mock_s3._recent_uploads[key]))
-    api_obj = json.loads(mock_api.get_url(key))
+    s3_str = read_file(mock_s3._recent_uploads[key])
+    api_str = mock_api.get_url(key)
+    s3_obj = json.loads(s3_str)
+    api_obj = json.loads(api_str)
     assert_object_equals(unit_test, s3_obj, api_obj)
 
 def assert_s3_equals_api_text(unit_test, mock_s3, mock_api, key):
