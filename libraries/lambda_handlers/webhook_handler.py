@@ -304,36 +304,36 @@ class WebhookHandler(Handler):
 
         # add html format
         # TRICKY: these URLS are only available in prod
-        for project in manifest['projects']:
-            pid = self.sanitize_identifier(project['identifier'])
-            html_url = ''
-            if manifest['dublin_core']['identifier'] == 'obs':
-                # obs html
-                html_url = 'https://api.door43.org/tx/print?id={}/{}/{}'.format(self.gogs_org, self.repo_name, self.commit_id)
-            elif manifest['dublin_core']['identifier'] == 'ta':
-                # ta html
-                sort_slug = '{}'.format(int(project['sort']) + 1).zfill(2)
-                html_url = 'https://cdn.door43.org/u/Door43-Catalog/{}/{}/{}-{}.html'.format(self.repo_name, self.commit_id, sort_slug, pid)
-            elif manifest['dublin_core']['identifier'] not in ['tq', 'tn', 'tw', 'obs-tn', 'obs-tq']:
-                # we also have html for Bible resources
-                name, _ = os.path.splitext(os.path.basename(project['path']))
-                html_url = 'https://cdn.door43.org/u/Door43-Catalog/{}/{}/{}.html'.format(self.repo_name, self.commit_id, name)
-
-            if html_url and url_exists(html_url):
-                self.logger.info('Injecting {} html url: {}'.format(manifest['dublin_core']['identifier'], html_url))
-                if 'formats' not in project: project['formats'] = []
-                project['formats'].append({
-                    'format': 'text/html',
-                    'modified': '',
-                    'signature': '',
-                    'size': '',
-                    'url': html_url,
-                    'build_rules': [
-                        'signing.html_format'
-                    ]
-                })
-            else:
-                self.logger.warning('Missing html format for {}_{} at {}'.format(self.repo_name, pid, html_url))
+        # for project in manifest['projects']:
+        #     pid = self.sanitize_identifier(project['identifier'])
+        #     html_url = ''
+        #     if manifest['dublin_core']['identifier'] == 'obs':
+        #         # obs html
+        #         html_url = 'https://api.door43.org/tx/print?id={}/{}/{}'.format(self.gogs_org, self.repo_name, self.commit_id)
+        #     elif manifest['dublin_core']['identifier'] == 'ta':
+        #         # ta html
+        #         sort_slug = '{}'.format(int(project['sort']) + 1).zfill(2)
+        #         html_url = 'https://cdn.door43.org/u/Door43-Catalog/{}/{}/{}-{}.html'.format(self.repo_name, self.commit_id, sort_slug, pid)
+        #     elif manifest['dublin_core']['identifier'] not in ['tq', 'tn', 'tw', 'obs-tn', 'obs-tq']:
+        #         # we also have html for Bible resources
+        #         name, _ = os.path.splitext(os.path.basename(project['path']))
+        #         html_url = 'https://cdn.door43.org/u/Door43-Catalog/{}/{}/{}.html'.format(self.repo_name, self.commit_id, name)
+        #
+        #     if html_url and url_exists(html_url):
+        #         self.logger.info('Injecting {} html url: {}'.format(manifest['dublin_core']['identifier'], html_url))
+        #         if 'formats' not in project: project['formats'] = []
+        #         project['formats'].append({
+        #             'format': 'text/html',
+        #             'modified': '',
+        #             'signature': '',
+        #             'size': '',
+        #             'url': html_url,
+        #             'build_rules': [
+        #                 'signing.html_format'
+        #             ]
+        #         })
+        #     else:
+        #         self.logger.warning('Missing html format for {}_{} at {}'.format(self.repo_name, pid, html_url))
 
         return {
             'repo_name': self.repo_name,
@@ -472,6 +472,15 @@ class WebhookHandler(Handler):
                         project_formats.append(format)
                 formats['projects'][project['identifier']] = project_formats
         return formats
+
+    @staticmethod
+    def _parse_media(media_str, content_version, project_chapters):
+        # TODO: this will parse a media yaml string and return the appropriate json
+        # the purpose is to make the code in _build_media_formats easily testable
+        # without lots of boiler plate.
+        # TODO: this will require another method to generate a list of chapters for projects in an RC.
+
+        pass
 
     @staticmethod
     def _make_expansion_variables(media_block, content_version):
