@@ -136,7 +136,7 @@ class USFMWordReader:
             self.header.append(self.line)
             if self.line.startswith('\\id'):
                 # get id
-                match = re.findall('^\\\id\s+(\w+)\s+.*', self.line, re.IGNORECASE | re.UNICODE)
+                match = re.findall('^\\\id\s+(\w+)\s+.*', self.line, flags=re.IGNORECASE | re.UNICODE)
                 if match:
                     self.book = match[0].lower()
                 else:
@@ -194,7 +194,7 @@ class USFMWordReader:
 
             # start chapter
             if re.match(r'\\c\b', self.line):
-                match = re.findall(r'^\\c\s+(\d+)', self.line, re.IGNORECASE | re.UNICODE)
+                match = re.findall(r'^\\c\s+(\d+)', self.line, flags=re.IGNORECASE | re.UNICODE)
                 if match:
                     self.chapter = unzpad(match[0])
                     self.verse = None
@@ -203,7 +203,7 @@ class USFMWordReader:
 
             # start verse
             if re.match(r'\\v\b', self.line):
-                match = re.findall(r'^\\v\s+(\d+)', self.line, re.IGNORECASE | re.UNICODE)
+                match = re.findall(r'^\\v\s+(\d+)', self.line, flags=re.IGNORECASE | re.UNICODE)
                 if match:
                     self.verse = unzpad(match[0])
                 else:
@@ -243,7 +243,7 @@ def get_usfm3_word_links(usfm3_line):
     """
     links = []
     if usfm3_line and re.match(r'.*x-tw=', usfm3_line):
-        links = re.findall(r'x-tw="([^"]*)"', usfm3_line, re.IGNORECASE | re.UNICODE)
+        links = re.findall(r'x-tw="([^"]*)"', usfm3_line, flags=re.IGNORECASE | re.UNICODE)
     return links
 
 def get_usfm3_word_strongs(usfm3_line):
@@ -254,7 +254,7 @@ def get_usfm3_word_strongs(usfm3_line):
     """
     strong = None
     if re.match(r'\\w\b', usfm3_line):
-        match = re.findall(r'strong="([\w]+)"', usfm3_line, re.IGNORECASE | re.UNICODE)
+        match = re.findall(r'strong="([\w]+)"', usfm3_line, flags=re.IGNORECASE | re.UNICODE)
         if match:
             strong = match[0]
         else:
@@ -287,17 +287,17 @@ def strip_word_data(usfm3):
     :return:
     """
     # TRICKY: place words on their own lines so regex doesn't break
-    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm3, re.UNICODE)
+    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm3, flags=re.UNICODE)
     # remove words
-    usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, re.UNICODE)
+    usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, flags=re.UNICODE)
     # group words onto single line
-    usfm = re.sub(r'(\n+)([^\\\n +])', r' \g<2>', usfm, re.UNICODE)
+    usfm = re.sub(r'(\n+)([^\\\n +])', r' \g<2>', usfm, flags=re.UNICODE)
     # clean whitespace
-    usfm = re.sub(r'^\s*', '', usfm, re.UNICODE | re.MULTILINE)
-    usfm = re.sub(r'\s*$', '', usfm, re.UNICODE | re.MULTILINE)
-    usfm = re.sub(r'^\n+', '\n', usfm, re.UNICODE | re.MULTILINE)
-    usfm = re.sub(r' {2,}', ' ', usfm, re.UNICODE)
-    return usfm
+    usfm = re.sub(r'^[ \t]*', '', usfm, flags=re.UNICODE | re.MULTILINE)
+    usfm = re.sub(r'[ \t]*$', '', usfm, flags=re.UNICODE | re.MULTILINE)
+    usfm = re.sub(r'^\n{2,}', '\n\n', usfm, flags=re.UNICODE | re.MULTILINE)
+    usfm = re.sub(r' {2,}', ' ', usfm, flags=re.UNICODE)
+    return usfm.strip()
 
 def convert_chunk_markers(str):
     """
