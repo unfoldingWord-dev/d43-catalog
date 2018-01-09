@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-
+# coding=utf-8
 #
 # Class for converting the catalog into a format compatible with the v2 api.
 #
 
+from __future__ import unicode_literals
 import json
 import logging
 import math

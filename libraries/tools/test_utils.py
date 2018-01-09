@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 import json
 import os
 from file_utils import read_file
