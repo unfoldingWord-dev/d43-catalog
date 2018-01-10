@@ -82,15 +82,15 @@ def _make_format(source_version, media_version, quality, media, expansion_vars):
     return format
 
 
-def _parse_project(project, content_version, chapters):
+def _parse_project(project, content_version, chapters_ids):
     """
     Converts a project media object into formats usable in the catalog
     :param project: the media object
     :type project: dict
     :param content_version: the current version of the source content
     :type content_version: string
-    :param chapters: a list of chapter identifiers in the project
-    :type chapters: list
+    :param chapters_ids: a list of chapter identifiers in the project
+    :type chapters_ids: list
     :return: a list of formats
     """
     source_version = _expand_keys(project['version'], {'latest': content_version})
@@ -108,7 +108,7 @@ def _parse_project(project, content_version, chapters):
                                                         quality=quality,
                                                         media=media,
                                                         expansion_vars=expansion_vars)
-                    chapters = _prepare_chapter_formats(media, chapters, expansion_vars)
+                    chapters = _prepare_chapter_formats(media, chapters_ids, expansion_vars)
                     if chapters:
                         format['chapters'] = chapters
 
@@ -121,7 +121,7 @@ def _parse_project(project, content_version, chapters):
                                                     quality=None,
                                                     media=media,
                                                     expansion_vars=expansion_vars)
-                chapters = _prepare_chapter_formats(media, chapters, expansion_vars)
+                chapters = _prepare_chapter_formats(media, chapters_ids, expansion_vars)
                 if chapters:
                     format['chapters'] = chapters
 

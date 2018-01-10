@@ -161,7 +161,61 @@ projects:
         assert_object_equals(self, expected, output)
 
     def test_parse_quality(self):
-        raise Exception('not implemented')
+        media = {
+            'identifier': 'obs',
+            'version': '{latest}',
+            'media': [
+                {
+                    'identifier': 'mp4',
+                    'version': 1,
+                    'contributor': [
+                        'First Contributor',
+                        'Second Contributor'
+                    ],
+                    'quality': [
+                        '720p',
+                        '360p'
+                    ],
+                    'url': 'https://cdn.door43.org/obs/txt/1/hmr/{quality}/obs-hmr-v4_1.mp4'
+                }
+            ]
+        }
+        content_version = '4.1'
+        chapters = {}
+        output = _parse_project(media, content_version, chapters)
+        expected = [
+            {
+                'build_rules': ['signing.sign_given_url'],
+                'contributor': [
+                    'First Contributor',
+                    'Second Contributor'
+                ],
+                'quality': '720p',
+                'format': '',
+                'modified': '',
+                'signature': '',
+                'size': 0,
+                'source_version': '4.1',
+                'url': 'https://cdn.door43.org/obs/txt/1/hmr/720p/obs-hmr-v4_1.mp4',
+                'version': '1'
+            },
+            {
+                'build_rules': ['signing.sign_given_url'],
+                'contributor': [
+                    'First Contributor',
+                    'Second Contributor'
+                ],
+                'quality': '360p',
+                'format': '',
+                'modified': '',
+                'signature': '',
+                'size': 0,
+                'source_version': '4.1',
+                'url': 'https://cdn.door43.org/obs/txt/1/hmr/360p/obs-hmr-v4_1.mp4',
+                'version': '1'
+            }
+        ]
+        assert_object_equals(self, expected, output)
 
     def test_parse_chapters(self):
         media = {
@@ -222,7 +276,102 @@ projects:
         assert_object_equals(self, expected, output)
 
     def test_parse_chapters_with_quality(self):
-        raise Exception('not implemented')
+        media = {
+            'identifier': 'obs',
+            'version': '{latest}',
+            'media': [
+                {
+                    'identifier': 'mp4',
+                    'version': 1,
+                    'contributor': [
+                        'First Contributor',
+                        'Second Contributor'
+                    ],
+                    'quality': [
+                        '720p',
+                        '360p'
+                    ],
+                    'url': 'https://cdn.door43.org/obs/txt/1/hmr/{quality}/obs-hmr-v4_1.mp4',
+                    'chapter_url': 'https://cdn.door43.org/obs/txt/v{version}/hmr/media/{identifier}/{quality}/obs_{chapter}.mp4'
+                }
+            ]
+        }
+        content_version = '4.1'
+        chapters = ['01', '02']
+        output = _parse_project(media, content_version, chapters)
+        expected = [
+            {
+                'build_rules': ['signing.sign_given_url'],
+                'contributor': [
+                    'First Contributor',
+                    'Second Contributor'
+                ],
+                'format': '',
+                'modified': '',
+                'signature': '',
+                'size': 0,
+                'quality': '720p',
+                'source_version': '4.1',
+                'url': 'https://cdn.door43.org/obs/txt/1/hmr/720p/obs-hmr-v4_1.mp4',
+                'version': '1',
+                'chapters': [
+                    {
+                        "build_rules": ['signing.sign_given_url'],
+                        "identifier": "01",
+                        "length": 0,
+                        "modified": "",
+                        "signature": "",
+                        "size": 0,
+                        "url": "https://cdn.door43.org/obs/txt/v1/hmr/media/mp4/720p/obs_01.mp4"
+                    },
+                    {
+                        "build_rules": ['signing.sign_given_url'],
+                        "identifier": "02",
+                        "length": 0,
+                        "modified": "",
+                        "signature": "",
+                        "size": 0,
+                        "url": "https://cdn.door43.org/obs/txt/v1/hmr/media/mp4/720p/obs_02.mp4"
+                    }
+                ]
+            },
+            {
+                'build_rules': ['signing.sign_given_url'],
+                'contributor': [
+                    'First Contributor',
+                    'Second Contributor'
+                ],
+                'format': '',
+                'modified': '',
+                'signature': '',
+                'size': 0,
+                'quality': '360p',
+                'source_version': '4.1',
+                'url': 'https://cdn.door43.org/obs/txt/1/hmr/360p/obs-hmr-v4_1.mp4',
+                'version': '1',
+                'chapters': [
+                    {
+                        "build_rules": ['signing.sign_given_url'],
+                        "identifier": "01",
+                        "length": 0,
+                        "modified": "",
+                        "signature": "",
+                        "size": 0,
+                        "url": "https://cdn.door43.org/obs/txt/v1/hmr/media/mp4/360p/obs_01.mp4"
+                    },
+                    {
+                        "build_rules": ['signing.sign_given_url'],
+                        "identifier": "02",
+                        "length": 0,
+                        "modified": "",
+                        "signature": "",
+                        "size": 0,
+                        "url": "https://cdn.door43.org/obs/txt/v1/hmr/media/mp4/360p/obs_02.mp4"
+                    }
+                ]
+            }
+        ]
+        assert_object_equals(self, expected, output)
 
     def test_replace_keys(self):
         url = 'https://example.com/{mykey}/hi/what_{what}/0'
