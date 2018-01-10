@@ -3,7 +3,7 @@ import yaml
 from mock import patch, mock, MagicMock
 
 from unittest import TestCase
-from libraries.lambda_handlers.webhook_handler import WebhookHandler
+from libraries.tools.media_utils import parse_media, _parse_project, _parse_resource, _expand_keys
 from libraries.tools.test_utils import assert_object_equals
 
 
@@ -28,7 +28,7 @@ projects:
         content_version = '4.1'
         project_chapters = {}
         with self.assertRaises(Exception) as context:
-            WebhookHandler.parse_media(media, content_version, project_chapters)
+            parse_media(media, content_version, project_chapters)
 
         self.assertTrue(context.exception.message.startswith('Invalid replacement target'))
 
@@ -54,7 +54,7 @@ projects:
         media = yaml.load(media_yaml)
         content_version = '4.1'
         project_chapters = {}
-        resource_formats, project_formats = WebhookHandler.parse_media(media, content_version, project_chapters)
+        resource_formats, project_formats = parse_media(media, content_version, project_chapters)
         expected = {
             'resource_formats': [
                 {
@@ -104,7 +104,7 @@ projects:
             ]
         }
         content_version = '4.1'
-        output = WebhookHandler.parse_resource_media(media, content_version)
+        output = _parse_resource(media, content_version)
         expected = [
             {
                 'build_rules': ['signing.sign_given_url'],
@@ -141,7 +141,7 @@ projects:
         }
         content_version = '4.1'
         chapters = {}
-        output = WebhookHandler.parse_project_media(media, content_version, chapters)
+        output = _parse_project(media, content_version, chapters)
         expected = [
             {
                 'build_rules': ['signing.sign_given_url'],
@@ -182,7 +182,7 @@ projects:
         }
         content_version = '4.1'
         chapters = ['01', '02']
-        output = WebhookHandler.parse_project_media(media, content_version, chapters)
+        output = _parse_project(media, content_version, chapters)
         expected = [
             {
                 'build_rules': ['signing.sign_given_url'],
@@ -223,3 +223,12 @@ projects:
 
     def test_parse_chapters_with_quality(self):
         raise Exception('not implemented')
+
+    def test_replace_keys(self):
+        url = 'https://example.com/{mykey}/hi/what_{what}/0'
+        dict = {
+            'mykey':'myvalue',
+            'what': 'you'
+        }
+        new_url = _expand_keys(url, dict)
+        self.assertEqual('https://example.com/myvalue/hi/what_you/0', new_url)
