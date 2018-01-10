@@ -6,7 +6,7 @@ from mock import patch, mock, MagicMock
 from unittest import TestCase
 from libraries.tools.mocks import MockAPI, MockDynamodbHandler, MockS3Handler, MockLogger
 from libraries.lambda_handlers.webhook_handler import WebhookHandler
-from libraries.tools.test_utils import assert_object_equals_file
+from libraries.tools.test_utils import assert_object_equals_file, assert_object_equals
 from libraries.tools.file_utils import load_json_object, load_yaml_object
 
 

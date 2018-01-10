@@ -474,13 +474,195 @@ class WebhookHandler(Handler):
         return formats
 
     @staticmethod
-    def _parse_media(media_str, content_version, project_chapters):
-        # TODO: this will parse a media yaml string and return the appropriate json
-        # the purpose is to make the code in _build_media_formats easily testable
-        # without lots of boiler plate.
-        # TODO: this will require another method to generate a list of chapters for projects in an RC.
+    def parse_media(media, content_version, project_chapters):
+        """
+        Converts a media object into formats usable in the catalog
+        :param media: the media object
+        :type media: dict
+        :param content_version: the current version of the source content
+        :type content_version: string
+        :param project_chapters: a dictionary of project chapters
+        :type  project_chapters: list
+        :return: resource_formats, project_formats a list of resource formats and dictionary of project formats
+        """
+        resource_formats = []
+        project_formats = {}
 
-        pass
+        if 'resource' in media:
+            resource_formats = WebhookHandler.parse_resource_media(media['resource'], content_version)
+        if 'projects' in media:
+            for project in media['projects']:
+                project_id = project['identifier']
+                chapters = []
+                if project_id in project_chapters:
+                    chapters = project_chapters[project_id]
+                project_formats[project_id] = WebhookHandler.parse_project_media(project, content_version, chapters)
+        return resource_formats, project_formats
+
+    @staticmethod
+    def parse_resource_media(resource, content_version):
+        """
+        Converts a resource media object into formats usable in the catalog
+        :param resource: the media object
+        :type resource: dict
+        :param content_version: the current version of the source content
+        :type content_version: string
+        :return: a list of formats
+        """
+        source_version = WebhookHandler._replace(resource['version'], 'latest', content_version)
+        formats = []
+        if 'media' in resource:
+            for media in resource['media']:
+                media_version = WebhookHandler._replace(media['version'], 'latest', content_version)
+                expansion_vars = WebhookHandler._make_expansion_variables(media, content_version)
+                if 'quality' in media and len(media['quality']) > 0:
+                    # build format for each quality
+                    for quality in media['quality']:
+                        expansion_vars['quality'] = quality
+
+                        format = {
+                            'format': '',
+                            'modified': '',
+                            'size': 0,
+                            'source_version': '{}'.format(source_version),
+                            'version': '{}'.format(media_version),
+                            'quality': quality,
+                            'contributor': media['contributor'],
+                            'url': WebhookHandler._replace_keys(media['url'], expansion_vars),
+                            'signature': '',
+                            'build_rules': [
+                                'signing.sign_given_url'
+                            ]
+                        }
+                        formats.append(format)
+                else:
+                    # build a single format
+                    format = {
+                        'format': '',
+                        'modified': '',
+                        'size': 0,
+                        'source_version': '{}'.format(source_version),
+                        'version': '{}'.format(media_version),
+                        'contributor': media['contributor'],
+                        'url': WebhookHandler._replace_keys(media['url'], expansion_vars),
+                        'signature': '',
+                        'build_rules': [
+                            'signing.sign_given_url'
+                        ]
+                    }
+                    formats.append(format)
+        return formats
+
+    @staticmethod
+    def parse_project_media(project, content_version, chapters):
+        """
+        Converts a project media object into formats usable in the catalog
+        :param project: the media object
+        :type project: dict
+        :param content_version: the current version of the source content
+        :type content_version: string
+        :param chapters: a list of chapter identifiers in the project
+        :type chapters: list
+        :return: a list of formats
+        """
+        source_version = WebhookHandler._replace(project['version'], 'latest', content_version)
+        formats = []
+        if 'media' in project:
+            for media in project['media']:
+                media_version = WebhookHandler._replace(media['version'], 'latest', content_version)
+                expansion_vars = WebhookHandler._make_expansion_variables(media, content_version)
+                if 'quality' in media and len(media['quality']) > 0:
+                    # build format for each quality
+                    for quality in media['quality']:
+                        expansion_vars['quality'] = quality
+
+                        format = {
+                            'format': '',
+                            'modified': '',
+                            'size': 0,
+                            'source_version': '{}'.format(source_version),
+                            'version': '{}'.format(media_version),
+                            'quality': quality,
+                            'contributor': media['contributor'],
+                            'url': WebhookHandler._replace_keys(media['url'], expansion_vars),
+                            'signature': '',
+                            'build_rules': [
+                                'signing.sign_given_url'
+                            ]
+                        }
+                        chapters = WebhookHandler._prepare_chapter_formats(media, chapters, expansion_vars)
+                        if chapters:
+                            format['chapters'] = chapters
+
+                        formats.append(format)
+
+                else:
+                    # build single format
+                    format = {
+                        'format': '',
+                        'modified': '',
+                        'size': 0,
+                        'source_version': '{}'.format(source_version),
+                        'version': '{}'.format(media_version),
+                        'contributor': media['contributor'],
+                        'url': WebhookHandler._replace_keys(media['url'], expansion_vars),
+                        'signature': '',
+                        'build_rules': [
+                            'signing.sign_given_url'
+                        ]
+                    }
+                    chapters = WebhookHandler._prepare_chapter_formats(media, chapters, expansion_vars)
+                    if chapters:
+                        format['chapters'] = chapters
+
+                    formats.append(format)
+        return formats
+
+    @staticmethod
+    def _prepare_chapter_formats(media, chapters, expansion_vars):
+        """
+        This is a wrapper around the method `parse_project_chapter_media`.
+        Since we routinely conditionally prepare chapters in multiple places
+        this handles it in one place
+        :param media: the media object to inspect
+        :param chapters: a list of chapter ids
+        :param expansion_vars: a dictionary of variables that may be expanded in the chapter url
+        :return:
+        """
+        if 'chapter_url' in media:
+            chapter_url = WebhookHandler._replace_keys(media['chapter_url'], expansion_vars)
+            chapters = WebhookHandler.parse_project_chapter_media(chapter_url, chapters)
+            if chapters:
+                return chapters
+        return None
+
+
+    @staticmethod
+    def parse_project_chapter_media(chapter_url, chapters):
+        """
+        Generates chapter formats for use in the catalog
+        :param chapter_url: the url template that will be used in the formats
+        :param chapters: a list of chapter ids
+        :type chapters: list
+        :return:
+        """
+        # TODO: this requires that we give a well formatted list of chapter ids and  check if the Rc is a book
+        # only book RCs can have chapter formats
+        formats = []
+        for chapter_id in chapters:
+            format = {
+                'size': 0,
+                'length': 0,
+                'modified': '',
+                'identifier': chapter_id,
+                'url': WebhookHandler._replace(chapter_url, 'chapter', chapter_id),
+                'signature': '',
+                'build_rules': [
+                    'signing.sign_given_url'
+                ]
+            }
+            formats.append(format)
+        return formats
 
     @staticmethod
     def _make_expansion_variables(media_block, content_version):
@@ -521,16 +703,22 @@ class WebhookHandler(Handler):
         return new_str
 
     @staticmethod
-    def _replace(str, key, value):
+    def _replace(target, key, value):
         """
         A safe way to replace values in a string.
         This allows replacing with numbers
-        :param str:
+        :param target:
+        :type target: basestring
         :param key:
         :param value: any scalar value
         :return:
         """
-        return re.sub(r'{' + key + '}', '{}'.format(value), '{}'.format(str))
+        if isinstance(target, basestring) or isinstance(target, str):
+            return re.sub(r'{' + key + '}', '{}'.format(value), '{}'.format(target))
+        elif isinstance(target, int):
+            return target
+        else:
+            raise Exception('Invalid replacement target "{}". Expected string but received {}'.format(target, type(target)))
 
     def _build_media_chapters(self, rc_dir, manifest, pid, chapter_url):
         """
