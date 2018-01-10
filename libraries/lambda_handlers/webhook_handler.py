@@ -24,6 +24,7 @@ from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.date_utils import str_to_timestamp
 from libraries.tools.file_utils import unzip, read_file, write_file
 from libraries.tools.url_utils import get_url, download_file, url_exists
+from libraries.tools.media_utils import parse_media
 
 from libraries.lambda_handlers.handler import Handler
 
@@ -190,7 +191,7 @@ class WebhookHandler(Handler):
         if not os.path.isfile(manifest_path):
             raise Exception('Repository {0} does not have a manifest.yaml file'.format(self.repo_name))
         try:
-            manifest = WebhookHandler.load_yaml_object(manifest_path)
+            manifest = WebhookHandler.load_yaml_file(manifest_path)
         except Exception as e:
             raise Exception('Bad Manifest: {0}'.format(e))
 
@@ -205,17 +206,18 @@ class WebhookHandler(Handler):
         manifest['dublin_core']['version'] = '{}'.format(manifest['dublin_core']['version'])
 
         # build media formats
-        media_formats = {
-            'resource': [],
-            'projects': {}
-        }
         media_path = os.path.join(self.repo_dir, 'media.yaml')
+        resource_formats = []
+        project_formats = {}
         if os.path.isfile(media_path):
             try:
-                media = WebhookHandler.load_yaml_object(media_path)
+                media = WebhookHandler.load_yaml_file(media_path)
             except Exception as e:
                 raise Exception('Bad Media: {0}'.format(e))
-            media_formats = self._build_media_formats(self.repo_dir, manifest, media)
+            project_chapters = self._listChapters(self.repo_dir, manifest)
+            resource_formats, project_formats = parse_media(media=media,
+                        content_version=manifest['dublin_core']['version'],
+                        project_chapters=project_chapters)
 
         stats = os.stat(self.repo_file)
 
@@ -295,12 +297,12 @@ class WebhookHandler(Handler):
         # add media to projects
         for project in manifest['projects']:
             pid = self.sanitize_identifier(project['identifier'])
-            if pid in media_formats['projects']:
+            if pid in project_formats:
                 if 'formats' not in project: project['formats'] = []
-                project['formats'] = project['formats'] + media_formats['projects'][pid]
+                project['formats'] = project['formats'] + project_formats[pid]
 
         # add media to resource
-        manifest['formats'] = manifest['formats'] + media_formats['resource']
+        manifest['formats'] = manifest['formats'] + resource_formats
 
         # add html format
         # TRICKY: these URLS are only available in prod
@@ -347,231 +349,34 @@ class WebhookHandler(Handler):
             'uploads': uploads
         }
 
-    def _build_media_formats(self, rc_dir, manifest, media):
+
+    def _listChapters(self, rc_dir, manifest):
         """
-        Prepares the media formats
+        Builds a dictionary of chapter ids for each project
         :param rc_dir:
         :param manifest:
-        :param media:
         :return:
         """
-        content_version = manifest['dublin_core']['version']
-        formats = {
-            'resource': [],
-            'projects': {}
-        }
-
-        # resource media
-        if 'resource' in media:
-            resource = media['resource']
-            resource['version'] = self._replace(resource['version'], 'latest', content_version)
-            for m in resource['media']:
-                m['version'] = self._replace(m['version'], 'latest', content_version)
-
-                expansion_vars = self._make_expansion_variables(m, content_version)
-
-                if 'quality' in m and len(m['quality']) > 0:
-                    # build format for each quality
-                    for quality in m['quality']:
-                        expansion_vars['quality'] = quality
-
-                        format = {
-                            'format': '',
-                            'modified': '',
-                            'size': 0,
-                            'source_version': '{}'.format(resource['version']),
-                            'version': '{}'.format(m['version']),
-                            'quality': quality,
-                            'contributor': m['contributor'],
-                            'url': self._replace_keys(m['url'], expansion_vars),
-                            'signature': '',
-                            'build_rules': [
-                                'signing.sign_given_url'
-                            ]
-                        }
-                        formats['resource'].append(format)
-
-                else:
-                    # build single format
-                    format = {
-                        'format': '',
-                        'modified': '',
-                        'size': 0,
-                        'source_version': '{}'.format(resource['version']),
-                        'version': '{}'.format(m['version']),
-                        'contributor': m['contributor'],
-                        'url': self._replace_keys(m['url'], expansion_vars),
-                        'signature': '',
-                        'build_rules': [
-                            'signing.sign_given_url'
-                        ]
-                    }
-                    formats['resource'].append(format)
-
-
-        # project media
-        if 'projects' in media:
-            for project in media['projects']:
+        chapters = {}
+        if manifest['dublin_core']['type'] == 'book':
+            for project in manifest['projects']:
                 pid = self.sanitize_identifier(project['identifier'])
-                project['version'] = self._replace(project['version'], 'latest', content_version)
-                project_formats = []
-                for m in project['media']:
-                    m['version'] = self._replace(m['version'], 'latest', content_version)
-
-                    expansion_vars = self._make_expansion_variables(m, content_version)
-
-                    if 'quality' in m and len(m['quality']) > 0:
-                        # build format for each quality
-                        for quality in m['quality']:
-                            expansion_vars['quality'] = quality
-
-                            format = {
-                                'format': '',
-                                'modified': '',
-                                'size': 0,
-                                'source_version': '{}'.format(project['version']),
-                                'version': '{}'.format(m['version']),
-                                'quality': quality,
-                                'contributor': m['contributor'],
-                                'url': self._replace_keys(m['url'], expansion_vars),
-                                'signature': '',
-                                'build_rules': [
-                                    'signing.sign_given_url'
-                                ]
-                            }
-
-                            if 'chapter_url' in m:
-                                chapter_url = self._replace_keys(m['chapter_url'], expansion_vars)
-                                chapters = self._build_media_chapters(rc_dir, manifest, pid, chapter_url)
-                                if chapters:
-                                    format['chapters'] = chapters
-
-                            project_formats.append(format)
-
-                    else:
-                        # build single format
-                        format = {
-                            'format': '',
-                            'modified': '',
-                            'size': 0,
-                            'source_version': '{}'.format(project['version']),
-                            'version': '{}'.format(m['version']),
-                            'contributor': m['contributor'],
-                            'url': self._replace_keys(m['url'], expansion_vars),
-                            'signature': '',
-                            'build_rules': [
-                                'signing.sign_given_url'
-                            ]
-                        }
-                        if 'chapter_url' in m:
-                            chapters = self._build_media_chapters(rc_dir, manifest, pid, m['chapter_url'])
-                            if chapters:
-                                format['chapters'] = chapters
-                            pass
-
-                        project_formats.append(format)
-                formats['projects'][project['identifier']] = project_formats
-        return formats
-
-
-
-    @staticmethod
-    def _make_expansion_variables(media_block, content_version):
-        """
-        Creates a dictionary of expansion variables for media items.
-        :param self:
-        :param media_block:
-        :param content_version:
-        :return:
-        """
-        vars = copy.copy(media_block)
-
-        # strip black listed keys
-        black_list = ['url', 'chapter_url']
-        for key in black_list:
-            if key in vars:
-                del vars[key]
-
-        # TRICKY: using `latest` as an expansion variable in urls is not explicitly stated in the spec,
-        # but it's a common misunderstanding so we allow it.
-        vars['latest'] = '{}'.format(content_version)
-
-        return vars
-
-    @staticmethod
-    def _replace_keys(str, dict):
-        """
-        Replaces all the dict keys found in the string with the dict values.
-        Keys in the string must be delimited by brackets {}
-        :param str:
-        :param dict:
-        :return:
-        """
-        new_str = str + ''
-        for key in dict:
-            if not isinstance(dict[key], list):
-                new_str = re.sub(r'{' + key + '}', '{}'.format(dict[key]), new_str)
-        return new_str
-
-    @staticmethod
-    def _replace(target, key, value):
-        """
-        A safe way to replace values in a string.
-        This allows replacing with numbers
-        :param target:
-        :type target: basestring
-        :param key:
-        :param value: any scalar value
-        :return:
-        """
-        if isinstance(target, basestring) or isinstance(target, str):
-            return re.sub(r'{' + key + '}', '{}'.format(value), '{}'.format(target))
-        elif isinstance(target, int):
-            return target
-        else:
-            raise Exception('Invalid replacement target "{}". Expected string but received {}'.format(target, type(target)))
-
-    def _build_media_chapters(self, rc_dir, manifest, pid, chapter_url):
-        """
-        Generates chapters items for a media format
-        :param rc_dir:
-        :param manifest:
-        :param pid:
-        :param chapter_url:
-        :return:
-        """
-        media_chapters = []
-        for project in manifest['projects']:
-            pid = self.sanitize_identifier(project['identifier'])
-            if project['identifier'] == pid:
-                id = '_'.join([manifest['dublin_core']['language']['identifier'],
-                               manifest['dublin_core']['identifier'],
-                               manifest['dublin_core']['type'],
-                               pid])
                 project_path = os.path.normpath(os.path.join(rc_dir, project['path']))
-                if manifest['dublin_core']['type'] == 'book':
-                    chapters = os.listdir(project_path)
-                    for chapter in chapters:
-                        if chapter in ['.', '..', 'toc.yaml', 'config.yaml', 'back', 'front']:
-                            continue
-                        chapter = chapter.split('.')[0] # trim extension from files
-                        media_chapters.append({
-                            'size': 0,
-                            'length': 0,
-                            'modified': '',
-                            'identifier': chapter,
-                            'url': self._replace(chapter_url, 'chapter', chapter),
-                            'signature': '',
-                            'build_rules': [
-                                'signing.sign_given_url'
-                            ]
-                        })
-                else:
-                    # TODO: add additional support as needed
-                    self.logger.warning('Failed to generate media chapters. Only book RCs are currently supported. {}'.format(id))
-                    break
-
-        return media_chapters
+                files = os.listdir(project_path)
+                for chapter in files:
+                    if chapter in ['.', '..', 'toc.yaml', 'config.yaml', 'back', 'front']:
+                        continue
+                    chapter = chapter.split('.')[0]
+                    if pid not in chapters:
+                        chapters[pid] = []
+                    chapters[pid].append(chapter)
+        else:
+            id = '_'.join([manifest['dublin_core']['language']['identifier'],
+                           manifest['dublin_core']['identifier'],
+                           manifest['dublin_core']['type']
+                           ])
+            self.logger.warning('Failed to generate media chapters. Only book RCs are currently supported. {}'.format(id))
+        return chapters
 
     def _build_versification(self):
         """
@@ -694,7 +499,7 @@ class WebhookHandler(Handler):
         return dictionary[key]
 
     @staticmethod
-    def load_yaml_object(file_name, default=None):
+    def load_yaml_file(file_name, default=None):
         """
         Deserialized <file_name> into a Python object
         :param str|unicode file_name: The name of the file to read

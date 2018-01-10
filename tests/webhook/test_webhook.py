@@ -308,31 +308,3 @@ class TestWebhook(TestCase):
                                  s3_handler=self.MockS3Handler,
                                  dynamodb_handler=self.MockDynamodbHandler)
         handler.run()
-
-    def test_simple_media_formats(self, mock_reporter, mock_url_exists):
-        mockLogger = MockLogger()
-        event = load_json_object(os.path.join(self.resources_dir, 'blank-event.json'))
-        handler = WebhookHandler(event=event,
-                                 context=None,
-                                 logger=mockLogger)
-
-        rc_dir = os.path.join(self.resources_dir, 'simple_media_rc')
-        manifest = load_yaml_object(os.path.join(rc_dir, 'manifest.yaml'))
-        media = load_yaml_object(os.path.join(rc_dir, 'media.yaml'))
-
-        media_formats = handler._build_media_formats(rc_dir, manifest, media)
-        assert_object_equals_file(self, media_formats, os.path.join(rc_dir, 'expected-formats.json'))
-
-    def test_complex_media_formats(self, mock_reporter, mock_url_exists):
-        mockLogger = MockLogger()
-        event = load_json_object(os.path.join(self.resources_dir, 'blank-event.json'))
-        handler = WebhookHandler(event=event,
-                                 context=None,
-                                 logger=mockLogger)
-
-        rc_dir = os.path.join(self.resources_dir, 'complex_media_rc')
-        manifest = load_yaml_object(os.path.join(rc_dir, 'manifest.yaml'))
-        media = load_yaml_object(os.path.join(rc_dir, 'media.yaml'))
-
-        media_formats = handler._build_media_formats(rc_dir, manifest, media)
-        assert_object_equals_file(self, media_formats, os.path.join(rc_dir, 'expected-formats.json'))

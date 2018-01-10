@@ -74,16 +74,6 @@
           "source_version": "9",
           "url": "https://cdn.door43.org/ulb/txt/1/ulb-en/01-GEN.pdf",
           "version": "9"
-        },
-        {
-          "build_rules": [
-            "signing.html_format"
-          ],
-          "format": "text/html",
-          "modified": "",
-          "signature": "",
-          "size": "",
-          "url": "https://cdn.door43.org/u/Door43-Catalog/en_ulb/2fbfd081f4/01-GEN.html"
         }
       ],
       "identifier": "gen",
@@ -103,16 +93,6 @@
           "signature": "",
           "size": 172844,
           "url": "https://cdn.door43.org/en/ulb/v7/exo.usfm"
-        },
-        {
-          "build_rules": [
-            "signing.html_format"
-          ],
-          "format": "text/html",
-          "modified": "",
-          "signature": "",
-          "size": "",
-          "url": "https://cdn.door43.org/u/Door43-Catalog/en_ulb/2fbfd081f4/02-EXO.html"
         }
       ],
       "identifier": "exo",
@@ -132,16 +112,6 @@
           "signature": "",
           "size": 133011,
           "url": "https://cdn.door43.org/en/ulb/v7/lev.usfm"
-        },
-        {
-          "build_rules": [
-            "signing.html_format"
-          ],
-          "format": "text/html",
-          "modified": "",
-          "signature": "",
-          "size": "",
-          "url": "https://cdn.door43.org/u/Door43-Catalog/en_ulb/2fbfd081f4/03-LEV.html"
         }
       ],
       "identifier": "lev",
