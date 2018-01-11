@@ -239,8 +239,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-l', '--lex', dest='lexicon', required=True, help='The lexicon for mapping strong numbers to the lemma. The Hebrew lexicon is available at https://github.com/openscriptures/HebrewLexicon/blob/master/HebrewStrong.xml')
-    parser.add_argument('-i', '--input', dest='input', required=True, help='OSIS file to convert')
-    parser.add_argument('-o', '--output', dest='output', required=True, help='Directory where to save the generated USFM')
+    parser.add_argument('-i', '--input', dest='input', required=True, help='Directory of OSIS files to convert')
+    parser.add_argument('-o', '--output', dest='output', required=True, help='Directory to which the USFM files will be saved')
 
     args = parser.parse_args(sys.argv[1:])
     if os.path.isfile(args.input):

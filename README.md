@@ -203,6 +203,16 @@ You may execute the following command to learn how to use the tool.
 python execute.py maptwtousfm3 -h
 ```
 
+### Convert OSIS to USFM3
+
+This tool will convert a directory of OSIS files (xml) to a new directory of USFM3 files.
+
+You may execute the following command to learn how to use the tool.
+
+```bash
+python execute.py osistousfm3 -h
+```
+
 ## Testing
 
 You can run tests be executing the following:
