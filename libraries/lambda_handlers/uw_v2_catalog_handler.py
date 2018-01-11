@@ -88,19 +88,7 @@ class UwV2CatalogHandler(InstanceHandler):
         We wrap this in a separate function to more easily handle errors
         :return:
         """
-        cat_keys = []
         uploads = []
-        v2_catalog = {
-            'obs': {},
-            'bible': {}
-        }
-
-        title_map = {
-            'bible': 'Bible',
-            'obs': 'Open Bible Stories'
-        }
-
-        last_modified = 0
 
         result = self._get_status()
         if not result:
@@ -127,8 +115,52 @@ class UwV2CatalogHandler(InstanceHandler):
                 self.logger.error("Failed to load the catalog json: {0}".format(e))
             return False
 
-        # walk v3 catalog
-        for lang in self.latest_catalog['languages']:
+        catalog = self.convert_v3_to_v2(self.latest_catalog, status)
+
+        catalog_upload = self._prep_json_upload('catalog.json', catalog)
+        uploads.append(catalog_upload)
+        # TRICKY: also upload to legacy path for backwards compatibility
+        uploads.append({
+            'key': '/uw/txt/2/catalog.json',
+            'path': catalog_upload['path']
+        })
+
+        # upload files
+        for upload in uploads:
+            if not upload['key'].startswith('/'):
+                key = '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key'])
+            else:
+                key = upload['key'].lstrip('/')
+            self.cdn_handler.upload_file(upload['path'], key)
+
+        status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        status['state'] = 'complete'
+        self.db_handler.update_item(
+            {'api_version': UwV2CatalogHandler.api_version},
+            status)
+
+    def convert_v3_to_v2(self, v3_catalog, status):
+        """
+        Builds a v2 catalog for the uW api endpoint.
+        This uses the v3 catalog as the source
+        :param v3_catalog: the v3 catalog
+        :param status: the build status retrieved from AWS.
+        :return: the complete v2 catalog
+        """
+        cat_keys = []
+        v2_catalog = {
+            'obs': {},
+            'bible': {}
+        }
+
+        title_map = {
+            'bible': 'Bible',
+            'obs': 'Open Bible Stories'
+        }
+
+        last_modified = 0
+
+        for lang in v3_catalog['languages']:
             lid = lang['identifier']
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
@@ -171,7 +203,8 @@ class UwV2CatalogHandler(InstanceHandler):
                             if rid == 'obs' and 'type=book' in format['format']:
                                 # TRICKY: obs must be converted to json
                                 process_id = '_'.join([lid, rid, pid])
-                                obs_key = '{}/{}/{}/{}/v{}/source.json'.format(self.cdn_root_path, pid, lid, rid, res['version'])
+                                obs_key = '{}/{}/{}/{}/v{}/source.json'.format(self.cdn_root_path, pid, lid, rid,
+                                                                               res['version'])
                                 if process_id not in status['processed']:
                                     obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
                                     upload = self._prep_json_upload(obs_key, obs_json)
@@ -200,13 +233,14 @@ class UwV2CatalogHandler(InstanceHandler):
                             elif rid != 'obs' and format['format'] == 'text/usfm':
                                 # process bible
                                 process_id = '_'.join([lid, rid, pid])
-                                bible_key = '{0}/{1}/{2}/{3}/v{4}/{1}.usfm'.format(self.cdn_root_path, pid, lid, rid, res['version'])
+                                bible_key = '{0}/{1}/{2}/{3}/v{4}/{1}.usfm'.format(self.cdn_root_path, pid, lid, rid,
+                                                                                   res['version'])
                                 if process_id not in status['processed']:
                                     usfm = self._process_usfm(format)
                                     upload = self._prep_text_upload(bible_key, usfm)
                                     self.cdn_handler.upload_file(upload['path'], upload['key'])
 
-                                    # sign  file
+                                    # sign file
                                     sig_file = self.signer.sign_file(upload['path'])
                                     try:
                                         self.signer.verify_signature(upload['path'], sig_file)
@@ -248,8 +282,10 @@ class UwV2CatalogHandler(InstanceHandler):
                                             }],
                                             'chap': chapter['identifier'],
                                             'length': int(math.ceil(chapter['length'])),
-                                            'src': chapter['url'].replace(format['quality'], '{bitrate}' + quality_suffix),
-                                            'src_sig': chapter['signature'].replace(format['quality'], '{bitrate}' + quality_suffix)
+                                            'src': chapter['url'].replace(format['quality'],
+                                                                          '{bitrate}' + quality_suffix),
+                                            'src_sig': chapter['signature'].replace(format['quality'],
+                                                                                    '{bitrate}' + quality_suffix)
                                         }
 
                                 merge_dict(media_container, {
@@ -263,7 +299,6 @@ class UwV2CatalogHandler(InstanceHandler):
                                     'url': format['url'],
                                     'source_version': format['source_version']
                                 }
-
 
                         # build catalog
                         if not source:
@@ -348,28 +383,7 @@ class UwV2CatalogHandler(InstanceHandler):
                 'title': title_map[cat_slug],
                 'langs': langs
             })
-
-        catalog_upload = self._prep_json_upload('catalog.json', catalog)
-        uploads.append(catalog_upload)
-        # TRICKY: also upload to legacy path for backwards compatibility
-        uploads.append({
-            'key': '/uw/txt/2/catalog.json',
-            'path': catalog_upload['path']
-        })
-
-        # upload files
-        for upload in uploads:
-            if not upload['key'].startswith('/'):
-                key = '{}/{}'.format(UwV2CatalogHandler.cdn_root_path, upload['key'])
-            else:
-                key = upload['key'].lstrip('/')
-            self.cdn_handler.upload_file(upload['path'], key)
-
-        status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        status['state'] = 'complete'
-        self.db_handler.update_item(
-            {'api_version': UwV2CatalogHandler.api_version},
-            status)
+        return catalog
 
     def _process_usfm(self, format):
         url = format['url']
