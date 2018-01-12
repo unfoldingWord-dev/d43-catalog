@@ -215,9 +215,12 @@ class WebhookHandler(Handler):
             except Exception as e:
                 raise Exception('Bad Media: {0}'.format(e))
             project_chapters = self._listChapters(self.repo_dir, manifest)
-            resource_formats, project_formats = parse_media(media=media,
-                        content_version=manifest['dublin_core']['version'],
-                        project_chapters=project_chapters)
+            try:
+                resource_formats, project_formats = parse_media(media=media,
+                            content_version=manifest['dublin_core']['version'],
+                            project_chapters=project_chapters)
+            except Exception as e:
+                self.logger.error('Failed to parse media in {}. {}'.format(self.repo_name, e.message), e)
 
         stats = os.stat(self.repo_file)
 

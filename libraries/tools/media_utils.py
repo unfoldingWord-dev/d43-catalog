@@ -9,7 +9,7 @@ def parse_media(media, content_version, project_chapters):
     :param content_version: the current version of the source content
     :type content_version: string
     :param project_chapters: a dictionary of project chapters
-    :type  project_chapters: list
+    :type  project_chapters: dict
     :return: resource_formats, project_formats a list of resource formats and dictionary of project formats
     """
     resource_formats = []
