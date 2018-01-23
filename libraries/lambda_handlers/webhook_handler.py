@@ -220,7 +220,7 @@ class WebhookHandler(Handler):
                             content_version=manifest['dublin_core']['version'],
                             project_chapters=project_chapters)
             except Exception as e:
-                self.logger.error('Failed to parse media in {}. {}'.format(self.repo_name, e.message), e)
+                self.report_error('Failed to parse media in {}. {}'.format(self.repo_name, e.message))
 
         stats = os.stat(self.repo_file)
 
