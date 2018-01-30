@@ -175,12 +175,13 @@ def parseStrong(str):
     :param str:
     :return:
     """
-    strong = str
+    cleaned_string = str.replace('+', '')
+    strong = cleaned_string
     strong = re.sub(r'^([a-z]+/)+', '', strong.lower())
     strong = re.sub(r'(\s*[a-z]+)+$', '', strong.lower())
 
     if strong:
-        formatted = str.replace(strong, 'H{}'.format(strong.zfill(4)))
+        formatted = cleaned_string.replace(strong, 'H{}'.format(strong.zfill(4)))
     else:
         # TRICKY: leave invalid strong numbers as they are
         strong = str

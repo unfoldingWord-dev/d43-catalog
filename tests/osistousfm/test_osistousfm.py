@@ -89,6 +89,11 @@ class TestOSIStoUSFM3(TestCase):
         self.assertEqual('3027', strong)
         self.assertEqual('H3027ab', formatted)
 
+    def test_parse_strong_with_plus(self):
+        strong, formatted = osistousfm3.parseStrong('378+')
+        self.assertEqual('378', strong)
+        self.assertEqual('H0378', formatted)
+
     def test_parse_strong_suffix_and_prefix(self):
         strong, formatted = osistousfm3.parseStrong('a/3027 b')
         self.assertEqual('3027', strong)
