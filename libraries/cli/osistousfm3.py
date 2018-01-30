@@ -179,7 +179,12 @@ def parseStrong(str):
     strong = re.sub(r'^([a-z]+/)+', '', strong.lower())
     strong = re.sub(r'(\s*[a-z]+)+$', '', strong.lower())
 
-    formatted = str.replace(strong, 'H{}'.format(strong.zfill(5)))
+    if strong:
+        formatted = str.replace(strong, 'H{}'.format(strong.zfill(4)))
+    else:
+        # TRICKY: leave invalid strong numbers as they are
+        strong = str
+        formatted = str
     formatted = re.sub(r'/', ':', formatted)
     formatted = re.sub(r'\s+', '', formatted)
     return strong, formatted

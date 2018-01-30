@@ -653,7 +653,8 @@
           <w lemma="5002" morph="HNcmsc">נְאֻם</w><seg type="x-maqqef">־</seg><w lemma="3068" n="1.1" morph="HNp">יְהוָ֔ה</w>
           <w lemma="c/7760 a" n="1.0">וְ/שַׂמְתִּ֖י/ךָ</w>
           <w lemma="k/2368" n="1" morph="HRd/Ncmsa">כַּֽ/חוֹתָ֑ם</w>
-          <w lemma="3588 a" morph="HC">כִּֽי</w><seg type="x-maqqef">־</seg><w lemma="b" morph="HR/Sp2ms">בְ/ךָ֣</w>
+          <w lemma="3588 a" morph="HC">כִּֽי</w><seg type="x-maqqef">
+          ־</seg><w lemma="b" morph="HR/Sp2ms">בְ/ךָ֣</w>
           <w lemma="977" n="0.1" morph="HVqp1cs">בָחַ֔רְתִּי</w>
           <w lemma="5002" n="0.0" morph="HNcmsc">נְאֻ֖ם</w>
           <w lemma="3068" morph="HNp">יְהוָ֥ה</w>
