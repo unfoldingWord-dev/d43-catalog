@@ -29,7 +29,7 @@ class tWPhrase:
         :return:
         """
         links = get_usfm3_word_links(line)
-        strong = simplify_strong(get_usfm3_word_strongs(line))
+        strong = get_usfm3_word_strongs(line)
         if strong and links:
             # TRICKY: empty phrases are valid
             if not len(self.__link_set) > 0 or len(self.__link_set.intersection(set(links))) > 0:
@@ -209,10 +209,11 @@ class USFMWordReader:
                     raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(self.line))
 
             # start original language word
-            strong = simplify_strong(get_usfm3_word_strongs(self.line))
+            strong = get_usfm3_word_strongs(self.line)
 
             # validate
             if self.chapter and self.verse and strong:
+                strong = simplify_strong(strong)
                 return self.line, strong, len(self.read_lines) - 1
             elif self.line.startswith('\\w'):
                 raise Exception('Malformed USFM. USFM tags appear to be out of order.')

@@ -18,6 +18,7 @@ import os
 import sys
 import re
 import logging
+import json
 
 from resource_container import factory, ResourceContainer
 from libraries.tools.file_utils import write_file, read_file
@@ -185,7 +186,7 @@ def indexWordByStrongs(words_rc):
                 logger.error('{} in word "{}/{}"'.format(e, category, word))
             for num in numbers:
                 # TRICKY: strongs are 6 characters long
-                strong = normalizeStrongPadding(num, '000000').upper()
+                strong = normalizeStrongPadding(num).upper()
                 if strong in index:
                     # append word to strong
                     index[strong].append(word)
@@ -253,14 +254,14 @@ def strongs_equal(strong, strong_template):
     formatted_strong = normalizeStrongPadding(strong, strong_template)
     return formatted_strong.lower() == strong_template.lower()
 
-def normalizeStrongPadding(strong, strong_template):
+def normalizeStrongPadding(strong, strong_template='000000'):
     """
     Normalizes the padding on a strong number so it matches the template
     :param strong:
     :param strong_template:
     :return:
     """
-    return (strong + '000000')[:len(strong_template)]
+    return (strong + '0000000000')[:len(strong_template)]
 
 def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_positives_index):
     """
@@ -280,6 +281,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
 
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
+        strong = normalizeStrongPadding(strong)
         words = _getWords(strong, words_strongs_index)
         # exclude words marked as false positives
         false_positives = _getLocationWords(location, words_false_positives_index)
@@ -297,7 +299,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
         elif words:
             print('Skipped false positives')
         else:
-            logger.warning(u'No matches found for {} {}:{} {}'.format(book, chapter, verse, line))
+            logger.warning(u'No matches found for {} {}:{} using "{}" in {}'.format(book, chapter, verse, strong, line))
     return unicode(reader)
 
 # TRICKY: we purposely make strongs_index a mutable parameter
@@ -394,6 +396,9 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False, map_phrases=True
         print('Global search enabled.')
         print('Generating strongs index.')
         strongs_index = indexWordByStrongs(words_rc)
+
+        # dump the index into the output for debugging
+        write_file(os.path.join(output_dir, 'strongs_index.json'), json.dumps(strongs_index))
 
     for file_name in usfm_files:
         if not file_name.endswith('.usfm'):
