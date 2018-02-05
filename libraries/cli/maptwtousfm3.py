@@ -290,26 +290,40 @@ def mapUSFMByGlobalSearch(usfm, words_strongs_index, words_false_positives_index
 
         book, chapter, verse = reader.location()
         location = '{}/{}/{}'.format(book, chapter, verse)
+
+        if not strong:
+            continue
+
         strong = normalizeStrongPadding(strong)
         words = _getWords(strong, words_strongs_index)
         # exclude words marked as false positives
         false_positives = _getLocationWords(location, words_false_positives_index)
         filtered = [w for w in words if not w in false_positives]
         if filtered:
-            if len(filtered) == 1:
-                # inject link at end
-                link = 'x-tw="{}"'.format(_makeWordLink(filtered[0], words_category_index))
-                reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
-            else:
-                links = []
-                for word in filtered:
-                    links.append(_makeWordLink(word, words_category_index).split('bible/')[1])
-                logger.warning(u'Multiple matches found at {} {}:{} {} --- {}'.format(book, chapter, verse, line, '; '.join(links)))
+            _inject_tw_links(reader, words, line, words_category_index, logger)
         elif words:
             print('Skipped false positives')
         else:
             logger.warning(u'No matches found for {} {}:{} using "{}" in {}'.format(book, chapter, verse, strong, line))
     return unicode(reader)
+
+def _inject_tw_links(reader, words, line, words_category_index, logger):
+    """
+    Injects the tw link or links at the end of the word
+    :param reader:
+    :param words:
+    :param line:
+    :param words_category_index:
+    :return:
+    """
+    book, chapter, verse = reader.location()
+    # inject link at end
+    if len(words) > 1:
+        logger.info(u'Injecting multiple words at {} {}:{} {}'.format(book, chapter, verse, line))
+    for word in words:
+        link = 'x-tw="{}"'.format(_makeWordLink(word, words_category_index))
+        line = line.replace('\w*', ' ' + link + ' \w*')
+    reader.amendLine(line)
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
@@ -335,13 +349,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, words_category_index, stron
         strongs_index = indexLocationStrongs(location, words_index, words_rc, strongs_index)
         words = getStrongWords(strong, location_words, strongs_index)
         if words:
-            # inject link at end
-            if len(words) > 1:
-                logger.info(u'Injecting multiple words at {} {}:{} {}'.format(book, chapter, verse, line))
-            for word in words:
-                link = 'x-tw="{}"'.format(_makeWordLink(word, words_category_index))
-                line = line.replace('\w*', ' ' + link + ' \w*')
-            reader.amendLine(line)
+            _inject_tw_links(reader, words, line, words_category_index, logger)
         elif location_words:
             pass
             # logger.warning('No match found for {} at {}'.format(strong, location))
@@ -418,16 +426,13 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False, map_phrases=True
         file = os.path.join(usfm_dir, file_name)
         print('{}'.format(file_name))
         usfm = read_file(file)
-        print('mapping occurrences...')
         usfm = mapUSFMByOccurrence(usfm=usfm,
                                    words_rc=words_rc,
                                    words_index=location_index['occurrences'],
                                    words_category_index=category_index)
         if map_phrases:
-            print('mapping phrases...')
             usfm = mapPhrases(usfm)
         if global_search:
-            print('global search...')
             usfm = mapUSFMByGlobalSearch(usfm=usfm,
                                          words_strongs_index=strongs_index,
                                          words_false_positives_index=location_index['false_positives'],
