@@ -70,18 +70,37 @@ def convertFile(osis_file, lexicon):
     if sys.version_info >= (3,0,0):
         raise Exception('Only python 2.7 is supported')
 
-    usfm = []
     root = xml.etree.ElementTree.parse(osis_file).getroot()
-    books = getXmlBooks(root)
+    try:
+        return convertOsis(root, lexicon)
+    except Exception as e:
+        logger.error('Error while processing {}: {}'.format(osis_file, e))
+        return None
+
+def convertOsis(osis_xml, lexicon):
+    logger = logging.getLogger(LOGGER_NAME)
+    if sys.version_info >= (3, 0, 0):
+        raise Exception('Only python 2.7 is supported')
+
+    usfm = []
+
+    books = getXmlBooks(osis_xml)
     if len(books) > 1:
-        logger.error('Found {} books in {} but expected 1'.format(len(books), osis_file))
-        return None
+        raise Exception('Found {} books in osis but expected 1'.format(len(books)))
     if not len(books):
-        logger.warn('No books found in {}'.format(len(books), osis_file))
-        return None
+        raise Exception('No books found in osis')
 
     book = books[0]
     bookId = book.attrib['osisID']
+    book_meta = get_book_by_osis_id(bookId)
+
+    if book_meta:
+        bookId = book_meta['usfm_id']
+    else:
+        message = 'Missing book meta data for {}'.format(bookId)
+        print(message)
+        logger.error(message)
+        return
 
     usfm.append('\\id {}'.format(bookId.upper()))
     usfm.append('\\ide UTF-8')
@@ -285,3 +304,7 @@ if __name__ == '__main__':
             os.remove(errors_log_file)
 
     print('Finished')
+
+osis_to_usfm_ids = [
+
+]

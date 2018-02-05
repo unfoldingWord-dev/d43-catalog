@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<osis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.bibletechnologies.net/2003/OSIS/namespace" xsi:schemaLocation="http://www.bibletechnologies.net/2003/OSIS/namespace http://www.bibletechnologies.net/osisCore.2.1.1.xsd">
+  <osisText xml:lang="he" osisIDWork="WLC">
+    <header>
+      <revisionDesc resp="dt">
+        <date>2017.12.10</date>
+        <p>Release of full morphology (incomplete pre-release)</p>
+      </revisionDesc>
+      <revisionDesc resp="dt">
+        <date>2016.03.03</date>
+        <p>Updated to WLC version 4.20.</p>
+      </revisionDesc>
+      <revisionDesc resp="dt">
+        <date>2013.12.11</date>
+        <p>First release of morphology on selected portions.</p>
+      </revisionDesc>
+      <revisionDesc resp="dt">
+        <date>2013.07.10</date>
+        <p>Updated to WLC version 4.18.</p>
+      </revisionDesc>
+      <revisionDesc resp="dt">
+        <date>2012.07.18</date>
+        <p>Updated to WLC version 4.16.</p>
+      </revisionDesc>
+      <revisionDesc resp="dt">
+        <date>2011.01.21</date>
+        <p>Updated to WLC version 4.14.</p>
+      </revisionDesc>
+      <revisionDesc resp="dt">
+        <date>2008.08.08</date>
+        <p>Convert the Westminster Leningrad Codex files from TEI markup to OSIS book files.</p>
+      </revisionDesc>
+      <work osisWork="WLC" xml:lang="he">
+        <title>Westminster Leningrad Codex</title>
+        <contributor role="edt">Daniel Owens</contributor>
+        <contributor role="edt">David Troidl</contributor>
+        <contributor role="edt">Christopher V. Kimball</contributor>
+        <date>2007.9.16</date>
+        <identifier type="URL">http://www.tanach.us/Tanach.xml</identifier>
+        <rights>Public Domain</rights>
+      </work>
+      <work osisWork="BHS" xml:lang="he">
+        <title>BHS unaccented with Strongs</title>
+        <contributor role="edt">Joseph Planeta</contributor>
+        <contributor role="edt">Rev. Graham Nind</contributor>
+        <description>Unaccented Biblia Hebraica Stuttgartensia Hebrew with Strong's numbers by Rev. Graham.</description>
+        <identifier type="URL">http://www.faithofgod.net/</identifier>
+        <identifier type="URL">http://www.grahamnind.dsl.pipex.com/files</identifier>
+        <rights>Public Domain</rights>
+      </work>
+      <work osisWork="Strong" xml:lang="en">
+        <title>A Concise Dictionary of the Words in the Hebrew Bible</title>
+        <title type="sub">with their Renderings in the King James Version</title>
+        <contributor role="edt">David Troidl</contributor>
+        <contributor role="edt">David Instone-Brewer</contributor>
+        <creator role="edt">James Strong, LL.D., S.T.D.</creator>
+        <date>1894</date>
+        <description resp="dib">The data came from several PD sources which were full of errors. I cleaned them by comparing them to each other and (where necessary) looking at the original.</description>
+        <publisher>Hunt &amp;amp; Eaton</publisher>
+        <identifier type="URL">www.2LetterLookup.com</identifier>
+        <source>The exhaustive concordance of the Bible:</source>
+        <rights>Public Domain</rights>
+      </work>
+      <work osisWork="OSHM" xml:lang="en">
+        <title>Open Scriptures Hebrew Morphology</title>
+        <creator role="edt">Open Scriptures Hebrew Bible Project</creator>
+        <date>2017.12.10</date>
+        <identifier type="URL">https://github.com/openscriptures/morphhb</identifier>
+        <rights type="x-BY-SA">Creative Commons Attribution-ShareAlike</rights>
+        <contributor role="ctb">Daniel Owens</contributor>
+        <contributor role="ctb">Eddy Yates</contributor>
+      </work>
+      <workPrefix path="//w/@lemma" osisWork="Strong"/>
+      <workPrefix path="//w/@morph" osisWork="OSHM"/>
+    </header>
+    <div type="book" osisID="2Sam">
+      <chapter osisID="2Sam.1">
+        <verse osisID="2Sam.1.1">
+          <w lemma="b/8141" morph="HR/Ncfsc">בִּ/שְׁנַ֤ת</w>
+          <w lemma="8147" n="1.2.0" morph="HAcfda">שְׁתַּ֨יִם֙</w>
+          <w lemma="l/1867" morph="HR/Np">לְ/דָרְיָ֣וֶשׁ</w>
+          <w lemma="d/4428" n="1.2" morph="HTd/Ncmsa">הַ/מֶּ֔לֶךְ</w>
+          <w lemma="b/2320" n="1.1.0" morph="HRd/Ncmsa">בַּ/חֹ֨דֶשׁ֙</w>
+          <w lemma="d/8345" n="1.1" morph="HTd/Aomsa">הַ/שִּׁשִּׁ֔י</w>
+          <w lemma="b/3117" morph="HR/Ncmsa">בְּ/י֥וֹם</w>
+          <w lemma="259" n="1.0" morph="HAcmsa">אֶחָ֖ד</w>
+          <w lemma="l/2320" n="1" morph="HRd/Ncmsa">לַ/חֹ֑דֶשׁ</w>
+          <w lemma="1961" morph="HVqp3ms">הָיָ֨ה</w>
+          <w lemma="1697" morph="HNcmsc">דְבַר</w><seg type="x-maqqef">־</seg><w lemma="3068" n="0.1.1.0" morph="HNp">יְהוָ֜ה</w>
+          <w lemma="b/3027" morph="HR/Ncbsc">בְּ/יַד</w><seg type="x-maqqef">־</seg><w lemma="2292 a" morph="HNp">חַגַּ֣י</w>
+          <w lemma="d/5030" n="0.1.1" morph="HTd/Ncmsa">הַ/נָּבִ֗יא</w>
+          <w lemma="413" morph="HR">אֶל</w><seg type="x-maqqef">־</seg><w lemma="2216" morph="HNp">זְרֻבָּבֶ֤ל</w>
+          <w lemma="1121 a" morph="HNcmsc">בֶּן</w><seg type="x-maqqef">־</seg><w lemma="7597 a" n="0.1.0" morph="HNp">שְׁאַלְתִּיאֵל֙</w>
+          <w lemma="6346" morph="HNcmsc">פַּחַ֣ת</w>
+          <w lemma="3063" n="0.1" morph="HNp">יְהוּדָ֔ה</w>
+          <w lemma="c/413" morph="HC/R">וְ/אֶל</w><seg type="x-maqqef">־</seg><w lemma="3091" morph="HNp">יְהוֹשֻׁ֧עַ</w>
+          <w lemma="1121 a" morph="HNcmsc">בֶּן</w><seg type="x-maqqef">־</seg><w lemma="3087" n="0.0.0" morph="HNp">יְהוֹצָדָ֛ק</w>
+          <w lemma="d/3548" morph="HTd/Ncmsa">הַ/כֹּהֵ֥ן</w>
+          <w lemma="d/1419 a" n="0.0" morph="HTd/Aamsa">הַ/גָּד֖וֹל</w>
+          <w lemma="l/559" n="0" morph="HR/Vqc">לֵ/אמֹֽר</w><seg type="x-sof-pasuq">׃</seg>
+        </verse>
+        <verse osisID="2Sam.1.2">
+          <w lemma="3541" morph="HD">כֹּ֥ה</w>
+          <w lemma="559" n="1.0.0" morph="HVqp3ms">אָמַ֛ר</w>
+          <w lemma="3068" morph="HNp">יְהוָ֥ה</w>
+          <w lemma="6635 b" n="1.0" morph="HNcbpa">צְבָא֖וֹת</w>
+          <w lemma="l/559" n="1" morph="HR/Vqc">לֵ/אמֹ֑ר</w>
+          <w lemma="d/5971 a" morph="HTd/Ncmsa">הָ/עָ֤ם</w>
+          <w lemma="d/2088" n="0.1.0" morph="HTd/Pdxms">הַ/זֶּה֙</w>
+          <w lemma="559" n="0.1" morph="HVqp3cp">אָֽמְר֔וּ</w>
+          <w lemma="3808" morph="HTn">לֹ֥א</w>
+          <w lemma="6256" morph="HNcbsc">עֶת</w><seg type="x-maqqef">־</seg><w lemma="935" n="0.0.0">בֹּ֛א</w>
+          <w lemma="6256" morph="HNcbsc">עֶת</w><seg type="x-maqqef">־</seg><w lemma="1004 b" morph="HNcmsc">בֵּ֥ית</w>
+          <w lemma="3068" n="0.0" morph="HNp">יְהוָ֖ה</w>
+          <w lemma="l/1129" n="0">לְ/הִבָּנֽוֹת</w><seg type="x-sof-pasuq">׃</seg>
+          <seg type="x-pe">פ</seg>
+        </verse>
+      </chapter>
+    </div>
+  </osisText>
+</osis>

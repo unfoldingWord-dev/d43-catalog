@@ -110,6 +110,12 @@ class TestOSIStoUSFM3(TestCase):
         expected_usfm = read_file(os.path.join(self.resources_dir, 'usfm/37-HAG.usfm'))
         self.assertEqual(expected_usfm, usfm)
 
+    def test_convert_osis_with_book_key_migration(self):
+        usfm = osistousfm3.convertFile(osis_file=os.path.join(self.resources_dir, 'osis/2Sam.xml'),
+                                       lexicon=self.lexicon)
+        expected_usfm = read_file(os.path.join(self.resources_dir, 'usfm/10-2SA.usfm'))
+        self.assertEqual(expected_usfm, usfm)
+
     def test_get_unknown_lemma(self):
         lexicon = None
         lemma = osistousfm3.getLemma(lexicon, 'H1')

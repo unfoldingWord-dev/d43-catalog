@@ -438,6 +438,8 @@ if __name__ == '__main__':
     errors_log_file = os.path.join(args.output, 'errors.log')
     if os.path.isfile(errors_log_file):
         os.remove(errors_log_file)
+    else:
+        os.mkdir(args.output)
 
     # configure logger
     logger = logging.getLogger(LOGGER_NAME)
