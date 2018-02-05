@@ -5,7 +5,7 @@ import shutil
 import tempfile
 from unittest import TestCase
 from libraries.tools.file_utils import read_file
-from libraries.tools.usfm_utils import usfm3_to_usfm2, strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links
+from libraries.tools.usfm_utils import usfm3_to_usfm2, parse_book_id, strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links
 
 
 class TestUsfmUtils(TestCase):
@@ -24,6 +24,11 @@ class TestUsfmUtils(TestCase):
         expected = u'\\v 1 Ce qui était dès'
         output = strip_word_data(input)
         self.assertEqual(expected, output)
+
+    def test_parse_book_id(self):
+        input = '\id 2SA 2 Samuel'
+        id = parse_book_id(input)
+        self.assertEqual('2SA', id)
 
     def test_strip_usfm_mixed_word_data(self):
         """

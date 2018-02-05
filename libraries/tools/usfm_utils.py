@@ -135,10 +135,9 @@ class USFMWordReader:
             self.line = self.lines.pop(0)
             self.header.append(self.line)
             if self.line.startswith('\\id'):
-                # get id
-                match = re.findall('^\\\id\s+(\w+)(\s+.*)?', self.line, flags=re.IGNORECASE | re.UNICODE)
-                if match:
-                    self.book = match[0].lower()
+                id = parse_book_id(self.line)
+                if id:
+                    self.book = id.lower()
                 else:
                     raise Exception('Malformed USFM. Unable to parse book id: {}'.format(self.line))
 
@@ -234,6 +233,22 @@ class USFMWordReader:
         else:
             raise Exception('Phrase indices out of range: {}'.format(phrase))
 
+def parse_book_id(usfm_line):
+    """
+    Returns the book id from the usfm id flag
+    :param usfm_line:
+    :return:
+    """
+    match = re.findall('^\\\id\s+(\w+)(\s+.*)?', usfm_line, flags=re.IGNORECASE | re.UNICODE)
+    if match:
+        components = match[0]
+        if type(components) is tuple:
+            # id, name, etc.
+            return components[0]
+        else:
+            # there was only an id
+            return components
+    return None
 
 def get_usfm3_word_links(usfm3_line):
     """
