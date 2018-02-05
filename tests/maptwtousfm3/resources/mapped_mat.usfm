@@ -10,14 +10,14 @@
 \p
 
 \v 1
-\w Βίβλος|lemma="βίβλος" strong="G09760" x-morph="Gr,N,,,,,NFS," x-tw="rc://*/tw/dict/bible/other/test" \w*
+\w Βίβλος|lemma="βίβλος" strong="G0976" x-morph="Gr,N,,,,,NFS," x-tw="rc://*/tw/dict/bible/other/test" \w*
 \w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS,"\w*
 \w test|lemma="γένεσις" strong="H34780" x-morph="Gr,N,,,,,GFS,"\w*
 
 \v 13
 \w τὸν|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMS," x-tw="rc://*/tw/dict/bible/names/abel" \w*
 \w Ἀζώρ|lemma="Ἀζώρ" strong="G01070" x-morph="Gr,N,,,,,AMSI"\w*
-\w 12tribes|lemma="γένεσις" strong="H7626" x-morph="Gr,N,,,,,GFS,"\w*
+\w 12tribes|lemma="γένεσις" strong="H7626" x-morph="Gr,N,,,,,GFS," x-tw="rc://*/tw/dict/bible/other/12tribesofisrael" \w*
 
 \c 5
 \p
