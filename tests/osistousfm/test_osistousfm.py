@@ -133,4 +133,4 @@ class TestOSIStoUSFM3(TestCase):
         lex_path = os.path.join(self.resources_dir, 'lexicon.xml')
         osistousfm3.convertDir(in_dir, out_dir, lex_path)
         mock_write_file.assert_called()
-        self.assertEqual(2, mock_write_file.call_count)
+        self.assertEqual(3, mock_write_file.call_count)

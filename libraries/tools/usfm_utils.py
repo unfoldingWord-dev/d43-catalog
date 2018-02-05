@@ -136,7 +136,7 @@ class USFMWordReader:
             self.header.append(self.line)
             if self.line.startswith('\\id'):
                 # get id
-                match = re.findall('^\\\id\s+(\w+)\s+.*', self.line, flags=re.IGNORECASE | re.UNICODE)
+                match = re.findall('^\\\id\s+(\w+)(\s+.*)?', self.line, flags=re.IGNORECASE | re.UNICODE)
                 if match:
                     self.book = match[0].lower()
                 else:

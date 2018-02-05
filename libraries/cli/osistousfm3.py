@@ -102,7 +102,7 @@ def convertOsis(osis_xml, lexicon):
         logger.error(message)
         return
 
-    usfm.append('\\id {}'.format(bookId.upper()))
+    usfm.append('\\id {} {}'.format(bookId.upper(), book_meta['en_name']))
     usfm.append('\\ide UTF-8')
 
     # header
