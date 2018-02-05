@@ -17,7 +17,7 @@
 \v 13
 \w τὸν|lemma="ὁ" strong="G35880" x-morph="Gr,EA,,,,AMS," x-tw="rc://*/tw/dict/bible/names/abel" \w*
 \w Ἀζώρ|lemma="Ἀζώρ" strong="G01070" x-morph="Gr,N,,,,,AMSI"\w*
-\w 12tribes|lemma="γένεσις" strong="H7626" x-morph="Gr,N,,,,,GFS,"\w*
+\w 12tribes|lemma="γένεσις" strong="H7626" x-morph="Gr,N,,,,,GFS," x-tw="rc://*/tw/dict/bible/other/12tribesofisrael" \w*
 
 \c 5
 \p

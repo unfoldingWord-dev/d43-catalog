@@ -32,6 +32,6 @@ setup(
         'python-dateutil==2.6.0',
         'pytz==2017.2',
         'grequests==0.3.0',
-        'resource_container==1.0'
+        'resource_container==1.1'
     ]
 )

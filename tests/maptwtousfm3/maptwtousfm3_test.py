@@ -27,6 +27,12 @@ class TestMapTWtoUSFM3(TestCase):
         self.assertIn('test', index['occurrences']['mat/19/28'])
         self.assertIn('12tribesofisrael', index['occurrences']['mat/19/28'])
 
+    def test_index_word_categories(self):
+        rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
+        index = maptwtousfm3.indexWordsCategory(rc)
+        self.assertIn('abel', index)
+        self.assertEqual('names', index['abel'])
+
     def test_load_strongs(self):
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         strongs = maptwtousfm3.findStrongs('abomination', rc)
@@ -47,7 +53,11 @@ class TestMapTWtoUSFM3(TestCase):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/41-MAT.usfm'))
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         words_index = maptwtousfm3.indexWordsLocation(rc)
-        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index['occurrences'])
+        category_index = maptwtousfm3.indexWordsCategory(rc)
+        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm=usfm,
+                                                      words_rc=rc,
+                                                      words_index=words_index['occurrences'],
+                                                      words_category_index=category_index)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 
@@ -59,7 +69,11 @@ class TestMapTWtoUSFM3(TestCase):
         usfm = read_file(os.path.join(self.resources_dir, 'usfm/57-TIT.usfm'))
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         words_index = maptwtousfm3.indexWordsLocation(rc)
-        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm, rc, words_index['occurrences'])
+        category_index = maptwtousfm3.indexWordsCategory(rc)
+        mappedUSFM = maptwtousfm3.mapUSFMByOccurrence(usfm=usfm,
+                                                      words_rc=rc,
+                                                      words_index=words_index['occurrences'],
+                                                      words_category_index=category_index)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_tit.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 
@@ -93,8 +107,12 @@ class TestMapTWtoUSFM3(TestCase):
         rc = factory.load(os.path.join(self.resources_dir, 'tw_rc'))
         locations_index = maptwtousfm3.indexWordsLocation(rc)
         strongs_index = maptwtousfm3.indexWordByStrongs(rc)
-        mappedUSFM = maptwtousfm3.mapUSFMByGlobalSearch(usfm, rc, strongs_index, locations_index['false_positives'])
-        expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat.usfm'))
+        category_index = maptwtousfm3.indexWordsCategory(rc)
+        mappedUSFM = maptwtousfm3.mapUSFMByGlobalSearch(usfm=usfm,
+                                                        words_strongs_index=strongs_index,
+                                                        words_false_positives_index=locations_index['false_positives'],
+                                                        words_category_index=category_index)
+        expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_mat_global.usfm'))
         self.assertEqual(mappedUSFM, expected_usfm)
 
     def test_map_dir(self):
@@ -110,3 +128,4 @@ class TestMapTWtoUSFM3(TestCase):
         mapped_usfm = maptwtousfm3.mapPhrases(usfm)
         expected_usfm = read_file(os.path.join(self.resources_dir, 'mapped_phrases_tit.usfm'))
         self.assertEqual(mapped_usfm, expected_usfm)
+

@@ -27,6 +27,20 @@ from libraries.tools.usfm_utils import USFMWordReader, tWPhrase
 
 LOGGER_NAME='map_tw_to_usfm'
 
+def indexWordsCategory(words_rc):
+    """
+    Generates an index of categories for words
+    :param words_rc:
+    :return:
+    """
+    index = {}
+    categories = words_rc.chapters()
+    for cat in categories:
+        words = words_rc.chunks(cat)
+        for word in words:
+            index[word.split('.')[0]] = cat
+    return index
+
 def indexWordsLocation(words_rc):
     """
     Generates an index of word occurrences where words may be looked up by
@@ -108,31 +122,26 @@ def parseStrongs(word_data):
     else:
         raise Exception('Missing Word Data section')
 
-def _getWordCategory(word, words_rc):
+def _getWordCategory(word, words_category_index):
     """
     Retrieves the category of a word
     :param word:
-    :param words_rc:
-    :type words_rc: ResourceContainer.RC
+    :param words_category_index:
     :return:
     """
-    # TRICKY: the config.yaml does not provide enough information for us to backtrack words.
-    # however, we know there are only 3 locations
-    categories = ['kt', 'names', 'other']
-    for cat in categories:
-        if '{}.md'.format(word) in words_rc.chunks(cat):
-            return cat
-    return None
+    if word in words_category_index:
+        return words_category_index[word]
+    else:
+        return None
 
-def _makeWordLink(word, words_rc):
+def _makeWordLink(word, words_category_index):
     """
     Generates a language agnostic link to a tW
     :param word:
-    :param words_rc:
-    :type words_rc: ResourceContainer.RC
+    :param words_category_index
     :return: a new rc link
     """
-    category = _getWordCategory(word, words_rc)
+    category = _getWordCategory(word, words_category_index)
     if not category:
         raise Exception('Failed to look up category for word {}'.format(word))
 
@@ -263,13 +272,13 @@ def normalizeStrongPadding(strong, strong_template='000000'):
     """
     return (strong + '0000000000')[:len(strong_template)]
 
-def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_positives_index):
+def mapUSFMByGlobalSearch(usfm, words_strongs_index, words_false_positives_index, words_category_index):
     """
     Injects tW links into un-matched usfm words as matches are found in the global index.
     :param usfm:
-    :param words_rc:
     :param words_strongs_index:
     :param words_false_positives_index:
+    :param words_category_index
     :return:
     """
     logger = logging.getLogger(LOGGER_NAME)
@@ -289,13 +298,13 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
         if filtered:
             if len(filtered) == 1:
                 # inject link at end
-                link = 'x-tw="{}"'.format(_makeWordLink(filtered[0], words_rc))
+                link = 'x-tw="{}"'.format(_makeWordLink(filtered[0], words_category_index))
                 reader.amendLine(line.replace('\w*', ' ' + link + ' \w*'))
             else:
                 links = []
                 for word in filtered:
-                    links.append(_makeWordLink(word, words_rc).split('bible/')[1])
-                logger.warning('Multiple matches found at {} {}:{} {} --- {}'.format(book, chapter, verse, line, '; '.join(links)))
+                    links.append(_makeWordLink(word, words_category_index).split('bible/')[1])
+                logger.warning(u'Multiple matches found at {} {}:{} {} --- {}'.format(book, chapter, verse, line, '; '.join(links)))
         elif words:
             print('Skipped false positives')
         else:
@@ -304,7 +313,7 @@ def mapUSFMByGlobalSearch(usfm, words_rc, words_strongs_index, words_false_posit
 
 # TRICKY: we purposely make strongs_index a mutable parameter
 # this allows us to maintain the strong's index.
-def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
+def mapUSFMByOccurrence(usfm, words_rc, words_index, words_category_index, strongs_index={}):
     """
     Injects tW links into the usfm as matches are found in the list of occurrences.
     :param usfm:
@@ -312,7 +321,8 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
     :param words_rc:
     :type words_rc: ResourceContainer.RC
     :param words_index: the index of words keyed by location.
-    :param strongs_index: the index of word strong numbers.
+    :param words_category_index
+    :param strongs_index: the index of word strong numbers. deprecated?
     :return: the newly mapped usfm
     """
     logger = logging.getLogger(LOGGER_NAME)
@@ -329,7 +339,7 @@ def mapUSFMByOccurrence(usfm, words_rc, words_index, strongs_index={}):
             if len(words) > 1:
                 logger.info(u'Injecting multiple words at {} {}:{} {}'.format(book, chapter, verse, line))
             for word in words:
-                link = 'x-tw="{}"'.format(_makeWordLink(word, words_rc))
+                link = 'x-tw="{}"'.format(_makeWordLink(word, words_category_index))
                 line = line.replace('\w*', ' ' + link + ' \w*')
             reader.amendLine(line)
         elif location_words:
@@ -390,6 +400,7 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False, map_phrases=True
 
     print('Generating occurrences index')
     location_index = indexWordsLocation(words_rc)
+    category_index = indexWordsCategory(words_rc)
     if map_phrases:
         print('Phrase mapping enabled.')
     if global_search:
@@ -407,11 +418,20 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False, map_phrases=True
         file = os.path.join(usfm_dir, file_name)
         print('{}'.format(file_name))
         usfm = read_file(file)
-        usfm = mapUSFMByOccurrence(usfm, words_rc, location_index['occurrences'])
+        print('mapping occurrences...')
+        usfm = mapUSFMByOccurrence(usfm=usfm,
+                                   words_rc=words_rc,
+                                   words_index=location_index['occurrences'],
+                                   words_category_index=category_index)
         if map_phrases:
+            print('mapping phrases...')
             usfm = mapPhrases(usfm)
         if global_search:
-            usfm = mapUSFMByGlobalSearch(usfm, words_rc, strongs_index, location_index['false_positives'])
+            print('global search...')
+            usfm = mapUSFMByGlobalSearch(usfm=usfm,
+                                         words_strongs_index=strongs_index,
+                                         words_false_positives_index=location_index['false_positives'],
+                                         words_category_index=category_index)
             # NOTE: if we need to add phrase mapping to global search un-comment these lines
             # if map_phrases:
             #     usfm = mapPhrases(usfm)
