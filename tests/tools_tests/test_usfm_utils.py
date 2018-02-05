@@ -5,7 +5,7 @@ import shutil
 import tempfile
 from unittest import TestCase
 from libraries.tools.file_utils import read_file
-from libraries.tools.usfm_utils import usfm3_to_usfm2, parse_book_id, strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links
+from libraries.tools.usfm_utils import usfm3_to_usfm2, simplify_strong, get_usfm3_word_strongs, parse_book_id, strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links
 
 
 class TestUsfmUtils(TestCase):
@@ -80,6 +80,23 @@ class TestUsfmUtils(TestCase):
         expected = read_file(os.path.join(self.resources_dir, 'uwapi_1ch.usfm'))
         output = strip_word_data(input)
         self.assertEqual(expected, output)
+
+    def test_get_usfm3_word_strongs(self):
+        strong = get_usfm3_word_strongs('\w וַ​יְהִ֗י|lemma="הָיָה" strong="H1961" x-morph="He,C:Vqw3ms" \w*')
+        self.assertEqual('H1961', strong)
+
+    def test_simplify_strong(self):
+        strong = simplify_strong('c:H1961')
+        self.assertEqual('H1961', strong)
+
+        strong = simplify_strong('a:c:H1961')
+        self.assertEqual('H1961', strong)
+
+        strong = simplify_strong('H1961a')
+        self.assertEqual('H1961', strong)
+
+        strong = simplify_strong('c:H1961a')
+        self.assertEqual('H1961', strong)
 
     def test_strip_word_data_from_file(self):
         """

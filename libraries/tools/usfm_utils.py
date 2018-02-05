@@ -29,7 +29,7 @@ class tWPhrase:
         :return:
         """
         links = get_usfm3_word_links(line)
-        strong = get_usfm3_word_strongs(line)
+        strong = simplify_strong(get_usfm3_word_strongs(line))
         if strong and links:
             # TRICKY: empty phrases are valid
             if not len(self.__link_set) > 0 or len(self.__link_set.intersection(set(links))) > 0:
@@ -209,7 +209,7 @@ class USFMWordReader:
                     raise Exception('Malformed USFM. Unable to parse verse number: {}'.format(self.line))
 
             # start original language word
-            strong = get_usfm3_word_strongs(self.line)
+            strong = simplify_strong(get_usfm3_word_strongs(self.line))
 
             # validate
             if self.chapter and self.verse and strong:
@@ -263,18 +263,30 @@ def get_usfm3_word_links(usfm3_line):
 
 def get_usfm3_word_strongs(usfm3_line):
     """
-    Retrieves the strongs number from a usfm3 word
+    Retrieves the strongs number from a usfm3 word.
     :param usfm3_line:
     :return:
     """
     strong = None
     if re.match(r'\\w\b', usfm3_line):
-        match = re.findall(r'strong="([\w]+)"', usfm3_line, flags=re.IGNORECASE | re.UNICODE)
+        match = re.findall(r'strong="([^"]+)"', usfm3_line, flags=re.IGNORECASE | re.UNICODE)
         if match:
             strong = match[0]
         else:
+            print('Error parsing {}'.format(usfm3_line))
             raise Exception('Malformed USFM. Unable to parse strong number: {}'.format(usfm3_line))
     return strong
+
+def simplify_strong(strong):
+    """
+    This removes the prefix and suffix from the strong number.
+    e.g. c:H1961a will become H1961
+    :param strong:
+    :return:
+    """
+    simplified = re.sub(r'[a-z]+$', '', strong)
+    parts = simplified.split(':')
+    return parts[len(parts)-1]
 
 def strip_tw_links(usfm, links=None):
     """
