@@ -416,9 +416,6 @@ def mapDir(usfm_dir, words_rc, output_dir, global_search=False, map_phrases=True
         print('Generating strongs index.')
         strongs_index = indexWordByStrongs(words_rc)
 
-        # dump the index into the output for debugging
-        write_file(os.path.join(output_dir, 'strongs_index.json'), json.dumps(strongs_index))
-
     for file_name in usfm_files:
         if not file_name.endswith('.usfm'):
             continue
