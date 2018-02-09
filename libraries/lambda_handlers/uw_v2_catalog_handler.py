@@ -333,7 +333,7 @@ class UwV2CatalogHandler(InstanceHandler):
                     continue
 
                 # TRICKY: not all manifests have a source text
-                if 'source' in res:
+                if 'source' in res and len(res['source']):
                     source = res['source'][0]
                 else:
                     source = {
