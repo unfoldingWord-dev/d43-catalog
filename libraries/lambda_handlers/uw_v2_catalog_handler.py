@@ -175,7 +175,7 @@ class UwV2CatalogHandler(InstanceHandler):
                 if int(mod) > last_modified:
                     last_modified = int(mod)
 
-                # TRICK:Y we are not processing the resource formats
+                # TRICKY: we are not processing the resource formats
 
                 toc = []
                 for proj in res['projects']:
@@ -332,7 +332,15 @@ class UwV2CatalogHandler(InstanceHandler):
                 if not toc:
                     continue
 
-                source = res['source'][0]
+                # TRICKY: not all manifests have a source text
+                if 'source' in res:
+                    source = res['source'][0]
+                else:
+                    source = {
+                        'language': '',
+                        'version': ''
+                    }
+
                 comment = ''
                 if 'comment' in res:
                     comment = res['comment']
