@@ -75,6 +75,8 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
 
         note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
         note_json = []
+        if not os.path.exists(note_dir):
+            raise Exception('Project directory missing. Could not find {}'.format(note_dir))
         chapters = os.listdir(note_dir)
 
         for chapter in chapters:
