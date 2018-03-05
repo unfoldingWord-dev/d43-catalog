@@ -221,11 +221,12 @@ def make_legacy_date(date_str):
         return None
 
 
-def usx_to_json(usx, reporter=None):
+def usx_to_json(usx, path='', reporter=None):
     """
     Iterates through the usx and splits it into frames based on the
     s5 markers.
     :param usx:
+    :param path: The path from which the usx is converted. This gives context to error messages
     :param reporter: A lambda handler instance for reporting errors
     :type reporter: Handler
     """
@@ -249,10 +250,16 @@ def usx_to_json(usx, reporter=None):
                 if fr_list:
                     fr_text = '\n'.join(fr_list)
                     try:
-                        first_vs = verse_re.search(fr_text).group(1)
+                        matches = verse_re.search(fr_text)
+                        if matches:
+                            first_vs = matches.group(1)
+                        else:
+                            if reporter:
+                                reporter.report_error('failed to search for verse in string "{}" ({})'.format(fr_text, path))
+                            continue
                     except AttributeError:
                         if reporter:
-                            reporter.report_error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
+                            reporter.report_error('Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
                         continue
                     chp['frames'].append({'id': '{0}-{1}'.format(
                         str(chp_num).zfill(2), first_vs.zfill(2)),
@@ -289,7 +296,7 @@ def usx_to_json(usx, reporter=None):
                     first_vs = verse_re.search(fr_text).group(1)
                 except AttributeError:
                     if reporter:
-                        reporter.report_error('Unable to parse verses from chunk {}: {}'.format(chp_num, fr_text))
+                        reporter.report_error('Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
                     continue
 
                 chp['frames'].append({'id': '{0}-{1}'.format(
@@ -330,7 +337,7 @@ def build_json_source_from_usx(path, date_modified, reporter=None):
     with codecs.open(path, 'r', encoding='utf-8-sig') as in_file:
         usx = in_file.readlines()
 
-    book = usx_to_json(usx, reporter)
+    book = usx_to_json(usx, path, reporter)
 
     return {
         'source': {

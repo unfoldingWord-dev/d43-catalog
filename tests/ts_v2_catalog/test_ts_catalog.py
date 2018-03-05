@@ -7,7 +7,7 @@ from libraries.tools.file_utils import load_json_object, read_file
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json, assert_json_files_equal
-from libraries.tools.ts_v2_utils import index_tn_rc, build_usx, index_chunks
+from libraries.tools.ts_v2_utils import index_tn_rc, build_usx, index_chunks, usx_to_json
 import tempfile
 
 
@@ -31,6 +31,12 @@ class TestTsV2Catalog(TestCase):
                 'to_email': ''
             }
         }
+
+    # def test_usx_to_json(self, mock_reporter):
+    #     input = ''
+    #     expected = {}
+    #     output = usx_to_json(input)
+    #     self.assertEqual(output, expected)
 
     def test_inprogress(self, mock_reporter):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
