@@ -382,6 +382,10 @@ class TsV2CatalogHandler(InstanceHandler):
                 question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 question_json = []
 
+                if not os.path.isdir(question_dir):
+                    self.logger.warning('Missing directory at {}. Is the manifest out of date?'.format(question_dir))
+                    continue
+
                 chapters = os.listdir(question_dir)
                 for chapter in chapters:
                     if chapter in ['.', '..']: continue
