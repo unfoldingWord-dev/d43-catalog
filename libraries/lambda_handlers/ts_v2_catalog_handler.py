@@ -724,6 +724,14 @@ class TsV2CatalogHandler(InstanceHandler):
             self.cdn_url,
             TsV2CatalogHandler.cdn_root_path,
             pid, lid, rid, resource['version'], r_modified)
+        source_text = ''
+        source_text_version = ''
+        if resource['source']:
+            # TRICKY: some resources don't have a source
+            source_text = resource['source'][0]['language']
+            source_text_version = resource['source'][0]['version']
+        else:
+            self.report_error('Missing source translation in {} {}'.format(lid, rid))
         res.update({
             'date_modified': r_modified,
             'name': resource['title'],
@@ -735,8 +743,8 @@ class TsV2CatalogHandler(InstanceHandler):
                 'comments': comments,
                 'contributors': '; '.join(resource['contributor']),
                 'publish_date': resource['issued'],
-                'source_text': resource['source'][0]['language'],  # v2 can only handle one source
-                'source_text_version': resource['source'][0]['version'],  # v2 can only handle one source
+                'source_text': source_text,  # v2 can only handle one source
+                'source_text_version': source_text_version,  # v2 can only handle one source
                 'version': resource['version']
             },
             'checking_questions': '',
