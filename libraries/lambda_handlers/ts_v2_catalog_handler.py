@@ -753,8 +753,8 @@ class TsV2CatalogHandler(InstanceHandler):
             'terms': '',
             'tw_cat': ''
         })
-        # english projects have tw_cat
-        if lid == 'en':
+        # English and Hindi projects have tw_cat
+        if lid == 'en' or lid == 'hi':
             res.update({
                 'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
                     self.cdn_url,
