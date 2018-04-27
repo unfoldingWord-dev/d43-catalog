@@ -124,7 +124,7 @@ class CatalogHandler(InstanceHandler):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
             else:
-                cat_str = json.dumps(self.catalog, sort_keys=True)
+                cat_str = json.dumps(self.catalog, sort_keys=True, separators=(',',':'))
                 try:
                     catalog_path = os.path.join(tempfile.gettempdir(), 'catalog.json')
                     write_file(catalog_path, cat_str)
@@ -334,7 +334,7 @@ class CatalogHandler(InstanceHandler):
             catalog_url = '{0}/v{1}/catalog.json'.format(self.api_url, self.api_version)
             self.logger.debug('Comparing new catalog against old ({})'.format(catalog_url))
             old_catalog_str = self.get_url(catalog_url, True)
-            new_catalog_str = json.dumps(catalog, sort_keys=True)
+            new_catalog_str = json.dumps(catalog, sort_keys=True, separators=(',',':'))
 
             old_hash = hashlib.md5(old_catalog_str.encode('utf-8')).hexdigest()
             new_hash = hashlib.md5(new_catalog_str.encode('utf-8')).hexdigest()
