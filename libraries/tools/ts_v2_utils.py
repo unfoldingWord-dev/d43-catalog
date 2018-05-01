@@ -369,6 +369,10 @@ def convert_rc_links(content, logger=None):
     # process links
     for link in links:
         components = link[1].split('/')
+        if len(components) < 3:
+            if logger:
+                logger.warning('Invalid link "{}"'.format(link[1]))
+            continue
         lid = components[0]
         rid = components[1]
         # rtype = components[2]
