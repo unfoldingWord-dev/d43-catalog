@@ -369,7 +369,7 @@ def convert_rc_links(content, logger=None):
     # process links
     for link in links:
         components = link[1].split('/')
-        if len(components) < 3:
+        if len(components) < 4:
             if logger:
                 logger.warning('Invalid link "{}"'.format(link[1]))
             continue
@@ -380,6 +380,11 @@ def convert_rc_links(content, logger=None):
 
         new_link = link[0]
         if rid == 'ta':
+            if len(components) < 5:
+                if logger:
+                    logger.warning('Invalid link "{}"'.format(link[1]))
+                continue
+
             module = components[4].replace('-', '_')
             vol = get_legacy_ta_volume(module)
             if not vol:

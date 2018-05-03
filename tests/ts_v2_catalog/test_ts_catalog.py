@@ -7,7 +7,7 @@ from libraries.tools.file_utils import load_json_object, read_file
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json, assert_json_files_equal
-from libraries.tools.ts_v2_utils import index_tn_rc, build_usx, index_chunks, usx_to_json
+from libraries.tools.ts_v2_utils import index_tn_rc, build_usx, index_chunks, convert_rc_links
 import tempfile
 
 
@@ -31,6 +31,24 @@ class TestTsV2Catalog(TestCase):
                 'to_email': ''
             }
         }
+
+    def test_convert_invalid_links(self, mock_reporter):
+        mockLog = MockLogger()
+        content = """
+some text
+[[rc://tl/ta/vol]]
+some more text
+"""
+        convert_rc_links(content, mockLog)
+        self.assertEqual(1, len(mockLog._messages))
+
+        longer_content = """
+        some text
+        [[rc://tl/ta/vol/hi]]
+        some more text
+        """
+        convert_rc_links(longer_content, mockLog)
+        self.assertEqual(2, len(mockLog._messages))
 
     # def test_usx_to_json(self, mock_reporter):
     #     input = ''
