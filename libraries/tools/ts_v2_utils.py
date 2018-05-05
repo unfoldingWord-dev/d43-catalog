@@ -102,7 +102,15 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                 general_notes = note_general_re.search(verse_body)
 
                 # close chunk
-                if firstvs is not None and (pid == 'obs' or verse in chunk_json[chapter]):
+                chapter_key = chapter
+                if firstvs is not None and (pid != 'obs' and chapter_key not in chunk_json):
+                    if reporter:
+                        reporter.report_error('Could not find chunk data for {} {} {}'.format(rc_dir, pid, chapter_key))
+                    # attempt to recover if Psalms
+                    if pid == 'psa':
+                        chapter_key = chapter_key.zfill(3)
+
+                if firstvs is not None and (pid == 'obs' or verse in chunk_json[chapter_key]):
                     note_json.append({
                         'id': '{}-{}'.format(chapter, firstvs),
                         'tn': notes
@@ -146,7 +154,6 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
             tn_uploads[tn_key] = note_upload
 
     return tn_uploads
-
 
 def prep_data_upload(key, data, temp_dir):
     """
