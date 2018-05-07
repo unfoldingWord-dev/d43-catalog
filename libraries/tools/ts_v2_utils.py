@@ -104,11 +104,13 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                 # close chunk
                 chapter_key = chapter
                 if firstvs is not None and (pid != 'obs' and chapter_key not in chunk_json):
-                    if reporter:
-                        reporter.report_error('Could not find chunk data for {} {} {}'.format(rc_dir, pid, chapter_key))
                     # attempt to recover if Psalms
                     if pid == 'psa':
                         chapter_key = chapter_key.zfill(3)
+                    else:
+                        if reporter:
+                            reporter.report_error(
+                                'Could not find chunk data for {} {} {}'.format(rc_dir, pid, chapter_key))
 
                 if firstvs is not None and (pid == 'obs' or verse in chunk_json[chapter_key]):
                     note_json.append({
