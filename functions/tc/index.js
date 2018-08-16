@@ -1,5 +1,8 @@
 const AWS = require('aws-sdk');
+const apiHelpers = require('./helpers/apiHelpers');
 
-exports.handler = async (event) => {
-  console.log('hi')
-};
+exports.handle = function(e, ctx, cb) {
+  apiHelpers.getCatalog().then((res)=>{
+    cb(null, res)
+  })
+}
