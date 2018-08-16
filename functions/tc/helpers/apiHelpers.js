@@ -41,11 +41,12 @@ function getCatalog() {
 function uploadToS3(Key, data) {
   return new Promise((resolve, reject) => {
     var s3 = new AWS.S3();
+    var base64data = Buffer.from(JSON.stringify(data), 'utf8');
     var params = {
       Bucket: API_ORIGIN,
       Key,
-      Body: JSON.stringify(data),
-      ContentType: "application/json"
+      Body:base64data,
+      ContentType:'text/html; charset=utf-8'
     };
     s3.putObject(params, function(err, res) {
       if (err) {
