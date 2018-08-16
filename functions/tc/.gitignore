@@ -5,4 +5,4 @@
 !/__init__.py
 !/libraries
 !/index.json
-!/helpers.**
+!**helpers**
