@@ -1,5 +1,4 @@
 {
   "name": "subjects",
-  "runtime": "nodejs8.10",
-  "timeout": 5
+  "runtime": "nodejs8.10"
 }

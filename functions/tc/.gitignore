@@ -4,3 +4,5 @@
 !/.apexignore
 !/__init__.py
 !/libraries
+!/index.json
+!/helpers.**
