@@ -53,7 +53,6 @@ function uploadToS3(Key, data) {
         console.log("Error uploading data: ", err);
         reject(err)
       } else {
-        console.log("Successfully uploaded data");
         resolve()
       }
     });
