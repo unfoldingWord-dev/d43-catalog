@@ -1,6 +1,6 @@
 var request = require('request');
 const AWS = require('aws-sdk');
-const API_ORIGIN = process.env.API_ORIGIN;
+const API_ORIGIN = process.env.API_ORIGIN || 'api.door43.org';
 const DCS_API = `https://${API_ORIGIN}`;
 const CATALOG_PATH = '/v3/catalog.json';
 
