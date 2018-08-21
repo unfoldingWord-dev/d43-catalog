@@ -1,4 +1,10 @@
-function pivotOnKey(catalog, key) {
+/**
+ * Creates a pivoted JSON for the given catalog that is indexing 
+ * based on the given key rather than the "languages" key
+ * @param {Object} catalog - The catalog from door43 api
+ * @param {string} key - The key located in the resources spec i.e. subject
+ */
+function parseCatalogOnResourceKey(catalog, key) {
   const index = [];
   const newCatalog = {};
   const pluralKey = key + 's';
@@ -45,5 +51,5 @@ function pivotOnKey(catalog, key) {
 }
 
 module.exports = {
-  pivotOnKey
+  parseCatalogOnResourceKey
 }

@@ -22,7 +22,6 @@ function makeRequest(url) {
         try {
           result = JSON.parse(body);
         } catch (e) {
-          reject(e);
         }
         resolve(result);
       }
@@ -38,6 +37,11 @@ function getCatalog() {
   return makeRequest(DCS_API + CATALOG_PATH);
 }
 
+/**
+ * Upload some data to the door43 api.door43.org bucket
+ * @param {String} Key - The pathname of the data to upload i.e."v3/catalog.json"
+ * @param {Object} data - The data to be uploaded
+ */
 function uploadToS3(Key, data) {
   return new Promise((resolve, reject) => {
     var s3 = new AWS.S3();
