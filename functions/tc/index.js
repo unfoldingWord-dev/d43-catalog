@@ -12,7 +12,7 @@ const parseHelpers = require('./helpers/parseHelpers');
 exports.handle = async function(e, ctx, cb) {
   try {
     const catalog = await apiHelpers.getCatalog();
-    const {pivoted, index, subject} = parseHelpers.pivotOnKey(catalog, 'subject');
+    const {pivoted, index, subject} = parseHelpers.parseCatalogOnResourceKey(catalog, 'subject');
     await apiHelpers.uploadToS3('v3/subjects/index.json', index)
     await apiHelpers.uploadToS3('v3/subjects/pivoted.json', pivoted)
     Object.keys(subject).forEach(async (key) => {
