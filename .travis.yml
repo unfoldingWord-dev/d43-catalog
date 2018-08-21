@@ -1,26 +1,26 @@
 matrix:
   include:
     - language: python
-      python: "2.7"
-      before_install:
-      - pip install awscli
-      - sudo apt-get install -y curl tar
-      - bash install-apex.sh
-      - pip install --upgrade setuptools
-      install:
-      - python -m pip install --upgrade --force-reinstall -r requirements.txt
-      - pip install coveralls
-      script:
-      - coverage run test-setup.py test
-      after_success:
-      - coveralls
+        python: "2.7"
+        before_install:
+        - pip install awscli
+        - sudo apt-get install -y curl tar
+        - bash install-apex.sh
+        - pip install --upgrade setuptools
+        install:
+        - python -m pip install --upgrade --force-reinstall -r requirements.txt
+        - pip install coveralls
+        script:
+        - coverage run test-setup.py test
+        after_success:
+        - coveralls
     - language: node_js
       node_js: "8.1"
-    install:
-    - cd functions/tc
-    - npm i
-    script:
-    - npm test
+      install:
+      - cd functions/tc
+      - npm i
+      script:
+      - npm test
 deploy:
 - provider: script
   skip_cleanup: true
