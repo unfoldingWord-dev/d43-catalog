@@ -15,12 +15,12 @@ matrix:
         after_success:
         - coveralls
     - language: node_js
-      node_js: "8.1"
-      install:
-      - cd functions/tc
-      - npm i
-      script:
-      - npm test
+        node_js: "8.1"
+        install:
+        - cd functions/tc
+        - npm i
+        script:
+        - npm test
 deploy:
 - provider: script
   skip_cleanup: true
