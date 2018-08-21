@@ -7,3 +7,5 @@
 !/index.json
 !**helpers**
 !package.json
+!**__mocks__**
+!**__tests__**
