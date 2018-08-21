@@ -1,33 +1,32 @@
+sudo: true
+os:
+- linux
 matrix:
   include:
-    - language: python
-      python: 2.7
-    before_install:
-    - pip install awscli
-    - sudo apt-get install -y curl tar
-    - bash install-apex.sh
-    - pip install --upgrade setuptools
-    install:
-    - python -m pip install --upgrade --force-reinstall -r requirements.txt
-    - pip install coveralls
+  - language: python
+  python:
+  - 2.7
+  before_install:
+  - pip install awscli
+  - sudo apt-get install -y curl tar
+  - bash install-apex.sh
+  - pip install --upgrade setuptools
+  install:
+  - python -m pip install --upgrade --force-reinstall -r requirements.txt
+  - pip install coveralls
+  script:
+  - coverage run test-setup.py test
+  after_success:
+  - coveralls
 
-    script:
-    - coverage run test-setup.py test
-
-    sudo: true
-    os:
-    - linux
-    language: node_js
-    node_js:
-    - 9.11.1
-    before_script:
-      - cd functions/tc
-      - npm i
-      - npm test
-    
-
-after_success:
-- coveralls
+  — language: node_js
+  node_js:
+  — 9.11.1
+  before_script:
+  - cd functions/tc
+  - npm i
+  - npm test
+  
 deploy:
 - provider: script
   skip_cleanup: true
