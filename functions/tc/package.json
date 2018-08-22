@@ -16,8 +16,12 @@
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-jest": "^23.4.2",
-    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
     "jest": "^23.5.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    }
   }
 }
