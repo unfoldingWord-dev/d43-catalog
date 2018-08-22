@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": " NODE_ENV=test jest"
   },
   "author": "",
   "license": "ISC",
@@ -21,9 +21,6 @@
     "jest": "^23.5.0"
   },
   "jest": {
-    "globals": {
-      "NODE_ENV": "test"
-    },
     "verbose": true,
     "env": {
       "test": {
