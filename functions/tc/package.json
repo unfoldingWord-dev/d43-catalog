@@ -22,6 +22,10 @@
   "jest": {
     "transform": {
       "^.+\\.js$": "babel-jest"
-    }
+    },
+    "globals": {
+      "NODE_ENV": "test"
+    },
+    "verbose": true
   }
 }
