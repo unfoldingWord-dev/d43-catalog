@@ -83,7 +83,7 @@ nock('https://s3.us-west-2.amazonaws.com:443', {"encodedQueryParams":true})
   nock('https://google.com', {"encodedQueryParams":true})
   .get('/')
   .reply(200, 'OK')
-  nock('https://s3.amazonaws.com')
+  nock('https://s3.amazonaws.com', {"encodedQueryParams":true})
   .intercept('/api.door43.org/hello/world/data.json', 'PUT')
   .reply(200);
 }
