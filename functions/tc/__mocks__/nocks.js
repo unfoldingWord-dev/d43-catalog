@@ -83,8 +83,38 @@ nock('https://s3.us-west-2.amazonaws.com:443', {"encodedQueryParams":true})
   nock('https://google.com', {"encodedQueryParams":true})
   .get('/')
   .reply(200, 'OK')
-  nock('https://s3.amazonaws.com', {"encodedQueryParams":true})
-  .persist()
-  .intercept('/api.door43.org/hello/world/data.json', 'PUT')
-  .reply(200);
+  nock('https://s3.amazonaws.com:443', {"encodedQueryParams":true})
+  .put('/api.door43.org/hello/world/data.json', {"a":"1"})
+  .reply(301, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>PermanentRedirect</Code><Message>The bucket you are attempting to access must be addressed using the specified endpoint. Please send all future requests to this endpoint.</Message><Bucket>api.door43.org</Bucket><Endpoint>api.door43.org.s3.amazonaws.com</Endpoint><RequestId>7C43215226590E8F</RequestId><HostId>90XcidQSowyu/+8mNYeDE/a1FNTYP3d6YIQJZxR9mQ8+WzIzWkfalE4Bv95vnfcbD+Z3xdxqiz0=</HostId></Error>", [ 'x-amz-bucket-region',
+  'us-west-2',
+  'x-amz-request-id',
+  '7C43215226590E8F',
+  'x-amz-id-2',
+  '90XcidQSowyu/+8mNYeDE/a1FNTYP3d6YIQJZxR9mQ8+WzIzWkfalE4Bv95vnfcbD+Z3xdxqiz0=',
+  'Content-Type',
+  'application/xml',
+  'Transfer-Encoding',
+  'chunked',
+  'Date',
+  'Wed, 22 Aug 2018 01:57:49 GMT',
+  'Connection',
+  'close',
+  'Server',
+  'AmazonS3' ]);
+nock('https://s3.us-west-2.amazonaws.com:443', {"encodedQueryParams":true})
+  .put('/api.door43.org/hello/world/data.json', {"a":"1"})
+  .reply(200, "", [ 'x-amz-id-2',
+  'XeZ89meqzRtdkDE3qShDMZoE2JzX+d4V57jTCxjUybB2IYKB4Um6zHfDCeBCykcB8KYRo9x4Vso=',
+  'x-amz-request-id',
+  '592BE170A131AB5B',
+  'Date',
+  'Wed, 22 Aug 2018 01:57:51 GMT',
+  'x-amz-version-id',
+  'bpQdNwsL97BTebSmVZwgcaWa1ojBf8tK',
+  'ETag',
+  '"7d514306db07172947190860214256e3"',
+  'Content-Length',
+  '0',
+  'Server',
+  'AmazonS3' ]);
 }
