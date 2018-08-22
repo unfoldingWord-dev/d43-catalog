@@ -9,3 +9,4 @@
 !package.json
 !**__mocks__**
 !**__tests__**
+!.babelrc
