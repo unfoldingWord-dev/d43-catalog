@@ -21,9 +21,6 @@
     "jest": "^23.5.0"
   },
   "jest": {
-    "transform": {
-      "^.+\\.js$": "babel-jest"
-    },
     "globals": {
       "NODE_ENV": "test"
     },
