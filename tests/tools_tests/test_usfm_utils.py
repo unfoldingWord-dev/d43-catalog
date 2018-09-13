@@ -109,6 +109,17 @@ class TestUsfmUtils(TestCase):
         output = strip_word_data(input)
         self.assertEqual(expected, output)
 
+    def test_usfm3_file_to_usfm2(self):
+        """
+        This ensures we are correctly converting content to be used in the
+        uW api. This content wasn't getting converted correctly in the past.
+        :return:
+        """
+        input = read_file(os.path.join(self.resources_dir, 'fr_gen.usfm3'))
+        expected = read_file(os.path.join(self.resources_dir, 'fr_gen.usfm2'))
+        output = strip_word_data(input)
+        self.assertEqual(expected, output)
+
     def test_tw_phrase_print(self):
         phrase = tWPhrase(1)
         phrase.addLine(u'\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
