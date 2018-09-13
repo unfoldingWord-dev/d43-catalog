@@ -581,7 +581,11 @@ class TsV2CatalogHandler(InstanceHandler):
                     shutil.copyfile(usfm_src_file, usfm_dest_file)
 
                     # transform usfm to usx
-                    build_usx(usfm_dir, usx_dir)
+                    try:
+                        build_usx(usfm_dir, usx_dir)
+                    except Exception as e:
+                        self.report_error('Failed to generate usx for {}'.format(process_id))
+                        raise e
 
                     # convert USX to JSON
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
