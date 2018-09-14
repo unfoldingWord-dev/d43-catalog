@@ -314,8 +314,10 @@ def strip_word_data(usfm3):
     :param usfm3:
     :return:
     """
-    # TRICKY: place words on their own lines so regex doesn't break
-    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm3, flags=re.UNICODE)
+    # remove empty word markers
+    usfm = re.sub(r'\\w\s*(\|[^\\]*)?\\w\*', r'', usfm3, flags=re.UNICODE)
+    # place words on their own lines so regex doesn't break
+    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm, flags=re.UNICODE)
     # remove words
     usfm = re.sub(r'\\w\s+([^|\\]*).*\\w\*', r'\g<1>', usfm, flags=re.UNICODE)
     # group words onto single line
