@@ -317,14 +317,19 @@ def strip_word_data(usfm3):
     # TRICKY: place words on their own lines so regex doesn't break
     usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm3, flags=re.UNICODE)
     # remove words
-    usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, flags=re.UNICODE)
+    usfm = re.sub(r'\\w\s+([^|\\]*).*\\w\*', r'\g<1>', usfm, flags=re.UNICODE)
     # group words onto single line
     usfm = re.sub(r'(\n+)([^\\\n +])', r' \g<2>', usfm, flags=re.UNICODE)
+    # stick text without markup on previous line
+    usfm = re.sub(r'\n^(?![\\])(.*)', ' \g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
     # clean whitespace
     usfm = re.sub(r'^[ \t]*', '', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r'[ \t]*$', '', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r'^\n{2,}', '\n\n', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r' {2,}', ' ', usfm, flags=re.UNICODE)
+    # put spaces back between chapters and verses
+    usfm = re.sub(r'(\\s5)', '\n\g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
+
     return usfm.strip()
 
 def convert_chunk_markers(str):
