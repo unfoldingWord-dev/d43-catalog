@@ -340,7 +340,7 @@ def convert_chunk_markers(str):
     :param str:
     :return: the converted string
     """
-    return re.sub(r'\\ts\b', '\\s5', str)
+    return re.sub(r'\\ts\b', '\n\\s5', str)
 
 def usfm3_to_usfm2(usfm3):
     """

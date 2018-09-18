@@ -130,7 +130,7 @@ class TestUsfmUtils(TestCase):
 
     def test_convert_chunk_markers(self):
         input = '\\ts\n\\v 1 Ce qui était dès\n\\ts\n\\v 2 Ce qui était dès'
-        expected = '\\s5\n\\v 1 Ce qui était dès\n\\s5\n\\v 2 Ce qui était dès'
+        expected = '\n\\s5\n\\v 1 Ce qui était dès\n\n\\s5\n\\v 2 Ce qui était dès'
         output = convert_chunk_markers(input)
         self.assertEqual(expected, output)
 
