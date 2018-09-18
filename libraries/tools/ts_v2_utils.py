@@ -101,7 +101,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                 verse_body = convert_rc_links(verse_body)
                 general_notes = note_general_re.search(verse_body)
 
-                if chapter not in chunk_json:
+                if pid != 'obs' and chapter not in chunk_json:
                     raise Exception('Missing chapter "{}" key in chunk json while reading chunks for {}'.format(chapter, pid))
 
                 # close chunk
