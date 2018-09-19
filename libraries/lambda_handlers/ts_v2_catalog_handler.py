@@ -119,6 +119,8 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 if 'formats' in res:
                     for format in res['formats']:
+                        if lid == 'en' and rid == 'ult':
+                            self.logger.info('Processing formats {}_{}'.format(lid, rid))
                         finished_processes = {}
                         if not rc_format and get_rc_type(format):
                             # locate rc_format (for multi-project RCs)
