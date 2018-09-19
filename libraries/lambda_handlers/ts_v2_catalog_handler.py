@@ -113,7 +113,7 @@ class TsV2CatalogHandler(InstanceHandler):
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = TsV2CatalogHandler.sanitize_identifier(res['identifier'])
-                self.logger.debug('Processing {}_{}'.format(lid, rid))
+                self.logger.info('Processing {}_{}'.format(lid, rid))
 
                 rc_format = None
 
@@ -156,6 +156,8 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 for project in res['projects']:
                     pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
+                    if lid == 'en' and rid == 'ult':
+                        self.logger.info('Processing {}_{}_{}'.format(lid, rid, pid))
                     self.logger.debug('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
