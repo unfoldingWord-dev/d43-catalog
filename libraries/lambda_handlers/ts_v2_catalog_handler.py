@@ -132,6 +132,8 @@ class TsV2CatalogHandler(InstanceHandler):
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
+                                if lid == 'en' and rid == 'ult':
+                                    self.logger.info('Processing notes {}_{}'.format(lid, rid))
                                 tn = self._index_note_files(lid, rid, format, process_id)
                                 if tn:
                                     self._upload_all(tn)
@@ -142,6 +144,8 @@ class TsV2CatalogHandler(InstanceHandler):
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
+                                if lid == 'en' and rid == 'ult':
+                                    self.logger.info('Processing questions {}_{}'.format(lid, rid))
                                 tq = self._index_question_files(lid, rid, format, process_id)
                                 if tq:
                                     self._upload_all(tq)
@@ -155,6 +159,9 @@ class TsV2CatalogHandler(InstanceHandler):
                             self.status['processed'].update(finished_processes)
                             self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                             self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+
+                    if lid == 'en' and rid == 'ult':
+                        self.logger.info('Done processing formats {}_{}'.format(lid, rid))
 
                 for project in res['projects']:
                     pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
