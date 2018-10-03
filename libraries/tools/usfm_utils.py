@@ -298,8 +298,6 @@ def strip_tw_links(usfm, links=None):
     :return:
     """
     updated_usfm=usfm
-    # remove milestones
-    updated_usfm = re.sub(r'\\k-[es].*\n*', '', updated_usfm)
     # remove links
     if links:
         for link in links:
@@ -342,10 +340,22 @@ def convert_chunk_markers(str):
     """
     return re.sub(r'\\ts\b', '\n\\s5', str)
 
+def strip_milestones(usfm):
+    """
+    Removes \zaln-* milestones from the usfm.
+    :param str:
+    :return:
+    """
+    # remove opening marker
+    usfm = re.sub(r'\n?\\zaln-s.*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    # remove closing marker
+    usfm = re.sub(r'\n?\\zaln-e\\\*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    return usfm.strip()
+
 def usfm3_to_usfm2(usfm3):
     """
     Converts a USFM 3 string to a USFM 2 compatible string
     :param usfm3:
     :return: the USFM 2 version of the string
     """
-    return strip_word_data(strip_tw_links(usfm3))
+    return convert_chunk_markers(strip_word_data(strip_milestones(usfm3)))
