@@ -51,7 +51,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     This will write a bunch of files and return a list of files to be uploaded.
 
     Chunk definitions will be used to validate the note organization.
-    
+
     :param lid: the language id of the notes
     :param temp_dir: the directory where all the files will be written
     :param rc_dir: the directory of the resource container

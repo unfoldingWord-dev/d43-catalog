@@ -119,8 +119,6 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 if 'formats' in res:
                     for format in res['formats']:
-                        if lid == 'en' and rid == 'ult':
-                            self.logger.info('Processing formats {}_{}'.format(lid, rid))
                         finished_processes = {}
                         if not rc_format and get_rc_type(format):
                             # locate rc_format (for multi-project RCs)
@@ -132,8 +130,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
-                                if lid == 'en' and rid == 'ult':
-                                    self.logger.info('Processing notes {}_{}'.format(lid, rid))
+                                self.logger.info('Processing notes {}_{}'.format(lid, rid))
                                 tn = self._index_note_files(lid, rid, format, process_id)
                                 if tn:
                                     self._upload_all(tn)
@@ -144,8 +141,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
-                                if lid == 'en' and rid == 'ult':
-                                    self.logger.info('Processing questions {}_{}'.format(lid, rid))
+                                self.logger.info('Processing questions {}_{}'.format(lid, rid))
                                 tq = self._index_question_files(lid, rid, format, process_id)
                                 if tq:
                                     self._upload_all(tq)
@@ -160,14 +156,9 @@ class TsV2CatalogHandler(InstanceHandler):
                             self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
                             self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
-                    if lid == 'en' and rid == 'ult':
-                        self.logger.info('Done processing formats {}_{}'.format(lid, rid))
-
                 for project in res['projects']:
                     pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
-                    if lid == 'en' and rid == 'ult':
-                        self.logger.info('Processing {}_{}_{}'.format(lid, rid, pid))
-                    self.logger.debug('Processing {}_{}_{}'.format(lid, rid, pid))
+                    self.logger.info('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -581,7 +572,7 @@ class TsV2CatalogHandler(InstanceHandler):
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
-                    self.logger.debug('Processing {}'.format(process_id))
+                    self.logger.info('Processing {}'.format(process_id))
 
                     # copy usfm project file
                     usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
