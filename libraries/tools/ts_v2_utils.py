@@ -11,12 +11,14 @@ import os
 import json
 import yaml
 import hashlib
+import tempfile
+import shutil
 
 from libraries.lambda_handlers.handler import Handler
 from libraries.tools.file_utils import read_file, write_file
 from libraries.tools.url_utils import get_url
 from usfm_tools.transform import UsfmTransform
-from libraries.tools.usfm_utils import convert_chunk_markers, strip_word_data
+from libraries.tools.usfm_utils import usfm3_to_usfm2
 
 def download_chunks(pid, dest):
     """
@@ -192,12 +194,21 @@ def build_usx(usfm_dir, usx_dir):
     """
     # strip word data
     files = os.listdir(usfm_dir)
-    for name in files:
-        f = os.path.join(usfm_dir, name)
-        usfm = read_file(f)
-        write_file(f, convert_chunk_markers(strip_word_data(usfm)))
+    usfm2_dir = tempfile.mkdtemp(prefix='usfm2')
+    try:
+        for name in files:
+            f = os.path.join(usfm_dir, name)
+            usfm3 = read_file(f)
+            usfm2 = usfm3_to_usfm2(usfm3)
+            out_f = os.path.join(usfm2_dir, name)
+            write_file(out_f, usfm2)
 
-    UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
+        UsfmTransform.buildUSX(usfm2_dir, usx_dir, '', True)
+    finally:
+        try:
+            shutil.rmtree(usfm2_dir)
+        finally:
+            pass
 
 
 def get_rc_type(rc_format):
