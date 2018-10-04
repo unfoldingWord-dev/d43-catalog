@@ -48,7 +48,10 @@ def index_chunks(chunks):
 def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     """
     Converts a v3 tN into it's v2 equivalent.
-    This will write a bunch of files and return a list of files to be uploaded
+    This will write a bunch of files and return a list of files to be uploaded.
+
+    Chunk definitions will be used to validate the note organization.
+    
     :param lid: the language id of the notes
     :param temp_dir: the directory where all the files will be written
     :param rc_dir: the directory of the resource container
@@ -103,7 +106,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                 verse_body = convert_rc_links(verse_body)
                 general_notes = note_general_re.search(verse_body)
 
-                # zero pad chapter
+                # zero pad chapter to match chunking scheme
                 padded_chapter = chapter
                 while len(padded_chapter) < 3 and padded_chapter not in chunk_json:
                     padded_chapter = padded_chapter.zfill(len(padded_chapter) + 1)
@@ -111,10 +114,11 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                     if padded_chapter in chunk_json:
                         chapter = padded_chapter
 
+                # validate chapters
                 if pid != 'obs' and chapter not in chunk_json:
                     raise Exception('Missing chapter "{}" key in chunk json while reading chunks for {}. RC: {}'.format(chapter, pid, rc_dir))
 
-                # zero pad verse
+                # zero pad verse to match chunking scheme
                 padded_verse = verse
                 while len(padded_verse) < 3 and chapter in chunk_json and padded_verse not in chunk_json[chapter]:
                     padded_verse = padded_verse.zfill(len(padded_verse) + 1)
