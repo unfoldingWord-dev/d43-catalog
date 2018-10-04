@@ -328,7 +328,7 @@ def strip_word_data(usfm3):
     usfm = re.sub(r'^\n{2,}', '\n\n', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r' {2,}', ' ', usfm, flags=re.UNICODE)
     # put spaces back between chapters and verses
-    usfm = re.sub(r'(\\s5)', '\n\g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
+    usfm = re.sub(r'\n*(\\s5)\s*', '\n\n\g<1>\n', usfm, flags=re.UNICODE | re.MULTILINE)
 
     return usfm.strip()
 
