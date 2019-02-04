@@ -291,7 +291,8 @@ def simplify_strong(strong):
 
 def strip_tw_links(usfm, links=None):
     """
-    Removes tW links from a usfm string for backwards compatibility with the legacy tS api.
+    Removes tW links from a usfm string.
+    This does not remove milestone markers.
 
     :param usfm:
     :param links: only remove these links. If left None all links will be removed. Milestones are always removed.
@@ -343,7 +344,7 @@ def convert_chunk_markers(str):
 
 def strip_milestones(usfm):
     """
-    Removes \zaln-* milestones from the usfm.
+    Removes zaln-* and k-s milestones from the usfm.
     :param str:
     :return:
     """
@@ -351,6 +352,11 @@ def strip_milestones(usfm):
     usfm = re.sub(r'\n?\\zaln-s.*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
     # remove closing marker
     usfm = re.sub(r'\n?\\zaln-e\\\*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+
+    # remove opening marker
+    usfm = re.sub(r'\n?\\k-s.*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    # remove closing marker
+    usfm = re.sub(r'\n?\\k-e\\\*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
     return usfm.strip()
 
 def usfm3_to_usfm2(usfm3):
