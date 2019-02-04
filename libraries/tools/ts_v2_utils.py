@@ -96,7 +96,12 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                 # notes = []
                 verse_file = os.path.join(chapter_dir, verse)
                 verse = verse.split('.')[0]
-                verse_body = read_file(verse_file)
+                try:
+                    verse_body = read_file(verse_file)
+                except Exception as e:
+                    if reporter:
+                        reporter.report_error('Failed to read file {} {}'.format(verse_file, e.message))
+                    raise e
 
                 verse_body = convert_rc_links(verse_body)
                 general_notes = note_general_re.search(verse_body)
