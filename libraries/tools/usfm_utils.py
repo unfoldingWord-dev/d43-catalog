@@ -324,6 +324,7 @@ def strip_word_data(usfm3):
     usfm = re.sub(r'(\n+)([^\\\n +])', r' \g<2>', usfm, flags=re.UNICODE)
     # stick text without markup on previous line
     usfm = re.sub(r'\n^(?![\\])(.*)', ' \g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
+
     # clean whitespace
     usfm = re.sub(r'^[ \t]*', '', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r'[ \t]*$', '', usfm, flags=re.UNICODE | re.MULTILINE)
@@ -331,6 +332,8 @@ def strip_word_data(usfm3):
     usfm = re.sub(r' {2,}', ' ', usfm, flags=re.UNICODE)
     # put spaces back between chapters and verses
     usfm = re.sub(r'(\\s5)', '\n\g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
+    # always include empty line before \s5 marker
+    # usfm = re.sub(r'(\S)\n(\\s5)', '\g<1>\n\n<2>', usfm, flags=re.UNICODE | re.MULTILINE)
 
     return usfm.strip()
 
@@ -340,7 +343,9 @@ def convert_chunk_markers(str):
     :param str:
     :return: the converted string
     """
-    return re.sub(r'\\ts\b', '\\s5', str)
+    usfm = re.sub(r'\\ts\b', '\\s5', str)
+    # always include empty line before \s5 marker
+    return re.sub(r'(\S)\n(\\s5)', '\g<1>\n\n\g<2>', usfm, flags=re.UNICODE | re.MULTILINE)
 
 def usfm3_to_usfm2(usfm3):
     """
