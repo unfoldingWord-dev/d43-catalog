@@ -19,8 +19,8 @@ These are the AWS Lambda functions for generating the [API catalog endpoint](htt
 * Install [pip](https://pypi.org/project/pip/)
 * Run `pip install -r requirements.txt`
 * install [Apex](https://apex.run/) and configure with your aws credentials
-* run `apex --profile prod deploy` to publish everything to production
-* or you can run `apex --profile prod deploy ts-v2-catalog` for example to publish a single funtion.
+* run `apex --env prod deploy` to publish everything to production
+* or you can run `apex --env prod deploy ts_v2_catalog` for example to publish a single function.
 
 ## How it Works
 
