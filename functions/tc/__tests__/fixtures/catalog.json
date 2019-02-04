@@ -1,0 +1,74 @@
+{
+  "catalogs": [
+    {
+      "identifier": "langnames",
+      "modified": "2016-10-03",
+      "url": "https://td.unfoldingword.org/exports/langnames.json"
+    }
+  ],
+  "languages": [
+    {
+      "direction": "ltr",
+      "identifier": "ur-deva",
+      "resources": [
+        {
+          "publisher": "Door43",
+          "relation": [
+            "ur-deva/ulb",
+            "ur-deva/tq"
+          ],
+          "rights": "CC BY-SA 4.0",
+          "source": [
+            {
+              "identifier": "tn",
+              "language": "en",
+              "version": "12"
+            }
+          ],
+          "subject": "Translation Notes",
+          "title": "translationNotes",
+          "version": "12.3",
+          "checking": {
+            "checking_entity": [
+              "BCS",
+              "Dr. Bobby Chellappan"
+            ],
+            "checking_level": "3"
+          },
+          "comment": "",
+          "contributor": [
+            "Antoney Raj",
+            "BCS",
+            "Cdr. Thomas Mathew",
+            "Dr. Bobby Chellappan",
+            "Hind Prakash",
+            "Shojo John"
+          ],
+          "creator": "Door43 World Missions Community",
+          "description": "Open-licensed exegetical notes that provide historical, cultural, and linguistic information for translators. It provides translators and checkers with pertinent, just-in-time information to help them make the best possible translation decisions.",
+          "formats": [
+            {
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2",
+              "modified": "2018-08-15T23:05:16+00:00",
+              "signature": "https://cdn.door43.org/ur-deva/tn/v12.3/tn.zip.sig",
+              "size": 1615353,
+              "url": "https://cdn.door43.org/ur-deva/tn/v12.3/tn.zip"
+            }
+          ],
+          "identifier": "tn",
+          "issued": "2018-07-25T00:00:00+00:00",
+          "modified": "2018-08-15T00:00:00+00:00",
+          "projects": [
+            {
+              "categories": [],
+              "identifier": "1co",
+              "sort": 46,
+              "title": "1 Corinthians translationNotes",
+              "versification": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

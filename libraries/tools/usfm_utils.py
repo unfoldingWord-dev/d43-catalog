@@ -322,6 +322,7 @@ def strip_word_data(usfm3):
     usfm = re.sub(r'(\n+)([^\\\n +])', r' \g<2>', usfm, flags=re.UNICODE)
     # stick text without markup on previous line
     usfm = re.sub(r'\n^(?![\\])(.*)', ' \g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
+
     # clean whitespace
     usfm = re.sub(r'^[ \t]*', '', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r'[ \t]*$', '', usfm, flags=re.UNICODE | re.MULTILINE)
