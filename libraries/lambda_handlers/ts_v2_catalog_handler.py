@@ -362,7 +362,8 @@ class TsV2CatalogHandler(InstanceHandler):
 
             tn_uploads = index_tn_rc(lid=lid,
                                   temp_dir=self.temp_dir,
-                                  rc_dir=rc_dir)
+                                  rc_dir=rc_dir,
+                                  reporter=self)
 
         return tn_uploads
 

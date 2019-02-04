@@ -85,7 +85,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
         chapters = os.listdir(note_dir)
 
         for chapter in chapters:
-            if chapter in ['.', '..', 'front']:
+            if chapter in ['.', '..', 'front', '.DS_Store']:
                 continue
             chapter_dir = os.path.join(note_dir, chapter)
             verses = os.listdir(chapter_dir)
@@ -95,7 +95,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
             firstvs = None
             note_hashes = []
             for verse in verses:
-                if verse in ['.', '..', 'intro.md']:
+                if verse in ['.', '..', 'intro.md', '.DS_Store']:
                     continue
 
                 # notes = []
@@ -105,7 +105,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
                     verse_body = read_file(verse_file)
                 except Exception as e:
                     if reporter:
-                        reporter.report_error('Failed to read file {} {}'.format(verse_file, e.message))
+                        reporter.report_error('Failed to read file {}'.format(verse_file))
                     raise e
 
                 verse_body = convert_rc_links(verse_body)
@@ -206,6 +206,8 @@ def build_usx(usfm_dir, usx_dir):
     usfm2_dir = tempfile.mkdtemp(prefix='usfm2')
     try:
         for name in files:
+            if name == '.DS_Store':
+                continue
             f = os.path.join(usfm_dir, name)
             usfm3 = read_file(f)
             usfm2 = usfm3_to_usfm2(usfm3)
