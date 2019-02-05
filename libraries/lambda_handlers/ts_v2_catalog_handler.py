@@ -444,8 +444,8 @@ class TsV2CatalogHandler(InstanceHandler):
         :param format:
         :return:
         """
-        word_title_re = re.compile('^#([^#]*)#?', re.UNICODE)
-        h2_re = re.compile('^##([^#]*)#*', re.UNICODE)
+        word_title_re = re.compile('^#([^#\n]*)#*', re.UNICODE)
+        h2_re = re.compile('^##([^#\n]*)#*', re.UNICODE)
         obs_example_re = re.compile('\_*\[([^\[\]]+)\]\(([^\(\)]+)\)_*(.*)', re.UNICODE | re.IGNORECASE)
         block_re = re.compile('^##', re.MULTILINE | re.UNICODE)
         word_links_re = re.compile('\[([^\[\]]+)\]\(\.\.\/(kt|other)\/([^\(\)]+)\.md\)', re.UNICODE | re.IGNORECASE)
@@ -518,7 +518,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         word_content = '##'.join(cleaned_blocks)
 
                         # find all tW links and use them in related words
-                        related_words = [w[2] for w in word_links_re.findall(word_content) ]
+                        related_words = [w[2] for w in word_links_re.findall(word_content)]
 
                         # convert links to legacy form. TODO: we should convert links after converting to html so we don't have to do it twice.
                         word_content = convert_rc_links(word_content)
