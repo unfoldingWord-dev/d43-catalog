@@ -43,7 +43,7 @@ class TsV2CatalogHandler(InstanceHandler):
         if 's3_handler' in kwargs:
             self.cdn_handler = kwargs['s3_handler']
         else:
-            self.cdn_handler = S3Handler(self.cdn_bucket) # pragma: no cover
+            self.cdn_handler = S3Handler(self.cdn_bucket)  # pragma: no cover
         if 'dynamodb_handler' in kwargs:
             self.db_handler = kwargs['dynamodb_handler']
         else:
@@ -257,10 +257,6 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     # disable missing catalogs
 
-                    # only english projects have the tW catalog
-                    if lid != 'en':
-                        res['tw_cat'] = ''
-
                     # disable tN
                     if '_'.join([lid, '*', pid, 'tn']) not in cat_keys:
                         res['notes'] = ''
@@ -271,6 +267,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     # disable tW
                     if '_'.join([lid, '*', '*', 'tw']) not in cat_keys:
+                        res['tw_cat'] = ''
                         res['terms'] = ''
 
                     res_cat.append(res)
@@ -760,14 +757,14 @@ class TsV2CatalogHandler(InstanceHandler):
             'terms': '',
             'tw_cat': ''
         })
-        # English and Hindi projects have tw_cat
-        if lid == 'en' or lid == 'hi':
-            res.update({
-                'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
-                    self.cdn_url,
-                    TsV2CatalogHandler.cdn_root_path,
-                    pid, lid, r_modified)
-            })
+
+        # TRICKY: use english tw catalog for all languages
+        res.update({
+            'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
+                self.cdn_url,
+                TsV2CatalogHandler.cdn_root_path,
+                pid, 'en', r_modified)
+        })
 
         # bible projects have usfm
         if pid != 'obs':
