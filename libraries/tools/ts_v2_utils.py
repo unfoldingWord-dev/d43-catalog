@@ -20,6 +20,7 @@ from libraries.tools.url_utils import get_url
 from usfm_tools.transform import UsfmTransform
 from libraries.tools.usfm_utils import usfm3_to_usfm2
 
+
 def download_chunks(pid, dest):
     """
     Downloads the chunks for the bible book
@@ -31,6 +32,7 @@ def download_chunks(pid, dest):
         return json.loads(data)
     except:
         return None
+
 
 def index_chunks(chunks):
     """
@@ -44,6 +46,7 @@ def index_chunks(chunks):
             dict[chunk['chp']] = []
         dict[chunk['chp']].append(chunk['firstvs'])
     return dict
+
 
 def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     """
@@ -59,12 +62,55 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     :type reporter: Handler
     :return: a list of note files to upload
     """
+    manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+    content_format = manifest['dublin_core']['format']
+    if content_format == 'text/markdown':
+        return tn_md_to_json(lid, temp_dir, rc_dir, manifest, reporter)
+    elif content_format == 'text/tsv':
+        return tn_tsv_to_json(lid, temp_dir, rc_dir, manifest, reporter)
+    elif reporter:
+        reporter.report_error("Unsupported content type '{}' found in {}".format(content_format, rc_dir))
+
+
+def tn_tsv_to_json(lid, temp_dir, rc_dir, manifest, reporter=None):
+    """
+    Converts a tsv tN to json
+    This will write a bunch of files and return a list of files to be uploaded.
+
+    Chunk definitions will be used to validate the note organization.
+
+    :param lid: the language id of the notes
+    :param temp_dir: the directory where all the files will be written
+    :param rc_dir: the directory of the resource container
+    :param manifest: the rc manifest data
+    :param reporter: a lambda handler used for reporting
+    :type reporter: Handler
+    :return: a list of note files to upload
+    """
+    tn_uploads = {}
+    raise "TSV parsing is not implemented yet. {}".format(rc_dir)
+    return tn_uploads
+
+
+def tn_md_to_json(lid, temp_dir, rc_dir, manifest, reporter=None):
+    """
+    Converts a markdown tN to json
+    This will write a bunch of files and return a list of files to be uploaded.
+
+    Chunk definitions will be used to validate the note organization.
+
+    :param lid: the language id of the notes
+    :param temp_dir: the directory where all the files will be written
+    :param rc_dir: the directory of the resource container
+    :param manifest: the rc manifest data
+    :param reporter: a lambda handler used for reporting
+    :type reporter: Handler
+    :return: a list of note files to upload
+    """
+    dc = manifest['dublin_core']
     note_general_re = re.compile('^([^#]+)', re.UNICODE)
     note_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
     tn_uploads = {}
-
-    manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-    dc = manifest['dublin_core']
 
     for project in manifest['projects']:
         pid = Handler.sanitize_identifier(project['identifier'])
