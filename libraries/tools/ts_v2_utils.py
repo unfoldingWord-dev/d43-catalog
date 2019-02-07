@@ -99,8 +99,7 @@ def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
         # verify project file exists
         note_file = os.path.normpath(os.path.join(rc_dir, project['path']))
         if not os.path.exists(note_file):
-            # raise Exception('Could not find translationNotes file at {}'.format(note_file))
-            continue
+            raise Exception('Could not find translationNotes file at {}'.format(note_file))
 
         # collect chunk data
         if pid != 'obs':
