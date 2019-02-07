@@ -71,6 +71,7 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
         return tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter)
     elif reporter:
         reporter.report_error("Unsupported content type '{}' found in {}".format(content_format, rc_dir))
+        raise Exception("Unsupported content type '{}' found in {}".format(content_format, rc_dir))
 
 
 def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
