@@ -5,7 +5,8 @@ import shutil
 import tempfile
 from unittest import TestCase
 from mock import patch
-from libraries.tools.ts_v2_utils import build_usx, build_json_source_from_usx, tn_tsv_to_json
+from libraries.tools.file_utils import read_file
+from libraries.tools.ts_v2_utils import build_usx, build_json_source_from_usx, tn_tsv_to_json, index_tn_rc
 
 
 @patch('libraries.lambda_handlers.handler.ErrorReporter')
@@ -29,6 +30,22 @@ class TestTsV2Utils(TestCase):
         usx_file = os.path.join(self.resources_dir, 'PSA.usx')
         json = build_json_source_from_usx(usx_file, '2018', mock_reporter)
         assert not mock_reporter.called
+
+    def test_index_tn_tsv_rc(self, mock_reporter):
+        tmp = os.path.join(self.temp_dir, 'index_tn_rc')
+        rc = os.path.join(self.resources_dir, 'en_tn_tsv')
+        expected_file = os.path.join(self.resources_dir, 'en_tn_tsv/expected_gen_notes.json')
+        converted_file = '{}/gen/en/notes.json'.format(tmp)
+        expected = {
+            'en_*_gen_tn': {
+                'key': 'gen/en/notes.json',
+                'path': converted_file
+            }
+        }
+
+        to_upload = index_tn_rc('en', tmp, rc)
+        self.assertEqual(expected, to_upload)
+        self.assertEquals(read_file(expected_file), read_file(converted_file))
 
     def test_tn_tsv_to_json(self, mock_reporter):
         chunks = {

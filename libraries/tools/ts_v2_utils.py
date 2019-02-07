@@ -95,6 +95,14 @@ def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
     for project in manifest['projects']:
         pid = Handler.sanitize_identifier(project['identifier'])
         chunks = []
+
+        # verify project file exists
+        note_file = os.path.normpath(os.path.join(rc_dir, project['path']))
+        if not os.path.exists(note_file):
+            # raise Exception('Could not find translationNotes file at {}'.format(note_file))
+            continue
+
+        # collect chunk data
         if pid != 'obs':
             try:
                 data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
@@ -104,10 +112,7 @@ def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
                     reporter.report_error('Failed to retrieve chunk information for {}-{}'.format(lid, pid))
                 continue
 
-        note_file = os.path.normpath(os.path.join(rc_dir, project['path']))
-        if not os.path.exists(note_file):
-            raise Exception('Could not find translationNotes file at {}'.format(note_file))
-
+        # convert
         with open(note_file, 'rb') as tsvin:
             tsv = csv.DictReader(tsvin, dialect='excel-tab')
             note_json = tn_tsv_to_json(tsv, chunks)
