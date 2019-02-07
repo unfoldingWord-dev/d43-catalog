@@ -13,6 +13,7 @@ import yaml
 import hashlib
 import tempfile
 import shutil
+import csv
 
 from libraries.lambda_handlers.handler import Handler
 from libraries.tools.file_utils import read_file, write_file
@@ -65,14 +66,14 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
     content_format = manifest['dublin_core']['format']
     if content_format == 'text/markdown':
-        return tn_md_to_json(lid, temp_dir, rc_dir, manifest, reporter)
+        return tn_md_to_json_file(lid, temp_dir, rc_dir, manifest, reporter)
     elif content_format == 'text/tsv':
-        return tn_tsv_to_json(lid, temp_dir, rc_dir, manifest, reporter)
+        return tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter)
     elif reporter:
         reporter.report_error("Unsupported content type '{}' found in {}".format(content_format, rc_dir))
 
 
-def tn_tsv_to_json(lid, temp_dir, rc_dir, manifest, reporter=None):
+def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
     """
     Converts a tsv tN to json
     This will write a bunch of files and return a list of files to be uploaded.
@@ -87,12 +88,106 @@ def tn_tsv_to_json(lid, temp_dir, rc_dir, manifest, reporter=None):
     :type reporter: Handler
     :return: a list of note files to upload
     """
+    dc = manifest['dublin_core']
     tn_uploads = {}
-    raise "TSV parsing is not implemented yet. {}".format(rc_dir)
+
+    for project in manifest['projects']:
+        pid = Handler.sanitize_identifier(project['identifier'])
+        chunks = []
+        if pid != 'obs':
+            try:
+                data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
+                chunks = index_chunks(json.loads(data))
+            except:
+                if reporter:
+                    reporter.report_error('Failed to retrieve chunk information for {}-{}'.format(lid, pid))
+                continue
+
+        note_file = os.path.normpath(os.path.join(rc_dir, project['path']))
+        if not os.path.exists(note_file):
+            raise Exception('Could not find translationNotes file at {}'.format(note_file))
+
+        with open(note_file, 'rb') as tsvin:
+            tsv = csv.DictReader(tsvin, dialect='excel-tab')
+            note_json = tn_tsv_to_json(tsv, chunks)
+
+        if note_json:
+            tn_key = '_'.join([lid, '*', pid, 'tn'])
+            note_json.append({'date_modified': dc['modified'].replace('-', '')})
+            note_upload = prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json, temp_dir)
+            tn_uploads[tn_key] = note_upload
+
     return tn_uploads
 
 
-def tn_md_to_json(lid, temp_dir, rc_dir, manifest, reporter=None):
+def tn_tsv_to_json(tsv, chunks):
+    """
+    Converts a tsv dictionary to a json object
+    :param tsv: a tsv dictionary
+    :param chunks: a dictionary of chunk data used to group notes
+    :return: a json object
+    """
+    current_chapter = None
+    current_chunk_verse = None
+    current_chunk = None
+    json = []
+    for row in tsv:
+        try:
+            chapter = int(row['Chapter'])
+            verse = int(row['Verse'])
+        except ValueError:
+            continue
+
+        # zero pad numbers to match chunk scheme
+        chapter = pad_to_match(chapter, chunks)
+        if chapter not in chunks:
+            raise Exception('Missing chapter "{}" key in chunk json'.format(chapter))
+
+        verse = pad_to_match(verse, chunks[chapter])
+
+        # prepare next note chunk
+        verse_starts_chunk = verse in chunks[chapter]
+        chunk_is_finished = current_chunk_verse != verse
+        if current_chapter != chapter or (chunk_is_finished and verse_starts_chunk):
+            current_chapter = chapter
+            current_chunk_verse = verse
+            if current_chunk is not None:
+                json.append(current_chunk)
+            current_chunk = {
+                'id': '{}-{}'.format(chapter, current_chunk_verse),
+                'tn': []
+            }
+
+        # collect notes
+        current_chunk['tn'].append({
+            'ref': row['GLQuote'],
+            'text': row['OccurrenceNote']
+        })
+
+    # close last chunk
+    if current_chunk is not None:
+        json.append(current_chunk)
+
+    return json
+
+
+def pad_to_match(num, matches, max_len=3):
+    """
+    z-fills a number until a match has been found.
+    :param num: the number to zfill
+    :param matches: the available matches
+    :param max_len: the maximum length to zfill
+    :return: the z-filled number if a match was found otherwise the original value
+    """
+    padded_num = '{}'.format(num)
+    while len(padded_num) < max_len and padded_num not in matches:
+        padded_num = padded_num.zfill(len(padded_num) + 1)
+        if padded_num in matches:
+            return padded_num
+    return '{}'.format(num)
+
+
+def tn_md_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
     """
     Converts a markdown tN to json
     This will write a bunch of files and return a list of files to be uploaded.
@@ -127,7 +222,7 @@ def tn_md_to_json(lid, temp_dir, rc_dir, manifest, reporter=None):
         note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
         note_json = []
         if not os.path.exists(note_dir):
-            raise Exception('Project directory missing. Could not find {}'.format(note_dir))
+            raise Exception('Could not find translationNotes directory at {}'.format(note_dir))
         chapters = os.listdir(note_dir)
 
         for chapter in chapters:
