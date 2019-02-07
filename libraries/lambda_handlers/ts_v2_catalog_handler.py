@@ -475,7 +475,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         try:
                             word_content = read_file(word_path)
                         except Exception as e:
-                            self.report_error('Failed to read file {}: {}'.format(word_path, e.message))
+                            self.report_error(u'Failed to read file {}: {}'.format(word_path, e.message))
                             raise
 
                         # TRICKY: the title is always at the top
@@ -504,7 +504,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             if 'examples from the bible stories' in block.lower():
                                 for link in obs_example_re.findall(block):
                                     if 'obs' not in link[1]:
-                                        self.logger.error('non-obs link found in passage examples: {}'.format(link[1]))
+                                        self.logger.error(u'non-obs link found in passage examples: {}'.format(link[1]))
                                     else:
                                         examples.append({
                                             'ref': link[0].replace(':', '-'),
@@ -524,7 +524,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         # TRICKY: we converted the ta urls, but now we need to format them as dokuwiki links
                         # e.g. [[en:ta:vol1:translate:translate_unknown | How to Translate Unknowns]]
                         for ta_link in ta_html_re.findall(word_content):
-                            new_link = '[[{} | {}]]'.format(ta_link[1], ta_link[2])
+                            new_link = u'[[{} | {}]]'.format(ta_link[1], ta_link[2])
                             word_content = word_content.replace(ta_link[0], new_link)
 
                         words.append({

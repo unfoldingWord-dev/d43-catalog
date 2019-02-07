@@ -437,11 +437,11 @@ def usx_to_json(usx, path='', reporter=None):
                             first_vs = matches.group(1)
                         else:
                             if reporter:
-                                reporter.report_error('failed to search for verse in string "{}" ({})'.format(fr_text, path))
+                                reporter.report_error(u'failed to search for verse in string "{}" ({})'.format(fr_text, path))
                             continue
                     except AttributeError:
                         if reporter:
-                            reporter.report_error('Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                            reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
                         continue
                     chp['frames'].append({'id': '{0}-{1}'.format(
                         str(chp_num).zfill(2), first_vs.zfill(2)),
@@ -478,7 +478,7 @@ def usx_to_json(usx, path='', reporter=None):
                     first_vs = verse_re.search(fr_text).group(1)
                 except AttributeError:
                     if reporter:
-                        reporter.report_error('Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                        reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
                     continue
 
                 chp['frames'].append({'id': '{0}-{1}'.format(
@@ -553,7 +553,7 @@ def convert_rc_links(content, logger=None):
         components = link[1].split('/')
         if len(components) < 4:
             if logger:
-                logger.warning('Invalid link "{}"'.format(link[1]))
+                logger.warning(u'Invalid link "{}"'.format(link[1]))
             continue
         lid = components[0]
         rid = components[1]
@@ -564,7 +564,7 @@ def convert_rc_links(content, logger=None):
         if rid == 'ta':
             if len(components) < 5:
                 if logger:
-                    logger.warning('Invalid link "{}"'.format(link[1]))
+                    logger.warning(u'Invalid link "{}"'.format(link[1]))
                 continue
 
             module = components[4].replace('-', '_')
