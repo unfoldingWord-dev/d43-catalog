@@ -141,6 +141,46 @@ def tn_tsv_to_json(tsv, chunks):
             chapter = int(row['Chapter'])
             verse = int(row['Verse'])
         except ValueError:
+            # collect book and chapter intro notes
+            if current_chunk is not None:
+                json.append(current_chunk)
+                current_chunk = None
+
+            chapter = row['Chapter']
+            verse = row['Verse']
+
+            if verse == 'intro':
+                verse = 'title'  # TRICKY: tS uses 'title' instead of intro
+            else:
+                # whatever the verse is it's not supported
+                continue
+
+            if isinstance(chapter, int):
+                chapter = int(chapter)
+            if chapter == 'front':
+                pass
+            else:
+                try:
+                    chapter = int(chapter)
+                    chapter = pad_to_match(chapter, chunks)
+                    if chapter not in chunks:
+                        raise Exception('Missing chapter "{}" key in chunk json'.format(chapter))
+                except ValueError:
+                    # whatever the chapter is it's not supported
+                    continue
+
+            if row['GLQuote']:
+                ref = row['GLQuote']
+            else:
+                ref = 'General Information'
+
+            json.append({
+                'id': '{}-{}'.format(chapter, verse),
+                'tn': [{
+                    'ref': ref,
+                    'text': row['OccurrenceNote']
+                }]
+            })
             continue
 
         # zero pad numbers to match chunk scheme

@@ -53,11 +53,13 @@ class TestTsV2Utils(TestCase):
             '02': ['01', '04', '07'],
         }
         tsv = [
-            {'Chapter': 'front', 'Verse': 'intro'},
+            {'Chapter': 'front', 'Verse': 'intro', 'GLQuote': '', 'OccurrenceNote': 'Book intro stuff'},
+            {'Chapter': '1', 'Verse': 'intro', 'GLQuote': '', 'OccurrenceNote': 'Chapter intro stuff'},
             {'Chapter': '1', 'Verse': '1', 'GLQuote': 'in', 'OccurrenceNote': 'in notes'},
             {'Chapter': '1', 'Verse': '2', 'GLQuote': 'the', 'OccurrenceNote': 'the notes'},
             {'Chapter': '1', 'Verse': '3', 'GLQuote': 'beginning', 'OccurrenceNote': 'beginning notes'},
             {'Chapter': '1', 'Verse': '4', 'GLQuote': 'God', 'OccurrenceNote': 'God notes'},
+            {'Chapter': '2', 'Verse': 'intro', 'GLQuote': 'Chapter Information', 'OccurrenceNote': 'Chapter 2 stuff'},
             {'Chapter': '2', 'Verse': '1', 'GLQuote': 'in', 'OccurrenceNote': 'in notes'},
             {'Chapter': '2', 'Verse': '2', 'GLQuote': 'the', 'OccurrenceNote': 'the notes'},
             {'Chapter': '2', 'Verse': '3', 'GLQuote': 'beginning', 'OccurrenceNote': 'beginning notes'},
@@ -65,6 +67,18 @@ class TestTsV2Utils(TestCase):
             {'Chapter': '2', 'Verse': '5', 'GLQuote': 'created', 'OccurrenceNote': 'created notes'},
         ]
         expected = [
+            {
+                'id': 'front-title',
+                'tn': [
+                    {'ref': 'General Information', 'text': 'Book intro stuff'}
+                ]
+            },
+            {
+                'id': '01-title',
+                'tn': [
+                    {'ref': 'General Information', 'text': 'Chapter intro stuff'},
+                ]
+            },
             {
                 'id': '01-01',
                 'tn': [
@@ -77,6 +91,12 @@ class TestTsV2Utils(TestCase):
                 'tn': [
                     {'ref': 'beginning', 'text': 'beginning notes'},
                     {'ref': 'God', 'text': 'God notes'}
+                ]
+            },
+            {
+                'id': '02-title',
+                'tn': [
+                    {'ref': 'Chapter Information', 'text': 'Chapter 2 stuff'},
                 ]
             },
             {
