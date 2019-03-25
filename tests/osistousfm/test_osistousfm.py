@@ -52,7 +52,7 @@ class TestOSIStoUSFM3(TestCase):
     def test_convert_word_with_letter_strong(self):
         word = ET.fromstring('<w lemma="b" morph="HR/Sp2ms">בְ/ךָ֣</w>')
         usfm = osistousfm3.convertWord(self.lexicon, word)
-        self.assertEqual(u'\w בְ​ךָ֣|lemma="" strong="b" x-morph="He,R:Sp2ms" \w*', usfm)
+        self.assertEqual(u'\w בְ⁠ךָ֣|lemma="" strong="b" x-morph="He,R:Sp2ms" \w*', usfm)
 
     def test_convert_word_with_complex_strong(self):
         word = ET.fromstring('<w lemma="a/3068 b" n="0.1.1.0" morph="HNp">יְהוָ֜ה</w>')

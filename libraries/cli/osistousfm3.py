@@ -169,11 +169,11 @@ def convertWord(lexicon, word, passage=''):
     if not lemma:
         lemma = ''
         logger.error('No match in lexicon for strong\'s "{}" at  {}'.format(word.attrib['lemma'].decode('utf-8'), passage))
-    text = re.sub(r'/', u'\u200B', word.text)
+    text = re.sub(r'/', u'\u2060', word.text)
 
     if morph:
         # validate morph and word component count
-        if text.count(u'\u200b') != morph.count(':'):
+        if text.count(u'\u2060') != morph.count(':'):
             logger.warning('Word and morph components are not aligned at {}'.format(passage))
         return u'\w {}|lemma="{}" strong="{}" x-morph="{}" \w*'.format(
             text,
