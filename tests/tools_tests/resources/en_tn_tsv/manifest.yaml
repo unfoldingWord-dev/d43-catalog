@@ -1,0 +1,41 @@
+dublin_core:
+  conformsto: 'rc0.2'
+  contributor:
+  - 'Door43 World Missions Community'
+  creator: 'Door43 World Missions Community'
+  description: 'Open-licensed exegetical notes that provide historical, cultural, and linguistic information for translators. It provides translators and checkers with pertinent, just-in-time information to help them make the best possible translation decisions.'
+  format: 'text/tsv'
+  identifier: 'tn'
+  issued: '2019-02-07'
+  language:
+    direction: 'ltr'
+    identifier: 'en'
+    title: 'English'
+  modified: '2018-02-07'
+  publisher: 'unfoldingWord'
+  relation:
+  - 'en/ult'
+  - 'en/ust'
+  rights: 'CC BY-SA 4.0'
+  source:
+  - identifier: 'tn'
+    language: 'en'
+    version: '14'
+  subject: 'TSV Translation Notes'
+  title: 'translationNotes'
+  type: 'help'
+  version: '14'
+
+checking:
+  checking_entity:
+  - 'unfoldingWord'
+  checking_level: '3'
+
+projects:
+  -
+    title: 'Genesis translationNotes'
+    versification: ''
+    identifier: 'gen'
+    sort: 1
+    path: './en_tn_01-GEN.tsv'
+    categories: [ 'bible-ot'  ]

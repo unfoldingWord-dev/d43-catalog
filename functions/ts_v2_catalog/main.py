@@ -12,7 +12,7 @@ from libraries.tools.lambda_utils import wipe_temp
 from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 def handle(event, context):
     wipe_temp(ignore_errors=True)

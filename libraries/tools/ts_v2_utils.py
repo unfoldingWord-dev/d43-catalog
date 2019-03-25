@@ -11,12 +11,16 @@ import os
 import json
 import yaml
 import hashlib
+import tempfile
+import shutil
+import csv
 
 from libraries.lambda_handlers.handler import Handler
 from libraries.tools.file_utils import read_file, write_file
 from libraries.tools.url_utils import get_url
 from usfm_tools.transform import UsfmTransform
-from libraries.tools.usfm_utils import convert_chunk_markers, strip_word_data
+from libraries.tools.usfm_utils import usfm3_to_usfm2
+
 
 def download_chunks(pid, dest):
     """
@@ -29,6 +33,7 @@ def download_chunks(pid, dest):
         return json.loads(data)
     except:
         return None
+
 
 def index_chunks(chunks):
     """
@@ -43,10 +48,14 @@ def index_chunks(chunks):
         dict[chunk['chp']].append(chunk['firstvs'])
     return dict
 
+
 def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     """
     Converts a v3 tN into it's v2 equivalent.
-    This will write a bunch of files and return a list of files to be uploaded
+    This will write a bunch of files and return a list of files to be uploaded.
+
+    Chunk definitions will be used to validate the note organization.
+
     :param lid: the language id of the notes
     :param temp_dir: the directory where all the files will be written
     :param rc_dir: the directory of the resource container
@@ -54,12 +63,194 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
     :type reporter: Handler
     :return: a list of note files to upload
     """
+    manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+    content_format = manifest['dublin_core']['format']
+    if content_format == 'text/markdown':
+        return tn_md_to_json_file(lid, temp_dir, rc_dir, manifest, reporter)
+    elif content_format == 'text/tsv':
+        return tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter)
+    elif reporter:
+        reporter.report_error("Unsupported content type '{}' found in {}".format(content_format, rc_dir))
+        raise Exception("Unsupported content type '{}' found in {}".format(content_format, rc_dir))
+
+
+def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
+    """
+    Converts a tsv tN to json
+    This will write a bunch of files and return a list of files to be uploaded.
+
+    Chunk definitions will be used to validate the note organization.
+
+    :param lid: the language id of the notes
+    :param temp_dir: the directory where all the files will be written
+    :param rc_dir: the directory of the resource container
+    :param manifest: the rc manifest data
+    :param reporter: a lambda handler used for reporting
+    :type reporter: Handler
+    :return: a list of note files to upload
+    """
+    dc = manifest['dublin_core']
+    tn_uploads = {}
+
+    for project in manifest['projects']:
+        pid = Handler.sanitize_identifier(project['identifier'])
+        chunks = []
+
+        # verify project file exists
+        note_file = os.path.normpath(os.path.join(rc_dir, project['path']))
+        if not os.path.exists(note_file):
+            raise Exception('Could not find translationNotes file at {}'.format(note_file))
+
+        # collect chunk data
+        if pid != 'obs':
+            try:
+                data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
+                chunks = index_chunks(json.loads(data))
+            except:
+                if reporter:
+                    reporter.report_error('Failed to retrieve chunk information for {}-{}'.format(lid, pid))
+                continue
+
+        # convert
+        with open(note_file, 'rb') as tsvin:
+            tsv = csv.DictReader(tsvin, dialect='excel-tab')
+            note_json = tn_tsv_to_json(tsv, chunks)
+
+        if note_json:
+            tn_key = '_'.join([lid, '*', pid, 'tn'])
+            note_json.append({'date_modified': dc['modified'].replace('-', '')})
+            note_upload = prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json, temp_dir)
+            tn_uploads[tn_key] = note_upload
+
+    return tn_uploads
+
+
+def tn_tsv_to_json(tsv, chunks):
+    """
+    Converts a tsv dictionary to a json object
+    :param tsv: a tsv dictionary
+    :param chunks: a dictionary of chunk data used to group notes
+    :return: a json object
+    """
+    current_chapter = None
+    current_chunk_verse = None
+    current_chunk = None
+    json = []
+    for row in tsv:
+        try:
+            chapter = int(row['Chapter'])
+            verse = int(row['Verse'])
+        except ValueError:
+            # collect book and chapter intro notes
+            if current_chunk is not None:
+                json.append(current_chunk)
+                current_chunk = None
+
+            chapter = row['Chapter']
+            verse = row['Verse']
+
+            if verse == 'intro':
+                verse = 'title'  # TRICKY: tS uses 'title' instead of intro
+            else:
+                # whatever the verse is it's not supported
+                continue
+
+            if isinstance(chapter, int):
+                chapter = int(chapter)
+            if chapter == 'front':
+                pass
+            else:
+                try:
+                    chapter = int(chapter)
+                    chapter = pad_to_match(chapter, chunks)
+                    if chapter not in chunks:
+                        raise Exception('Missing chapter "{}" key in chunk json'.format(chapter))
+                except ValueError:
+                    # whatever the chapter is it's not supported
+                    continue
+
+            if row['GLQuote']:
+                ref = row['GLQuote']
+            else:
+                ref = 'General Information'
+
+            json.append({
+                'id': '{}-{}'.format(chapter, verse),
+                'tn': [{
+                    'ref': ref,
+                    'text': row['OccurrenceNote']
+                }]
+            })
+            continue
+
+        # zero pad numbers to match chunk scheme
+        chapter = pad_to_match(chapter, chunks)
+        if chapter not in chunks:
+            raise Exception('Missing chapter "{}" key in chunk json'.format(chapter))
+
+        verse = pad_to_match(verse, chunks[chapter])
+
+        # prepare next note chunk
+        verse_starts_chunk = verse in chunks[chapter]
+        chunk_is_finished = current_chunk_verse != verse
+        if current_chapter != chapter or (chunk_is_finished and verse_starts_chunk):
+            current_chapter = chapter
+            current_chunk_verse = verse
+            if current_chunk is not None:
+                json.append(current_chunk)
+            current_chunk = {
+                'id': '{}-{}'.format(chapter, current_chunk_verse),
+                'tn': []
+            }
+
+        # collect notes
+        current_chunk['tn'].append({
+            'ref': row['GLQuote'],
+            'text': row['OccurrenceNote']
+        })
+
+    # close last chunk
+    if current_chunk is not None:
+        json.append(current_chunk)
+
+    return json
+
+
+def pad_to_match(num, matches, max_len=3):
+    """
+    z-fills a number until a match has been found.
+    :param num: the number to zfill
+    :param matches: the available matches
+    :param max_len: the maximum length to zfill
+    :return: the z-filled number if a match was found otherwise the original value
+    """
+    padded_num = '{}'.format(num)
+    while len(padded_num) < max_len and padded_num not in matches:
+        padded_num = padded_num.zfill(len(padded_num) + 1)
+        if padded_num in matches:
+            return padded_num
+    return '{}'.format(num)
+
+
+def tn_md_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
+    """
+    Converts a markdown tN to json
+    This will write a bunch of files and return a list of files to be uploaded.
+
+    Chunk definitions will be used to validate the note organization.
+
+    :param lid: the language id of the notes
+    :param temp_dir: the directory where all the files will be written
+    :param rc_dir: the directory of the resource container
+    :param manifest: the rc manifest data
+    :param reporter: a lambda handler used for reporting
+    :type reporter: Handler
+    :return: a list of note files to upload
+    """
+    dc = manifest['dublin_core']
     note_general_re = re.compile('^([^#]+)', re.UNICODE)
     note_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
     tn_uploads = {}
-
-    manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-    dc = manifest['dublin_core']
 
     for project in manifest['projects']:
         pid = Handler.sanitize_identifier(project['identifier'])
@@ -76,11 +267,11 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
         note_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
         note_json = []
         if not os.path.exists(note_dir):
-            raise Exception('Project directory missing. Could not find {}'.format(note_dir))
+            raise Exception('Could not find translationNotes directory at {}'.format(note_dir))
         chapters = os.listdir(note_dir)
 
         for chapter in chapters:
-            if chapter in ['.', '..', 'front']:
+            if chapter in ['.', '..', 'front', '.DS_Store']:
                 continue
             chapter_dir = os.path.join(note_dir, chapter)
             verses = os.listdir(chapter_dir)
@@ -90,16 +281,41 @@ def index_tn_rc(lid, temp_dir, rc_dir, reporter=None):
             firstvs = None
             note_hashes = []
             for verse in verses:
-                if verse in ['.', '..', 'intro.md']:
+                if verse in ['.', '..', 'intro.md', '.DS_Store']:
                     continue
 
                 # notes = []
                 verse_file = os.path.join(chapter_dir, verse)
                 verse = verse.split('.')[0]
-                verse_body = read_file(verse_file)
+                try:
+                    verse_body = read_file(verse_file)
+                except Exception as e:
+                    if reporter:
+                        reporter.report_error('Failed to read file {}'.format(verse_file))
+                    raise e
 
                 verse_body = convert_rc_links(verse_body)
                 general_notes = note_general_re.search(verse_body)
+
+                # zero pad chapter to match chunking scheme
+                padded_chapter = chapter
+                while len(padded_chapter) < 3 and padded_chapter not in chunk_json:
+                    padded_chapter = padded_chapter.zfill(len(padded_chapter) + 1)
+                    # keep padding if match is found
+                    if padded_chapter in chunk_json:
+                        chapter = padded_chapter
+
+                # validate chapters
+                if pid != 'obs' and chapter not in chunk_json:
+                    raise Exception('Missing chapter "{}" key in chunk json while reading chunks for {}. RC: {}'.format(chapter, pid, rc_dir))
+
+                # zero pad verse to match chunking scheme
+                padded_verse = verse
+                while len(padded_verse) < 3 and chapter in chunk_json and padded_verse not in chunk_json[chapter]:
+                    padded_verse = padded_verse.zfill(len(padded_verse) + 1)
+                    # keep padding if match is found
+                    if padded_verse in chunk_json[chapter]:
+                        verse = padded_verse
 
                 # close chunk
                 chapter_key = chapter
@@ -182,12 +398,23 @@ def build_usx(usfm_dir, usx_dir):
     """
     # strip word data
     files = os.listdir(usfm_dir)
-    for name in files:
-        f = os.path.join(usfm_dir, name)
-        usfm = read_file(f)
-        write_file(f, convert_chunk_markers(strip_word_data(usfm)))
+    usfm2_dir = tempfile.mkdtemp(prefix='usfm2')
+    try:
+        for name in files:
+            if name == '.DS_Store':
+                continue
+            f = os.path.join(usfm_dir, name)
+            usfm3 = read_file(f)
+            usfm2 = usfm3_to_usfm2(usfm3)
+            out_f = os.path.join(usfm2_dir, name)
+            write_file(out_f, usfm2)
 
-    UsfmTransform.buildUSX(usfm_dir, usx_dir, '', True)
+        UsfmTransform.buildUSX(usfm2_dir, usx_dir, '', True)
+    finally:
+        try:
+            shutil.rmtree(usfm2_dir)
+        finally:
+            pass
 
 
 def get_rc_type(rc_format):
@@ -264,11 +491,11 @@ def usx_to_json(usx, path='', reporter=None):
                             first_vs = matches.group(1)
                         else:
                             if reporter:
-                                reporter.report_error('failed to search for verse in string "{}" ({})'.format(fr_text, path))
+                                reporter.report_error(u'failed to search for verse in string "{}" ({})'.format(fr_text, path))
                             continue
                     except AttributeError:
                         if reporter:
-                            reporter.report_error('Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                            reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
                         continue
                     chp['frames'].append({'id': '{0}-{1}'.format(
                         str(chp_num).zfill(2), first_vs.zfill(2)),
@@ -305,7 +532,7 @@ def usx_to_json(usx, path='', reporter=None):
                     first_vs = verse_re.search(fr_text).group(1)
                 except AttributeError:
                     if reporter:
-                        reporter.report_error('Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                        reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
                     continue
 
                 chp['frames'].append({'id': '{0}-{1}'.format(
@@ -380,7 +607,7 @@ def convert_rc_links(content, logger=None):
         components = link[1].split('/')
         if len(components) < 4:
             if logger:
-                logger.warning('Invalid link "{}"'.format(link[1]))
+                logger.warning(u'Invalid link "{}"'.format(link[1]))
             continue
         lid = components[0]
         rid = components[1]
@@ -391,7 +618,7 @@ def convert_rc_links(content, logger=None):
         if rid == 'ta':
             if len(components) < 5:
                 if logger:
-                    logger.warning('Invalid link "{}"'.format(link[1]))
+                    logger.warning(u'Invalid link "{}"'.format(link[1]))
                 continue
 
             module = components[4].replace('-', '_')

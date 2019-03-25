@@ -112,7 +112,7 @@ class TsV2CatalogHandler(InstanceHandler):
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = TsV2CatalogHandler.sanitize_identifier(res['identifier'])
-                self.logger.debug('Processing {}_{}'.format(lid, rid))
+                self.logger.info('Processing {}_{}'.format(lid, rid))
 
                 rc_format = None
 
@@ -129,6 +129,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing notes {}_{}'.format(lid, rid))
                                 tn = self._index_note_files(lid, rid, format, process_id)
                                 if tn:
                                     self._upload_all(tn)
@@ -139,6 +140,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
+                                self.logger.info('Processing questions {}_{}'.format(lid, rid))
                                 tq = self._index_question_files(lid, rid, format, process_id)
                                 if tq:
                                     self._upload_all(tq)
@@ -155,7 +157,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 for project in res['projects']:
                     pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
-                    self.logger.debug('Processing {}_{}_{}'.format(lid, rid, pid))
+                    self.logger.info('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -258,10 +260,6 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     # disable missing catalogs
 
-                    # only english projects have the tW catalog
-                    if lid != 'en':
-                        res['tw_cat'] = ''
-
                     # disable tN
                     if '_'.join([lid, '*', pid, 'tn']) not in cat_keys:
                         res['notes'] = ''
@@ -272,6 +270,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     # disable tW
                     if '_'.join([lid, '*', '*', 'tw']) not in cat_keys:
+                        res['tw_cat'] = ''
                         res['terms'] = ''
 
                     res_cat.append(res)
@@ -362,9 +361,9 @@ class TsV2CatalogHandler(InstanceHandler):
             if not rc_dir: return {}
 
             tn_uploads = index_tn_rc(lid=lid,
-                                     temp_dir=self.temp_dir,
-                                     rc_dir=rc_dir,
-                                     reporter=self)
+                                    temp_dir=self.temp_dir,
+                                    rc_dir=rc_dir,
+                                    reporter=self)
 
         return tn_uploads
 
@@ -444,8 +443,8 @@ class TsV2CatalogHandler(InstanceHandler):
         :param format:
         :return:
         """
-        word_title_re = re.compile('^#([^#]*)#?', re.UNICODE)
-        h2_re = re.compile('^##([^#]*)#*', re.UNICODE)
+        word_title_re = re.compile('^#([^#\n]*)#*', re.UNICODE)
+        h2_re = re.compile('^##([^#\n]*)#*', re.UNICODE)
         obs_example_re = re.compile('\_*\[([^\[\]]+)\]\(([^\(\)]+)\)_*(.*)', re.UNICODE | re.IGNORECASE)
         block_re = re.compile('^##', re.MULTILINE | re.UNICODE)
         word_links_re = re.compile('\[([^\[\]]+)\]\(\.\.\/(kt|other)\/([^\(\)]+)\.md\)', re.UNICODE | re.IGNORECASE)
@@ -479,7 +478,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         try:
                             word_content = read_file(word_path)
                         except Exception as e:
-                            self.report_error('Failed to read file {}: {}'.format(word_path, e.message))
+                            self.report_error(u'Failed to read file {}: {}'.format(word_path, e.message))
                             raise
 
                         # TRICKY: the title is always at the top
@@ -508,7 +507,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             if 'examples from the bible stories' in block.lower():
                                 for link in obs_example_re.findall(block):
                                     if 'obs' not in link[1]:
-                                        self.logger.error('non-obs link found in passage examples: {}'.format(link[1]))
+                                        self.logger.error(u'non-obs link found in passage examples: {}'.format(link[1]))
                                     else:
                                         examples.append({
                                             'ref': link[0].replace(':', '-'),
@@ -528,7 +527,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         # TRICKY: we converted the ta urls, but now we need to format them as dokuwiki links
                         # e.g. [[en:ta:vol1:translate:translate_unknown | How to Translate Unknowns]]
                         for ta_link in ta_html_re.findall(word_content):
-                            new_link = '[[{} | {}]]'.format(ta_link[1], ta_link[2])
+                            new_link = u'[[{} | {}]]'.format(ta_link[1], ta_link[2])
                             word_content = word_content.replace(ta_link[0], new_link)
 
                         words.append({
@@ -575,7 +574,7 @@ class TsV2CatalogHandler(InstanceHandler):
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
-                    self.logger.debug('Processing {}'.format(process_id))
+                    self.logger.info('Processing {}'.format(process_id))
 
                     # copy usfm project file
                     usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
@@ -586,7 +585,11 @@ class TsV2CatalogHandler(InstanceHandler):
                     shutil.copyfile(usfm_src_file, usfm_dest_file)
 
                     # transform usfm to usx
-                    build_usx(usfm_dir, usx_dir)
+                    try:
+                        build_usx(usfm_dir, usx_dir)
+                    except Exception as e:
+                        self.report_error('Failed to generate usx for {}'.format(process_id))
+                        raise e
 
                     # convert USX to JSON
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
@@ -760,14 +763,14 @@ class TsV2CatalogHandler(InstanceHandler):
             'terms': '',
             'tw_cat': ''
         })
-        # English and Hindi projects have tw_cat
-        if lid == 'en' or lid == 'hi':
-            res.update({
-                'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
-                    self.cdn_url,
-                    TsV2CatalogHandler.cdn_root_path,
-                    pid, lid, r_modified)
-            })
+
+        # TRICKY: use english tw catalog for all languages
+        res.update({
+            'tw_cat': '{}/{}/{}/{}/tw_cat.json?date_modified={}'.format(
+                self.cdn_url,
+                TsV2CatalogHandler.cdn_root_path,
+                pid, 'en', r_modified)
+        })
 
         # bible projects have usfm
         if pid != 'obs':

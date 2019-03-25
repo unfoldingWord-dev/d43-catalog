@@ -5,7 +5,8 @@ import shutil
 import tempfile
 from unittest import TestCase
 from libraries.tools.file_utils import read_file
-from libraries.tools.usfm_utils import usfm3_to_usfm2, simplify_strong, get_usfm3_word_strongs, parse_book_id, strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links
+from libraries.tools.usfm_utils import usfm3_to_usfm2, simplify_strong, get_usfm3_word_strongs, parse_book_id, \
+    strip_word_data, convert_chunk_markers, tWPhrase, strip_tw_links, USFMWordReader
 
 
 class TestUsfmUtils(TestCase):
@@ -109,6 +110,17 @@ class TestUsfmUtils(TestCase):
         output = strip_word_data(input)
         self.assertEqual(expected, output)
 
+    def test_usfm3_file_to_usfm2(self):
+        """
+        This ensures we are correctly converting content to be used in the
+        uW api. This content wasn't getting converted correctly in the past.
+        :return:
+        """
+        input = read_file(os.path.join(self.resources_dir, 'fr_gen.usfm3'))
+        expected = read_file(os.path.join(self.resources_dir, 'fr_gen.usfm2'))
+        output = strip_word_data(input)
+        self.assertEqual(expected, output)
+
     def test_tw_phrase_print(self):
         phrase = tWPhrase(1)
         phrase.addLine(u'\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*')
@@ -119,17 +131,15 @@ class TestUsfmUtils(TestCase):
 
     def test_convert_chunk_markers(self):
         input = '\\ts\n\\v 1 Ce qui était dès\n\\ts\n\\v 2 Ce qui était dès'
-        expected = '\\s5\n\\v 1 Ce qui était dès\n\\s5\n\\v 2 Ce qui était dès'
+        expected = '\n\\s5\n\\v 1 Ce qui était dès\n\n\\s5\n\\v 2 Ce qui était dès'
         output = convert_chunk_markers(input)
         self.assertEqual(expected, output)
 
     def test_strip_all_complex_tw_links(self):
         input = u'''
 \w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
-\k-s | x-tw="rc://*/tw/dict/bible/kt/jesus"
-\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
-\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*
-\k-e\*,
+\w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" \w*
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/jesus" x-tw="rc://*/tw/dict/bible/kt/christ" \w*
 \w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/sonofgod"  x-tw="rc://*/tw/dict/bible/kt/son" \w*'''
         expected = u'''
 \w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
@@ -143,10 +153,8 @@ class TestUsfmUtils(TestCase):
         links = ['rc://*/tw/dict/bible/kt/jesus', 'rc://*/tw/dict/bible/kt/sonofgod']
         input = u'''
 \w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*
-\k-s | x-tw="{}"
 \w Ἰησοῦ|lemma="Ἰησοῦς" strong="G24240" x-morph="Gr,N,,,,,GMS," \w*
-\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="rc://*/tw/dict/bible/kt/christ" \w*
-\k-e\*,
+\w Χριστοῦ|lemma="χριστός" strong="G55470" x-morph="Gr,N,,,,,GMS," x-tw="{}" x-tw="rc://*/tw/dict/bible/kt/christ" \w*
 \w υἱοῦ|lemma="υἱός" strong="G52070" x-morph="Gr,N,,,,,GMS," x-tw="{}"  x-tw="rc://*/tw/dict/bible/kt/son" \w*'''.format(links[0], links[1])
         expected = u'''
 \w γενέσεως|lemma="γένεσις" strong="G10780" x-morph="Gr,N,,,,,GFS," \w*

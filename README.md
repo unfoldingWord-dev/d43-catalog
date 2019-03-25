@@ -14,6 +14,14 @@ These are the AWS Lambda functions for generating the [API catalog endpoint](htt
 * Python 2.7
 * [API Specification](https://github.com/unfoldingWord-dev/api-index)
 
+## Development
+
+* Install [pip](https://pypi.org/project/pip/)
+* Run `pip install -r requirements.txt`
+* install [Apex](https://apex.run/) and configure with your aws credentials
+* run `apex --env prod deploy` to publish everything to production
+* or you can run `apex --env prod deploy ts_v2_catalog` for example to publish a single function.
+
 ## How it Works
 
 When a new repository is added or forked into the [Door43 Catalog] organization a chain reaction is started that eventually adds the content into the [API](https://api.door43.org/v3/catalog), assuming all the checks passed.  Here is an overview:

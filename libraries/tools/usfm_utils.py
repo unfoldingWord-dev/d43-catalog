@@ -291,15 +291,14 @@ def simplify_strong(strong):
 
 def strip_tw_links(usfm, links=None):
     """
-    Removes tW links from a usfm string for backwards compatibility with the legacy tS api.
+    Removes tW links from a usfm string.
+    This does not remove milestone markers.
 
     :param usfm:
     :param links: only remove these links. If left None all links will be removed. Milestones are always removed.
     :return:
     """
     updated_usfm=usfm
-    # remove milestones
-    updated_usfm = re.sub(r'\\k-[es].*\n*', '', updated_usfm)
     # remove links
     if links:
         for link in links:
@@ -314,17 +313,25 @@ def strip_word_data(usfm3):
     :param usfm3:
     :return:
     """
-    # TRICKY: place words on their own lines so regex doesn't break
-    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm3, flags=re.UNICODE)
+    # remove empty word markers
+    usfm = re.sub(r'\\w\s*(\|[^\\]*)?\\w\*', r'', usfm3, flags=re.UNICODE)
+    # place words on their own lines so regex doesn't break
+    usfm = re.sub(r'(\\w\s+)', r'\n\g<1>', usfm, flags=re.UNICODE)
     # remove words
-    usfm = re.sub(r'\\w\s+([^|]*).*\\w\*', r'\g<1>', usfm, flags=re.UNICODE)
+    usfm = re.sub(r'\\w\s+([^|\\]*).*\\w\*', r'\g<1>', usfm, flags=re.UNICODE)
     # group words onto single line
     usfm = re.sub(r'(\n+)([^\\\n +])', r' \g<2>', usfm, flags=re.UNICODE)
+    # stick text without markup on previous line
+    usfm = re.sub(r'\n^(?![\\])(.*)', ' \g<1>', usfm, flags=re.UNICODE | re.MULTILINE)
+
     # clean whitespace
     usfm = re.sub(r'^[ \t]*', '', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r'[ \t]*$', '', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r'^\n{2,}', '\n\n', usfm, flags=re.UNICODE | re.MULTILINE)
     usfm = re.sub(r' {2,}', ' ', usfm, flags=re.UNICODE)
+    # put spaces back between chapters and verses
+    usfm = re.sub(r'\n*(\\s5)\s*', '\n\n\g<1>\n', usfm, flags=re.UNICODE | re.MULTILINE)
+
     return usfm.strip()
 
 def convert_chunk_markers(str):
@@ -333,7 +340,24 @@ def convert_chunk_markers(str):
     :param str:
     :return: the converted string
     """
-    return re.sub(r'\\ts\b', '\\s5', str)
+    return re.sub(r'\\ts\b', '\n\\s5', str)
+
+def strip_milestones(usfm):
+    """
+    Removes zaln-* and k-s milestones from the usfm.
+    :param str:
+    :return:
+    """
+    # remove opening marker
+    usfm = re.sub(r'\n?\\zaln-s.*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    # remove closing marker
+    usfm = re.sub(r'\n?\\zaln-e\\\*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+
+    # remove opening marker
+    usfm = re.sub(r'\n?\\k-s.*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    # remove closing marker
+    usfm = re.sub(r'\n?\\k-e\\\*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    return usfm.strip()
 
 def usfm3_to_usfm2(usfm3):
     """
@@ -341,4 +365,4 @@ def usfm3_to_usfm2(usfm3):
     :param usfm3:
     :return: the USFM 2 version of the string
     """
-    return strip_word_data(strip_tw_links(usfm3))
+    return convert_chunk_markers(strip_word_data(strip_milestones(usfm3)))
