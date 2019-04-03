@@ -70,9 +70,6 @@ def _obs_chapters_to_json(dir):
     :param date_modified:
     :return:
     """
-    obs_title_re = re.compile('^\s*#+\s*(.*)', re.UNICODE)
-    obs_footer_re = re.compile('\_+([^\_]*)\_+$', re.UNICODE)
-    obs_image_re = re.compile('.*!\[[^\]]*\]\(.*\).*', re.IGNORECASE | re.UNICODE)
     chapters = []
     for chapter_file in os.listdir(dir):
         if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
@@ -83,43 +80,50 @@ def _obs_chapters_to_json(dir):
             chapter_file = os.path.join(dir, path)
             chapter_str = read_file(chapter_file).strip()
 
-            title_match = obs_title_re.match(chapter_str)
-            if title_match:
-                title = title_match.group(1)
-            else:
-                print('ERROR: missing title in {}'.format(chapter_file))
-                continue
-            chapter_str = obs_title_re.sub('', chapter_str).strip()
-            lines = chapter_str.split('\n')
-            reference_match = obs_footer_re.match(lines[-1])
-            if reference_match:
-                reference = reference_match.group(1)
-            else:
-                print('ERROR: missing reference in {}'.format(chapter_file))
-                continue
-            chapter_str = '\n'.join(lines[0:-1]).strip()
-            chunks = obs_image_re.split(chapter_str)
-
-            frames = []
-            chunk_index = 0
-            for chunk in chunks:
-                chunk = chunk.strip()
-                if not chunk:
-                    continue
-                chunk_index += 1
-                id = '{}-{}'.format(chapter_slug, '{}'.format(chunk_index).zfill(2))
-                frames.append({
-                    'id': id,
-                    'img': 'https://cdn.door43.org/obs/jpg/360px/obs-en-{}.jpg'.format(id),
-                    'text': chunk
-                })
-            frames.sort(key=__extract_frame_id, reverse=False)
-            chapters.append({
-                'frames': frames,
-                'number': chapter_slug,
-                'ref': reference,
-                'title': title
-            })
+            chapter_json = _convert_obs_chapter_to_json(chapter_str, chapter_slug, chapter_file)
+            chapters.append(chapter_json)
 
     chapters.sort(key=__extract_chapter_number, reverse=False)
     return chapters
+
+def _convert_obs_chapter_to_json(chapter_str, chapter_slug, chapter_file):
+    """Parses an OBS chapter string (markdown) and returns a json object"""
+    obs_title_re = re.compile('^\s*#+\s*(.*)', re.UNICODE)
+    obs_footer_re = re.compile('\_+([^\_]*)\_+$', re.UNICODE)
+    obs_image_re = re.compile('.*!\[[^\]]*\]\(.*\).*', re.IGNORECASE | re.UNICODE)
+
+    title_match = obs_title_re.match(chapter_str)
+    if title_match:
+        title = title_match.group(1)
+    else:
+        raise Exception('Missing chapter title in OBS {}'.format(chapter_file))
+    chapter_str = obs_title_re.sub('', chapter_str).strip()
+    lines = chapter_str.split('\n')
+    reference_match = obs_footer_re.match(lines[-1])
+    if reference_match:
+        reference = reference_match.group(1)
+    else:
+        raise Exception('Missing chapter reference in OBS {}'.format(chapter_file))
+    chapter_str = '\n'.join(lines[0:-1]).strip()
+    chunks = obs_image_re.split(chapter_str)
+
+    frames = []
+    chunk_index = 0
+    for chunk in chunks:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        chunk_index += 1
+        id = '{}-{}'.format(chapter_slug, '{}'.format(chunk_index).zfill(2))
+        frames.append({
+            'id': id,
+            'img': 'https://cdn.door43.org/obs/jpg/360px/obs-en-{}.jpg'.format(id),
+            'text': chunk
+        })
+    frames.sort(key=__extract_frame_id, reverse=False)
+    return {
+        'frames': frames,
+        'number': chapter_slug,
+        'ref': reference,
+        'title': title
+    }

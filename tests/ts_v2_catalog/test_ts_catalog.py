@@ -132,6 +132,7 @@ some more text
     def test_convert_catalog(self, mock_reporter):
         mockV3Api = MockAPI(os.path.join(self.resources_dir, 'v3_api'), 'https://api.door43.org/')
         mockV3Api.add_host(os.path.join(self.resources_dir, 'v3_cdn'), 'https://test-cdn.door43.org/')
+        mockV3Api.add_host(os.path.join(self.resources_dir, 'v3_cdn'), 'https://cdn.door43.org/')
 
         mockV2Api = MockAPI(os.path.join(self.resources_dir, 'ts_api'), 'https://test')
         mockS3 = MockS3Handler('ts_bucket')
