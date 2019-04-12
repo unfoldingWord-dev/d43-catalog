@@ -457,6 +457,124 @@ def make_legacy_date(date_str):
         return None
 
 
+def usx_to_chunked_json(usx, chunks, path='', reporter=None):
+    """
+    Iterates through the usx and splits it into frames based on the
+    s5 markers.
+    :param usx:
+    :param path: The path from which the usx is converted. This gives context to error messages
+    :param reporter: A lambda handler instance for reporting errors
+    :type reporter: Handler
+    """
+    verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
+    chunk_marker = '<note caller="u" style="s5"></note>'
+    chapters = []
+    chp = ''
+    chp_num = 0
+    fr_list = []
+    current_vs = -1
+    chunk_chapter = ''
+
+    for line in usx:
+        if line.startswith('\n'):
+            continue
+
+        if "verse number" in line:
+            current_vs = verse_re.search(line).group(1)
+
+        if 'chapter number' in line:
+            if chp:
+                if fr_list:
+                    fr_text = '\n'.join(fr_list)
+                    try:
+                        matches = verse_re.search(fr_text)
+                        if matches:
+                            first_vs = matches.group(1)
+                        else:
+                            if reporter:
+                                reporter.report_error(u'failed to search for verse in string "{}" ({})'.format(fr_text, path))
+                            continue
+                    except AttributeError:
+                        if reporter:
+                            reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                        continue
+                    chp['frames'].append({'id': '{0}-{1}'.format(
+                        str(chp_num).zfill(2), first_vs.zfill(2)),
+                        'img': '',
+                        'format': 'usx',
+                        'text': fr_text,
+                        'lastvs': current_vs
+                    })
+                chapters.append(chp)
+            chp_num += 1
+
+            chunk_chapter = pad_to_match(chp_num, chunks)
+            if chunk_chapter not in chunks:
+                raise Exception('Missing chapter "{}" in chunk json'.format(chunk_chapter))
+
+            chp = {'number': str(chp_num).zfill(2),
+                   'ref': '',
+                   'title': '',
+                   'frames': []
+                   }
+            fr_list = []
+            continue
+
+        # TODO: don't use chunk markers
+        if chunk_marker in line:
+            if chp_num == 0:
+                continue
+
+            # is there something else on the line with it? (probably an end-of-paragraph marker)
+            if len(line.strip()) > len(chunk_marker):
+                # get the text following the chunk marker
+                rest_of_line = line.replace(chunk_marker, '')
+
+                # append the text to the previous line, removing the unnecessary \n
+                fr_list[-1] = fr_list[-1][:-1] + rest_of_line
+
+            if fr_list:
+                fr_text = '\n'.join(fr_list)
+                try:
+                    first_vs = verse_re.search(fr_text).group(1)
+                except AttributeError:
+                    if reporter:
+                        reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                    continue
+
+                chp['frames'].append({'id': '{0}-{1}'.format(
+                    str(chp_num).zfill(2), first_vs.zfill(2)),
+                    'img': '',
+                    'format': 'usx',
+                    'text': fr_text,
+                    'lastvs': current_vs
+                })
+                fr_list = []
+
+            continue
+
+        fr_list.append(line)
+
+    # Append the last frame and the last chapter
+    if fr_list:
+        fr_text = '\n'.join(fr_list)
+        try:
+            first_vs = verse_re.search(fr_text).group(1)
+            chp['frames'].append({
+                'id': '{0}-{1}'.format(str(chp_num).zfill(2), first_vs.zfill(2)),
+                'img': '',
+                'format': 'usx',
+                'text': '\n'.join(fr_list),
+                'lastvs': current_vs
+            })
+        except AttributeError:
+            if reporter:
+                reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+
+    chapters.append(chp)
+    return chapters
+
+
 def usx_to_json(usx, path='', reporter=None):
     """
     Iterates through the usx and splits it into frames based on the
@@ -549,13 +667,22 @@ def usx_to_json(usx, path='', reporter=None):
         fr_list.append(line)
 
     # Append the last frame and the last chapter
-    chp['frames'].append({
-        'id': '{0}-{1}'.format(str(chp_num).zfill(2), str(fr_id).zfill(2)),
-        'img': '',
-        'format': 'usx',
-        'text': '\n'.join(fr_list),
-        'lastvs': current_vs
-    })
+    if fr_list:
+        fr_text = '\n'.join(fr_list)
+        try:
+            first_vs = verse_re.search(fr_text).group(1)
+            chp['frames'].append({
+                'id': '{0}-{1}'.format(str(chp_num).zfill(2), first_vs.zfill(2)),
+                'img': '',
+                'format': 'usx',
+                'text': '\n'.join(fr_list),
+                'lastvs': current_vs
+            })
+        except AttributeError:
+            if reporter:
+                reporter.report_error(
+                    u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+
     chapters.append(chp)
     return chapters
 

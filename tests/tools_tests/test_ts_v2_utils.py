@@ -2,11 +2,13 @@
 from __future__ import unicode_literals
 import os
 import shutil
+import json
+import codecs
 import tempfile
 from unittest import TestCase
 from mock import patch
 from libraries.tools.file_utils import read_file
-from libraries.tools.ts_v2_utils import build_usx, build_json_source_from_usx, tn_tsv_to_json, index_tn_rc
+from libraries.tools.ts_v2_utils import build_usx, build_json_source_from_usx, usx_to_chunked_json, tn_tsv_to_json, index_tn_rc
 
 
 @patch('libraries.lambda_handlers.handler.ErrorReporter')
@@ -30,6 +32,67 @@ class TestTsV2Utils(TestCase):
         usx_file = os.path.join(self.resources_dir, 'PSA.usx')
         json = build_json_source_from_usx(usx_file, '2018', mock_reporter)
         assert not mock_reporter.called
+
+    def test_usx_to_json_chunks(self, mock_reporter):
+        chunks = {
+            '01': ['01', '03']
+        }
+
+        usx = [
+            u'<para style="mt">PSALMS</para>\n',
+            u'<para style="cl">Psalm</para>\n',
+            u'<note caller="u" style="s5"></note>\n',
+            u'<para style="ms">Book One</para>\n',
+            u'<chapter number="1" style="c" />\n',
+            u'<para style="q1">\n',
+            u'<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n',
+            u'<para style="q1">or stand in the pathway with sinners,</para>\n',
+            u'<para style="q1">or sit in the assembly of mockers.</para>\n',
+            u'<para style="q1">\n',
+            u'<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n',
+            u'<para style="q1">and on his law he meditates day and night.\n',
+            u'<note caller="u" style="s5"></note></para>\n',
+            u'<para style="q1">\n',
+            u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n',
+            u'<para style="q1">that produces its fruit in its season,</para>\n',
+            u'<para style="q1">whose leaves do not wither;</para>\n',
+            u'<para style="q1">whatever he does will prosper.\n',
+            u'<note caller="u" style="s5"></note></para>\n',
+            u'<para style="q1">\n',
+            u'<verse number="4" style="v" />The wicked are not so,</para>\n',
+            u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
+        ]
+        json = usx_to_chunked_json(usx, chunks, '', mock_reporter)
+        self.assertEquals(json, [
+            {
+                'frames': [
+                    {
+                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.</para>\n',
+                        'lastvs': u'2',
+                        'id': '01-01',
+                        'img': '',
+                        'format': 'usx'
+                     },
+                    {
+                        'text': u'<para style="q1">\n\n<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n\n<para style="q1">that produces its fruit in its season,</para>\n\n<para style="q1">whose leaves do not wither;</para>\n\n<para style="q1">whatever he does will prosper.</para>\n',
+                        'lastvs': u'3',
+                        'id': '01-03',
+                        'img': '',
+                        'format': 'usx'
+                    },
+                    {
+                        'text': u'<para style="q1">\n\n<verse number="4" style="v" />The wicked are not so,</para>\n\n<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
+                        'lastvs': u'4',
+                        'id': '01-04',
+                        'img': '',
+                        'format': 'usx'
+                    }
+                ],
+                'ref': '',
+                'number': '01',
+                'title': ''
+            }
+        ])
 
     def test_index_tn_tsv_rc(self, mock_reporter):
         tmp = os.path.join(self.temp_dir, 'index_tn_rc')
