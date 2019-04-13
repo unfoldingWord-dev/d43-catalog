@@ -480,10 +480,38 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
             continue
 
         if "verse number" in line:
-            current_vs = verse_re.search(line).group(1)
+            next_verse = verse_re.search(line).group(1)
+            chunk_verse = pad_to_match(next_verse, chunks[chunk_chapter])
+            if chunk_verse in chunks[chunk_chapter] and int(next_verse) > 1:
+                # close chunk
+                if fr_list:
+                    fr_text = '\n'.join(fr_list)
+                    try:
+                        matches = verse_re.search(fr_text)
+                        if matches:
+                            first_vs = matches.group(1)
+                        else:
+                            if reporter:
+                                reporter.report_error(u'failed to search for verse in string "{}" ({})'.format(fr_text, path))
+                            continue
+                    except AttributeError:
+                        if reporter:
+                            reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+                        continue
+                    chp['frames'].append({'id': '{0}-{1}'.format(
+                        str(chp_num).zfill(2), first_vs.zfill(2)),
+                        'img': '',
+                        'format': 'usx',
+                        'text': fr_text,
+                        'lastvs': current_vs
+                    })
+                fr_list = []
+            # start new chunk
+            current_vs = next_verse
 
         if 'chapter number' in line:
             if chp:
+                # close chunk
                 if fr_list:
                     fr_text = '\n'.join(fr_list)
                     try:
@@ -521,37 +549,37 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
             continue
 
         # TODO: don't use chunk markers
-        if chunk_marker in line:
-            if chp_num == 0:
-                continue
-
-            # is there something else on the line with it? (probably an end-of-paragraph marker)
-            if len(line.strip()) > len(chunk_marker):
-                # get the text following the chunk marker
-                rest_of_line = line.replace(chunk_marker, '')
-
-                # append the text to the previous line, removing the unnecessary \n
-                fr_list[-1] = fr_list[-1][:-1] + rest_of_line
-
-            if fr_list:
-                fr_text = '\n'.join(fr_list)
-                try:
-                    first_vs = verse_re.search(fr_text).group(1)
-                except AttributeError:
-                    if reporter:
-                        reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
-                    continue
-
-                chp['frames'].append({'id': '{0}-{1}'.format(
-                    str(chp_num).zfill(2), first_vs.zfill(2)),
-                    'img': '',
-                    'format': 'usx',
-                    'text': fr_text,
-                    'lastvs': current_vs
-                })
-                fr_list = []
-
-            continue
+        # if chunk_marker in line:
+        #     if chp_num == 0:
+        #         continue
+        #
+        #     # is there something else on the line with it? (probably an end-of-paragraph marker)
+        #     if len(line.strip()) > len(chunk_marker):
+        #         # get the text following the chunk marker
+        #         rest_of_line = line.replace(chunk_marker, '')
+        #
+        #         # append the text to the previous line, removing the unnecessary \n
+        #         fr_list[-1] = fr_list[-1][:-1] + rest_of_line
+        #
+        #     if fr_list:
+        #         fr_text = '\n'.join(fr_list)
+        #         try:
+        #             first_vs = verse_re.search(fr_text).group(1)
+        #         except AttributeError:
+        #             if reporter:
+        #                 reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+        #             continue
+        #
+        #         chp['frames'].append({'id': '{0}-{1}'.format(
+        #             str(chp_num).zfill(2), first_vs.zfill(2)),
+        #             'img': '',
+        #             'format': 'usx',
+        #             'text': fr_text,
+        #             'lastvs': current_vs
+        #         })
+        #         fr_list = []
+        #
+        #     continue
 
         fr_list.append(line)
 
