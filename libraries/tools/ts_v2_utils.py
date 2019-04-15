@@ -549,17 +549,17 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
             continue
 
         # TODO: don't use chunk markers
-        # if chunk_marker in line:
-        #     if chp_num == 0:
-        #         continue
+        if chunk_marker in line:
+            if chp_num == 0:
+                continue
         #
         #     # is there something else on the line with it? (probably an end-of-paragraph marker)
-        #     if len(line.strip()) > len(chunk_marker):
-        #         # get the text following the chunk marker
-        #         rest_of_line = line.replace(chunk_marker, '')
-        #
-        #         # append the text to the previous line, removing the unnecessary \n
-        #         fr_list[-1] = fr_list[-1][:-1] + rest_of_line
+            if len(line.strip()) > len(chunk_marker):
+                # get the text following the chunk marker
+                rest_of_line = line.replace(chunk_marker, '')
+
+                # append the text to the previous line, removing the unnecessary \n
+                fr_list[-1] = fr_list[-1][:-1] + rest_of_line
         #
         #     if fr_list:
         #         fr_text = '\n'.join(fr_list)
@@ -579,7 +579,7 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
         #         })
         #         fr_list = []
         #
-        #     continue
+            continue
 
         fr_list.append(line)
 
