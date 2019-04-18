@@ -538,7 +538,7 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
 
             chunk_chapter = pad_to_match(chp_num, chunks)
             if chunk_chapter not in chunks:
-                raise Exception('Missing chapter "{}" in chunk json'.format(chunk_chapter))
+                raise Exception('Missing chapter "{}" in chunk json as {}'.format(chunk_chapter, path))
 
             chp = {'number': str(chp_num).zfill(2),
                    'ref': '',
