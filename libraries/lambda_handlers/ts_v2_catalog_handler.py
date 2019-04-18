@@ -593,7 +593,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     # convert USX to JSON
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
-                    source = build_json_source_from_usx(path, format['modified'], self)
+                    source = build_json_source_from_usx(path, pid, format['modified'], self)
                     upload = prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, resource['version']),
                                               source['source'], self.temp_dir)
                     self.cdn_handler.upload_file(upload['path'],

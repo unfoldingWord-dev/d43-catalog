@@ -548,37 +548,17 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
             fr_list = []
             continue
 
-        # TODO: don't use chunk markers
+        # remove chunk markers
         if chunk_marker in line:
             if chp_num == 0:
                 continue
-        #
-        #     # is there something else on the line with it? (probably an end-of-paragraph marker)
+            # is there something else on the line with it? (probably an end-of-paragraph marker)
             if len(line.strip()) > len(chunk_marker):
                 # get the text following the chunk marker
                 rest_of_line = line.replace(chunk_marker, '')
 
                 # append the text to the previous line, removing the unnecessary \n
                 fr_list[-1] = fr_list[-1][:-1] + rest_of_line
-        #
-        #     if fr_list:
-        #         fr_text = '\n'.join(fr_list)
-        #         try:
-        #             first_vs = verse_re.search(fr_text).group(1)
-        #         except AttributeError:
-        #             if reporter:
-        #                 reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
-        #             continue
-        #
-        #         chp['frames'].append({'id': '{0}-{1}'.format(
-        #             str(chp_num).zfill(2), first_vs.zfill(2)),
-        #             'img': '',
-        #             'format': 'usx',
-        #             'text': fr_text,
-        #             'lastvs': current_vs
-        #         })
-        #         fr_list = []
-        #
             continue
 
         fr_list.append(line)
@@ -715,7 +695,7 @@ def usx_to_json(usx, path='', reporter=None):
     return chapters
 
 
-def build_json_source_from_usx(path, date_modified, reporter=None):
+def build_json_source_from_usx(path, pid, date_modified, reporter=None):
     """
     Builds a json source object from a USX file
     :param path:
@@ -728,7 +708,13 @@ def build_json_source_from_usx(path, date_modified, reporter=None):
     with codecs.open(path, 'r', encoding='utf-8-sig') as in_file:
         usx = in_file.readlines()
 
-    book = usx_to_json(usx, path, reporter)
+    try:
+        data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
+        chunks = index_chunks(json.loads(data))
+    except:
+        raise 'Failed to retrieve chunk information for {}'.format(path);
+
+    book = usx_to_chunked_json(usx, chunks, path, reporter)
 
     return {
         'source': {

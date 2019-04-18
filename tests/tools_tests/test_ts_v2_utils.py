@@ -30,7 +30,7 @@ class TestTsV2Utils(TestCase):
 
     def test_usx_to_json(self, mock_reporter):
         usx_file = os.path.join(self.resources_dir, 'PSA.usx')
-        json = build_json_source_from_usx(usx_file, '2018', mock_reporter)
+        json = build_json_source_from_usx(usx_file, 'psa', '2018', mock_reporter)
         assert not mock_reporter.called
 
     def test_usx_to_json_chunks_alt(self, mock_reporter):
