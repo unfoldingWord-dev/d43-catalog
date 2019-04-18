@@ -740,8 +740,8 @@ class TsV2CatalogHandler(InstanceHandler):
             # TRICKY: some resources don't have a source
             source_text = resource['source'][0]['language']
             source_text_version = resource['source'][0]['version']
-        else:
-            self.report_error('Missing source translation in {} {}'.format(lid, rid))
+        # else:
+        #     self.report_error('Missing source translation in {} {}'.format(lid, rid))
         res.update({
             'date_modified': r_modified,
             'name': resource['title'],
