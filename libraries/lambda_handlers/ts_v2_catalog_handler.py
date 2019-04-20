@@ -95,6 +95,10 @@ class TsV2CatalogHandler(InstanceHandler):
             self.logger.debug('Catalog already generated')
             return True
 
+        if self.status['state'] == 'aborted':
+            self.logger.debug('Catalog generation was aborted')
+            return True
+
         # retrieve the latest catalog
         catalog_content = self.get_url(source_status['catalog_url'], True)
         if not catalog_content:
@@ -152,8 +156,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         # TRICKY: update the finished processes once per format to limit db hits
                         if finished_processes:
                             self.status['processed'].update(finished_processes)
-                            self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                            self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+                            self._set_status()
 
                 for project in res['projects']:
                     pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
@@ -213,9 +216,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             # TRICKY: update the finished processes once per format to limit db hits
                             if finished_processes:
                                 self.status['processed'].update(finished_processes)
-                                self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                                self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version},
-                                                            self.status)
+                                self._set_status()
 
                     if not rc_format:
                         raise Exception('Could not find a format for {}_{}_{}'.format(lid, rid, pid))
@@ -303,6 +304,20 @@ class TsV2CatalogHandler(InstanceHandler):
             self.cdn_handler.upload_file(upload['path'], key)
 
         self.status['state'] = 'complete'
+        self._set_status()
+
+    def _set_status(self):
+        """
+        Records the status after checking if the status is still valid
+        because we might have manually changed it.
+        If the status is "aborted" this will raise an exception
+        :return:
+        """
+        result = self._get_status()
+        if result and result[0]['state'] == 'aborted':
+            raise Exception("Aborted because the status flag is set to 'aborted' in dynamodb")
+
+        # record the status
         self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
@@ -600,8 +615,7 @@ class TsV2CatalogHandler(InstanceHandler):
                                                  '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
 
                     self.status['processed'][process_id] = []
-                    self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                    self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+                    self._set_status()
 
     def _upload_all(self, uploads):
         """
