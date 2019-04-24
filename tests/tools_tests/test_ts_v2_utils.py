@@ -30,7 +30,7 @@ class TestTsV2Utils(TestCase):
 
     def test_usx_to_json(self, mock_reporter):
         usx_file = os.path.join(self.resources_dir, 'PSA.usx')
-        json = build_json_source_from_usx(usx_file, 'psa', '2018', mock_reporter)
+        json = build_json_source_from_usx(usx_file, 'en', 'psa', '2018', mock_reporter)
         assert not mock_reporter.called
 
     def test_usx_to_json_chunks_alt(self, mock_reporter):
@@ -59,7 +59,7 @@ class TestTsV2Utils(TestCase):
             u'<verse number="4" style="v" />The wicked are not so,</para>\n',
             u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
         ]
-        json = usx_to_chunked_json(usx, chunks, '', mock_reporter)
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa', '', mock_reporter)
         self.assertEquals(json, [
             {
                 'frames': [
@@ -110,7 +110,7 @@ class TestTsV2Utils(TestCase):
             u'<verse number="4" style="v" />The wicked are not so,</para>\n',
             u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
         ]
-        json = usx_to_chunked_json(usx, chunks, '', mock_reporter)
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa', '', mock_reporter)
         self.assertEquals(json, [
             {
                 'frames': [
@@ -171,7 +171,7 @@ class TestTsV2Utils(TestCase):
             u'<verse number="4" style="v" />The wicked are not so,</para>\n',
             u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
         ]
-        json = usx_to_chunked_json(usx, chunks, '', mock_reporter)
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa', '', mock_reporter)
         self.assertEquals(json, [
             {
                 'frames': [

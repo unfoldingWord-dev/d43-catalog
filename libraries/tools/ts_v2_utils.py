@@ -20,6 +20,7 @@ from libraries.tools.file_utils import read_file, write_file
 from libraries.tools.url_utils import get_url
 from usfm_tools.transform import UsfmTransform
 from libraries.tools.usfm_utils import usfm3_to_usfm2
+from libraries.tools.versification import hebrew_to_ufw
 
 
 def download_chunks(pid, dest):
@@ -457,7 +458,7 @@ def make_legacy_date(date_str):
         return None
 
 
-def usx_to_chunked_json(usx, chunks, path='', reporter=None):
+def usx_to_chunked_json(usx, chunks, lid, pid, path='', reporter=None):
     """
     Iterates through the usx and splits it into frames based on the
     s5 markers.
@@ -482,6 +483,15 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
         if "verse number" in line:
             next_verse = verse_re.search(line).group(1)
             chunk_verse = pad_to_match(next_verse, chunks[chunk_chapter])
+
+            if lid == 'hbo':
+                # TRICKY: Hebrew has a different versification
+                ufw_ref = hebrew_to_ufw(b=pid.lower(), c=chp_num, v=int(next_verse))
+                chunk_chapter = pad_to_match(ufw_ref.c, chunks)
+                if chunk_chapter not in chunks:
+                    raise Exception('Missing chapter "{}" in chunk json as {}'.format(chunk_chapter, path))
+                chunk_verse = pad_to_match(ufw_ref.v, chunks[chunk_chapter])
+
             if chunk_verse in chunks[chunk_chapter] and int(next_verse) > 1:
                 # close chunk
                 if fr_list:
@@ -537,6 +547,12 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
             chp_num += 1
 
             chunk_chapter = pad_to_match(chp_num, chunks)
+
+            if lid == 'hbo':
+                # TRICKY: Hebrew has a different versification
+                ufw_ref = hebrew_to_ufw(b=pid.lower(), c=chp_num, v=1)
+                chunk_chapter = pad_to_match(ufw_ref.c, chunks)
+
             if chunk_chapter not in chunks:
                 raise Exception('Missing chapter "{}" in chunk json as {}'.format(chunk_chapter, path))
 
@@ -564,6 +580,7 @@ def usx_to_chunked_json(usx, chunks, path='', reporter=None):
         fr_list.append(line)
 
     # Append the last frame and the last chapter
+    # TODO: convert the versification if needed
     if fr_list:
         fr_text = '\n'.join(fr_list)
         try:
@@ -695,7 +712,7 @@ def usx_to_json(usx, path='', reporter=None):
     return chapters
 
 
-def build_json_source_from_usx(path, pid, date_modified, reporter=None):
+def build_json_source_from_usx(path, lid, pid, date_modified, reporter=None):
     """
     Builds a json source object from a USX file
     :param path:
@@ -714,7 +731,7 @@ def build_json_source_from_usx(path, pid, date_modified, reporter=None):
     except:
         raise 'Failed to retrieve chunk information for {}'.format(path)
 
-    book = usx_to_chunked_json(usx, chunks, path, reporter)
+    book = usx_to_chunked_json(usx, chunks, lid, pid, path, reporter)
 
     return {
         'source': {
