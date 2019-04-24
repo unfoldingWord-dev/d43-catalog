@@ -17,7 +17,7 @@ import markdown
 import yaml
 
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from libraries.tools.file_utils import read_file, download_rc
+from libraries.tools.file_utils import read_file, download_rc, remove
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from libraries.tools.ts_v2_utils import convert_rc_links, build_json_source_from_usx, make_legacy_date, \
@@ -605,6 +605,9 @@ class TsV2CatalogHandler(InstanceHandler):
                     except Exception as e:
                         self.report_error('Failed to generate usx for {}'.format(process_id))
                         raise e
+
+                    # clean up converted usfm file
+                    remove(usfm_dest_file, True)
 
                     # convert USX to JSON
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
