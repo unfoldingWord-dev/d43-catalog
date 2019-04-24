@@ -72,7 +72,7 @@ class TestTsV2Utils(TestCase):
             {
                 'frames': [
                     {
-                        'text': u'<chapter number="1" style="c" />\n\n<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
+                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
@@ -123,7 +123,7 @@ class TestTsV2Utils(TestCase):
             {
                 'frames': [
                     {
-                        'text': u'<chapter number="1" style="c" />\n\n<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
+                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
@@ -169,6 +169,7 @@ class TestTsV2Utils(TestCase):
             u'<para style="q1">\n',
             u'<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n',
             u'<para style="q1">and on his law he meditates day and night.\n',
+            u'<note caller="u" style="s5"></note>\n',
             u'<note caller="u" style="s5"></note></para>\n',
             u'<para style="q1">\n',
             u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n',
@@ -184,7 +185,7 @@ class TestTsV2Utils(TestCase):
             {
                 'frames': [
                     {
-                        'text': u'<chapter number="1" style="c" />\n\n<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n</para>\n\n<para style="q1">\n',
+                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n</para>\n\n<para style="q1">\n',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',

@@ -477,7 +477,6 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
     effective_verse = 0
     first_effective_verse = effective_verse
     previous_effective_chapter = effective_chapter
-    previous_effective_verse = effective_verse
 
     for line in usx:
         # hang on to the current effective chapter and verse throughout the loop
@@ -486,10 +485,9 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
 
         if chunk_marker in line:
             # remove chunk marker
-            if len(line.strip()) > len(chunk_marker):
-                line = line.replace(chunk_marker, '')
+            line = line.replace(chunk_marker, '')
 
-        if line.startswith('\n'):
+        if line == '\n':
             continue
 
         if 'chapter number' in line:
@@ -501,6 +499,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
                 ref = hebrew_to_ufw(b=pid.lower(), c=chapter_index, v=verse_index)
                 effective_chapter = ref.c
                 effective_verse = ref.v
+            line = re.sub(r'<chapter number="\d+" style="c" />\n*', '', line)
 
         if 'verse number' in line:
             verse_index = int(verse_re.search(line).group(1))
@@ -551,7 +550,9 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
                 'frames': []
             }
 
-        chunk_buffer.append(line)
+        # add the line if it's not empty
+        if line:
+            chunk_buffer.append(line)
 
     # close last chunk
     if chunk_buffer:
@@ -562,7 +563,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
             'img': '',
             'format': 'usx',
             'text': chunk_text,
-            'lastvs': str(previous_effective_verse)
+            'lastvs': str(effective_verse)  # TRICKY: because `previous_effective_verse` is not set for the last chunk
         })
 
     # close chapter
