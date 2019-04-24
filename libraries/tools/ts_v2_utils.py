@@ -712,7 +712,7 @@ def build_json_source_from_usx(path, pid, date_modified, reporter=None):
         data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
         chunks = index_chunks(json.loads(data))
     except:
-        raise 'Failed to retrieve chunk information for {}'.format(path);
+        raise 'Failed to retrieve chunk information for {}'.format(path)
 
     book = usx_to_chunked_json(usx, chunks, path, reporter)
 
