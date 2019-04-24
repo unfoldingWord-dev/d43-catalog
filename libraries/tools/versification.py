@@ -27,7 +27,7 @@ class Opt:
 
 def hebrew_to_ufw(b, c, v):
     """
-
+    Converts hebrew versification to ufw versification
     :param b: book string
     :param c: chapter number
     :param v: verse number
@@ -35,13 +35,22 @@ def hebrew_to_ufw(b, c, v):
     """
     ref = Ref(b, c, v)
     if b == 'gen':
-        pass
+        # chapter break gen 31:55
+        if c == 31 or c == 32:
+            break_chapter(Opt(early=False, ref=ref, c=31, v=55))
     if b == 'exo':
         pass
     if b == 'lev':
-        pass
+        # chapter break lev 5:20
+        if c == 5 or c == 6:
+            break_chapter(Opt(early=True, ref=ref, c=5, v=20, count=7))
     if b == 'num':
-        pass
+        # chapter break num 16:36
+        if c == 16 or c == 17:
+            break_chapter(Opt(early=False, ref=ref, c=16, v=36, count=15))
+        # chapter break num 29:40
+        if c == 29 or c == 30:
+            break_chapter(Opt(early=False, ref=ref, c=29, v=40))
     if b == 'deu':
         pass
     if b == 'jos':
@@ -49,11 +58,15 @@ def hebrew_to_ufw(b, c, v):
     if b == '1sa':
         pass
     if b == '2sa':
-        pass
+        # chapter break 2sa 18:33
+        if c == 18 or c == 19:
+            break_chapter(Opt(early=False, ref=ref, c=18, v=33))
     if b == '1ki':
         pass
     if b == '2ki':
-        pass
+        # chapter break 2ki 11:21
+        if c == 11 or c == 12:
+            break_chapter(Opt(early=False, ref=ref, c=11, v=21))
     if b == '1ch':
         pass
     if b == '2ch':
