@@ -34,9 +34,63 @@ def hebrew_to_ufw(b, c, v):
     :return: the ufw version of the reference
     """
     ref = Ref(b, c, v)
+    if b == 'gen':
+        pass
+    if b == 'exo':
+        pass
+    if b == 'lev':
+        pass
+    if b == 'num':
+        pass
+    if b == 'deu':
+        pass
+    if b == 'jos':
+        pass
+    if b == '1sa':
+        pass
+    if b == '2sa':
+        pass
+    if b == '1ki':
+        pass
+    if b == '2ki':
+        pass
+    if b == '1ch':
+        pass
+    if b == '2ch':
+        pass
+    if b == 'neh':
+        pass
+    if b == 'job':
+        pass
+    if b == 'psa':
+        pass
+    if b == 'ecc':
+        pass
+    if b == 'sng':
+        pass
+    if b == 'isa':
+        pass
+    if b == 'jer':
+        pass
+    if b == 'ezk':
+        pass
+    if b == 'dan':
+        pass
+    if b == 'hos':
+        pass
     if b == 'jol':
         if c >= 2:
             split_chapter(Opt(early=False, ref=ref, c=2, v=28))
+    if b == 'jon':
+        pass
+    if b == 'mic':
+        pass
+    if b == 'nah':
+        pass
+    if b == 'zec':
+        pass
+    if b == 'mal':
+        pass
     return ref
 
 
