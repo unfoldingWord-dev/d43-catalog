@@ -509,6 +509,8 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
                 ref = hebrew_to_ufw(b=pid.lower(), c=chapter_index, v=verse_index)
                 effective_chapter = ref.c
                 effective_verse = ref.v
+            if first_effective_verse == 0:
+                first_effective_verse = effective_verse
 
         if effective_chapter == 0 or effective_verse == 0:
             continue

@@ -37,7 +37,9 @@ class TestTsV2Utils(TestCase):
         usx_file = os.path.join(self.resources_dir, 'JOL.usx')
         json = build_json_source_from_usx(usx_file, 'hbo', 'jol', '2019', mock_reporter)
         assert not mock_reporter.called
-        self.assertEquals({}, json)
+        self.assertEquals(3, len(json['source']['chapters']))
+        self.assertEquals('02-32', json['source']['chapters'][1]['frames'][17]['id'])
+        self.assertEquals('03-01', json['source']['chapters'][2]['frames'][0]['id'])
 
     def test_usx_to_json_chunks_alt(self, mock_reporter):
         chunks = {
