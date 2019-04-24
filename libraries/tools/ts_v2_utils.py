@@ -458,145 +458,114 @@ def make_legacy_date(date_str):
         return None
 
 
-def usx_to_chunked_json(usx, chunks, lid, pid, path='', reporter=None):
+def usx_to_chunked_json(usx, chunks, lid, pid):
     """
-    Iterates through the usx and splits it into frames based on the
-    s5 markers.
+    Iterates through the usx and splits it into chunks.
+    :param pid:
+    :param lid:
+    :param chunks:
     :param usx:
-    :param path: The path from which the usx is converted. This gives context to error messages
-    :param reporter: A lambda handler instance for reporting errors
-    :type reporter: Handler
     """
     verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
     chunk_marker = '<note caller="u" style="s5"></note>'
     chapters = []
-    chp = ''
-    chp_num = 0
-    fr_list = []
-    current_vs = -1
-    chunk_chapter = ''
+
+    chapter_buffer = {}
+    chunk_buffer = []
+    chapter_index = 0
+    effective_chapter = 0
+    effective_verse = 0
+    first_effective_verse = effective_verse
+    previous_effective_chapter = effective_chapter
+    previous_effective_verse = effective_verse
 
     for line in usx:
+        # hang on to the current effective chapter and verse throughout the loop
+        previous_effective_chapter = effective_chapter
+        previous_effective_verse = effective_verse
+
+        if chunk_marker in line:
+            # remove chunk marker
+            if len(line.strip()) > len(chunk_marker):
+                line = line.replace(chunk_marker, '')
+
         if line.startswith('\n'):
             continue
 
-        if "verse number" in line:
-            next_verse = verse_re.search(line).group(1)
-            chunk_verse = pad_to_match(next_verse, chunks[chunk_chapter])
-
-            if lid == 'hbo':
-                # TRICKY: Hebrew has a different versification
-                ufw_ref = hebrew_to_ufw(b=pid.lower(), c=chp_num, v=int(next_verse))
-                chunk_chapter = pad_to_match(ufw_ref.c, chunks)
-                if chunk_chapter not in chunks:
-                    raise Exception('Missing chapter "{}" in chunk json as {}'.format(chunk_chapter, path))
-                chunk_verse = pad_to_match(ufw_ref.v, chunks[chunk_chapter])
-
-            if chunk_verse in chunks[chunk_chapter] and int(next_verse) > 1:
-                # close chunk
-                if fr_list:
-                    fr_text = '\n'.join(fr_list)
-                    try:
-                        matches = verse_re.search(fr_text)
-                        if matches:
-                            first_vs = matches.group(1)
-                        else:
-                            if reporter:
-                                reporter.report_error(u'failed to search for verse in string "{}" ({})'.format(fr_text, path))
-                            continue
-                    except AttributeError:
-                        if reporter:
-                            reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
-                        continue
-                    chp['frames'].append({'id': '{0}-{1}'.format(
-                        str(chp_num).zfill(2), first_vs.zfill(2)),
-                        'img': '',
-                        'format': 'usx',
-                        'text': fr_text,
-                        'lastvs': current_vs
-                    })
-                fr_list = []
-            # start new chunk
-            current_vs = next_verse
-
         if 'chapter number' in line:
-            if chp:
-                # close chunk
-                if fr_list:
-                    fr_text = '\n'.join(fr_list)
-                    try:
-                        matches = verse_re.search(fr_text)
-                        if matches:
-                            first_vs = matches.group(1)
-                        else:
-                            if reporter:
-                                reporter.report_error(u'failed to search for verse in string "{}" ({})'.format(fr_text, path))
-                            continue
-                    except AttributeError:
-                        if reporter:
-                            reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
-                        continue
-                    chp['frames'].append({'id': '{0}-{1}'.format(
-                        str(chp_num).zfill(2), first_vs.zfill(2)),
-                        'img': '',
-                        'format': 'usx',
-                        'text': fr_text,
-                        'lastvs': current_vs
-                    })
-                chapters.append(chp)
-            chp_num += 1
-
-            chunk_chapter = pad_to_match(chp_num, chunks)
-
+            chapter_index += 1
+            verse_index = 1
+            effective_chapter = chapter_index
+            effective_verse = verse_index
             if lid == 'hbo':
-                # TRICKY: Hebrew has a different versification
-                ufw_ref = hebrew_to_ufw(b=pid.lower(), c=chp_num, v=1)
-                chunk_chapter = pad_to_match(ufw_ref.c, chunks)
+                ref = hebrew_to_ufw(b=pid.lower(), c=chapter_index, v=verse_index)
+                effective_chapter = ref.c
+                effective_verse = ref.v
 
-            if chunk_chapter not in chunks:
-                raise Exception('Missing chapter "{}" in chunk json as {}'.format(chunk_chapter, path))
+        if 'verse number' in line:
+            verse_index = int(verse_re.search(line).group(1))
+            effective_verse = verse_index
+            if lid == 'hbo':
+                ref = hebrew_to_ufw(b=pid.lower(), c=chapter_index, v=verse_index)
+                effective_chapter = ref.c
+                effective_verse = ref.v
 
-            chp = {'number': str(chp_num).zfill(2),
-                   'ref': '',
-                   'title': '',
-                   'frames': []
-                   }
-            fr_list = []
+        if effective_chapter == 0 or effective_verse == 0:
             continue
 
-        # remove chunk markers
-        if chunk_marker in line:
-            if chp_num == 0:
-                continue
-            # is there something else on the line with it? (probably an end-of-paragraph marker)
-            if len(line.strip()) > len(chunk_marker):
-                # get the text following the chunk marker
-                rest_of_line = line.replace(chunk_marker, '')
+        chunk_chapter = pad_to_match(effective_chapter, chunks)
+        if chunk_chapter not in chunks:
+            raise Exception(u'Missing chapter {} in {} {} chunk json'.format(chunk_chapter, lid, pid))
+        chunk_verse = pad_to_match(effective_verse, chunks[chunk_chapter])
 
-                # append the text to the previous line, removing the unnecessary \n
-                fr_list[-1] = fr_list[-1][:-1] + rest_of_line
-            continue
+        chunk_changed = chunk_verse in chunks[chunk_chapter] and effective_verse > 1 and effective_verse != previous_effective_verse
+        chapter_changed = chapter_buffer and effective_chapter != previous_effective_chapter
 
-        fr_list.append(line)
+        # close chunk
+        if chunk_changed or chapter_changed:
+            if chunk_buffer:
+                chunk_text = '\n'.join(chunk_buffer)
+                chunk_id = '{0}-{1}'.format(str(previous_effective_chapter).zfill(2), str(first_effective_verse).zfill(2))
+                chapter_buffer['frames'].append({
+                    'id': chunk_id,
+                    'img': '',
+                    'format': 'usx',
+                    'text': chunk_text,
+                    'lastvs': str(previous_effective_verse)
+                })
+            first_effective_verse = effective_verse
+            chunk_buffer = []
 
-    # Append the last frame and the last chapter
-    # TODO: convert the versification if needed
-    if fr_list:
-        fr_text = '\n'.join(fr_list)
-        try:
-            first_vs = verse_re.search(fr_text).group(1)
-            chp['frames'].append({
-                'id': '{0}-{1}'.format(str(chp_num).zfill(2), first_vs.zfill(2)),
-                'img': '',
-                'format': 'usx',
-                'text': '\n'.join(fr_list),
-                'lastvs': current_vs
-            })
-        except AttributeError:
-            if reporter:
-                reporter.report_error(u'Unable to parse verses from chunk {}: {} ({})'.format(chp_num, fr_text, path))
+        # close chapter
+        if chapter_changed:
+            chapters.append(chapter_buffer)
 
-    chapters.append(chp)
+        # open new chapter
+        if effective_chapter != previous_effective_chapter:
+            chapter_buffer = {
+                'number': str(effective_chapter).zfill(2),
+                'ref': '',
+                'title': '',
+                'frames': []
+            }
+
+        chunk_buffer.append(line)
+
+    # close last chunk
+    if chunk_buffer:
+        chunk_text = '\n'.join(chunk_buffer)
+        chunk_id = '{0}-{1}'.format(str(previous_effective_chapter).zfill(2), str(first_effective_verse).zfill(2))
+        chapter_buffer['frames'].append({
+            'id': chunk_id,
+            'img': '',
+            'format': 'usx',
+            'text': chunk_text,
+            'lastvs': str(previous_effective_verse)
+        })
+
+    # close chapter
+    chapters.append(chapter_buffer)
+
     return chapters
 
 
@@ -731,7 +700,7 @@ def build_json_source_from_usx(path, lid, pid, date_modified, reporter=None):
     except:
         raise 'Failed to retrieve chunk information for {}'.format(path)
 
-    book = usx_to_chunked_json(usx, chunks, lid, pid, path, reporter)
+    book = usx_to_chunked_json(usx, chunks, lid, pid)
 
     return {
         'source': {

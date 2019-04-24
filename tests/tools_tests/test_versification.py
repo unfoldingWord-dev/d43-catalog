@@ -24,7 +24,6 @@ class TestVersification(TestCase):
         expected = {'book': 'jol', 'chapter': 2, 'verse': 28}
         self.assertEqual(expected, ref.to_dict())
 
-
     def test_me(self):
         """
         Test downloading and processing some hebrew
@@ -54,6 +53,3 @@ class TestVersification(TestCase):
             # convert USX to JSON
             path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
             source = build_json_source_from_usx(path, 'hbo', pid, '2019')
-
-            if pid == 'jol':
-                self.assertEquals({}, source)

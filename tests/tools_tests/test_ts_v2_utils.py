@@ -33,6 +33,12 @@ class TestTsV2Utils(TestCase):
         json = build_json_source_from_usx(usx_file, 'en', 'psa', '2018', mock_reporter)
         assert not mock_reporter.called
 
+    def test_hebrew_usx_to_json(self, mock_reporter):
+        usx_file = os.path.join(self.resources_dir, 'JOL.usx')
+        json = build_json_source_from_usx(usx_file, 'hbo', 'jol', '2019', mock_reporter)
+        assert not mock_reporter.called
+        self.assertEquals({}, json)
+
     def test_usx_to_json_chunks_alt(self, mock_reporter):
         chunks = {
             '01': ['01', '03']
@@ -59,12 +65,12 @@ class TestTsV2Utils(TestCase):
             u'<verse number="4" style="v" />The wicked are not so,</para>\n',
             u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
         ]
-        json = usx_to_chunked_json(usx, chunks, 'en', 'psa', '', mock_reporter)
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa')
         self.assertEquals(json, [
             {
                 'frames': [
                     {
-                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
+                        'text': u'<chapter number="1" style="c" />\n\n<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
@@ -110,12 +116,12 @@ class TestTsV2Utils(TestCase):
             u'<verse number="4" style="v" />The wicked are not so,</para>\n',
             u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
         ]
-        json = usx_to_chunked_json(usx, chunks, 'en', 'psa', '', mock_reporter)
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa')
         self.assertEquals(json, [
             {
                 'frames': [
                     {
-                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
+                        'text': u'<chapter number="1" style="c" />\n\n<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
@@ -171,12 +177,12 @@ class TestTsV2Utils(TestCase):
             u'<verse number="4" style="v" />The wicked are not so,</para>\n',
             u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
         ]
-        json = usx_to_chunked_json(usx, chunks, 'en', 'psa', '', mock_reporter)
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa')
         self.assertEquals(json, [
             {
                 'frames': [
                     {
-                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.</para>\n\n<para style="q1">\n',
+                        'text': u'<chapter number="1" style="c" />\n\n<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n</para>\n\n<para style="q1">\n',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
