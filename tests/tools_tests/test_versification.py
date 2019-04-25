@@ -19,6 +19,13 @@ class TestVersification(TestCase):
         if os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
+    def test_converting_from_ufw_to_hebrew(self):
+        # gen 31:55 (ufw) -> gen 32:1 (hebrew)
+        book = 'gen'
+        ref = hebrew_to_ufw(book, 31, 55, False)
+        expected = {'book': book, 'chapter': 32, 'verse': 1}
+        self.assertEqual(expected, ref.to_dict())
+
     def test_gen_32_1_is_31_55(self):
         book = 'gen'
         ref = hebrew_to_ufw(book, 32, 1)
@@ -290,7 +297,7 @@ class TestVersification(TestCase):
         Test downloading and processing some hebrew
         :return:
         """
-        return
+        # return
         rc_dir = download_rc('hbo', 'uhb', 'https://cdn.door43.org/hbo/uhb/v2.1.1/uhb.zip', self.temp_dir)
 
         manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
