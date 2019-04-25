@@ -1,3 +1,4 @@
+# This was inspired by https://github.com/curiousdannii/reversify
 
 
 class Ref:
@@ -25,13 +26,14 @@ class Opt:
         self.split = split
 
 
-def hebrew_to_ufw(b, c, v):
+def hebrew_to_ufw(b, c, v, from_original=True):
     """
-    Converts hebrew versification to ufw versification
+    Converts hebrew versification to ufw versification.
     :param b: book string
     :param c: chapter number
     :param v: verse number
-    :return: the ufw version of the reference
+    :param from_original: indicates if we are converting the versification from the original language.
+    :return: the ufw version of the reference. Or, if `from_original` is False, the hebrew version
     """
     ref = Ref(b, c, v)
     if b == 'gen':
@@ -39,7 +41,15 @@ def hebrew_to_ufw(b, c, v):
         if c == 31 or c == 32:
             break_chapter(Opt(early=False, ref=ref, c=31, v=55))
     if b == 'exo':
-        pass
+        # chapter break exo 7:26
+        if c == 7 or c == 8:
+            break_chapter(Opt(early=True, ref=ref, c=7, v=26, count=4))
+        # verse split exo 20:13
+        if c == 20 or v == 13:
+            split_verse(Opt(early=False, split=True, ref=ref, c=20, v=13, count=3))
+        # chapter break exo 21:37
+        if c == 21 or c == 22:
+            break_chapter(Opt(early=True, ref=ref, c=21, v=37))
     if b == 'lev':
         # chapter break lev 5:20
         if c == 5 or c == 6:
@@ -92,6 +102,7 @@ def hebrew_to_ufw(b, c, v):
     if b == 'hos':
         pass
     if b == 'jol':
+        # chapter split jol 2:28
         if c >= 2:
             split_chapter(Opt(early=False, ref=ref, c=2, v=28))
     if b == 'jon':
