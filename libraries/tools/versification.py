@@ -62,29 +62,67 @@ def hebrew_to_ufw(b, c, v, from_original=True):
         if c == 29 or c == 30:
             break_chapter(Opt(early=False, ref=ref, c=29, v=40))
     if b == 'deu':
-        pass
-    if b == 'jos':
-        pass
+        # chapter break deu 12:32
+        if c == 12 or c == 13:
+            break_chapter(Opt(early=False, ref=ref, c=12, v=32))
+        # chapter break deu 22:30
+        if c == 22 or c == 23:
+            break_chapter(Opt(early=False, ref=ref, c=22, v=30))
+        # chapter break deu 28:69
+        if c == 28 or c == 29:
+            break_chapter(Opt(early=True, ref=ref, c=28, v=69))
     if b == '1sa':
-        pass
+        # verse split across a chapter break 1sa 20:42
+        if c == 20 or c == 21:
+            split_verse_across_chapters(Opt(early=False, split=False, ref=ref, c=20, v=42))
+        # chapter break 1sa 23:29
+        if c == 23 or c == 24:
+            break_chapter(Opt(early=False, ref=ref, c=23, v=29))
     if b == '2sa':
         # chapter break 2sa 18:33
         if c == 18 or c == 19:
             break_chapter(Opt(early=False, ref=ref, c=18, v=33))
     if b == '1ki':
-        pass
+        # chapter break 1ki 4:21
+        if c == 4 or c == 5:
+            break_chapter(Opt(early=False, ref=ref, c=4, v=21, count=14))
+        # verse split 1ki 22:43
+        if c == 22:
+            split_verse(Opt(early=False, split=False, ref=ref, c=22, v=43))
     if b == '2ki':
         # chapter break 2ki 11:21
         if c == 11 or c == 12:
             break_chapter(Opt(early=False, ref=ref, c=11, v=21))
     if b == '1ch':
-        pass
+        # chapter break 1ch 5:27
+        if c == 5 or c == 6:
+            break_chapter(Opt(early=True, ref=ref, c=5, v=27, count=15))
+        # verse split 1ch 12:4
+        if c == 12:
+            split_verse(Opt(early=False, split=False, ref=ref, c=12, v=4))
     if b == '2ch':
-        pass
+        # chapter break 2ch 1:8
+        if c == 1 or c == 2:
+            break_chapter(Opt(early=True, ref=ref, c=1, v=18))
+        # chapter break 2ch 13:23
+        if c == 13 or c == 14:
+            break_chapter(Opt(early=True, ref=ref, c=13, v=23))
     if b == 'neh':
-        pass
+        # chapter break neh 3:33
+        if c == 3 or c == 4:
+            break_chapter(Opt(early=True, ref=ref, c=3, v=33, count=6))
+        # verse split neh 7:67
+        if c == 7:
+            # NOTE: we don't currently support splitting into ufw e.g. Neh.7.67-Neh.7.68
+            # split_verse(Opt(early=False, split=True, ref=ref, c=7, v=67))
+            pass
+        # chapter break neh 9:38
+        if c == 9 or c == 10:
+            break_chapter(Opt(early=False, ref=ref, c=9, v=38))
     if b == 'job':
-        pass
+        # chapter break job 40:25
+        if c == 40 or c == 41:
+            break_chapter(Opt(early=True, ref=ref, c=40, v=25, count=8))
     if b == 'psa':
         pass
     if b == 'ecc':
