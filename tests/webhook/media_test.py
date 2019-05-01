@@ -32,6 +32,61 @@ projects:
 
         self.assertTrue(context.exception.message.startswith('Invalid replacement target'))
 
+    def test_parse_obs_with_chapters(self):
+            media_yaml = '''projects:
+      -
+        identifier: "obs"
+        version: "4.1"
+        media:
+          -
+           identifier: "mp3"
+           version: "1"
+           contributor: []
+           quality:
+             - "128kbps"
+           chapter_url: "https://cdn.door43.org/ylb/obs/v4.1/{quality}/ylb_obs_{chapter}_{quality}.mp3"
+           url: "https://cdn.door43.org/ylb/obs/v4.1/{quality}/ylb_obs_{quality}.zip"'''
+            media = yaml.load(media_yaml)
+            content_version = '4.1'
+            project_chapters = {
+                'obs': [1]
+            }
+            resource_formats, project_formats = parse_media(media, content_version, project_chapters)
+            expected = {
+                'resource_formats': [],
+                'project_formats': {
+                    'obs': [
+                        {
+                            'build_rules': ['signing.sign_given_url'],
+                            'contributor': [],
+                            "chapters": [
+                                {
+                                    "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_1_128kbps.mp3",
+                                    "modified": "",
+                                    "length": 0,
+                                    "build_rules": [
+                                        "signing.sign_given_url"
+                                    ],
+                                    "signature": "",
+                                    "identifier": 1,
+                                    "size": 0
+                                }
+                            ],
+                            'format': '',
+                            'modified': '',
+                            'signature': '',
+                            'size': 0,
+                            'source_version': '4.1',
+                            'quality': '128kbps',
+                            'url': 'https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_128kbps.zip',
+                            'version': '1'
+                        }
+                    ]
+                }
+            }
+            assert_object_equals(self, expected['resource_formats'], resource_formats)
+            assert_object_equals(self, expected['project_formats'], project_formats)
+
     def test_parse_complete(self):
         media_yaml = '''resource:
     version: "{latest}"
