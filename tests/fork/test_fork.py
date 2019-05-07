@@ -112,13 +112,13 @@ class TestFork(TestCase):
                 "message": "a commit",
                 "url": "Not implemented",
                 "author": {
-                    "name": "Joel Lonbeck",
-                    "email": "joel@neutrinographics.com",
+                    "name": "joel",
+                    "email": "joel@example.com",
                     "username": "joel"
                 },
                 "committer": {
-                    "name": "Joel Lonbeck",
-                    "email": "joel@neutrinographics.com",
+                    "name": "joel",
+                    "email": "joel@example.com",
                     "username": "joel"
                 },
                 "verification": {

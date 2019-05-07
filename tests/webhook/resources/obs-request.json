@@ -21,13 +21,13 @@
         "message": "Merge branch 'master' of git.door43.org:Door43/en_obs\n",
         "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad",
         "author": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "committer": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "timestamp": "2017-04-25T21:46:30Z"
@@ -37,8 +37,8 @@
         "message": "Merge branch 'catalog_updates' of joel/en_obs into master\n",
         "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/d7e382916968f2b6fc8f321996bcf11514d1dac5",
         "author": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "committer": {
@@ -53,13 +53,13 @@
         "message": "Merge branch 'update' into catalog_updates\n",
         "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/af984a6a48c8327dca79abf171a698a9867a01d2",
         "author": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "committer": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "timestamp": "2017-04-25T21:43:36Z"
@@ -69,13 +69,13 @@
         "message": "Merge branch 'master' of git.door43.org:Door43/en_obs\n",
         "url": "https://git.door43.org/Door43-Catalog/en_obs/commit/17f121632319d90965ab5fbcce7568bd9f798e2d",
         "author": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "committer": {
-          "name": "Joel Lonbeck",
-          "email": "joel@neutrinographics.com",
+          "name": "joel",
+          "email": "joel@example.com",
           "username": "joel"
         },
         "timestamp": "2017-04-25T21:31:01Z"
