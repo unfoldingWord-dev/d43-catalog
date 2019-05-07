@@ -365,14 +365,15 @@ class WebhookHandler(Handler):
             for project in manifest['projects']:
                 pid = self.sanitize_identifier(project['identifier'])
                 project_path = os.path.normpath(os.path.join(rc_dir, project['path']))
-                files = os.listdir(project_path)
-                for chapter in files:
-                    if chapter in ['.', '..', 'toc.yaml', 'config.yaml', 'back', 'front']:
-                        continue
-                    chapter = chapter.split('.')[0]
-                    if pid not in chapters:
-                        chapters[pid] = []
-                    chapters[pid].append(chapter)
+                if os.path.isdir(project_path):
+                    files = os.listdir(project_path)
+                    for chapter in files:
+                        if chapter in ['.', '..', 'toc.yaml', 'config.yaml', 'back', 'front']:
+                            continue
+                        chapter = chapter.split('.')[0]
+                        if pid not in chapters:
+                            chapters[pid] = []
+                        chapters[pid].append(chapter)
         else:
             id = '_'.join([manifest['dublin_core']['language']['identifier'],
                            manifest['dublin_core']['identifier'],

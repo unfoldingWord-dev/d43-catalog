@@ -104,6 +104,47 @@ class TestWebhook(TestCase):
         self.assertFalse(os.path.isdir(handler.temp_dir))
         mock_instance.add_error.assert_called_once_with('Bad Manifest: manifest missing dublin_core key "type"')
 
+    def test_webhook_with_missing_obs_data(self, mock_reporter, mock_url_exists):
+        request_file = os.path.join(self.resources_dir, 'obs-missing-request.json')
+
+        with codecs.open(request_file, 'r', encoding='utf-8') as in_file:
+            request_text = in_file.read()
+            # convert Windows line endings to Linux line endings
+            content = request_text.replace('\r\n', '\n')
+
+            # deserialized object
+            request_json = json.loads(content)
+
+        mockLogger = MockLogger()
+        mockDCS = MockAPI(self.resources_dir, 'https://git.door43.org/')
+        self.MockDynamodbHandler.data = None
+        self.MockS3Handler.reset()
+        urls = {
+            'https://git.door43.org/Door43-Catalog/ylb_obs/archive/f8a8d8d757e7ea287cf91b266963f8523bdbd5ad.zip': 'ylb_obs_missing_data.zip'
+        }
+        mock_download = lambda url, dest: mockDCS.download_file(urls[url], dest)
+        handler = WebhookHandler(event=request_json,
+                                 context=None,
+                                 logger=mockLogger,
+                                 s3_handler=self.MockS3Handler,
+                                 dynamodb_handler=self.MockDynamodbHandler,
+                                 download_handler=mock_download)
+        handler.run()
+
+        entry = self.MockDynamodbHandler.data
+        self.assertEqual(1, len(self.MockS3Handler.uploads))
+        self.assertIn('/ylb_obs.zip', self.MockS3Handler.uploads[0]['path'])
+        self.assertIn('temp/ylb_obs/{}/ylb/obs/v4.1/obs.zip'.format(entry['commit_id']), self.MockS3Handler.uploads[0]['key'])
+
+        self.assertEqual('f8a8d8d757', entry['commit_id'])
+        self.assertEqual(False, entry['dirty'])
+        self.assertEqual('ylb', entry['language'])
+        self.assertEqual('2017-04-25T21:46:30+00:00', entry['timestamp'])
+        self.assertEqual(False, entry['signed'])
+        self.assertEqual('ylb_obs', entry['repo_name'])
+        assert_object_equals_file(self, json.loads(entry['package']), os.path.join(self.resources_dir, 'expected_obs_package_missing_data.json'))
+
+
     def test_webhook_with_obs_data(self, mock_reporter, mock_url_exists):
         request_file = os.path.join(self.resources_dir, 'obs-request.json')
 

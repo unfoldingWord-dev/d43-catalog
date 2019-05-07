@@ -1,0 +1,3481 @@
+{
+  "checking": {
+    "checking_entity": [
+      "Translation team"
+    ],
+    "checking_level": "1"
+  },
+  "dublin_core": {
+    "conformsto": "rc0.2",
+    "contributor": [
+      "Door43 World Missions Community"
+    ],
+    "creator": "Door43 World Missions Community",
+    "description": "50 key stories of the Bible, from Creation to Revelation, for evangelism & discipleship, in text, audio, and video, on any mobile phone, in any language, for free. It increases understanding of the historical and redemptive narrative of the entire Bible.",
+    "format": "text/markdown",
+    "identifier": "obs",
+    "issued": "2015-08-26T00:00:00+00:00",
+    "language": {
+      "direction": "ltr",
+      "identifier": "ylb",
+      "title": "Yaleba"
+    },
+    "modified": "2018-10-03T00:00:00+00:00",
+    "publisher": "Door43",
+    "relation": [],
+    "rights": "CC BY-SA 4.0",
+    "source": [
+      {
+        "identifier": "obs",
+        "language": "en",
+        "version": "3.2"
+      }
+    ],
+    "subject": "Open Bible Stories",
+    "title": "Open Bible Stories",
+    "type": "book",
+    "version": "4.1"
+  },
+  "formats": [
+    {
+      "format": "application/zip; type=book content=text/markdown conformsto=rc0.2",
+      "modified": "2017-04-25T21:46:30+00:00",
+      "signature": "",
+      "size": 4256,
+      "url": "https://cdn.door43.org/ylb/obs/v4.1/obs.zip"
+    }
+  ],
+  "projects": [
+    {
+      "categories": null,
+      "formats": [
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 1,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_1_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 2,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_2_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 3,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_3_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 4,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_4_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 5,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_5_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 6,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_6_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 7,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_7_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 8,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_8_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 9,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_9_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 10,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_10_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 11,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_11_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 12,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_12_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 13,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_13_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 14,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_14_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 15,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_15_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 16,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_16_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 17,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_17_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 18,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_18_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 19,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_19_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 20,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_20_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 21,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_21_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 22,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_22_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 23,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_23_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 24,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_24_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 25,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_25_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 26,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_26_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 27,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_27_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 28,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_28_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 29,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_29_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 30,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_30_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 31,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_31_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 32,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_32_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 33,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_33_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 34,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_34_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 35,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_35_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 36,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_36_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 37,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_37_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 38,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_38_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 39,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_39_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 40,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_40_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 41,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_41_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 42,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_42_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 43,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_43_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 44,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_44_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 45,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_45_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 46,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_46_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 47,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_47_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 48,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_48_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 49,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_49_128kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 50,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_50_128kbps.mp3"
+            }
+          ],
+          "contributor": [
+            "Narrator: Yaleba",
+            "Checker: Yaleba",
+            "Recordist: Yaleba"
+          ],
+          "format": "",
+          "modified": "",
+          "quality": "128kbps",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://cdn.door43.org/ylb/obs/v4.1/128kbps/ylb_obs_128kbps.zip",
+          "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 1,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_1_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 2,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_2_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 3,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_3_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 4,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_4_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 5,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_5_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 6,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_6_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 7,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_7_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 8,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_8_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 9,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_9_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 10,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_10_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 11,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_11_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 12,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_12_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 13,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_13_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 14,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_14_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 15,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_15_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 16,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_16_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 17,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_17_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 18,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_18_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 19,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_19_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 20,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_20_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 21,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_21_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 22,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_22_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 23,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_23_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 24,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_24_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 25,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_25_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 26,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_26_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 27,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_27_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 28,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_28_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 29,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_29_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 30,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_30_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 31,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_31_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 32,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_32_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 33,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_33_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 34,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_34_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 35,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_35_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 36,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_36_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 37,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_37_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 38,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_38_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 39,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_39_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 40,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_40_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 41,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_41_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 42,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_42_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 43,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_43_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 44,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_44_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 45,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_45_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 46,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_46_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 47,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_47_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 48,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_48_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 49,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_49_64kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 50,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_50_64kbps.mp3"
+            }
+          ],
+          "contributor": [
+            "Narrator: Yaleba",
+            "Checker: Yaleba",
+            "Recordist: Yaleba"
+          ],
+          "format": "",
+          "modified": "",
+          "quality": "64kbps",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://cdn.door43.org/ylb/obs/v4.1/64kbps/ylb_obs_64kbps.zip",
+          "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 1,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_1_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 2,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_2_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 3,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_3_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 4,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_4_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 5,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_5_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 6,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_6_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 7,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_7_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 8,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_8_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 9,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_9_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 10,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_10_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 11,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_11_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 12,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_12_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 13,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_13_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 14,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_14_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 15,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_15_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 16,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_16_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 17,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_17_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 18,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_18_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 19,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_19_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 20,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_20_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 21,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_21_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 22,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_22_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 23,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_23_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 24,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_24_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 25,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_25_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 26,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_26_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 27,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_27_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 28,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_28_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 29,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_29_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 30,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_30_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 31,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_31_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 32,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_32_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 33,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_33_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 34,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_34_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 35,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_35_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 36,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_36_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 37,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_37_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 38,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_38_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 39,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_39_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 40,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_40_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 41,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_41_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 42,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_42_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 43,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_43_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 44,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_44_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 45,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_45_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 46,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_46_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 47,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_47_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 48,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_48_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 49,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_49_32kbps.mp3"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 50,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_50_32kbps.mp3"
+            }
+          ],
+          "contributor": [
+            "Narrator: Yaleba",
+            "Checker: Yaleba",
+            "Recordist: Yaleba"
+          ],
+          "format": "",
+          "modified": "",
+          "quality": "32kbps",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://cdn.door43.org/ylb/obs/v4.1/32kbps/ylb_obs_32kbps.zip",
+          "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 1,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_1_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 2,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_2_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 3,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_3_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 4,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_4_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 5,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_5_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 6,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_6_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 7,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_7_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 8,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_8_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 9,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_9_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 10,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_10_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 11,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_11_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 12,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_12_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 13,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_13_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 14,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_14_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 15,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_15_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 16,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_16_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 17,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_17_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 18,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_18_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 19,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_19_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 20,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_20_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 21,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_21_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 22,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_22_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 23,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_23_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 24,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_24_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 25,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_25_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 26,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_26_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 27,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_27_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 28,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_28_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 29,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_29_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 30,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_30_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 31,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_31_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 32,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_32_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 33,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_33_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 34,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_34_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 35,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_35_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 36,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_36_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 37,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_37_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 38,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_38_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 39,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_39_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 40,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_40_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 41,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_41_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 42,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_42_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 43,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_43_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 44,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_44_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 45,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_45_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 46,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_46_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 47,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_47_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 48,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_48_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 49,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_49_720p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 50,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_50_720p.mp4"
+            }
+          ],
+          "contributor": [],
+          "format": "",
+          "modified": "",
+          "quality": "720p",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://cdn.door43.org/ylb/obs/v4.1/720p/ylb_obs_720p.zip",
+          "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 1,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_1_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 2,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_2_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 3,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_3_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 4,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_4_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 5,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_5_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 6,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_6_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 7,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_7_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 8,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_8_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 9,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_9_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 10,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_10_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 11,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_11_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 12,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_12_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 13,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_13_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 14,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_14_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 15,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_15_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 16,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_16_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 17,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_17_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 18,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_18_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 19,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_19_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 20,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_20_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 21,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_21_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 22,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_22_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 23,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_23_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 24,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_24_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 25,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_25_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 26,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_26_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 27,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_27_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 28,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_28_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 29,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_29_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 30,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_30_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 31,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_31_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 32,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_32_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 33,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_33_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 34,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_34_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 35,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_35_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 36,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_36_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 37,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_37_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 38,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_38_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 39,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_39_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 40,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_40_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 41,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_41_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 42,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_42_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 43,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_43_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 44,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_44_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 45,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_45_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 46,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_46_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 47,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_47_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 48,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_48_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 49,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_49_360p.mp4"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 50,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_50_360p.mp4"
+            }
+          ],
+          "contributor": [],
+          "format": "",
+          "modified": "",
+          "quality": "360p",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://cdn.door43.org/ylb/obs/v4.1/360p/ylb_obs_360p.zip",
+          "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 1,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_1_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 2,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_2_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 3,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_3_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 4,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_4_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 5,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_5_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 6,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_6_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 7,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_7_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 8,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_8_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 9,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_9_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 10,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_10_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 11,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_11_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 12,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_12_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 13,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_13_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 14,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_14_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 15,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_15_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 16,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_16_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 17,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_17_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 18,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_18_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 19,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_19_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 20,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_20_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 21,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_21_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 22,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_22_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 23,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_23_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 24,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_24_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 25,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_25_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 26,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_26_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 27,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_27_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 28,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_28_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 29,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_29_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 30,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_30_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 31,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_31_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 32,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_32_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 33,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_33_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 34,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_34_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 35,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_35_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 36,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_36_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 37,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_37_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 38,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_38_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 39,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_39_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 40,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_40_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 41,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_41_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 42,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_42_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 43,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_43_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 44,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_44_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 45,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_45_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 46,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_46_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 47,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_47_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 48,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_48_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 49,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_49_3gp.3gp"
+            },
+            {
+              "build_rules": [
+                "signing.sign_given_url"
+              ],
+              "identifier": 50,
+              "length": 0,
+              "modified": "",
+              "signature": "",
+              "size": 0,
+              "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_50_3gp.3gp"
+            }
+          ],
+          "contributor": [],
+          "format": "",
+          "modified": "",
+          "quality": "3gp",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://cdn.door43.org/ylb/obs/v4.1/3gp/ylb_obs_3gp.zip",
+          "version": "1"
+        },
+        {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "contributor": [],
+          "format": "",
+          "modified": "",
+          "signature": "",
+          "size": 0,
+          "source_version": "4.1",
+          "url": "https://www.youtube.com/playlist?list=PLJB4l3NFDo4eMnRYOTQLQH3dS_H2WlFD5",
+          "version": "1"
+        }
+      ],
+      "identifier": "obs",
+      "path": "./content",
+      "sort": 0,
+      "title": "Open Bible Stories",
+      "versification": null
+    }
+  ]
+}

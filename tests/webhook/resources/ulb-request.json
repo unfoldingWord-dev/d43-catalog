@@ -67,16 +67,16 @@
     "pusher": {
       "id": 644,
       "username": "joel",
-      "full_name": "Joel Lonbeck",
-      "email": "joel@neutrinographics.com",
-      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+      "full_name": "Joel",
+      "email": "joel.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/"
     },
     "sender": {
       "id": 644,
       "username": "joel",
-      "full_name": "Joel Lonbeck",
-      "email": "joel@neutrinographics.com",
-      "avatar_url": "https://secure.gravatar.com/avatar/586d1587498085fefb45b837e9330faf"
+      "full_name": "Joel",
+      "email": "joel.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/"
     }
   }
 }
