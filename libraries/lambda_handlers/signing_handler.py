@@ -222,7 +222,7 @@ class SigningHandler(InstanceHandler):
             sig_url = '{}.sig'.format(format['url'])
             if not self._safe_url_exists(sig_url):
                 # wait for signature to be manually uploaded
-                self.report_error('File is too large to sign {}'.format(format['url']))
+                self.logger.warning('File is too large to sign {}'.format(format['url']))
                 return (False, False)
 
             # finish with manually uploaded signature
@@ -237,7 +237,7 @@ class SigningHandler(InstanceHandler):
             if 'sign_given_url' in build_rules or 'html_format' in build_rules:
                 # report error if response is 400+
                 if headers.status >= 400:
-                    self.report_error('Resource not available at {}'.format(format['url']))
+                    self.logger.warning('Resource not available at {}'.format(format['url']))
                     return (False, False)
 
                 self.download_file(format['url'], file_to_sign)
