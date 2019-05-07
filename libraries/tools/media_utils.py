@@ -20,12 +20,12 @@ def parse_media(media, content_version, project_chapters):
     if 'projects' in media:
         for project in media['projects']:
             project_id = project['identifier']
+            chapters = []
             if project_id == 'obs':
                 # TRICKY: obs projects always have 50 chapters
                 # This allows empty projects to still publish media.
-                chapters = range(1, 51)  # chapters 1..50
-            else:
-                chapters = []
+                for x in range(1, 51):  # chapters 1..50
+                    chapters.append(str(x).zfill(2))
             if project_id in project_chapters:
                 chapters = project_chapters[project_id]
             project_formats[project_id] = _parse_project(project, content_version, chapters)
