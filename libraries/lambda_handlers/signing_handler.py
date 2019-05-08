@@ -222,8 +222,27 @@ class SigningHandler(InstanceHandler):
             sig_url = '{}.sig'.format(format['url'])
             if not self._safe_url_exists(sig_url):
                 self.logger.warning('File is too large to sign {}'.format(format['url']))
-                format.pop('signature', None)
-                return (False, False)
+
+                # TRICKY: spoof the signature
+                sig_file = '{}.sig'.format(file_to_sign)
+                write_file(sig_file, [{'si': 'uW', 'sig': ''}])
+                format['signature'] = sig_url
+                self.cdn_handler.upload_file(sig_file, sig_key)
+
+                if not format['modified']:
+                    format['modified'] = str_to_timestamp(datetime.datetime.now().isoformat())
+
+                # add file format if missing
+                if not 'format' in format or not format['format']:
+                    try:
+                        _, ext = os.path.splitext(file_to_sign)
+                        mime = ext_to_mime(ext)
+                        format['format'] = mime
+                    except Exception as e:
+                        if self.logger:
+                            self.logger.error(e.message)
+
+                return (True, True)
 
             # finish with manually uploaded signature
             format['size'] = size
