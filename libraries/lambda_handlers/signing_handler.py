@@ -221,8 +221,8 @@ class SigningHandler(InstanceHandler):
         if size > SigningHandler.max_file_size:
             sig_url = '{}.sig'.format(format['url'])
             if not self._safe_url_exists(sig_url):
-                # wait for signature to be manually uploaded
                 self.logger.warning('File is too large to sign {}'.format(format['url']))
+                format.pop('signature', None)
                 return (False, False)
 
             # finish with manually uploaded signature
