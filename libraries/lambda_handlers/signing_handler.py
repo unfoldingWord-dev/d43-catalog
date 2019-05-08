@@ -147,10 +147,10 @@ class SigningHandler(InstanceHandler):
                         format['chapters'] = sanitized_chapters
                         # update format
                         if sanitized_chapters and not 'content=' in format['format'] and format['url'].endswith('zip'):
-                            if format['chapters'][0]['url'].endswith('.mp3'):
-                                format['format'] = 'application/zip; content=audio/mp3'
-                            if format['chapters'][0]['url'].endswith('.mp4'):
-                                format['format'] = 'application/zip; content=video/mp4'
+                            # cherry pick the first extension
+                            _, ext = os.path.splitext(format['chapters'][0]['url'])
+                            mime = ext_to_mime(ext)
+                            format['format'] = 'application/zip; content={}'.format(mime)
 
         if was_signed or fully_signed:
             self.logger.debug('recording signatures')
