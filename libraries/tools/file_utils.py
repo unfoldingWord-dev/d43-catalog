@@ -36,7 +36,11 @@ def ext_to_mime(ext):
         'mp4': 'video/mp4',
         'mp3': 'audio/mp3',
         'zip': 'application/zip',
-        'pdf': 'application/pdf'
+        'pdf': 'application/pdf',
+        '3gp': 'video/3gpp',
+        'mov': 'video/quicktime',
+        'avi': 'video/x-msvideo',
+        'wmv': 'video/video/x-ms-wmv'
     }
     if ext in types:
         return types[ext]
