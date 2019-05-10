@@ -67,21 +67,21 @@ def _obs_chapters_to_json(dir):
     """
     Converts obs chapter markdown into json
     :param dir: the obs book content directory
-    :param date_modified:
     :return:
     """
     chapters = []
-    for chapter_file in os.listdir(dir):
-        if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
-            continue
-        chapter_slug = chapter_file.split('.md')[0]
-        path = os.path.join(dir, chapter_file)
-        if os.path.isfile(path):
-            chapter_file = os.path.join(dir, path)
-            chapter_str = read_file(chapter_file).strip()
+    if os.path.isdir(dir):
+        for chapter_file in os.listdir(dir):
+            if chapter_file == 'config.yaml' or chapter_file == 'toc.yaml':
+                continue
+            chapter_slug = chapter_file.split('.md')[0]
+            path = os.path.join(dir, chapter_file)
+            if os.path.isfile(path):
+                chapter_file = os.path.join(dir, path)
+                chapter_str = read_file(chapter_file).strip()
 
-            chapter_json = _convert_obs_chapter_to_json(chapter_str, chapter_slug, chapter_file)
-            chapters.append(chapter_json)
+                chapter_json = _convert_obs_chapter_to_json(chapter_str, chapter_slug, chapter_file)
+                chapters.append(chapter_json)
 
     chapters.sort(key=__extract_chapter_number, reverse=False)
     return chapters
