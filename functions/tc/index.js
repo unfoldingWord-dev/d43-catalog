@@ -15,9 +15,10 @@ exports.handle = async function(e, ctx, cb) {
     const {pivoted, index, subject} = parseHelpers.parseCatalogOnResourceKey(catalog, 'subject');
     await apiHelpers.uploadToS3('v3/subjects/index.json', index)
     await apiHelpers.uploadToS3('v3/subjects/pivoted.json', pivoted)
-    Object.keys(subject).forEach(async (key) => {
+    const subjects = Object.keys(subject);
+    for (var key in subjects) {
       await apiHelpers.uploadToS3(`v3/subjects/${key}.json`, subject[key])
-    })
+    }
   } catch(e) {
     console.log(e);
   }
