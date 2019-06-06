@@ -576,6 +576,7 @@ def usx_to_json(usx, path='', reporter=None):
     """
     Iterates through the usx and splits it into frames based on the
     s5 markers.
+    This is deprecated.
     :param usx:
     :param path: The path from which the usx is converted. This gives context to error messages
     :param reporter: A lambda handler instance for reporting errors

@@ -102,6 +102,7 @@ class TestTsV2Utils(TestCase):
             u'<para style="cl">Psalm</para>\n',
             u'<para style="ms">Book One</para>\n',
             u'<chapter number="1" style="c" />\n',
+            u'<para style=\"cl\">Capítulo 1</para>\n\n',
             u'<para style="q1">\n',
             u'<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n',
             u'<para style="q1">or stand in the pathway with sinners,</para>\n',
@@ -146,7 +147,7 @@ class TestTsV2Utils(TestCase):
                 ],
                 'ref': '',
                 'number': '01',
-                'title': ''
+                'title': 'Capítulo 1'
             }
         ])
 
