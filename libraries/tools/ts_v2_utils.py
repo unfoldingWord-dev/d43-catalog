@@ -466,6 +466,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
     :param chunks:
     :param usx:
     """
+    chapter_title_re = re.compile(r'<para\s+style="cl">([^<]+)</para>', re.UNICODE)
     verse_re = re.compile(r'<verse number="([0-9]*)', re.UNICODE)
     chunk_marker = '<note caller="u" style="s5"></note>'
     chapters = []
@@ -474,6 +475,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
     chunk_buffer = []
     chapter_index = 0
     effective_chapter = 0
+    effective_chapter_title = ''
     effective_verse = 0
     first_effective_verse = effective_verse
     previous_effective_chapter = effective_chapter
@@ -490,7 +492,15 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
         if line == '\n':
             continue
 
+        # detect the translated chapter title
+        chapter_title_match = chapter_title_re.search(line)
+        if chapter_title_match:
+            effective_chapter_title = chapter_title_match.group(1)
+            line = re.sub(chapter_title_re, '', line)
+
+        # detect the start of a new chapter
         if 'chapter number' in line:
+            effective_chapter_title = ''
             chapter_index += 1
             verse_index = 1
             effective_chapter = chapter_index
@@ -501,6 +511,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
                 effective_verse = ref.v
             line = re.sub(r'<chapter number="\d+" style="c" />\n*', '', line)
 
+        # detect the start of a new verse
         if 'verse number' in line:
             verse_index = int(verse_re.search(line).group(1))
             effective_verse = verse_index
@@ -531,7 +542,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
                     'id': chunk_id,
                     'img': '',
                     'format': 'usx',
-                    'text': chunk_text,
+                    'text': chunk_text.strip(),
                     'lastvs': str(previous_effective_verse)
                 })
             first_effective_verse = effective_verse
@@ -539,6 +550,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
 
         # close chapter
         if chapter_changed:
+            chapter_buffer['title'] = effective_chapter_title
             chapters.append(chapter_buffer)
 
         # open new chapter
@@ -552,7 +564,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
 
         # add the line if it's not empty
         if line:
-            chunk_buffer.append(line)
+            chunk_buffer.append(line.strip())
 
     # close last chunk
     if chunk_buffer:
@@ -562,11 +574,12 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
             'id': chunk_id,
             'img': '',
             'format': 'usx',
-            'text': chunk_text,
+            'text': chunk_text.strip(),
             'lastvs': str(effective_verse)  # TRICKY: because `previous_effective_verse` is not set for the last chunk
         })
 
     # close chapter
+    chapter_buffer['title'] = effective_chapter_title
     chapters.append(chapter_buffer)
 
     return chapters

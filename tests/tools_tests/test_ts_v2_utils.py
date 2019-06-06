@@ -2,8 +2,6 @@
 from __future__ import unicode_literals
 import os
 import shutil
-import json
-import codecs
 import tempfile
 from unittest import TestCase
 from mock import patch
@@ -72,14 +70,14 @@ class TestTsV2Utils(TestCase):
             {
                 'frames': [
                     {
-                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
+                        'text': u'<para style="q1">\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n<para style="q1">or stand in the pathway with sinners,</para>\n<para style="q1">or sit in the assembly of mockers.</para>\n<para style="q1">\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n<para style="q1">and on his law he meditates day and night.\n<para style="q1">',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
                         'format': 'usx'
                      },
                     {
-                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n\n<para style="q1">that produces its fruit in its season,</para>\n\n<para style="q1">whose leaves do not wither;</para>\n\n<para style="q1">whatever he does will prosper.\n\n<para style="q1">\n\n<verse number="4" style="v" />The wicked are not so,</para>\n\n<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
+                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n<para style="q1">that produces its fruit in its season,</para>\n<para style="q1">whose leaves do not wither;</para>\n<para style="q1">whatever he does will prosper.\n<para style="q1">\n<verse number="4" style="v" />The wicked are not so,</para>\n<para style="q1">but are instead like the chaff that the wind drives away.</para>',
                         'lastvs': u'4',
                         'id': '01-03',
                         'img': '',
@@ -124,21 +122,21 @@ class TestTsV2Utils(TestCase):
             {
                 'frames': [
                     {
-                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n<para style="q1">\n',
+                        'text': u'<para style="q1">\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n<para style="q1">or stand in the pathway with sinners,</para>\n<para style="q1">or sit in the assembly of mockers.</para>\n<para style="q1">\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n<para style="q1">and on his law he meditates day and night.\n<para style="q1">',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
                         'format': 'usx'
                      },
                     {
-                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n\n<para style="q1">that produces its fruit in its season,</para>\n\n<para style="q1">whose leaves do not wither;</para>\n\n<para style="q1">whatever he does will prosper.\n\n<para style="q1">\n',
+                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n<para style="q1">that produces its fruit in its season,</para>\n<para style="q1">whose leaves do not wither;</para>\n<para style="q1">whatever he does will prosper.\n<para style="q1">',
                         'lastvs': u'3',
                         'id': '01-03',
                         'img': '',
                         'format': 'usx'
                     },
                     {
-                        'text': u'<verse number="4" style="v" />The wicked are not so,</para>\n\n<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
+                        'text': u'<verse number="4" style="v" />The wicked are not so,</para>\n<para style="q1">but are instead like the chaff that the wind drives away.</para>',
                         'lastvs': u'4',
                         'id': '01-04',
                         'img': '',
@@ -147,7 +145,7 @@ class TestTsV2Utils(TestCase):
                 ],
                 'ref': '',
                 'number': '01',
-                'title': 'Capítulo 1'
+                'title': u'Capítulo 1'
             }
         ])
 
@@ -186,21 +184,21 @@ class TestTsV2Utils(TestCase):
             {
                 'frames': [
                     {
-                        'text': u'<para style="q1">\n\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n\n<para style="q1">or stand in the pathway with sinners,</para>\n\n<para style="q1">or sit in the assembly of mockers.</para>\n\n<para style="q1">\n\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n\n<para style="q1">and on his law he meditates day and night.\n\n</para>\n\n<para style="q1">\n',
+                        'text': u'<para style="q1">\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n<para style="q1">or stand in the pathway with sinners,</para>\n<para style="q1">or sit in the assembly of mockers.</para>\n<para style="q1">\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n<para style="q1">and on his law he meditates day and night.\n</para>\n<para style="q1">',
                         'lastvs': u'2',
                         'id': '01-01',
                         'img': '',
                         'format': 'usx'
                      },
                     {
-                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n\n<para style="q1">that produces its fruit in its season,</para>\n\n<para style="q1">whose leaves do not wither;</para>\n\n<para style="q1">whatever he does will prosper.</para>\n\n<para style="q1">\n',
+                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n<para style="q1">that produces its fruit in its season,</para>\n<para style="q1">whose leaves do not wither;</para>\n<para style="q1">whatever he does will prosper.</para>\n<para style="q1">',
                         'lastvs': u'3',
                         'id': '01-03',
                         'img': '',
                         'format': 'usx'
                     },
                     {
-                        'text': u'<verse number="4" style="v" />The wicked are not so,</para>\n\n<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
+                        'text': u'<verse number="4" style="v" />The wicked are not so,</para>\n<para style="q1">but are instead like the chaff that the wind drives away.</para>',
                         'lastvs': u'4',
                         'id': '01-04',
                         'img': '',
