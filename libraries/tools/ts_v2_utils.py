@@ -500,7 +500,6 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
 
         # detect the start of a new chapter
         if 'chapter number' in line:
-            effective_chapter_title = ''
             chapter_index += 1
             verse_index = 1
             effective_chapter = chapter_index
@@ -552,6 +551,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
         if chapter_changed:
             chapter_buffer['title'] = effective_chapter_title
             chapters.append(chapter_buffer)
+            effective_chapter_title = ''
 
         # open new chapter
         if effective_chapter != previous_effective_chapter:
