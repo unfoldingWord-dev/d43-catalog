@@ -149,6 +149,75 @@ class TestTsV2Utils(TestCase):
             }
         ])
 
+    def test_usx_to_json_chunks_with_multiple_chapters(self, mock_reporter):
+        chunks = {
+            '01': ['01', '03'],
+            '02': ['01']
+        }
+
+        usx = [
+            u'<para style="mt">PSALMS</para>\n',
+            u'<para style="cl">Psalm</para>\n',
+            u'<para style="ms">Book One</para>\n',
+            u'<chapter number="1" style="c" />\n',
+            u'<para style=\"cl\">Capítulo 1</para>\n\n',
+            u'<para style="q1">\n',
+            u'<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n',
+            u'<para style="q1">or stand in the pathway with sinners,</para>\n',
+            u'<para style="q1">or sit in the assembly of mockers.</para>\n',
+            u'<para style="q1">\n',
+            u'<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n',
+            u'<para style="q1">and on his law he meditates day and night.\n',
+            u'<para style="q1">\n',
+            u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n',
+            u'<para style="q1">that produces its fruit in its season,</para>\n',
+            u'<para style="q1">whose leaves do not wither;</para>\n',
+            u'<para style="q1">whatever he does will prosper.\n',
+            u'<para style="q1">\n',
+            u'<chapter number="2" style="c" />\n',
+            u'<para style=\"cl\">Capítulo 2</para>\n\n',
+            u'<verse number="1" style="v" />The wicked are not so,</para>\n',
+            u'<para style="q1">but are instead like the chaff that the wind drives away.</para>\n',
+        ]
+        json = usx_to_chunked_json(usx, chunks, 'en', 'psa')
+        self.assertEquals(json, [
+            {
+                'frames': [
+                    {
+                        'text': u'<para style="q1">\n<verse number="1" style="v" />Blessed is the man who does not walk in the advice of the wicked,</para>\n<para style="q1">or stand in the pathway with sinners,</para>\n<para style="q1">or sit in the assembly of mockers.</para>\n<para style="q1">\n<verse number="2" style="v" />But his delight is in the law of Yahweh,</para>\n<para style="q1">and on his law he meditates day and night.\n<para style="q1">',
+                        'lastvs': u'2',
+                        'id': '01-01',
+                        'img': '',
+                        'format': 'usx'
+                     },
+                    {
+                        'text': u'<verse number="3" style="v" />He will be like a tree planted by the streams of water</para>\n<para style="q1">that produces its fruit in its season,</para>\n<para style="q1">whose leaves do not wither;</para>\n<para style="q1">whatever he does will prosper.\n<para style="q1">',
+                        'lastvs': u'3',
+                        'id': '01-03',
+                        'img': '',
+                        'format': 'usx'
+                    }
+                ],
+                'ref': '',
+                'number': '01',
+                'title': u'Capítulo 1'
+            },
+            {
+                'frames': [
+                    {
+                        'text': u'<verse number="1" style="v" />The wicked are not so,</para>\n<para style="q1">but are instead like the chaff that the wind drives away.</para>',
+                        'lastvs': u'1',
+                        'id': '02-01',
+                        'img': '',
+                        'format': 'usx'
+                    }
+                ],
+                'ref': '',
+                'number': '02',
+                'title': u'Capítulo 2'
+            }
+        ])
+
     def test_usx_to_json_chunks_and_s5(self, mock_reporter):
         #  TODO: this should ignore the s5 markers
         chunks = {

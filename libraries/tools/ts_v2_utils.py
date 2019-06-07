@@ -494,7 +494,7 @@ def usx_to_chunked_json(usx, chunks, lid, pid):
 
         # detect the translated chapter title
         chapter_title_match = chapter_title_re.search(line)
-        if chapter_title_match:
+        if chapter_title_match and effective_chapter > 0:  # TRICKY: don't grab the book title before the first chapter
             effective_chapter_title = chapter_title_match.group(1)
             line = re.sub(chapter_title_re, '', line)
 
