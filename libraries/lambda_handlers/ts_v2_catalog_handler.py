@@ -113,6 +113,9 @@ class TsV2CatalogHandler(InstanceHandler):
         # walk v3 catalog
         for lang in self.latest_catalog['languages']:
             lid = TsV2CatalogHandler.sanitize_identifier(lang['identifier'], lower=False)
+            # DEBUG
+            # if lid != 'hi':
+            #     continue
             self.logger.info('Processing {}'.format(lid))
             for res in lang['resources']:
                 rid = TsV2CatalogHandler.sanitize_identifier(res['identifier'])
@@ -160,6 +163,9 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 for project in res['projects']:
                     pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
+                    # DEBUG
+                    # if pid != 'tit' and rid != 'tw':
+                    #     continue
                     self.logger.info('Processing {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
@@ -271,7 +277,6 @@ class TsV2CatalogHandler(InstanceHandler):
 
                     # disable tW
                     if '_'.join([lid, '*', '*', 'tw']) not in cat_keys:
-                        res['tw_cat'] = ''
                         res['terms'] = ''
 
                     res_cat.append(res)
@@ -586,6 +591,9 @@ class TsV2CatalogHandler(InstanceHandler):
             usx_dir = os.path.join(rc_dir, 'usx')
             for project in manifest['projects']:
                 pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
+                # DEBUG
+                # if pid != 'tit':
+                #     continue
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
@@ -793,7 +801,7 @@ class TsV2CatalogHandler(InstanceHandler):
         if pid != 'obs':
             if 'formats' in project:
                 for format in project['formats']:
-                    if 'text/usfm' == format['format']:
+                    if 'text/usfm' == format['format'] or 'text/usfm3' == format['format'] or 'text/usfm2' == format['format']:
                         res.update({
                             'usfm': '{}?date_modified={}'.format(format['url'], r_modified)
                         })
@@ -829,7 +837,7 @@ class TsV2CatalogHandler(InstanceHandler):
                                                                                 TsV2CatalogHandler.cdn_root_path, pid,
                                                                                 lid, l_modified)
         }
-        if 'ulb' == rid or 'udb' == rid:
+        if project['sort']:
             cat_lang['project']['sort'] = '{}'.format(project['sort'])
         lang.update(cat_lang)
 
