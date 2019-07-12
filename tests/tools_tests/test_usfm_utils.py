@@ -208,3 +208,10 @@ class TestUsfmUtils(TestCase):
 
         usfm2 = usfm3_to_usfm2(usfm3)
         self.assertEqual(expected_usfm2, usfm2)
+
+    def test_complex_usfm3_to_usfm2(self):
+        usfm3 = read_file(os.path.join(self.resources_dir, 'usfm/57-TIT.usfm'))
+        expected_usfm2 = read_file(os.path.join(self.resources_dir, 'complex_tit.usfm2'))
+
+        usfm2 = usfm3_to_usfm2(usfm3)
+        self.assertEqual(expected_usfm2, usfm2)

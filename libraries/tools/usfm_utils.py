@@ -349,7 +349,7 @@ def strip_milestones(usfm):
     :return:
     """
     # remove opening marker
-    usfm = re.sub(r'\n?\\zaln-s.*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
+    usfm = re.sub(r'\n?\\zaln-s((?!\\\*).)*(\\\*)?\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
     # remove closing marker
     usfm = re.sub(r'\n?\\zaln-e\\\*\n?', r'', usfm, flags=re.UNICODE | re.MULTILINE)
 
