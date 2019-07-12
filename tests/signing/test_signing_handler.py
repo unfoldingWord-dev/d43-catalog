@@ -288,6 +288,7 @@ class TestSigningHandler(TestCase):
         mock_s3 = MockS3Handler()
         mock_db = MockDynamodbHandler()
         mock_logger = MockLogger()
+        mock_logger.warning = MagicMock()
         mock_api = MockAPI(os.path.join(self.resources_dir, 'cdn'), 'https://cdn.door43.org/')
         event = self.create_event()
         item = {
@@ -325,10 +326,10 @@ class TestSigningHandler(TestCase):
                                 download_handler=mock_api.download_file,
                                 url_headers_handler=lambda url: mockHeaders)
         (already_signed, newly_signed) = signer.process_format(item, None, None, format)
-        mock_instance.add_error.assert_called_once_with('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip')
-        self.assertFalse(already_signed)
-        self.assertEqual('', format['signature'])
-        self.assertFalse(newly_signed)
+        mock_logger.warning.assert_called_once_with('File is too large to sign https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip')
+        self.assertTrue(already_signed)
+        self.assertEqual('https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig', format['signature'])
+        self.assertTrue(newly_signed)
 
     def test_signing_small_file(self, mock_reporter):
         """

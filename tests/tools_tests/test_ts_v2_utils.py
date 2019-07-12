@@ -26,6 +26,10 @@ class TestTsV2Utils(TestCase):
         build_usx(usfm_dir, usx_dir)
         assert not mock_reporter.called
 
+    # def test_build_usx_2(self):
+    #     """ The usfm from tC keeps changing so this is testing a variation """
+    #     pass
+
     def test_usx_to_json(self, mock_reporter):
         usx_file = os.path.join(self.resources_dir, 'PSA.usx')
         json = build_json_source_from_usx(usx_file, 'en', 'psa', '2018', mock_reporter)
