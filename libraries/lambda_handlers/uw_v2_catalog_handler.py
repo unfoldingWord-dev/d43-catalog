@@ -317,7 +317,6 @@ class UwV2CatalogHandler(InstanceHandler):
                             'desc': '',
                             'media': media,
                             'mod': mod,
-                            'slug': proj['identifier'],
                             'src': source['url'],
                             'src_sig': source['signature'],
                             'title': proj['title'],
