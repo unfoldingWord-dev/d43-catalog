@@ -257,6 +257,7 @@ def download_rc(lid, rid, url, temp_dir=None, downloader=None):
         return None
 
     unzip(zip_file, zip_dir)
+    remove(zip_file, True)
     rc_dir = os.path.join(zip_dir, os.listdir(zip_dir)[0])
 
     try:
