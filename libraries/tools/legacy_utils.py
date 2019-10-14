@@ -2,7 +2,7 @@ import os
 import re
 import yaml
 import json
-from file_utils import read_file, download_rc
+from file_utils import read_file, download_rc, remove
 
 def index_obs(lid, rid, format, temp_dir=None, downloader=None):
     """
@@ -39,6 +39,8 @@ def index_obs(lid, rid, format, temp_dir=None, downloader=None):
                     app_words = json.loads(read_file(app_words_file))
                 except Exception as e:
                     print('ERROR: failed to load app words: {}'.format(e))
+
+            remove(rc_dir, True)
 
             # TRICKY: OBS has a single project so we don't need to continue looping
             return {
