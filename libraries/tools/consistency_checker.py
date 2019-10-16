@@ -29,13 +29,23 @@ class ConsistencyChecker(object):
         self.errors = []
         self.logger = logging.getLogger()
 
-    def _url_exists(self, url):
+    def _url_is_local(self, url):
         """
-        This abstracts the external method `url_exists` into an instance method so that it can be mocked
+        Checks if the url is from a local host
         :param url:
         :return:
         """
-        return url_exists(url)
+        url_info = urlparse.urlparse(url)
+        return url_info.hostname in [self.cdn_bucket, self.api_bucket]
+
+    def _url_exists(self, url):
+        """
+        This abstracts the external method `url_exists` into an instance method so that it can be mocked.
+        It also ensures that url is not empty.
+        :param url:
+        :return:
+        """
+        return url and url_exists(url)
 
     def log_error(self, message):
         message = 'Consistency Check Failed: {}'.format(message)
@@ -97,6 +107,41 @@ class ConsistencyChecker(object):
 
         return self.errors
 
+    def _check_attributes(self, obj, keys, obj_name, repo_name):
+        """
+        Validates that the object contains the given keys.
+        This will additionally validate the existence of url and signature
+        :param obj:
+        :param keys:
+        :param obj_name:
+        :param repo_name:
+        :return:
+        """
+        if 'url' not in keys:
+            keys.append('url')
+        if 'signature' not in keys:
+            keys.append('signature')
+
+        # Check if the url is on our servers
+        has_local_url = False
+        if 'url' in obj and obj['url']:
+            has_local_url = self._url_is_local(obj['url'])
+
+        # validate keys exist
+        for key in keys:
+            if key not in obj:
+                if key == 'signature' and not has_local_url:
+                    # TRICKY: do not require signatures for remote urls
+                    continue
+                self.log_error("{0} container for '{1}' doesn't have '{2}'".format(obj_name, repo_name, key))
+
+        # validate local urls exist
+        if has_local_url and not self._url_exists(obj['url']):
+            self.log_error("{0}: url '{1}' does not exist".format(repo_name, obj['url']))
+
+        if has_local_url and not self._url_exists(obj['signature']):
+            self.log_error("{0}: url '{1}' has not been signed yet".format(repo_name, obj['url']))
+
     def check_format(self, format, row):
         """
         Performs consistency checks on a format
@@ -106,21 +151,7 @@ class ConsistencyChecker(object):
 
         repo_name = row['repo_name']
 
-        for key in ["format", "modified", "size", "url", "signature"]:
-            if key not in format:
-                self.log_error("Format container for '{0}' doesn't have '{1}'".format(repo_name, key))
-        if 'url' not in format or 'signature' not in format:
-            return self.errors
-        if not format['url'] or not self._url_exists(format['url']):
-            self.log_error("{0}: url '{1}' does not exist".format(repo_name, format['url']))
-        valid_hosts = [self.cdn_bucket, self.api_bucket]
-        url_info = urlparse.urlparse(format['url'])
-        # TRICKY: only validate signatures on our servers
-        if url_info.hostname in valid_hosts:
-            if not format['signature']:
-                self.log_error("{0}: url '{1}' has not been signed yet".format(repo_name, format['url']))
-            elif not self._url_exists(format['signature']):
-                self.log_error("{0}: signature '{1}' does not exist".format(repo_name, format['signature']))
+        self._check_attributes(format, ["format", "modified", "size", "url", "signature"], 'Format', repo_name)
 
         if 'chapters' in format and len(format['chapters']):
             # check format chapters
@@ -131,17 +162,8 @@ class ConsistencyChecker(object):
 
     def _check_format_chapter(self, chapter, row):
         repo_name = row['repo_name']
-        for key in ['size', 'length', 'modified', 'identifier', 'url', 'signature']:
-            if key not in chapter:
-                self.log_error("Format chapter container for '{}' doesn't have '{}'".format(repo_name, key))
-        if 'url' not in chapter or 'signature' not in chapter:
-            return self.errors
-        if not self._url_exists(chapter['url']):
-            self.log_error("{0}: {1} does not exist".format(repo_name, chapter['url']))
-        if chapter['signature'] == '':
-            self.log_error("{0}: {1} has not been signed yet".format(repo_name, chapter['url']))
-        elif not self._url_exists(chapter['signature']):
-            self.log_error("{0}: {1} does not exist".format(repo_name, chapter['signature']))
+        keys_to_check = ['size', 'length', 'modified', 'identifier', 'url', 'signature']
+        self._check_attributes(chapter, keys_to_check, 'Format chapter', repo_name)
 
     @staticmethod
     def check_manifest(manifest):
