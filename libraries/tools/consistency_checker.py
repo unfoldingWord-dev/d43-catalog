@@ -45,7 +45,7 @@ class ConsistencyChecker(object):
         :param url:
         :return:
         """
-        return url and url_exists(url)
+        return url != '' and url_exists(url)
 
     def log_error(self, message):
         message = 'Consistency Check Failed: {}'.format(message)
@@ -124,7 +124,7 @@ class ConsistencyChecker(object):
 
         # Check if the url is on our servers
         has_local_url = False
-        if 'url' in obj and obj['url']:
+        if 'url' in obj and obj['url'] != '':
             has_local_url = self._url_is_local(obj['url'])
 
         # validate keys exist
@@ -139,7 +139,7 @@ class ConsistencyChecker(object):
         if has_local_url and not self._url_exists(obj['url']):
             self.log_error("{0}: url '{1}' does not exist".format(repo_name, obj['url']))
 
-        if has_local_url and not self._url_exists(obj['signature']):
+        if has_local_url and not ('signature' in obj and self._url_exists(obj['signature'])):
             self.log_error("{0}: url '{1}' has not been signed yet".format(repo_name, obj['url']))
 
     def check_format(self, format, row):

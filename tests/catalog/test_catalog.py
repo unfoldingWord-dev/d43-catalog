@@ -135,14 +135,6 @@ class TestCatalog(TestCase):
         mock_instance.add_error.assert_not_called()
         mock_instance.commit.assert_called_once()
 
-    def test_catalog_no_sig_content(self, mock_reporter):
-        state = self.run_with_db('no_sig.json')
-
-        response = state['response']
-
-        self.assertFalse(response['success'])
-        self.assertIn('has not been signed yet', response['message'])
-
     def test_unsigned_external_content(self, mock_reporter):
         format = {
             'format': '',
@@ -170,6 +162,123 @@ class TestCatalog(TestCase):
         checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
         errors = checker.check_format(format, row)
         self.assertIn("Consistency Check Failed: en_obs: url 'https://api.door43.org' has not been signed yet", errors)
+
+    def test_empty_chapter_url(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://api.door43.org/file.txt',
+            'signature': 'https://api.door43.org/file.txt.sig',
+            'chapters': [
+                {
+                    'size': 0,
+                    'length': 0,
+                    'modified': '',
+                    'identifier': '',
+                    'url': ''
+                }
+            ]
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertEqual(0, len(errors), 'Found consistency errors: {0}'.format(errors))
+
+    def test_missing_chapter_signature_from_remote_url(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://api.door43.org/file.txt',
+            'signature': 'https://api.door43.org/file.txt.sig',
+            'chapters': [
+                {
+                    'size': 0,
+                    'length': 0,
+                    'modified': '',
+                    'identifier': '',
+                    'url': 'https://remote.server.come'
+                }
+            ]
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertEqual(0, len(errors), 'Found consistency errors: {0}'.format(errors))
+
+    def test_missing_chapter_signature(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://api.door43.org/file.txt',
+            'signature': 'https://api.door43.org/file.txt.sig',
+            'chapters': [
+                {
+                    'size': 0,
+                    'length': 0,
+                    'modified': '',
+                    'identifier': '',
+                    'url': 'https://api.door43.org/file.txt'
+                }
+            ]
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertIn("Consistency Check Failed: Format chapter container for 'en_obs' doesn't have 'signature'", errors)
+
+    def test_missing_chapter_signature(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://api.door43.org/file.txt',
+            'signature': 'https://api.door43.org/file.txt.sig',
+            'chapters': [
+                {
+                    'size': 0,
+                    'length': 0,
+                    'modified': '',
+                    'identifier': '',
+                    'url': 'https://api.door43.org/file.txt',
+                    'signature': ''
+                }
+            ]
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertIn("Consistency Check Failed: en_obs: url 'https://api.door43.org/file.txt' has not been signed yet", errors)
+
+    def test_has_chapter_signature(self, mock_reporter):
+        format = {
+            'format': '',
+            'modified': '',
+            'size': '',
+            'url': 'https://api.door43.org/file.txt',
+            'signature': 'https://api.door43.org/file.txt.sig',
+            'chapters': [
+                {
+                    'size': 0,
+                    'length': 0,
+                    'modified': '',
+                    'identifier': '',
+                    'url': 'https://api.door43.org/file.txt',
+                    'signature': 'https://api.door43.org/file.txt.sig'
+                }
+            ]
+        }
+        row = json.loads(read_file(os.path.join(self.resources_dir, 'progress_db/no_sig_external_content-row.json')))
+
+        checker = ConsistencyChecker('cdn.door43.org', 'api.door43.org')
+        errors = checker.check_format(format, row)
+        self.assertEqual(0, len(errors), 'Found consistency errors: {0}'.format(errors))
 
     def test_catalog_mixed_valid_content(self, mock_reporter):
         """
