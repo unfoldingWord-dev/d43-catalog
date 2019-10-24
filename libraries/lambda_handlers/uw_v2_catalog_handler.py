@@ -317,10 +317,13 @@ class UwV2CatalogHandler(InstanceHandler):
                             'desc': '',
                             'media': media,
                             'mod': mod,
+                            'slug': proj['identifier'],
                             'src': source['url'],
                             'src_sig': source['signature'],
                             'title': proj['title'],
                         }
+                        if rid == 'obs':
+                            del toc_item['slug']
                         if pdf:
                             toc_item['pdf'] = pdf['url']
 
