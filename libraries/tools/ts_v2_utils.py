@@ -295,7 +295,6 @@ def tn_md_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
                         reporter.report_error('Failed to read file {}'.format(verse_file))
                     raise e
 
-                verse_body = convert_rc_links(verse_body)
                 general_notes = note_general_re.search(verse_body)
 
                 # zero pad chapter to match chunking scheme
