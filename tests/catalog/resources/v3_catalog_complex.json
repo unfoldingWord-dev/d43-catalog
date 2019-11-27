@@ -552,6 +552,15 @@
             "en/tn",
             "en/tq"
           ],
+          "formats": [
+            {
+              "size": 1021146,
+              "url": "https://cdn.door43.org/en/tw/v6/tw.zip",
+              "signature": "https://cdn.door43.org/en/tw/v6/tw.zip.sig",
+              "modified": "2017-07-06T16:01:52Z",
+              "format": "application/zip; type=dict content=text/markdown conformsto=rc0.2"
+            }
+          ],
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -602,6 +611,15 @@
           "relation": [
             "en/obs"
           ],
+          "formats": [
+            {
+              "size": 222415,
+              "url": "https://cdn.door43.org/en/tn/v4/obs-tn.zip",
+              "signature": "https://cdn.door43.org/en/tn/v4/obs-tn.zip.sig",
+              "modified": "2017-03-15T12:41:45Z",
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+            }
+          ],
           "contributor": [
             "Wycliffe Associates"
           ],
@@ -651,6 +669,15 @@
           "version": "4",
           "relation": [
             "en/obs"
+          ],
+          "formats": [
+            {
+              "size": 139709,
+              "url": "https://cdn.door43.org/en/tq/v4/obs-tq.zip",
+              "signature": "https://cdn.door43.org/en/tq/v4/obs-tq.zip.sig",
+              "modified": "2017-05-03T21:07:09Z",
+              "format": "application/zip; type=help content=text/markdown conformsto=rc0.2"
+            }
           ],
           "contributor": [
             "Wycliffe Associates"
@@ -1211,6 +1238,72 @@
             "en/obs-tq",
             "en/obs-tn"
           ],
+          "formats": [
+            {
+              "size": 128,
+              "url": "https://cdn.door43.org/en/obs/v4/obs.zip",
+              "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
+              "modified": "2017-07-26T16:39:59.812712",
+              "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
+            },
+            {
+              "format": "application/zip; content=audio/mp3",
+              "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip",
+              "modified": "2017-07-26T16:39:59.812712",
+              "chapters": [
+                {
+                  "format": "audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3",
+                  "modified": "2017-07-26T16:39:59.812712",
+                  "length": 0.6090476190476191,
+                  "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3.sig",
+                  "identifier": "02",
+                  "size": 5870
+                },
+                {
+                  "format": "audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3",
+                  "modified": "2017-07-26T16:39:59.820712",
+                  "length": 0.7499092970521541,
+                  "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3.sig",
+                  "identifier": "01",
+                  "size": 6891
+                }
+              ],
+              "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig",
+              "contributor": [
+                "Narrator: Steve Lossing",
+                "Checker: Brad Harrington",
+                "Engineer: Brad Harrington"
+              ],
+              "quality": "64kbps",
+              "size": 12032
+            },
+            {
+              "format": "application/zip; content=audio/mp3",
+              "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip",
+              "modified": "2017-07-26T16:39:59.820712",
+              "chapters": [
+                {
+                  "format": "audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3",
+                  "modified": "2017-07-26T16:39:59.820712",
+                  "length": 0.57475,
+                  "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3.sig",
+                  "identifier": "02",
+                  "size": 2749
+                }
+              ],
+              "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip.sig",
+              "contributor": [
+                "Narrator: Steve Lossing",
+                "Checker: Brad Harrington",
+                "Engineer: Brad Harrington"
+              ],
+              "quality": "32kbps",
+              "size": 6334
+            }
+          ],
           "contributor": [
             "Distant Shores Media",
             "Wycliffe Associates"
@@ -1222,6 +1315,7 @@
             {
               "sort": 0,
               "title": "Open Bible Stories",
+              "versification": null,
               "formats": [
                 {
                   "size": 128,
@@ -1288,7 +1382,6 @@
                   "size": 6334
                 }
               ],
-              "versification": null,
               "identifier": "obs",
               "categories": []
             }
@@ -1415,17 +1508,26 @@
           ],
           "version": "3.2.1",
           "relation": [],
+          "formats": [
+            {
+              "size": 87136,
+              "url": "https://cdn.door43.org/es/obs/v3.2.1/obs.zip",
+              "signature": "https://cdn.door43.org/es/obs/v3.2.1/obs.zip.sig",
+              "modified": "2017-05-17T21:11:27Z",
+              "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
+            }
+          ],
           "contributor": [
             "ljbadiola",
             "natilatina"
           ],
-          "title": "HISTORIAS BÍBLICAS LIBRES",
+          "title": "HISTORIAS B\u00cdBLICAS LIBRES",
           "identifier": "obs",
           "creator": "Distant Shores Media",
           "projects": [
             {
               "sort": 0,
-              "title": "HISTORIAS BÍBLICAS LIBRES",
+              "title": "HISTORIAS B\u00cdBLICAS LIBRES",
               "formats": [
                 {
                   "size": 87136,

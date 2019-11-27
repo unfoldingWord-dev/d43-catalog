@@ -45,6 +45,15 @@
             "en/obs-tq",
             "en/obs-tn"
           ],
+          "formats": [
+            {
+              "size": 100417,
+              "url": "https://google.com",
+              "signature": "https://google.com",
+              "modified": "2017-01-10",
+              "format": "application/zip; type=book content=text/markdown version=rc0.2"
+            }
+          ],
           "contributor": [
             "Distant Shores Media",
             "Wycliffe Associates"
