@@ -17,7 +17,7 @@ import markdown
 import yaml
 
 from d43_aws_tools import S3Handler, DynamoDBHandler
-from libraries.tools.file_utils import read_file, download_rc, remove
+from libraries.tools.file_utils import read_file, download_rc, remove, get_subdirs, remove_tree
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from libraries.tools.ts_v2_utils import convert_rc_links, build_json_source_from_usx, make_legacy_date, \
@@ -74,6 +74,7 @@ class TsV2CatalogHandler(InstanceHandler):
         :return:
         """
         try:
+            self.logger.debug('Temp directory {} contents {}'.format('/tmp', get_subdirs('/tmp/')))
             return self.__execute()
         except Exception as e:
             self.report_error(e.message)
@@ -123,6 +124,10 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 rc_format = None
 
+                self.logger.debug('Temp directory {} contents {}'.format(self.temp_dir, get_subdirs(self.temp_dir)))
+                res_temp_dir = os.path.join(self.temp_dir, lid, rid)
+                os.makedirs(res_temp_dir)
+
                 if 'formats' in res:
                     for format in res['formats']:
                         finished_processes = {}
@@ -130,14 +135,14 @@ class TsV2CatalogHandler(InstanceHandler):
                             # locate rc_format (for multi-project RCs)
                             rc_format = format
 
-                        self._process_usfm(lid, rid, res, format)
+                        self._process_usfm(lid, rid, res, format, res_temp_dir)
 
                         # TRICKY: bible notes and questions are in the resource
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
                                 self.logger.info('Processing notes {}_{}'.format(lid, rid))
-                                tn = self._index_note_files(lid, rid, format, process_id)
+                                tn = self._index_note_files(lid, rid, format, process_id, res_temp_dir)
                                 if tn:
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tn.keys()
@@ -148,7 +153,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
                                 self.logger.info('Processing questions {}_{}'.format(lid, rid))
-                                tq = self._index_question_files(lid, rid, format, process_id)
+                                tq = self._index_question_files(lid, rid, format, process_id, res_temp_dir)
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
@@ -177,7 +182,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             # TRICKY: there should only be a single tW for each language
                             process_id = '_'.join([lid, 'words'])
                             if process_id not in self.status['processed']:
-                                tw = self._index_words_files(lid, rid, format, process_id)
+                                tw = self._index_words_files(lid, rid, format, process_id, res_temp_dir)
                                 if tw:
                                     self._upload_all(tw)
                                     finished_processes[process_id] = tw.keys()
@@ -189,10 +194,10 @@ class TsV2CatalogHandler(InstanceHandler):
                                 process_id = '_'.join([lid, rid, pid])
                                 if process_id not in self.status['processed']:
                                     self.logger.debug('Processing {}'.format(process_id))
-                                    obs_json = index_obs(lid, rid, format, self.temp_dir, self.download_file)
+                                    obs_json = index_obs(lid, rid, format, res_temp_dir, self.download_file)
                                     upload = prep_data_upload(
                                         '{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
-                                        obs_json, self.temp_dir)
+                                        obs_json, res_temp_dir)
                                     self._upload(upload)
                                     finished_processes[process_id] = []
                                 else:
@@ -201,7 +206,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             # TRICKY: obs notes and questions are in the project
                             process_id = '_'.join([lid, rid, pid, 'notes'])
                             if process_id not in self.status['processed']:
-                                tn = self._index_note_files(lid, rid, format, process_id)
+                                tn = self._index_note_files(lid, rid, format, process_id, res_temp_dir)
                                 if tn:
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tn.keys()
@@ -211,7 +216,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                             process_id = '_'.join([lid, rid, pid, 'questions'])
                             if process_id not in self.status['processed']:
-                                tq = self._index_question_files(lid, rid, format, process_id)
+                                tq = self._index_question_files(lid, rid, format, process_id, res_temp_dir)
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
@@ -248,6 +253,10 @@ class TsV2CatalogHandler(InstanceHandler):
                             'rc_type': rc_type
                         })
 
+                # cleanup resource directory
+                remove_tree(res_temp_dir)
+            # cleanup language directory
+            remove_tree(os.path.join(self.temp_dir, lid))
         # inject supplementary resources
         for s in supplemental_resources:
             self._add_supplement(cat_dict, s['language'], s['resource'], s['project'], s['modified'], s['rc_type'])
@@ -280,6 +289,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         res['terms'] = ''
 
                     res_cat.append(res)
+                # TODO: what is this?
                 api_uploads.append(prep_data_upload('{}/{}/resources.json'.format(pid, lid), res_cat, self.temp_dir))
 
                 del lang['_res']
@@ -364,7 +374,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         return (status, source_status)
 
-    def _index_note_files(self, lid, rid, format, process_id):
+    def _index_note_files(self, lid, rid, format, process_id, temp_dir):
         """
 
         :param lid:
@@ -377,25 +387,25 @@ class TsV2CatalogHandler(InstanceHandler):
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
             self.logger.debug('Processing {}'.format(process_id))
-            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
+            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
             if not rc_dir: return {}
 
             tn_uploads = index_tn_rc(lid=lid,
-                                    temp_dir=self.temp_dir,
+                                    temp_dir=temp_dir,
                                     rc_dir=rc_dir,
                                     reporter=self)
-            remove(rc_dir, True)
+            remove_tree(rc_dir, True)
 
         return tn_uploads
 
-    def _index_question_files(self, lid, rid, format, process_id):
+    def _index_question_files(self, lid, rid, format, process_id, temp_dir):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
         tq_uploads = {}
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
             self.logger.debug('Processing {}'.format(process_id))
-            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
+            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -451,12 +461,12 @@ class TsV2CatalogHandler(InstanceHandler):
                 if question_json:
                     tq_key = '_'.join([lid, '*', pid, 'tq'])
                     question_json.append({'date_modified': dc['modified'].replace('-', '')})
-                    upload = prep_data_upload('{}/{}/questions.json'.format(pid, lid), question_json, self.temp_dir)
+                    upload = prep_data_upload('{}/{}/questions.json'.format(pid, lid), question_json, temp_dir)
                     tq_uploads[tq_key] = upload
-            remove(rc_dir, True)
+            remove_tree(rc_dir, True)
         return tq_uploads
 
-    def _index_words_files(self, lid, rid, format, process_id):
+    def _index_words_files(self, lid, rid, format, process_id, temp_dir):
         """
         Returns an array of markdown files found in a tW dictionary
         :param lid:
@@ -476,7 +486,7 @@ class TsV2CatalogHandler(InstanceHandler):
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
             self.logger.debug('Processing {}'.format(process_id))
-            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
+            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
             if not rc_dir: return {}
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -563,19 +573,19 @@ class TsV2CatalogHandler(InstanceHandler):
                             'term': title.strip()
                         })
 
-            remove(rc_dir, True)
+            remove_tree(rc_dir, True)
 
             if words:
                 words.append({
                     'date_modified': dc['modified'].replace('-', '').split('T')[0]
                 })
-                upload = prep_data_upload('bible/{}/words.json'.format(lid), words, self.temp_dir)
+                upload = prep_data_upload('bible/{}/words.json'.format(lid), words, temp_dir)
                 return {
                     '_'.join([lid, '*', '*', 'tw']): upload
                 }
         return {}
 
-    def _process_usfm(self, lid, rid, resource, format):
+    def _process_usfm(self, lid, rid, resource, format, temp_dir):
         """
         Converts a USFM bundle into usx, loads the data into json and uploads it.
         Returns an array of usx file paths.
@@ -587,7 +597,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         format_str = format['format']
         if 'application/zip' in format_str and 'usfm' in format_str:
-            rc_dir = download_rc(lid, rid, format['url'], self.temp_dir, self.download_file)
+            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
             if not rc_dir: return
 
             manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
@@ -603,7 +613,7 @@ class TsV2CatalogHandler(InstanceHandler):
                     self.logger.info('Processing {}'.format(process_id))
 
                     # copy usfm project file
-                    usfm_dir = os.path.join(self.temp_dir, '{}_usfm'.format(process_id))
+                    usfm_dir = os.path.join(temp_dir, '{}_usfm'.format(process_id))
                     if not os.path.exists(usfm_dir):
                         os.makedirs(usfm_dir)
                     usfm_dest_file = os.path.normpath(os.path.join(usfm_dir, project['path']))
@@ -624,14 +634,14 @@ class TsV2CatalogHandler(InstanceHandler):
                     path = os.path.normpath(os.path.join(usx_dir, '{}.usx'.format(pid.upper())))
                     source = build_json_source_from_usx(path, lid, pid, format['modified'], self)
                     upload = prep_data_upload('{}/{}/{}/v{}/source.json'.format(pid, lid, rid, resource['version']),
-                                              source['source'], self.temp_dir)
+                                              source['source'], temp_dir)
                     self.cdn_handler.upload_file(upload['path'],
                                                  '{}/{}'.format(TsV2CatalogHandler.cdn_root_path, upload['key']))
 
                     self.status['processed'][process_id] = []
                     self._set_status()
             # clean up download
-            remove(rc_dir, True)
+            remove_tree(rc_dir, True)
 
     def _upload_all(self, uploads):
         """

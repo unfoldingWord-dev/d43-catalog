@@ -4,7 +4,7 @@
     "tn": [
       {
         "ref": "General Information:",
-        "text": "All of the names here are names of men. (See: [[:en:ta:vol1:translate:translate_names]])"
+        "text": "All of the names here are names of men. (See: [[rc://en/ta/man/translate/translate-names]])"
       }
     ]
   },
@@ -13,7 +13,7 @@
     "tn": [
       {
         "ref": "Enosh ... Kenan ... Mahalalel ... Jared ... Enoch ... Methuselah ... Lamech",
-        "text": "These are all names of men. Each man was the father or ancestor of the next man in the list. If your language has a specific way to mark this kind of list, you can use it here. (See: [[:en:ta:vol1:translate:translate_names]])"
+        "text": "These are all names of men. Each man was the father or ancestor of the next man in the list. If your language has a specific way to mark this kind of list, you can use it here. (See: [[rc://en/ta/man/translate/translate-names]])"
       },
       {
         "ref": "Lamech. The sons of Noah",
@@ -30,15 +30,15 @@
     "tn": [
       {
         "ref": "Gomer ... Magog ... Madai ... Javan ... Tubal ... Meshek ... Tiras ... Ashkenaz ... Riphath ... Togarmah ... Elishah ... Tarshish",
-        "text": "These are all names of men. (See: [[:en:ta:vol1:translate:translate_names]])"
+        "text": "These are all names of men. (See: [[rc://en/ta/man/translate/translate-names]])"
       },
       {
         "ref": "Kittites ... Rodanites",
-        "text": "These are names of people groups. (See: [[:en:ta:vol1:translate:translate_names]])"
+        "text": "These are names of people groups. (See: [[rc://en/ta/man/translate/translate-names]])"
       },
       {
         "ref": "Rodanites",
-        "text": "This name is sometimes spelled \"Dodanites.\" (See: [[:en:ta:vol2:translate:translate_textvariants]])"
+        "text": "This name is sometimes spelled \"Dodanites.\" (See: [[rc://en/ta/man/translate/translate-textvariants]])"
       }
     ]
   },

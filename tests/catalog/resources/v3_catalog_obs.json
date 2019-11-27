@@ -31,6 +31,72 @@
             "en/obs-tq",
             "en/obs-tn"
           ],
+          "formats": [
+            {
+              "size": 128,
+              "url": "https://cdn.door43.org/en/obs/v4/obs.zip",
+              "signature": "https://cdn.door43.org/en/obs/v4/obs.zip.sig",
+              "modified": "2017-07-26T16:39:59.812712",
+              "format": "application/zip; type=book content=text/markdown conformsto=rc0.2"
+            },
+            {
+              "format": "application/zip; content=audio/mp3",
+              "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip",
+              "modified": "2017-07-26T16:39:59.812712",
+              "chapters": [
+                {
+                  "format": "audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3",
+                  "modified": "2017-07-26T16:39:59.812712",
+                  "length": 0.6090476190476191,
+                  "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_02_64kbps.mp3.sig",
+                  "identifier": "02",
+                  "size": 5870
+                },
+                {
+                  "format": "audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3",
+                  "modified": "2017-07-26T16:39:59.820712",
+                  "length": 0.7499092970521541,
+                  "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_01_64kbps.mp3.sig",
+                  "identifier": "01",
+                  "size": 6891
+                }
+              ],
+              "signature": "https://cdn.door43.org/en/obs/v4/64kbps/en_obs_64kbps.zip.sig",
+              "contributor": [
+                "Narrator: Steve Lossing",
+                "Checker: Brad Harrington",
+                "Engineer: Brad Harrington"
+              ],
+              "quality": "64kbps",
+              "size": 12032
+            },
+            {
+              "format": "application/zip; content=audio/mp3",
+              "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip",
+              "modified": "2017-07-26T16:39:59.820712",
+              "chapters": [
+                {
+                  "format": "audio/mp3",
+                  "url": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3",
+                  "modified": "2017-07-26T16:39:59.820712",
+                  "length": 0.57475,
+                  "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_02_32kbps.mp3.sig",
+                  "identifier": "02",
+                  "size": 2749
+                }
+              ],
+              "signature": "https://cdn.door43.org/en/obs/v4/32kbps/en_obs_32kbps.zip.sig",
+              "contributor": [
+                "Narrator: Steve Lossing",
+                "Checker: Brad Harrington",
+                "Engineer: Brad Harrington"
+              ],
+              "quality": "32kbps",
+              "size": 6334
+            }
+          ],
           "contributor": [
             "Distant Shores Media",
             "Wycliffe Associates"
