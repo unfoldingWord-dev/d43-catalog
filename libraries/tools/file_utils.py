@@ -8,6 +8,8 @@ import os
 import shutil
 import sys
 import tempfile
+import urllib
+import urlparse
 import zipfile
 from mimetypes import MimeTypes
 
@@ -40,7 +42,15 @@ def ext_to_mime(ext):
         '3gp': 'video/3gpp',
         'mov': 'video/quicktime',
         'avi': 'video/x-msvideo',
-        'wmv': 'video/video/x-ms-wmv'
+        'wmv': 'video/video/x-ms-wmv',
+        'html': 'text/html',
+        'md': 'text/markdown',
+        'txt': 'text/txt',
+        'usfm': 'text/usfm',
+        'doc': 'application/doc',
+        'docx': 'application/docx',
+        'epub': 'application/epub',
+        'odt': 'applicaiton/odt'
     }
     if ext in types:
         return types[ext]
@@ -273,3 +283,39 @@ def download_rc(lid, rid, url, temp_dir=None, downloader=None):
         return None
 
     return rc_dir
+
+def get_mime_from_url(url, quality=None):
+    mime = ''
+    if not url:
+        return mime
+    url_info = urlparse.urlparse(url)
+    path = url_info.path
+    ext = os.path.splitext(path)[1].strip('.').lower()
+    if ext:
+        try:
+            mime = ext_to_mime(ext)
+        except:
+            mime = ''
+    if mime:
+        if mime == 'application/zip' and quality.lower() == '3gp':
+            mime += '; content=video/3gpp'
+    elif 'door43.org/u/door43-catalog' in url.lower():
+        mime = 'door43'
+    elif 'youtube' in url.lower():
+        mime = 'youtube'
+    elif 'bloom' in url.lower():
+        mime = 'bloom'
+    elif ext:
+        mime = ext
+    else:
+        mime = url_info.netloc
+    return mime
+
+def get_remote_file_size(url):
+    try:
+        content_header = urllib.urlopen(url).info().getheaders("Content-Length")
+        if content_header and len(content_header) > 0:
+            return int(content_header[0])
+    except ValueError:
+        pass
+    return 0
