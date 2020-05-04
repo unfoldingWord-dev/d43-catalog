@@ -426,6 +426,51 @@ class TestSigningHandler(TestCase):
         self.assertFalse(already_signed)
         self.assertTrue(newly_signed)
 
+    def test_signing_remote_3gp_file(self, mock_reporter):
+        """
+        Ensure that small files are signed properly
+        :return:
+        """
+        mock_s3 = MockS3Handler()
+        mock_db = MockDynamodbHandler()
+        mock_logger = MockLogger()
+        mock_api = MockAPI(os.path.join(self.resources_dir, 'filedn'), 'https://filedn.com/')
+        event = self.create_event()
+        item = {
+            'repo_name': 'repo_name',
+            'commit_id': 'commitid'
+        }
+        format = {
+          "build_rules": [
+            "signing.sign_given_url"
+          ],
+          "chapters": [],
+          "contributor": [],
+          "format": "",
+          "modified": "",
+          "quality": "3GP",
+          "signature": "",
+          "size": 0,
+          "url": "https://filedn.com/XYZ/en/obs/v6/en_obs_v6_3GP.zip"
+        }
+        mockHeaders = HeaderReader([
+            ('content-length', 345)
+        ])
+        signer = SigningHandler(event,
+                                None,
+                                logger=mock_logger,
+                                signer=self.mock_signer,
+                                s3_handler=mock_s3,
+                                dynamodb_handler=mock_db,
+                                url_exists_handler=mock_api.url_exists,
+                                download_handler=mock_api.download_file,
+                                url_headers_handler=lambda url: mockHeaders)
+        (already_signed, newly_signed) = signer.process_format(item, None, None, format)
+        self.assertEqual('', format['signature'])
+        self.assertEqual('application/zip; content=video/3gpp', format['format'])
+        self.assertEqual(116, format['size'])
+        self.assertTrue(already_signed)
+        self.assertTrue(newly_signed)
 
     @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
     def test_manually_sign(self, mock_reporter):

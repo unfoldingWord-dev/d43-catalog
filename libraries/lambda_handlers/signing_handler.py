@@ -16,7 +16,7 @@ from mutagen.mp3 import MP3
 from mutagen.mp4 import MP4
 from libraries.tools.build_utils import get_build_rules
 from libraries.tools.date_utils import unix_to_timestamp, str_to_timestamp
-from libraries.tools.file_utils import ext_to_mime, read_file, write_file
+from libraries.tools.file_utils import ext_to_mime, read_file, write_file, get_mime_from_url, get_remote_file_size
 from libraries.tools.url_utils import url_exists, download_file, url_headers
 
 
@@ -201,6 +201,17 @@ class SigningHandler(InstanceHandler):
             valid_hosts.append(self.api_bucket)
             prod_api_bucket = self.api_bucket.lstrip(self.stage_prefix())
             valid_hosts.append(prod_api_bucket)
+
+        # make sure all formats have a media mime type
+        if ('format' not in format or not format['format']) and 'url' in format:
+            quality = ''
+            if 'quality' in format:
+                quality = format['quality']
+            format['format'] = get_mime_from_url(format['url'], quality)
+
+        # make sure all formats with a media mime type have a size
+        if ('size' not in format or not format['size']) and 'url' in format and 'format' in format and format['format']:
+            format['size'] = get_remote_file_size(format['url'])
 
         # verify url is on the cdn
         if not url_info.hostname in valid_hosts:
