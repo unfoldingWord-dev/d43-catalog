@@ -43,10 +43,19 @@ class WebhookHandler(Handler):
         self.api_url = self.retrieve(env_vars, 'api_url', 'Environment Vars')
         self.repo_commit = self.retrieve(event, 'body-json', 'payload')
         self.api_version = self.retrieve(env_vars, 'version')
+
+        # NOTE: it would be better to use the header X-GitHub-Event to determine the type of event.
+
         if 'pull_request' in self.repo_commit:
+            # TODO: this is deprecated
             self.__parse_pull_request(self.repo_commit)
-        else:
+        elif 'forkee' in self.repo_commit:
+            # TODO: parse fork
+            pass
+        elif 'pusher' in self.repo_commit:
             self.__parse_push(self.repo_commit)
+        else:
+            raise Exception('Unsupported webhook request received')
 
         self.resource_id = None # set in self._build
         self.logger = logger # type: logging._loggerClass
