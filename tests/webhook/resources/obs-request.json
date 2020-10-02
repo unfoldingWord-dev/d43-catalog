@@ -2,6 +2,7 @@
   "stage-variables": {
     "gogs_url": "https://git.door43.org",
     "gogs_org": "Door43-Catalog",
+    "gogs_token": "token",
     "cdn_bucket": "cdn.door43.org",
     "cdn_url": "https://cdn.door43.org",
     "from_email": "",
