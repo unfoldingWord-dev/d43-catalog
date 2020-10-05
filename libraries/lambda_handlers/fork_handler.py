@@ -1,4 +1,4 @@
-import gogs_client as GogsClient
+import gitea_client as GiteaClient
 import boto3
 import time
 import json
@@ -24,10 +24,10 @@ class ForkHandler(InstanceHandler):
             self.progress_table = kwargs['dynamodb_handler']
         else:
             self.progress_table = DynamoDBHandler('{}d43-catalog-in-progress'.format(self.stage_prefix()))  # pragma: no cover
-        if 'gogs_client' in kwargs:
-            self.gogs_client = kwargs['gogs_client']
+        if 'gitea_client' in kwargs:
+            self.gitea_client = kwargs['gitea_client']
         else:
-            self.gogs_client = GogsClient  # pragma: no cover
+            self.gitea_client = GiteaClient  # pragma: no cover
         if 'boto_handler' in kwargs:
             self.boto = kwargs['boto_handler']
         else:
@@ -35,8 +35,8 @@ class ForkHandler(InstanceHandler):
         if 'logger' in kwargs:
             self.logger = kwargs['logger']
 
-        self.gogs_api = self.gogs_client.GogsApi(self.gogs_url)
-        self.gogs_auth = self.gogs_client.Token(gogs_token)
+        self.gogs_api = self.gitea_client.GiteaApi(self.gogs_url)
+        self.gogs_auth = self.gitea_client.Token(gogs_token)
 
     def _run(self, **kwargs):
         """

@@ -6,7 +6,7 @@
 
 from __future__ import print_function
 
-import gogs_client as GogsClient
+import gitea_client as GiteaClient
 import codecs
 import json
 import logging
@@ -117,9 +117,9 @@ class WebhookHandler(Handler):
         self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
 
         # fetch latest commit from DCS
-        gogs_client = GogsClient
-        gogs_api = gogs_client.GogsApi(self.gogs_url)
-        gogs_auth = gogs_client.Token(self.gogs_token)
+        gitea_client = GiteaClient
+        gogs_api = gitea_client.GiteaApi(self.gogs_url)
+        gogs_auth = gitea_client.Token(self.gogs_token)
         branch = gogs_api.get_branch(gogs_auth, self.gogs_org, self.repo_name, default_branch)
 
         self.commit_url = branch.commit.url

@@ -1,5 +1,5 @@
 import os
-import gogs_client as GogsClient
+import gitea_client as GiteaClient
 
 from shutil import copyfile
 from unittest import TestCase
@@ -31,16 +31,19 @@ class TestFork(TestCase):
     class MockGogsClient(object):
 
         @staticmethod
-        def GogsApi(api_url):
+        def GiteaApi(api_url):
             return TestFork.MockGogsClient.MockGogsApi(api_url)
 
         class MockGogsApi(object):
             repos = []
             branch = None
+
             def __init__(self, base_url, session=None):
                 pass
+
             def get_user_repos(self, auth, username):
                 return TestFork.MockGogsClient.MockGogsApi.repos
+
             def get_branch(self, auth, username, repo_name, branch):
                 return TestFork.MockGogsClient.MockGogsApi.branch
 
@@ -95,7 +98,7 @@ class TestFork(TestCase):
                     "pull": True
                }
             }
-        return GogsClient.GogsRepo.from_json(repo_json)
+        return GiteaClient.GiteaRepo.from_json(repo_json)
 
     @staticmethod
     def create_branch(name):
@@ -130,7 +133,7 @@ class TestFork(TestCase):
                 "timestamp": "2017-05-17T21:11:25Z"
             }
         }
-        return GogsClient.GogsBranch.from_json(branch_json)
+        return GiteaClient.GiteaBranch.from_json(branch_json)
 
     @staticmethod
     def create_db_item(repo_name):
@@ -164,7 +167,7 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb,
                               boto_handler=mockBoto)
         repos = handler.get_new_repos()
@@ -193,7 +196,7 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb,
                               boto_handler=mockBoto)
         repos = handler.get_new_repos()
@@ -213,7 +216,7 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
         repo = TestFork.create_repo("en_obs")
         payload = handler.make_hook_payload(repo)
@@ -243,7 +246,7 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
         mockClient = self.MockBotoClient()
         mockRepo = self.MockGogsRepo()
@@ -261,7 +264,7 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
         mockClient = self.MockBotoClient()
         handler._trigger_webhook(mockClient, [])
@@ -277,7 +280,7 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
         self.assertEqual('', handler.stage_prefix())
 
@@ -293,6 +296,6 @@ class TestFork(TestCase):
         handler = ForkHandler(event=event,
                               context=None,
                               logger=mockLog,
-                              gogs_client=self.MockGogsClient,
+                              gitea_client=self.MockGogsClient,
                               dynamodb_handler=mockDb)
         self.assertEqual('dev-', handler.stage_prefix())

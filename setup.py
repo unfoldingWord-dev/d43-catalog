@@ -25,7 +25,7 @@ setup(
         'mutagen==1.38',
         'markdown==2.6.8',
         'pyyaml==3.12',
-        'gogs_client==1.0.6',
+        'gitea_client==1.0.9',
         'future==0.16.0',
         'usfm-tools==0.0.13',
         'd43_aws_tools==1.0.4',
