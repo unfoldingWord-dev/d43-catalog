@@ -222,7 +222,6 @@ class TestFork(TestCase):
         payload = handler.make_hook_payload(repo)
         self.assertIn('body-json', payload)
         self.assertIn('stage-variables', payload)
-        self.assertEqual(1, len(payload['body-json']['commits']))
         self.assertEqual(repo.name, payload['body-json']['repository']['name'])
 
         TestFork.mock_download = os.path.join(TestFork.resources_dir, 'en_obs.zip')

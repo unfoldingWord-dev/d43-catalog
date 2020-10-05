@@ -82,24 +82,18 @@ class ForkHandler(InstanceHandler):
         :param repo:
         :return:
         """
-
-        branch = self.gogs_api.get_branch(self.gogs_auth, self.gogs_org, repo.name, repo.default_branch)
         return {
             "stage-variables": self.event['stage-variables'],
             "context": self.event['context'],
             "body-json": {
-                "after": branch.commit.id,
-                "commits": [{
-                    "id": branch.commit.id,
-                    "message": branch.commit.message,
-                    "timestamp": branch.commit.timestamp,
-                    "url": '{0}/{1}/{2}/commit/{3}'.format(self.gogs_url, self.gogs_org, repo.name, branch.commit.id) # branch.commit.url <-- not implemented yet
-                }],
+                "forkee": {
+                },
                 "repository": {
                     "owner": {
                         "username": "Door43-Catalog"
                     },
-                    "name": repo.name
+                    "name": repo.name,
+                    "default_branch": repo.default_branch
                 }
             },
         }
