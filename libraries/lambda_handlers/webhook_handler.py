@@ -56,7 +56,7 @@ class WebhookHandler(Handler):
         elif 'pusher' in self.repo_commit:
             self.__parse_push(self.repo_commit)
         else:
-            raise Exception('Unsupported webhook request received ' + self.repo_commit['repository']['name'] + ' ' + self.repo_commit)
+            raise Exception('Unsupported webhook request received ' + self.repo_commit['repository']['name'] + ' ' + json.dumps(self.repo_commit))
 
         self.resource_id = None # set in self._build
         self.logger = logger # type: logging._loggerClass
