@@ -169,7 +169,7 @@ class WebhookHandler(Handler):
         if 'pull_request' in self.repo_commit:
             pr = self.repo_commit['pull_request']
             if not pr['merged']:
-                raise Exception('Skipping un-merged pull request')
+                raise Exception('Skipping un-merged pull request ' + self.repo_name)
 
         try:
             # build catalog entry
