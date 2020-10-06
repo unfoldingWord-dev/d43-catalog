@@ -51,7 +51,8 @@ class WebhookHandler(Handler):
         if 'pull_request' in self.repo_commit:
             # TODO: this is deprecated
             self.__parse_pull_request(self.repo_commit)
-        elif 'forkee' in self.repo_commit:
+        elif 'forkee' in self.repo_commit or ('action' in self.repo_commit and self.repo_commit['action'] == 'created'):
+            # handles fork and create events
             self.__parse_fork(self.repo_commit)
         elif 'pusher' in self.repo_commit:
             self.__parse_push(self.repo_commit)
