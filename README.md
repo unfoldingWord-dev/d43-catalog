@@ -1,9 +1,9 @@
 master:
-[![Build Status](https://travis-ci.org/unfoldingWord-dev/d43-catalog.svg?branch=master)](https://travis-ci.org/unfoldingWord-dev/d43-catalog) 
+[![Build Status](https://travis-ci.org/unfoldingWord-dev/d43-catalog.svg?branch=master)](https://travis-ci.org/unfoldingWord-dev/d43-catalog)
 [![Coverage Status](https://coveralls.io/repos/github/unfoldingWord-dev/d43-catalog/badge.svg?branch=master)](https://coveralls.io/github/unfoldingWord-dev/d43-catalog?branch=master)
 
 develop:
-[![Build Status](https://travis-ci.org/unfoldingWord-dev/d43-catalog.svg?branch=develop)](https://travis-ci.org/unfoldingWord-dev/d43-catalog) 
+[![Build Status](https://travis-ci.org/unfoldingWord-dev/d43-catalog.svg?branch=develop)](https://travis-ci.org/unfoldingWord-dev/d43-catalog)
 [![Coverage Status](https://coveralls.io/repos/github/unfoldingWord-dev/d43-catalog/badge.svg?branch=develop)](https://coveralls.io/github/unfoldingWord-dev/d43-catalog?branch=develop)
 
 # d43-catalog
@@ -18,7 +18,7 @@ These are the AWS Lambda functions for generating the [API catalog endpoint](htt
 
 * Install [pip](https://pypi.org/project/pip/)
 * Run `pip install -r requirements.txt`
-* install [Apex](https://apex.run/) and configure with your aws credentials
+* install [Apex (dead link)](https://apex.run/) from install-apex.sh (which installs from archived project https://github.com/apex/apex) and configure with your aws credentials
 * run `apex --env prod deploy` to publish everything to production
 * or you can run `apex --env prod deploy ts_v2_catalog` for example to publish a single function.
 
@@ -50,7 +50,7 @@ When a new repository is added or forked into the [Door43 Catalog] organization 
 
 The following provides a functional description of the functions in this repository.
 
-### webhook 
+### webhook
 
 Runs when a change is made in the [Door43 Catalog]
 

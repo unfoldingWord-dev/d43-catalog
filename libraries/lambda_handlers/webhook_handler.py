@@ -3,10 +3,13 @@
 #
 # Class to process a Catalog repo and add it to the d43-catalog-in-progress table
 #
+# Updated March 2021 by RJH to handle TQ and (prepare to handle) TN backporting
+#
 
 from __future__ import print_function
 
-import gitea_client as GiteaClient
+# Disabled by RJH because the following import fails due to attrs/convert problem
+# import gitea_client as GiteaClient
 import codecs
 import json
 import logging
@@ -30,6 +33,24 @@ from libraries.tools.media_utils import parse_media
 from libraries.lambda_handlers.handler import Handler
 
 
+BBB_LIST = ('GEN','EXO','LEV','NUM','DEU',
+        'JOS','JDG','RUT','1SA','2SA','1KI',
+        '2KI','1CH','2CH','EZR', 'NEH', 'EST',
+        'JOB','PSA','PRO','ECC','SNG','ISA',
+        'JER','LAM','EZK','DAN','HOS','JOL',
+        'AMO','OBA','JON','MIC','NAM','HAB',
+        'ZEP','HAG','ZEC','MAL',
+        'MAT','MRK','LUK','JHN','ACT',
+        'ROM','1CO','2CO','GAL','EPH','PHP',
+        'COL','1TH','2TH','1TI','2TI','TIT',
+        'PHM','HEB', 'JAS','1PE','2PE',
+        '1JN','2JN','3JN', 'JUD', 'REV')
+assert len(BBB_LIST) == 66
+
+
+current_BCV = None
+markdown_text = ''
+
 class WebhookHandler(Handler):
     def __init__(self, event, context, logger, **kwargs):
         super(WebhookHandler, self).__init__(event, context)
@@ -51,9 +72,10 @@ class WebhookHandler(Handler):
         if 'pull_request' in self.repo_commit:
             # TODO: this is deprecated
             self.__parse_pull_request(self.repo_commit)
-        elif 'forkee' in self.repo_commit or ('action' in self.repo_commit and self.repo_commit['action'] == 'created'):
-            # handles fork and create events
-            self.__parse_fork(self.repo_commit)
+        # Disabled by RJH because no working Gitea support
+        # elif 'forkee' in self.repo_commit or ('action' in self.repo_commit and self.repo_commit['action'] == 'created'):
+        #     # handles fork and create events
+        #     self.__parse_fork(self.repo_commit)
         elif 'pusher' in self.repo_commit:
             self.__parse_push(self.repo_commit)
         else:
@@ -88,10 +110,10 @@ class WebhookHandler(Handler):
 
         self.repo_owner = payload['repository']['owner']['username']
         self.repo_name = payload['repository']['name']
-        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
-        self.repo_file = os.path.join(self.temp_dir, self.repo_name + '.zip')
+        self.temp_repo_dir_path = tempfile.mkdtemp('', self.repo_name, None)
+        self.temp_repo_zipfile_path = os.path.join(self.temp_repo_dir_path, self.repo_name + '.zip')
         # TRICKY: gogs gives a lower case name to the folder in the zip archive
-        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
+        self.repo_dir_path = os.path.join(self.temp_repo_dir_path, self.repo_name.lower())
 
         commit_sha = self.retrieve(pull_request, 'merge_commit_sha', 'pull_request')
         self.timestamp = str_to_timestamp(self.retrieve(pull_request, 'merged_at', 'pull_request'))
@@ -103,39 +125,40 @@ class WebhookHandler(Handler):
         else:
             self.commit_id = None
 
-    def __parse_fork(self, payload):
-        """
-        Parses a forked repository webhook
-        :param payload:
-        :return:
-        """
-        self.repo_owner = payload['repository']['owner']['username']
-        self.repo_name = payload['repository']['name']
-        default_branch = payload['repository']['default_branch']
-        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
-        self.repo_file = os.path.join(self.temp_dir, self.repo_name + '.zip')
-        # TRICKY: gogs gives a lower case name to the folder in the zip archive
-        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
+    # Disabled by RJH because no working Gitea support
+    # def __parse_fork(self, payload):
+    #     """
+    #     Parses a forked repository webhook
+    #     :param payload:
+    #     :return:
+    #     """
+    #     self.repo_owner = payload['repository']['owner']['username']
+    #     self.repo_name = payload['repository']['name']
+    #     default_branch = payload['repository']['default_branch']
+    #     self.temp_repo_dir_path = tempfile.mkdtemp('', self.repo_name, None)
+    #     self.temp_repo_zipfile_path = os.path.join(self.temp_repo_dir_path, self.repo_name + '.zip')
+    #     # TRICKY: gogs gives a lower case name to the folder in the zip archive
+    #     self.repo_dir_path = os.path.join(self.temp_repo_dir_path, self.repo_name.lower())
 
-        # fetch latest commit from DCS
-        gitea_client = GiteaClient
-        gogs_api = gitea_client.GiteaApi(self.gogs_url)
-        gogs_auth = gitea_client.Token(self.gogs_token)
-        branch = gogs_api.get_branch(gogs_auth, self.gogs_org, self.repo_name, default_branch)
+    #     # fetch latest commit from DCS
+    #     gogs_client = GiteaClient
+    #     gogs_api = gogs_client.GiteaApi(self.gogs_url)
+    #     gogs_auth = gogs_client.Token(self.gogs_token)
+    #     branch = gogs_api.get_branch(gogs_auth, self.gogs_org, self.repo_name, default_branch)
 
-        self.commit_url = branch.commit.url
-        self.commit_id = branch.commit.id
-        self.timestamp = branch.commit.timestamp
-        self.commit_id = self.commit_id[:10]
+    #     self.commit_url = branch.commit.url
+    #     self.commit_id = branch.commit.id
+    #     self.timestamp = branch.commit.timestamp
+    #     self.commit_id = self.commit_id[:10]
 
-        # self.commit_id = payload['after']
-        # commit = None
-        # for commit in payload['commits']:
-        #     if commit['id'] == self.commit_id:
-        #         break
-        # self.commit_url = commit['url']
-        # self.timestamp = str_to_timestamp(commit['timestamp'])
-        # self.commit_id = self.commit_id[:10]
+    #     # self.commit_id = payload['after']
+    #     # commit = None
+    #     # for commit in payload['commits']:
+    #     #     if commit['id'] == self.commit_id:
+    #     #         break
+    #     # self.commit_url = commit['url']
+    #     # self.timestamp = str_to_timestamp(commit['timestamp'])
+    #     # self.commit_id = self.commit_id[:10]
 
     def __parse_push(self, payload):
         """
@@ -145,10 +168,10 @@ class WebhookHandler(Handler):
         """
         self.repo_owner = payload['repository']['owner']['username']
         self.repo_name = payload['repository']['name']
-        self.temp_dir = tempfile.mkdtemp('', self.repo_name, None)
-        self.repo_file = os.path.join(self.temp_dir, self.repo_name + '.zip')
+        self.temp_repo_dir_path = tempfile.mkdtemp('', self.repo_name, None)
+        self.temp_repo_zipfile_path = os.path.join(self.temp_repo_dir_path, self.repo_name + '.zip')
         # TRICKY: gogs gives a lower case name to the folder in the zip archive
-        self.repo_dir = os.path.join(self.temp_dir, self.repo_name.lower())
+        self.repo_dir_path = os.path.join(self.temp_repo_dir_path, self.repo_name.lower())
 
         self.commit_id = payload['after']
         commit = None
@@ -157,7 +180,7 @@ class WebhookHandler(Handler):
                 break
         self.commit_url = commit['url']
         self.timestamp = str_to_timestamp(commit['timestamp'])
-        self.commit_id = self.commit_id[:10]
+        self.commit_id = self.commit_id[:10] # Only use the short version of the commit hash
 
     def _run(self):
         if not self.commit_url.startswith(self.gogs_url):
@@ -170,7 +193,7 @@ class WebhookHandler(Handler):
         if 'pull_request' in self.repo_commit:
             pr = self.repo_commit['pull_request']
             if not pr['merged']:
-                raise Exception('Skipping un-merged pull request ' + self.repo_name)
+                raise Exception('Webhook handler skipping un-merged pull request ' + self.repo_name)
 
         try:
             # build catalog entry
@@ -180,7 +203,7 @@ class WebhookHandler(Handler):
                 if 'uploads' in data:
                     self.logger.debug('Uploading files for "{}"'.format(self.repo_name))
                     for upload in data['uploads']:
-                        self.logger.debug('^...{}'.format(upload['key']))
+                        self.logger.debug('^…{}'.format(upload['key']))
                         self.s3_handler.upload_file(upload['path'], upload['key'])
                     del data['uploads']
                 else:
@@ -193,8 +216,8 @@ class WebhookHandler(Handler):
             raise Exception, Exception(e), sys.exc_info()[2]
         finally:
             # clean
-            if self.temp_dir and os.path.isdir(self.temp_dir):
-                shutil.rmtree(self.temp_dir, ignore_errors=True)
+            if self.temp_repo_dir_path and os.path.isdir(self.temp_repo_dir_path):
+                shutil.rmtree(self.temp_repo_dir_path, ignore_errors=True)
 
         return {
             "success": True,
@@ -207,13 +230,13 @@ class WebhookHandler(Handler):
         :return: the constructed object
         """
 
-        self.download_repo(self.commit_url, self.repo_file)
-        self.unzip_repo_file(self.repo_file, self.temp_dir)
+        self.download_repo(self.commit_url, self.temp_repo_zipfile_path)
+        self.unzip_temp_repo_zipfile_path(self.temp_repo_zipfile_path, self.temp_repo_dir_path)
 
-        if not os.path.isdir(self.repo_dir):
-            raise Exception('Was not able to find {0}'.format(self.repo_dir)) # pragma: no cover
+        if not os.path.isdir(self.repo_dir_path):
+            raise Exception('Was not able to find {0}'.format(self.repo_dir_path)) # pragma: no cover
 
-        self.logger.info('Processing repository "{}"'.format(self.repo_name))
+        self.logger.info('Webhook handler processing repository "{}"'.format(self.repo_name))
         data = {}
         if self.repo_name == 'localization':
             data = self._build_localization()
@@ -223,16 +246,24 @@ class WebhookHandler(Handler):
             # TODO: we do not yet know what to do with versification
             return None
         else:
-            data = self._build_rc()
+            # Here's where we catch repos which we need to backport new TSV versions to the expected v3 Catalog formats
+            initial_manifest = self._get_initial_manifest_data()
+            if (self.repo_name.endswith('_tq') or self.repo_name.endswith('-tq') or self.repo_name == 'en_tq-tsv-test') \
+            and initial_manifest['dublin_core']['format'] == 'text/tsv':
+                data = self._tq_tsv_backport_build_rc(initial_manifest)
+            elif (self.repo_name.endswith('_tn') or self.repo_name.endswith('-tn')) \
+            and initial_manifest['dublin_core']['format'] == 'text/tsv':
+                data = self._tn_tsv_backport_build_rc(initial_manifest)
+            else:
+                data = self._default_build_rc(initial_manifest)
 
         return data
 
-    def _build_rc(self):
+    def _get_initial_manifest_data(self):
         """
-        Builds a Resource Container following the RC0.2 spec
-        :return:
+        Read the manifest and sanitize some of the data
         """
-        manifest_path = os.path.join(self.repo_dir, 'manifest.yaml')
+        manifest_path = os.path.join(self.repo_dir_path, 'manifest.yaml')
         if not os.path.isfile(manifest_path):
             raise Exception('Repository {0} does not have a manifest.yaml file'.format(self.repo_name))
         try:
@@ -250,25 +281,6 @@ class WebhookHandler(Handler):
         # resource version must be string
         manifest['dublin_core']['version'] = '{}'.format(manifest['dublin_core']['version'])
 
-        # build media formats
-        media_path = os.path.join(self.repo_dir, 'media.yaml')
-        resource_formats = []
-        project_formats = {}
-        if os.path.isfile(media_path):
-            try:
-                media = WebhookHandler.load_yaml_file(media_path)
-            except Exception as e:
-                raise Exception('Bad Media: {0}'.format(e))
-            project_chapters = self._listChapters(self.repo_dir, manifest)
-            try:
-                resource_formats, project_formats = parse_media(media=media,
-                            content_version=manifest['dublin_core']['version'],
-                            project_chapters=project_chapters)
-            except Exception as e:
-                self.report_error('Failed to parse media in {}. {}'.format(self.repo_name, e.message))
-
-        stats = os.stat(self.repo_file)
-
         # normalize dates
         try:
             manifest['dublin_core']['modified'] = str_to_timestamp(manifest['dublin_core']['modified'])
@@ -278,6 +290,298 @@ class WebhookHandler(Handler):
             manifest['dublin_core']['issued'] = str_to_timestamp(manifest['dublin_core']['issued'])
         except Exception as e:
             self.logger.warning('Invalid datetime detected: {}'.format(e.message))
+
+        return manifest
+
+    def _tq_tsv_backport_build_rc(self, manifest):
+        """
+        Builds a backported TQ markdown Resource Container following the RC0.2 spec
+        :return:
+        """
+        self.logger.debug("In '{0}' _tq_tsv_backport_build_rc with initial manifest: {1}".format(self.stage_prefix(), manifest['dublin_core']))
+
+        # build media formats
+        media_path = os.path.join(self.repo_dir_path, 'media.yaml')
+        resource_formats = []
+        project_formats = {}
+        if os.path.isfile(media_path):
+            try:
+                media = WebhookHandler.load_yaml_file(media_path)
+            except Exception as e:
+                raise Exception('Bad Media: {0}'.format(e))
+            project_chapters = self._listChapters(self.repo_dir_path, manifest)
+            try:
+                resource_formats, project_formats = parse_media(media=media,
+                            content_version=manifest['dublin_core']['version'],
+                            project_chapters=project_chapters)
+            except Exception as e:
+                self.report_error('Failed to parse media in {}. {}'.format(self.repo_name, e.message))
+        self.logger.debug("resource_formats={}".format(resource_formats))
+        self.logger.debug("project_formats={}".format(project_formats))
+
+        # Convert TQ TSV to markdown files and folders
+        # The following code is adapted from https://github.com/unfoldingWord-dev/tools/blob/develop/tsv/TQ_TSV7_to_MD.py (Python3)
+        def get_TSV_fields(input_folderpath, BBB):
+            """
+            Generator to read the TQ 5-column TSV file for a given book (BBB)
+                and return the needed fields.
+
+            Skips the heading row.
+            Checks that unused fields are actually unused.
+
+            Returns a 3-tuple with:
+                reference, question, response
+            """
+            self.logger.debug("Loading TQ {} links from 7-column TSV…".format(BBB))
+            input_filepath = os.path.join(input_folderpath,'tq_{}.tsv'.format(BBB))
+            with open(input_filepath, 'rt') as input_TSV_file:
+                for line_number, line in enumerate(input_TSV_file, start=1):
+                    line = line.rstrip('\n\r')
+                    # self.logger.debug("{:3}/ {}".format(line_number,line))
+                    if line_number == 1:
+                        if line != 'Reference\tID\tTags\tQuote\tOccurrence\tQuestion\tResponse':
+                            self.report_error('Unexpected TSV header {!r} in {}'.format(line, input_filepath))
+                    else:
+                        reference, rowID, tags, quote, occurrence, question, response = line.split('\t')
+                        assert reference; assert rowID; assert question; assert response
+                        assert not tags; assert not quote; assert not occurrence
+                        yield reference, question, response
+        # end of get_TSV_fields function
+
+        def handle_output(output_folderpath, BBB, fields):
+            """
+            Function to write the TQ markdown files.
+
+            Needs to be called one extra time with fields = None
+                to write the last entry.
+
+            Returns the number of markdown files that were written in the call.
+            """
+            global current_BCV, markdown_text
+            num_files_written = 0
+
+            if fields is not None:
+                reference, question, response = fields
+                C, V = reference.split(':')
+                # self.logger.debug(BBB,C,V,repr(annotation))
+
+            if (fields is None # We need to write the last file
+            or (markdown_text and (BBB,C,V) != current_BCV)): # need to write the previous verse file
+                assert BBB == current_BCV[0]
+                prevC, prevV = current_BCV[1:]
+                this_folderpath = os.path.join(output_folderpath, '{}/{}/'.format(BBB.lower(),prevC.zfill(2)))
+                if not os.path.exists(this_folderpath): os.makedirs(this_folderpath)
+                output_filepath = os.path.join(output_folderpath,'{}/{}.md'.format(this_folderpath,prevV.zfill(2)))
+                with open(output_filepath, 'wt') as output_markdown_file:
+                    output_markdown_file.write(markdown_text)
+                num_files_written += 1
+                markdown_text = ''
+
+            if fields is not None:
+                current_BCV = BBB, C, V
+                # question, answer = annotation.split('\\n\\n> ')
+                if markdown_text: markdown_text += '\n' # Blank line between questions
+                markdown_text += '# {}\n\n{}\n'.format(question,response) # will be written on the next call
+
+            return num_files_written
+        # end of handle_output function
+
+        # Convert TSV files to markdown
+        tsv_source_folderpath = self.repo_dir_path
+        md_output_folderpath = os.path.join(self.temp_repo_dir_path,'outputFolder/')
+        os.mkdir(md_output_folderpath)
+        self.logger.debug("Source folderpath is {}/".format(tsv_source_folderpath))
+        self.logger.debug("Source contents are {}/".format(os.listdir(tsv_source_folderpath)))
+        self.logger.debug("Output folderpath is {}/".format(md_output_folderpath))
+        total_files_read = total_questions = total_files_written = 0
+        for BBB in BBB_LIST:
+            for input_fields in get_TSV_fields(tsv_source_folderpath,BBB):
+                total_files_written += handle_output(md_output_folderpath,BBB,input_fields)
+                total_questions += 1
+            total_files_read += 1
+            total_files_written += handle_output(md_output_folderpath,BBB,None) # To write last file
+        self.logger.debug("{:,} total questions and answers read from {} TSV files".format(total_questions,total_files_read))
+        self.logger.debug("{:,} total verse files written to {}/".format(total_files_written,md_output_folderpath))
+
+        # Copy across manifest, LICENSE, README to the new markdown folder
+        shutil.copy(os.path.join(tsv_source_folderpath,'manifest.yaml'), md_output_folderpath)
+        shutil.copy(os.path.join(tsv_source_folderpath,'README.md'), md_output_folderpath)
+        shutil.copy(os.path.join(tsv_source_folderpath,'LICENSE.md'), md_output_folderpath)
+        self.logger.debug("Output contents are {}/".format(os.listdir(md_output_folderpath)))
+
+        # Now, switch folders to fool the rest of the system
+        self.repo_dir_path = md_output_folderpath # This self variable might not actually be used anymore anyway?
+
+        # TODO here: zip the above folder and substitute that
+
+        # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
+        if len(manifest['projects']) == 1:
+            zip_name = manifest['projects'][0]['identifier'].lower()
+        else:
+            zip_name = manifest['dublin_core']['identifier']
+
+        resource_key = '{}/{}/v{}/{}.zip'.format(
+                                                manifest['dublin_core']['language']['identifier'],
+                                                manifest['dublin_core']['identifier'].split('-')[-1],
+                                                manifest['dublin_core']['version'],
+                                                zip_name)
+        url = '{}/{}'.format(self.cdn_url, resource_key)
+        self.logger.debug("zn='{}' rk='{}' url='{}'".format(zip_name, resource_key, url))
+
+        stats = os.stat(self.temp_repo_zipfile_path)
+        file_info = {
+            'size': stats.st_size,
+            'modified': self.timestamp,
+            'format': 'application/zip; type={0} content={1} conformsto={2}'.format(manifest['dublin_core']['type'],
+                                                                                    manifest['dublin_core'][
+                                                                                        'format'],
+                                                                                    manifest['dublin_core'][
+                                                                                        'conformsto']),
+            'url': url,
+            'signature': ""
+        }
+        manifest['formats'] = [file_info]
+
+        uploads = [{
+                'key': self.make_upload_key(resource_key),
+                'path': self.temp_repo_zipfile_path
+            }]
+        self.logger.debug("fi='{}' upl='{}'".format(file_info, uploads))
+
+        # add media to projects
+        for project in manifest['projects']:
+            pid = self.sanitize_identifier(project['identifier'])
+            if pid in project_formats:
+                if 'formats' not in project: project['formats'] = []
+                project['formats'] = project['formats'] + project_formats[pid]
+            self.logger.debug("pid={} project['formats']={}",format(pid, project['formats']))
+
+        # add media to resource
+        manifest['formats'] = manifest['formats'] + resource_formats
+        self.logger.debug("manifest['formats']={}",format(manifest['formats']))
+
+        return {
+            'repo_name': self.repo_name,
+            'commit_id': self.commit_id,
+            'language': manifest['dublin_core']['language']['identifier'],
+            'timestamp': self.timestamp,
+            'added_at': arrow.utcnow().isoformat(),
+            'package': json.dumps(manifest, sort_keys=True),
+            'signed': False,
+            'dirty': False,
+            'uploads': uploads
+        }
+
+    def _tn_tsv_backport_build_rc(self, manifest):
+        """
+        Builds a backported TN Resource Container following the RC0.2 spec
+        :return:
+        """
+        self.logger.debug("In '{0}' _tn_tsv_backport_build_rc with initial manifest: {1}".format(self.stage_prefix(), manifest['dublin_core']))
+
+        # build media formats
+        media_path = os.path.join(self.repo_dir_path, 'media.yaml')
+        resource_formats = []
+        project_formats = {}
+        if os.path.isfile(media_path):
+            try:
+                media = WebhookHandler.load_yaml_file(media_path)
+            except Exception as e:
+                raise Exception('Bad Media: {0}'.format(e))
+            project_chapters = self._listChapters(self.repo_dir_path, manifest)
+            try:
+                resource_formats, project_formats = parse_media(media=media,
+                            content_version=manifest['dublin_core']['version'],
+                            project_chapters=project_chapters)
+            except Exception as e:
+                self.report_error('Failed to parse media in {}. {}'.format(self.repo_name, e.message))
+        self.logger.debug("resource_formats={}".format(resource_formats))
+        self.logger.debug("project_formats={}".format(project_formats))
+
+        stats = os.stat(self.temp_repo_zipfile_path)
+
+        # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
+        if len(manifest['projects']) == 1:
+            zip_name = manifest['projects'][0]['identifier'].lower()
+        else:
+            zip_name = manifest['dublin_core']['identifier']
+
+        resource_key = '{}/{}/v{}/{}.zip'.format(
+                                                manifest['dublin_core']['language']['identifier'],
+                                                manifest['dublin_core']['identifier'].split('-')[-1],
+                                                manifest['dublin_core']['version'],
+                                                zip_name)
+        url = '{}/{}'.format(self.cdn_url, resource_key)
+        self.logger.debug("zn='{}' rk='{}' url='{}'".format(zip_name, resource_key, url))
+
+        file_info = {
+            'size': stats.st_size,
+            'modified': self.timestamp,
+            'format': 'application/zip; type={0} content={1} conformsto={2}'.format(manifest['dublin_core']['type'],
+                                                                                    manifest['dublin_core'][
+                                                                                        'format'],
+                                                                                    manifest['dublin_core'][
+                                                                                        'conformsto']),
+            'url': url,
+            'signature': ""
+        }
+        manifest['formats'] = [file_info]
+
+        uploads = [{
+                'key': self.make_upload_key(resource_key),
+                'path': self.temp_repo_zipfile_path
+            }]
+        self.logger.debug("fi='{}' upl='{}'".format(file_info, uploads))
+
+        # add media to projects
+        for project in manifest['projects']:
+            pid = self.sanitize_identifier(project['identifier'])
+            if pid in project_formats:
+                if 'formats' not in project: project['formats'] = []
+                project['formats'] = project['formats'] + project_formats[pid]
+            self.logger.debug("pid={} project['formats']={}",format(pid, project['formats']))
+
+        # add media to resource
+        manifest['formats'] = manifest['formats'] + resource_formats
+        self.logger.debug("manifest['formats']={}",format(manifest['formats']))
+
+        return {
+            'repo_name': self.repo_name,
+            'commit_id': self.commit_id,
+            'language': manifest['dublin_core']['language']['identifier'],
+            'timestamp': self.timestamp,
+            'added_at': arrow.utcnow().isoformat(),
+            'package': json.dumps(manifest, sort_keys=True),
+            'signed': False,
+            'dirty': False,
+            'uploads': uploads
+        }
+
+    def _default_build_rc(self, manifest):
+        """
+        Builds a Resource Container following the RC0.2 spec
+        :return:
+        """
+        # self.logger.debug("In '{0}' _default_build_rc with initial manifest: {1}".format(self.stage_prefix(), manifest['dublin_core']))
+
+        # build media formats
+        media_path = os.path.join(self.repo_dir_path, 'media.yaml')
+        resource_formats = []
+        project_formats = {}
+        if os.path.isfile(media_path):
+            try:
+                media = WebhookHandler.load_yaml_file(media_path)
+            except Exception as e:
+                raise Exception('Bad Media: {0}'.format(e))
+            project_chapters = self._listChapters(self.repo_dir_path, manifest)
+            try:
+                resource_formats, project_formats = parse_media(media=media,
+                            content_version=manifest['dublin_core']['version'],
+                            project_chapters=project_chapters)
+            except Exception as e:
+                self.report_error('Failed to parse media in {}. {}'.format(self.repo_name, e.message))
+
+        stats = os.stat(self.temp_repo_zipfile_path)
 
         # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
         if len(manifest['projects']) == 1:
@@ -307,7 +611,7 @@ class WebhookHandler(Handler):
 
         uploads = [{
                 'key': self.make_upload_key(resource_key),
-                'path': self.repo_file
+                'path': self.temp_repo_zipfile_path
             }]
 
         # split usfm bundles
@@ -323,7 +627,7 @@ class WebhookHandler(Handler):
                                                         manifest['dublin_core']['version'],
                                                         pid)
                 project_url = '{}/{}'.format(self.cdn_url, project_key)
-                p_file_path = os.path.join(self.repo_dir, project['path'].lstrip('\.\/'))
+                p_file_path = os.path.join(self.repo_dir_path, project['path'].lstrip('\.\/'))
                 p_stats = os.stat(p_file_path)
                 try:
                     resource_mtime = str_to_timestamp(manifest['dublin_core']['modified'])
@@ -434,7 +738,7 @@ class WebhookHandler(Handler):
         we are no longer processing versification.
         :return:
         """
-        bible_dir = os.path.join(self.repo_dir, 'bible')
+        bible_dir = os.path.join(self.repo_dir_path, 'bible')
         versification_dirs = os.listdir(bible_dir)
         books = {}
         package = []
@@ -457,14 +761,14 @@ class WebhookHandler(Handler):
                     'chunks': {}
                 })
                 book['chunks'][vrs_id] = book_vrs
-        temp_dir = os.path.join(self.temp_dir, 'versification')
+        temp_repo_dir_path = os.path.join(self.temp_repo_dir_path, 'versification')
         if not os.path.isdir:
-            os.mkdir(temp_dir)
+            os.mkdir(temp_repo_dir_path)
         for book in books:
             book = books[book]
 
             # write chunks
-            chunk_file = os.path.join(temp_dir, book['identifier'] + '.json')
+            chunk_file = os.path.join(temp_repo_dir_path, book['identifier'] + '.json')
             write_file(chunk_file, json.dumps(book['chunks'], sort_keys=True))
             # for now we bypass signing and upload chunks directly
             upload_key = 'bible/{}/v{}/chunks.json'.format(book['identifier'], self.api_version)
@@ -492,10 +796,10 @@ class WebhookHandler(Handler):
         Builds the localization for various components in the catalog
         :return:
         """
-        files = sorted(glob(os.path.join(self.repo_dir, '*.json')))
+        files = sorted(glob(os.path.join(self.repo_dir_path, '*.json')))
         localization = {}
         for f in files:
-            self.logger.debug("Reading {0}...".format(f))
+            self.logger.debug("Webhook handler _build_localization reading {0}…".format(f))
             language = os.path.splitext(os.path.basename(f))[0]
             try:
                 localization[language] = json.loads(read_file(f))
@@ -514,7 +818,7 @@ class WebhookHandler(Handler):
         Builds the global catalogs
         :return:
         """
-        catalogs_path = os.path.join(self.repo_dir, 'catalogs.json')
+        catalogs_path = os.path.join(self.repo_dir_path, 'catalogs.json')
         package = read_file(catalogs_path)
         return {
             'repo_name': self.repo_name,
@@ -564,18 +868,18 @@ class WebhookHandler(Handler):
     def get_url(self, url):
         return get_url(url)
 
-    def download_repo(self, commit_url, repo_file):
+    def download_repo(self, commit_url, temp_repo_zipfile_path):
         repo_zip_url = commit_url.replace('commit', 'archive') + '.zip'
         try:
-            self.logger.debug('Downloading {0}...'.format(repo_zip_url))
-            if not os.path.isfile(repo_file):
-                self.download_file(repo_zip_url, repo_file)
+            self.logger.debug('Webhook handler downloading {0}…'.format(repo_zip_url))
+            if not os.path.isfile(temp_repo_zipfile_path):
+                self.download_file(repo_zip_url, temp_repo_zipfile_path)
         finally:
             pass
 
-    def unzip_repo_file(self, repo_file, repo_dir):
+    def unzip_temp_repo_zipfile_path(self, temp_repo_zipfile_path, repo_dir_path):
         try:
-            self.logger.debug('Unzipping {0}...'.format(repo_file))
-            unzip(repo_file, repo_dir)
+            self.logger.debug('Webhook handler unzipping {0}…'.format(temp_repo_zipfile_path))
+            unzip(temp_repo_zipfile_path, repo_dir_path)
         finally:
             pass

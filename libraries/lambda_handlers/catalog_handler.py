@@ -342,5 +342,5 @@ class CatalogHandler(InstanceHandler):
             self.logger.debug('Old catalog hash: {}'.format(old_hash))
             self.logger.debug('New catalog hash: {}'.format(new_hash))
             return old_hash != new_hash
-        except Exception as e:
+        except Exception:
             return True

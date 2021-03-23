@@ -46,6 +46,7 @@ def ext_to_mime(ext):
         'html': 'text/html',
         'md': 'text/markdown',
         'txt': 'text/txt',
+        'tsv': 'text/tsv',
         'usfm': 'text/usfm',
         'doc': 'application/doc',
         'docx': 'application/docx',
