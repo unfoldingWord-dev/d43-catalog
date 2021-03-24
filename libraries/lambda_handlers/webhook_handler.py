@@ -21,12 +21,13 @@ import sys
 import yaml
 import copy
 import re
+import zipfile
 
 from glob import glob
 from d43_aws_tools import DynamoDBHandler, S3Handler
 from libraries.tools.consistency_checker import ConsistencyChecker
 from libraries.tools.date_utils import str_to_timestamp
-from libraries.tools.file_utils import unzip, read_file, write_file
+from libraries.tools.file_utils import unzip, read_file, write_file, add_contents_to_zip
 from libraries.tools.url_utils import get_url, download_file, url_exists
 from libraries.tools.media_utils import parse_media
 
@@ -193,7 +194,7 @@ class WebhookHandler(Handler):
         if 'pull_request' in self.repo_commit:
             pr = self.repo_commit['pull_request']
             if not pr['merged']:
-                raise Exception('Webhook handler skipping un-merged pull request ' + self.repo_name)
+                raise Exception("Webhook handler skipping un-merged pull request for {}".format(self.repo_name))
 
         try:
             # build catalog entry
@@ -201,9 +202,9 @@ class WebhookHandler(Handler):
             if data:
                 # upload data
                 if 'uploads' in data:
-                    self.logger.debug('Uploading files for "{}"'.format(self.repo_name))
+                    self.logger.debug("Webhook handler uploading files for '{}'".format(self.repo_name))
                     for upload in data['uploads']:
-                        self.logger.debug('^…{}'.format(upload['key']))
+                        self.logger.debug("Webhook handler uploading {} to {}…".format(upload['path'], upload['key']))
                         self.s3_handler.upload_file(upload['path'], upload['key'])
                     del data['uploads']
                 else:
@@ -298,7 +299,7 @@ class WebhookHandler(Handler):
         Builds a backported TQ markdown Resource Container following the RC0.2 spec
         :return:
         """
-        self.logger.debug("In '{0}' _tq_tsv_backport_build_rc with initial manifest: {1}".format(self.stage_prefix(), manifest['dublin_core']))
+        self.logger.debug("In '{0}' _tq_tsv_backport_build_rc with initial manifest dublin_core: {1}".format(self.stage_prefix(), manifest['dublin_core']))
 
         # build media formats
         media_path = os.path.join(self.repo_dir_path, 'media.yaml')
@@ -332,20 +333,24 @@ class WebhookHandler(Handler):
             Returns a 3-tuple with:
                 reference, question, response
             """
-            self.logger.debug("Loading TQ {} links from 7-column TSV…".format(BBB))
-            input_filepath = os.path.join(input_folderpath,'tq_{}.tsv'.format(BBB))
+            # self.logger.debug("Loading TQ {} links from 7-column TSV…".format(BBB))
+            input_filename = 'tq_{}.tsv'.format(BBB)
+            input_filepath = os.path.join(input_folderpath, input_filename)
             with open(input_filepath, 'rt') as input_TSV_file:
                 for line_number, line in enumerate(input_TSV_file, start=1):
                     line = line.rstrip('\n\r')
                     # self.logger.debug("{:3}/ {}".format(line_number,line))
                     if line_number == 1:
                         if line != 'Reference\tID\tTags\tQuote\tOccurrence\tQuestion\tResponse':
-                            self.report_error('Unexpected TSV header {!r} in {}'.format(line, input_filepath))
+                            self.report_error('Unexpected TSV header {!r} in {}'.format(line, input_filename))
                     else:
-                        reference, rowID, tags, quote, occurrence, question, response = line.split('\t')
-                        assert reference; assert rowID; assert question; assert response
-                        assert not tags; assert not quote; assert not occurrence
-                        yield reference, question, response
+                        try:
+                            reference, rowID, tags, quote, occurrence, question, response = line.split('\t')
+                            assert reference; assert rowID; assert question; assert response
+                            assert not tags; assert not quote; assert not occurrence
+                            yield reference, question, response
+                        except Exception as e:
+                            self.report_error("Skipped {} line '{}' because of {}".format(input_filename, line, e))
         # end of get_TSV_fields function
 
         def handle_output(output_folderpath, BBB, fields):
@@ -386,12 +391,12 @@ class WebhookHandler(Handler):
             return num_files_written
         # end of handle_output function
 
-        # Convert TSV files to markdown
+        # Convert TQ TSV files to markdown
         tsv_source_folderpath = self.repo_dir_path
         md_output_folderpath = os.path.join(self.temp_repo_dir_path,'outputFolder/')
         os.mkdir(md_output_folderpath)
         self.logger.debug("Source folderpath is {}/".format(tsv_source_folderpath))
-        self.logger.debug("Source contents are {}/".format(os.listdir(tsv_source_folderpath)))
+        self.logger.debug("Source contents are {}".format(os.listdir(tsv_source_folderpath)))
         self.logger.debug("Output folderpath is {}/".format(md_output_folderpath))
         total_files_read = total_questions = total_files_written = 0
         for BBB in BBB_LIST:
@@ -400,19 +405,28 @@ class WebhookHandler(Handler):
                 total_questions += 1
             total_files_read += 1
             total_files_written += handle_output(md_output_folderpath,BBB,None) # To write last file
-        self.logger.debug("{:,} total questions and answers read from {} TSV files".format(total_questions,total_files_read))
-        self.logger.debug("{:,} total verse files written to {}/".format(total_files_written,md_output_folderpath))
+        self.logger.debug("{:,} total questions and answers read from {} TSV files".format(total_questions, total_files_read))
+        self.logger.debug("{:,} total verse files written to {}/".format(total_files_written, md_output_folderpath))
 
         # Copy across manifest, LICENSE, README to the new markdown folder
         shutil.copy(os.path.join(tsv_source_folderpath,'manifest.yaml'), md_output_folderpath)
         shutil.copy(os.path.join(tsv_source_folderpath,'README.md'), md_output_folderpath)
         shutil.copy(os.path.join(tsv_source_folderpath,'LICENSE.md'), md_output_folderpath)
-        self.logger.debug("Output contents are {}/".format(os.listdir(md_output_folderpath)))
+        self.logger.debug("Output contents are {}".format(os.listdir(md_output_folderpath)))
 
         # Now, switch folders to fool the rest of the system
-        self.repo_dir_path = md_output_folderpath # This self variable might not actually be used anymore anyway?
+        self.repo_dir_path = md_output_folderpath # This self variable might not actually be used later in this function anyway???
 
-        # TODO here: zip the above folder and substitute that
+        # Zip the above folder and substitute that
+        self.zip_files(md_output_folderpath, self.temp_repo_zipfile_path)
+        # self.temp_repo_zipfile_path = self.temp_repo_zipfile_path
+        # So now this new zipfile should be used in uploads below
+
+        # Then figure out what format fields, etc. have to be changed in the manifest somehow
+        assert manifest['dublin_core']['subject'] == 'TSV Translation Questions'
+        manifest['dublin_core']['subject'] = 'Translation Questions'
+        assert manifest['dublin_core']['format'] == 'text/tsv'
+        manifest['dublin_core']['format'] = 'text/markdown'
 
         # TRICKY: single-project RCs get named after the project to avoid conflicts with multi-project RCs.
         if len(manifest['projects']) == 1:
@@ -454,11 +468,13 @@ class WebhookHandler(Handler):
             if pid in project_formats:
                 if 'formats' not in project: project['formats'] = []
                 project['formats'] = project['formats'] + project_formats[pid]
-            self.logger.debug("pid={} project['formats']={}",format(pid, project['formats']))
+            if 'formats' in project:
+                self.logger.debug("pid={} project['formats']={}".format(pid, project['formats']))
+            # else: self.logger.debug("pid={}".format(pid)) # it's the lowercase bookID
 
         # add media to resource
         manifest['formats'] = manifest['formats'] + resource_formats
-        self.logger.debug("manifest['formats']={}",format(manifest['formats']))
+        self.logger.debug("manifest['formats']={}".format(manifest['formats']))
 
         return {
             'repo_name': self.repo_name,
@@ -477,7 +493,7 @@ class WebhookHandler(Handler):
         Builds a backported TN Resource Container following the RC0.2 spec
         :return:
         """
-        self.logger.debug("In '{0}' _tn_tsv_backport_build_rc with initial manifest: {1}".format(self.stage_prefix(), manifest['dublin_core']))
+        self.logger.debug("In '{0}' _tn_tsv_backport_build_rc with initial manifest dublin_core: {1}".format(self.stage_prefix(), manifest['dublin_core']))
 
         # build media formats
         media_path = os.path.join(self.repo_dir_path, 'media.yaml')
@@ -539,11 +555,13 @@ class WebhookHandler(Handler):
             if pid in project_formats:
                 if 'formats' not in project: project['formats'] = []
                 project['formats'] = project['formats'] + project_formats[pid]
-            self.logger.debug("pid={} project['formats']={}",format(pid, project['formats']))
+            if 'formats' in project:
+                self.logger.debug("pid={} project['formats']={}".format(pid, project['formats']))
+            # else: self.logger.debug("pid={}".format(pid)) # it's the lowercase bookID
 
         # add media to resource
         manifest['formats'] = manifest['formats'] + resource_formats
-        self.logger.debug("manifest['formats']={}",format(manifest['formats']))
+        self.logger.debug("manifest['formats']={}".format(manifest['formats']))
 
         return {
             'repo_name': self.repo_name,
@@ -562,7 +580,7 @@ class WebhookHandler(Handler):
         Builds a Resource Container following the RC0.2 spec
         :return:
         """
-        # self.logger.debug("In '{0}' _default_build_rc with initial manifest: {1}".format(self.stage_prefix(), manifest['dublin_core']))
+        # self.logger.debug("In '{0}' _default_build_rc with initial manifest dublin_core: {1}".format(self.stage_prefix(), manifest['dublin_core']))
 
         # build media formats
         media_path = os.path.join(self.repo_dir_path, 'media.yaml')
@@ -883,3 +901,12 @@ class WebhookHandler(Handler):
             unzip(temp_repo_zipfile_path, repo_dir_path)
         finally:
             pass
+
+    @staticmethod
+    def zip_files(source_folder, desired_zip_filepath):
+        """
+        Added by RJH for backporting
+        """
+        with zipfile.ZipFile(desired_zip_filepath, 'w'): # 'w' to truncate and write a new file
+            pass  # create empty archive
+        add_contents_to_zip(desired_zip_filepath, source_folder)
