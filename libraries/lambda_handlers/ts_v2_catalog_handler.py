@@ -301,7 +301,8 @@ class TsV2CatalogHandler(InstanceHandler):
             api_uploads.append(prep_data_upload('{}/languages.json'.format(pid), lang_cat, self.temp_dir))
 
             del project['_langs']
-            root_cat.append(project)
+            if len(lang_cat) != 0:
+                root_cat.append(project)
         catalog_upload = prep_data_upload('catalog.json', root_cat, self.temp_dir)
         api_uploads.append(catalog_upload)
         # TRICKY: also upload to legacy path for backwards compatibility
