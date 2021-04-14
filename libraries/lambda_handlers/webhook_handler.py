@@ -73,10 +73,11 @@ class WebhookHandler(Handler):
         if 'pull_request' in self.repo_commit:
             # TODO: this is deprecated
             self.__parse_pull_request(self.repo_commit)
-        # Disabled by RJH because no working Gitea support
-        # elif 'forkee' in self.repo_commit or ('action' in self.repo_commit and self.repo_commit['action'] == 'created'):
-        #     # handles fork and create events
-        #     self.__parse_fork(self.repo_commit)
+        elif 'forkee' in self.repo_commit or ('action' in self.repo_commit and self.repo_commit['action'] == 'created'):
+            # handles fork and create events
+            # NOTE: However, it's the repo change-owner command (from STR to Door43-Catalog) that we need to catch here
+            #           but Gitea doesn't activate a webhook for that AFAIK
+            self.__parse_fork(self.repo_commit)
         elif 'pusher' in self.repo_commit:
             self.__parse_push(self.repo_commit)
         else:
@@ -126,40 +127,42 @@ class WebhookHandler(Handler):
         else:
             self.commit_id = None
 
-    # Disabled by RJH because no working Gitea support
-    # def __parse_fork(self, payload):
-    #     """
-    #     Parses a forked repository webhook
-    #     :param payload:
-    #     :return:
-    #     """
-    #     self.repo_owner = payload['repository']['owner']['username']
-    #     self.repo_name = payload['repository']['name']
-    #     default_branch = payload['repository']['default_branch']
-    #     self.temp_repo_dir_path = tempfile.mkdtemp('', self.repo_name, None)
-    #     self.temp_repo_zipfile_path = os.path.join(self.temp_repo_dir_path, self.repo_name + '.zip')
-    #     # TRICKY: gogs gives a lower case name to the folder in the zip archive
-    #     self.repo_dir_path = os.path.join(self.temp_repo_dir_path, self.repo_name.lower())
+    def __parse_fork(self, payload):
+        """
+        Parses a forked or created repository webhook
 
-    #     # fetch latest commit from DCS
-    #     gogs_client = GiteaClient
-    #     gogs_api = gogs_client.GiteaApi(self.gogs_url)
-    #     gogs_auth = gogs_client.Token(self.gogs_token)
-    #     branch = gogs_api.get_branch(gogs_auth, self.gogs_org, self.repo_name, default_branch)
+        This code does not currently work (says RJH, April 2021)
 
-    #     self.commit_url = branch.commit.url
-    #     self.commit_id = branch.commit.id
-    #     self.timestamp = branch.commit.timestamp
-    #     self.commit_id = self.commit_id[:10]
+        :param payload:
+        :return:
+        """
+        self.repo_owner = payload['repository']['owner']['username'] # This gives the owner of the new fork, often 'STR' (which then fails later in _run())
+        self.repo_name = payload['repository']['name']
+        default_branch = payload['repository']['default_branch']
+        self.temp_repo_dir_path = tempfile.mkdtemp('', self.repo_name, None)
+        self.temp_repo_zipfile_path = os.path.join(self.temp_repo_dir_path, self.repo_name + '.zip')
+        # TRICKY: gogs gives a lower case name to the folder in the zip archive
+        self.repo_dir_path = os.path.join(self.temp_repo_dir_path, self.repo_name.lower())
 
-    #     # self.commit_id = payload['after']
-    #     # commit = None
-    #     # for commit in payload['commits']:
-    #     #     if commit['id'] == self.commit_id:
-    #     #         break
-    #     # self.commit_url = commit['url']
-    #     # self.timestamp = str_to_timestamp(commit['timestamp'])
-    #     # self.commit_id = self.commit_id[:10]
+        # fetch latest commit from DCS
+        gogs_client = GiteaClient
+        gogs_api = gogs_client.GiteaApi(self.gogs_url)
+        gogs_auth = gogs_client.Token(self.gogs_token)
+        branch = gogs_api.get_branch(gogs_auth, self.gogs_org, self.repo_name, default_branch)
+
+        self.commit_url = branch.commit.url
+        self.commit_id = branch.commit.id
+        self.timestamp = branch.commit.timestamp
+        self.commit_id = self.commit_id[:10]
+
+        # self.commit_id = payload['after']
+        # commit = None
+        # for commit in payload['commits']:
+        #     if commit['id'] == self.commit_id:
+        #         break
+        # self.commit_url = commit['url']
+        # self.timestamp = str_to_timestamp(commit['timestamp'])
+        # self.commit_id = self.commit_id[:10]
 
     def __parse_push(self, payload):
         """
@@ -188,7 +191,7 @@ class WebhookHandler(Handler):
             raise Exception('Only accepting webhooks from {0} but found {1}'.format(self.gogs_url, self.commit_url)) # pragma: no cover
 
         if self.repo_owner.lower() != self.gogs_org.lower():
-            raise Exception("Only accepting repos from the {0} organization".format(self.gogs_org)) # pragma: no cover
+            raise Exception("Only accepting repos from the {0} organization not from {1}".format(self.gogs_org, self.repo_owner)) # pragma: no cover
 
         # skip un-merged pull requests
         if 'pull_request' in self.repo_commit:
@@ -249,6 +252,7 @@ class WebhookHandler(Handler):
         else:
             # Here's where we catch repos which we need to backport new TSV versions to the expected v3 Catalog formats
             initial_manifest = self._get_initial_manifest_data()
+            # TODO: Remove this hard-coded test repo once it's working
             if (self.repo_name.endswith('_tq') or self.repo_name.endswith('-tq') or self.repo_name == 'en_tq-tsv-test') \
             and initial_manifest['dublin_core']['format'] == 'text/tsv':
                 data = self._tq_tsv_backport_build_rc(initial_manifest)
