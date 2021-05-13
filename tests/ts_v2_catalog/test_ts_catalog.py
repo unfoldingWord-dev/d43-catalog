@@ -353,33 +353,33 @@ some more text
         self.assertEqual(expected_index, index)
 
     # @unittest.skipIf(is_travis(), 'Skipping test_everything on Travis CI.')
-    def test_everything(self, mock_reporter):
-        """
-        This will run through a full catalog build using live data, though nothing will be uploaded to the server.
-        :return:
-        """
-        mockS3 = MockS3Handler('ts_bucket')
-        mockLogger = MockLogger()
-        mockDb = MockDynamodbHandler()
-        mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json')) # you can also play with ready_processing_db.json
-
-        event = {
-            'stage-variables': {
-                'cdn_bucket': 'cdn.door43.org',
-                'cdn_url': 'https://cdn.door43.org/',
-                'catalog_url': 'https://api.door43.org/v3/catalog.json',
-                'from_email': '',
-                'to_email': ''
-            }
-        }
-        converter = TsV2CatalogHandler(event=event,
-                                       context=None,
-                                       logger=mockLogger,
-                                       s3_handler=mockS3,
-                                       dynamodb_handler=mockDb)
-        converter.run()
-
-        db_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'out', 'db.json')
-        mockDb._exportToFile(db_file)
-        self.assertTrue(os.path.exists(db_file))
-        print('done')
+    # def test_everything(self, mock_reporter):
+    #     """
+    #     This will run through a full catalog build using live data, though nothing will be uploaded to the server.
+    #     :return:
+    #     """
+    #     mockS3 = MockS3Handler('ts_bucket')
+    #     mockLogger = MockLogger()
+    #     mockDb = MockDynamodbHandler()
+    #     mockDb._load_db(os.path.join(TestTsV2Catalog.resources_dir, 'ready_new_db.json')) # you can also play with ready_processing_db.json
+    #
+    #     event = {
+    #         'stage-variables': {
+    #             'cdn_bucket': 'cdn.door43.org',
+    #             'cdn_url': 'https://cdn.door43.org/',
+    #             'catalog_url': 'https://api.door43.org/v3/catalog.json',
+    #             'from_email': '',
+    #             'to_email': ''
+    #         }
+    #     }
+    #     converter = TsV2CatalogHandler(event=event,
+    #                                    context=None,
+    #                                    logger=mockLogger,
+    #                                    s3_handler=mockS3,
+    #                                    dynamodb_handler=mockDb)
+    #     converter.run()
+    #
+    #     db_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'out', 'db.json')
+    #     mockDb._exportToFile(db_file)
+    #     self.assertTrue(os.path.exists(db_file))
+    #     print('done')

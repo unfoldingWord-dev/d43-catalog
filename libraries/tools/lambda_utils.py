@@ -28,21 +28,40 @@ def is_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None
         "lambda": lambda_name
     })
     if request:
-        last_time = arrow.get(request['started_at']).to('local')
-        # TRICKY: we use this lambda's expires time instead of the recorded value avoid delays in applying changes to expiration times.
-        timeout = arrow.now().shift(minutes=-lambda_min_remaining(context))
-        return last_time > timeout
+        start_time = arrow.get(request['started_at']).to('local')
+        expires_time = start_time.shift(minutes=request['expires'] / 60000)
+        return arrow.now() > expires_time
     else:
         return False
 
-def lambda_min_remaining(context):
+
+def lambda_sec_remaining(context, dbname, lambda_suffix=None, dynamodb_handler=None):
     """
-    Returns the time remaining in minutes before the lambda times out
+    Returns the time remaining in seconds before the lambda times out
     :param context:
     :return:
     """
-    time_remaining = context.get_remaining_time_in_millis() / 60000  # ms to min
-    return time_remaining
+    if not context:
+        return False
+    if dynamodb_handler:
+        db = dynamodb_handler(dbname)
+    else:
+        db = DynamoDBHandler(dbname)
+
+    lambda_name = context.function_name
+    if lambda_suffix:
+        lambda_name = '{}.{}'.format(lambda_name, lambda_suffix)
+
+    request = db.get_item({
+        "lambda": lambda_name
+    })
+    if request:
+        start_time = arrow.get(request['started_at']).to('local')
+        expires_time = start_time.shift(minutes=request['expires'] / 60000)
+        return expires_time - arrow.now()
+    else:
+        return 0
+
 
 def set_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None):
     """
