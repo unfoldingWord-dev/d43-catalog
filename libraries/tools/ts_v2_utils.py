@@ -97,6 +97,7 @@ def tn_tsv_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
 
     for project in manifest['projects']:
         pid = Handler.sanitize_identifier(project['identifier'])
+        # TODO: check if the notes have changed and skip it otherwise
         chunks = []
 
         # verify project file exists
@@ -257,6 +258,7 @@ def tn_md_to_json_file(lid, temp_dir, rc_dir, manifest, reporter=None):
 
     for project in manifest['projects']:
         pid = Handler.sanitize_identifier(project['identifier'])
+        # TODO: check if the notes have changed and skip it otherwise
         chunk_json = []
         if pid != 'obs':
             try:

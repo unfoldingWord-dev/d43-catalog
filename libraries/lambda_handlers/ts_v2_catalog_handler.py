@@ -339,6 +339,15 @@ class TsV2CatalogHandler(InstanceHandler):
         self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
     def _has_project_changed(self, lid, rid, pid, modified_at):
+        """
+        Checks if a project has changed.
+        The project is considered changed if the modified_at value is newer than what's found in the tS catalog.
+        :param lid:
+        :param rid:
+        :param pid:
+        :param modified_at:
+        :return:
+        """
         # look up the existing resources entry
         cache_key = '{0}--{1}'.format(pid, lid)
         if cache_key in self.ts_resource_cache:
@@ -442,6 +451,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
             for project in manifest['projects']:
                 pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
+                # TODO: check if the questions have changed and skip it otherwise.
                 question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
                 question_json = []
 
@@ -639,6 +649,13 @@ class TsV2CatalogHandler(InstanceHandler):
                 process_id = '_'.join([lid, rid, pid])
 
                 if process_id not in self.status['processed']:
+                    # skip re-processing projects that have not changed
+                    if not self._has_project_changed(lid, rid, pid, format['modified']):
+                        self.status['processed'][process_id] = []
+                        self._set_status()
+                        self.logger.debug('Skipping {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
+                        continue
+
                     self.logger.info('Processing {}'.format(process_id))
 
                     # copy usfm project file
