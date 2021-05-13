@@ -234,6 +234,7 @@ class TsV2CatalogHandler(InstanceHandler):
                         raise Exception('Could not find a format for {}_{}_{}'.format(lid, rid, pid))
 
                     modified = make_legacy_date(rc_format['modified'])
+                    long_modified = rc_format['modified']
                     rc_type = get_rc_type(rc_format)
 
                     if modified is None:
@@ -241,9 +242,11 @@ class TsV2CatalogHandler(InstanceHandler):
                         self.logger.warning('Could not find date modified for {}_{}_{} from "{}"'.format(lid, rid, pid,
                                                                                                          rc_format[
                                                                                                              'modified']))
+                    if long_modified is None:
+                        long_modified = modified
 
                     if rc_type == 'book' or rc_type == 'bundle':
-                        self._build_catalog_node(cat_dict, lang, res, project, modified)
+                        self._build_catalog_node(cat_dict, lang, res, project, modified, long_modified)
                     else:
                         # store supplementary resources for processing after catalog nodes have been fully built
                         supplemental_resources.append({
@@ -251,6 +254,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             'resource': res,
                             'project': project,
                             'modified': modified,
+                            'long_modified': long_modified,
                             'rc_type': rc_type
                         })
 
@@ -781,7 +785,7 @@ class TsV2CatalogHandler(InstanceHandler):
         if lid is not None and rid is not None:
             if rid not in catalog[pid]['_langs'][lid]['_res']: catalog[pid]['_langs'][lid]['_res'][rid] = {}
 
-    def _build_catalog_node(self, catalog, language, resource, project, modified):
+    def _build_catalog_node(self, catalog, language, resource, project, modified, long_modified):
         """
         Creates/updates a node in the catalog
         :param catalog: the v2 catalog dictionary
@@ -805,6 +809,7 @@ class TsV2CatalogHandler(InstanceHandler):
         # resource
         res = catalog[pid]['_langs'][lid]['_res'][rid]
         r_modified = max_modified_date(res, modified)  # TRICKY: dates bubble up from project
+        r_long_modified = max_modified_date(res, long_modified)  # TRICKY: dates bubble up from project
         comments = ''  # TRICKY: comments are not officially supported in RCs but we use them if available
         if 'comment' in resource: comments = resource['comment']
 
@@ -830,6 +835,7 @@ class TsV2CatalogHandler(InstanceHandler):
         #     self.report_error('Missing source translation in {} {}'.format(lid, rid))
         res.update({
             'date_modified': r_modified,
+            'long_date_modified': r_long_modified,
             'name': resource['title'],
             'notes': '',
             'slug': rid,
@@ -871,6 +877,7 @@ class TsV2CatalogHandler(InstanceHandler):
         # language
         lang = catalog[pid]['_langs'][lid]
         l_modified = max_modified_date(lang['language'], r_modified)  # TRICKY: dates bubble up from resource
+        l_long_modified = max_modified_date(lang['language'], r_long_modified)  # TRICKY: dates bubble up from resource
         description = ''
         if rid == 'obs': description = resource['description']
         project_meta = list(project['categories'])  # default to category ids
@@ -885,6 +892,7 @@ class TsV2CatalogHandler(InstanceHandler):
         cat_lang = {
             'language': {
                 'date_modified': l_modified,
+                'long_date_modified': l_long_modified,
                 'direction': language['direction'],
                 'name': language['title'],
                 'slug': lid
