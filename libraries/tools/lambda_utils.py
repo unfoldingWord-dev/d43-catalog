@@ -57,7 +57,8 @@ def lambda_sec_remaining(context, dbname, lambda_suffix=None, dynamodb_handler=N
     })
     if request:
         start_time = arrow.get(request['started_at']).to('local')
-        expires_time = start_time.shift(minutes=request['expires'] / 60000)
+        # TRICKY: expires is in milliseconds
+        expires_time = start_time.shift(microseconds=(int(request['expires']) * 1000))
         return expires_time - arrow.now()
     else:
         return 0
