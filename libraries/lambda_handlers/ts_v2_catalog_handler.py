@@ -21,7 +21,8 @@ from libraries.tools.file_utils import read_file, download_rc, remove, get_subdi
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from libraries.tools.ts_v2_utils import convert_rc_links, build_json_source_from_usx, make_legacy_date, \
-    max_modified_date, get_rc_type, build_usx, prep_data_upload, index_tn_rc, date_is_older
+    max_modified_date, get_rc_type, build_usx, prep_data_upload, index_tn_rc, date_is_older, max_long_modified_date, \
+    get_project_from_manifest
 
 from libraries.lambda_handlers.instance_handler import InstanceHandler
 
@@ -34,6 +35,8 @@ class TsV2CatalogHandler(InstanceHandler):
         super(TsV2CatalogHandler, self).__init__(event, context)
 
         self.ts_resource_cache = {}
+        self.ts_languages_cache = {}
+        self.ts_projects_cache = None
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars').rstrip('/')
@@ -342,22 +345,26 @@ class TsV2CatalogHandler(InstanceHandler):
         self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
 
-    def _has_project_changed(self, lid, rid, pid, modified_at):
+    def _has_resource_changed(self, pid, lid, rid, modified_at):
         """
-        Checks if a project has changed.
-        The project is considered changed if the modified_at value is newer than what's found in the tS catalog.
+        Checks if a resource has changed.
+        The resource is considered changed if the modified_at value is newer than what's found in the tS catalog.
         :param lid:
         :param rid:
         :param pid:
         :param modified_at:
         :return:
         """
+        # Check the language first
+        if not self._has_language_changed(pid, lid, modified_at):
+            return False
+
         # look up the existing resources entry
         cache_key = '{0}--{1}'.format(pid, lid)
         if cache_key in self.ts_resource_cache:
             ts_resources = self.ts_resource_cache[cache_key]
         else:
-            ts_resources = self.get_url('https://cdn.door43.org/v2/ts/{0}/{1}'.format(pid, lid), True)
+            ts_resources = self.get_url('https://cdn.door43.org/v2/ts/{0}/{1}/resources.json'.format(pid, lid), True)
             if ts_resources:
                 self.ts_resource_cache[cache_key] = ts_resources
 
@@ -377,6 +384,74 @@ class TsV2CatalogHandler(InstanceHandler):
             else:
                 # backwards compatibility
                 return date_is_older(res['date_modified'], make_legacy_date(modified_at))
+
+    def _has_language_changed(self, pid, lid, modified_at):
+        """
+        Checks if a language has changed.
+        The project is considered changed if the modified_at value is newer than what's found in the tS catalog.
+        :param lid:
+        :param rid:
+        :param pid:
+        :param modified_at:
+        :return:
+        """
+        if not self._has_project_changed(pid, modified_at):
+            return False
+
+        # look up the existing language entry
+        cache_key = pid
+        if cache_key in self.ts_languages_cache:
+            ts_languages = self.ts_languages_cache[cache_key]
+        else:
+            ts_languages = self.get_url('https://cdn.door43.org/v2/ts/{0}/languages.json'.format(pid), True)
+            if ts_languages:
+                self.ts_languages_cache[cache_key] = ts_languages
+
+        if not ts_languages:
+            return False
+        try:
+            languages = json.loads(ts_languages)
+        except:
+            return False
+
+        # check if the resource has been modified
+        for lang in languages:
+            if lang['language']['slug'] != lid:
+                continue
+            if 'long_date_modified' in lang['language']:
+                return date_is_older(lang['language']['long_date_modified'], modified_at)
+            else:
+                # backwards compatibility
+                return date_is_older(lang['language']['date_modified'], make_legacy_date(modified_at))
+
+    def _has_project_changed(self, pid, modified_at):
+        """
+        Checks if a project has changed.
+        The project is considered changed if the modified_at value is newer than what's found in the tS catalog.
+        :param pid:
+        :param modified_at:
+        :return:
+        """
+        # look up the existing project entry
+        if not self.ts_projects_cache:
+            self.ts_projects_cache = self.get_url('https://cdn.door43.org/v2/ts/catalog.json', True)
+
+        if not self.ts_projects_cache:
+            return False
+        try:
+            projects = json.loads(self.ts_projects_cache)
+        except:
+            return False
+
+        # check if the resource has been modified
+        for p in projects:
+            if p['slug'] != pid:
+                continue
+            if 'long_date_modified' in p:
+                return date_is_older(p['long_date_modified'], modified_at)
+            else:
+                # backwards compatibility
+                return date_is_older(p['date_modified'], make_legacy_date(modified_at))
 
     def _get_status(self):
         """
@@ -428,7 +503,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
-            self.logger.debug('Processing {}'.format(process_id))
+            self.logger.debug('Processing notes {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -446,7 +521,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
-            self.logger.debug('Processing {}'.format(process_id))
+            self.logger.debug('Processing questions {}'.format(process_id))
             rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
             if not rc_dir: return {}
 
@@ -640,12 +715,13 @@ class TsV2CatalogHandler(InstanceHandler):
 
         format_str = format['format']
         if 'application/zip' in format_str and 'usfm' in format_str:
-            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
-            if not rc_dir: return
+            rc_dir = None
+            # rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
+            # if not rc_dir: return
 
-            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-            usx_dir = os.path.join(rc_dir, 'usx')
-            for project in manifest['projects']:
+            # manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+            # usx_dir = os.path.join(rc_dir, 'usx')
+            for project in resource['projects']:
                 pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
                 # DEBUG
                 # if pid != 'tit':
@@ -654,20 +730,30 @@ class TsV2CatalogHandler(InstanceHandler):
 
                 if process_id not in self.status['processed']:
                     # skip re-processing projects that have not changed
-                    if not self._has_project_changed(lid, rid, pid, format['modified']):
+                    if not self._has_resource_changed(pid, lid, rid, format['modified']):
                         self.status['processed'][process_id] = []
                         self._set_status()
                         self.logger.debug('Skipping {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
                         continue
 
-                    self.logger.info('Processing {}'.format(process_id))
+                    self.logger.info('Processing usfm for {}'.format(process_id))
+
+                    # download RC if not already
+                    if rc_dir is None:
+                        rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
+                    if not rc_dir:
+                        break
+
+                    manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+                    usx_dir = os.path.join(rc_dir, 'usx')
+                    project_path = get_project_from_manifest(manifest, project['identifier'])['path']
 
                     # copy usfm project file
                     usfm_dir = os.path.join(temp_dir, '{}_usfm'.format(process_id))
                     if not os.path.exists(usfm_dir):
                         os.makedirs(usfm_dir)
-                    usfm_dest_file = os.path.normpath(os.path.join(usfm_dir, project['path']))
-                    usfm_src_file = os.path.normpath(os.path.join(rc_dir, project['path']))
+                    usfm_dest_file = os.path.normpath(os.path.join(usfm_dir, project_path))
+                    usfm_src_file = os.path.normpath(os.path.join(rc_dir, project_path))
                     shutil.copyfile(usfm_src_file, usfm_dest_file)
 
                     # transform usfm to usx
@@ -691,7 +777,10 @@ class TsV2CatalogHandler(InstanceHandler):
                     self.status['processed'][process_id] = []
                     self._set_status()
             # clean up download
-            remove_tree(rc_dir, True)
+            try:
+                remove_tree(rc_dir, True)
+            except:
+                pass
 
     def _upload_all(self, uploads):
         """
@@ -809,7 +898,7 @@ class TsV2CatalogHandler(InstanceHandler):
         # resource
         res = catalog[pid]['_langs'][lid]['_res'][rid]
         r_modified = max_modified_date(res, modified)  # TRICKY: dates bubble up from project
-        r_long_modified = max_modified_date(res, long_modified)  # TRICKY: dates bubble up from project
+        r_long_modified = max_long_modified_date(res, long_modified)  # TRICKY: dates bubble up from project
         comments = ''  # TRICKY: comments are not officially supported in RCs but we use them if available
         if 'comment' in resource: comments = resource['comment']
 
@@ -877,7 +966,7 @@ class TsV2CatalogHandler(InstanceHandler):
         # language
         lang = catalog[pid]['_langs'][lid]
         l_modified = max_modified_date(lang['language'], r_modified)  # TRICKY: dates bubble up from resource
-        l_long_modified = max_modified_date(lang['language'], r_long_modified)  # TRICKY: dates bubble up from resource
+        l_long_modified = max_long_modified_date(lang['language'], r_long_modified)  # TRICKY: dates bubble up from resource
         description = ''
         if rid == 'obs': description = resource['description']
         project_meta = list(project['categories'])  # default to category ids
@@ -912,8 +1001,10 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # project
         p_modified = max_modified_date(catalog[pid], l_modified)
+        p_long_modified = max_long_modified_date(catalog[pid], l_long_modified)
         catalog[pid].update({
             'date_modified': p_modified,
+            'long_date_modified': p_long_modified,
             'lang_catalog': '{}/{}/{}/languages.json?date_modified={}'.format(self.cdn_url,
                                                                               TsV2CatalogHandler.cdn_root_path, pid,
                                                                               p_modified),

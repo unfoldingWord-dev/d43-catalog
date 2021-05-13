@@ -448,6 +448,36 @@ def max_modified_date(obj, modified):
         return obj['date_modified']
 
 
+def get_project_from_manifest(manifest, pid):
+    """
+    Returns the project entry from the manifest
+    :param manifest:
+    :param pid:
+    :return:
+    """
+    if 'projects' not in manifest:
+        return None
+    for project in manifest['projects']:
+        if project['identifier'] == pid:
+            return project
+    return None
+
+
+def max_long_modified_date(obj, modified):
+    """
+    Return the largest modified date
+    If the object does not have a date_modified the argument is returned
+    :param obj:
+    :param modified:
+    :return:
+    """
+    if 'long_date_modified' not in obj:
+        return modified
+    elif date_is_older(obj['long_date_modified'], modified):
+        return modified
+    else:
+        return obj['long_date_modified']
+
 def make_legacy_date(date_str):
     """
     Converts a date from the UTC format (used in api v3) to the form in api v2.
