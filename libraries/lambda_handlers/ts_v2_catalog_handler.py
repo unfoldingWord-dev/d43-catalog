@@ -478,8 +478,9 @@ class TsV2CatalogHandler(InstanceHandler):
         if source_status['state'] != 'complete':
             self.logger.debug('Source catalog is not ready for use')
             return False
-        if not status or status['source_timestamp'] != source_status['timestamp']:
-            # begin or restart process
+        if not status or ((status['source_timestamp'] != source_status['timestamp']) and status['state'] != 'in-progress'):
+            # begin or restart process.
+            # If the catalog is already being generated it will be allowed to finish before re-starting.
             status = {
                 'api_version': TsV2CatalogHandler.api_version,
                 'catalog_url': '{}/ts/txt/2/catalog.json'.format(self.cdn_url),
