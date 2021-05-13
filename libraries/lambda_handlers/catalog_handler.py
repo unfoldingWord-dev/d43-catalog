@@ -124,7 +124,6 @@ class CatalogHandler(InstanceHandler):
             if status and status['state'] == 'complete' and not self._catalog_has_changed(self.catalog):
                 response['success'] = True
                 response['message'] = 'No changes detected. Catalog not deployed'
-                self._publish_status()
             else:
                 cat_str = json.dumps(self.catalog, sort_keys=True, separators=(',',':'))
                 try:
