@@ -6,7 +6,8 @@ import tempfile
 from unittest import TestCase
 from mock import patch
 from libraries.tools.file_utils import read_file
-from libraries.tools.ts_v2_utils import build_usx, build_json_source_from_usx, usx_to_chunked_json, tn_tsv_to_json, index_tn_rc
+from libraries.tools.ts_v2_utils import build_usx, build_json_source_from_usx, usx_to_chunked_json, tn_tsv_to_json, \
+    index_tn_rc, date_is_older
 
 
 @patch('libraries.lambda_handlers.handler.ErrorReporter')
@@ -19,6 +20,41 @@ class TestTsV2Utils(TestCase):
     def tearDown(self):
         if os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_date_is_older(self, mock_reporter):
+        # legacy comparison
+        self.assertFalse(date_is_older('20190702', '20190702'))
+        self.assertTrue(date_is_older('20190702', '20190703'))
+        self.assertTrue(date_is_older('20180702', '20190702'))
+        self.assertFalse(date_is_older('20200702', '20190702'))
+
+        # date only comparison
+        self.assertFalse(date_is_older('20190702', '2019-07-02'))
+        self.assertTrue(date_is_older('20190702', '2019-07-03'))
+        self.assertTrue(date_is_older('20180702', '2019-07-02'))
+        self.assertFalse(date_is_older('20200702', '2019-07-02'))
+
+        # date and time comparison without timzone
+        self.assertFalse(date_is_older('20190702', '2019-07-02T00:00:00'))
+        self.assertTrue(date_is_older('20190702', '2019-07-03T00:00:00'))
+        self.assertTrue(date_is_older('20180702', '2019-07-02T00:00:00'))
+        self.assertFalse(date_is_older('20200702', '2019-07-02T00:00:00'))
+
+        # date and time comparison
+        self.assertFalse(date_is_older('20190702', '2019-07-02T00:00:00+00:00'))
+        self.assertTrue(date_is_older('20190702', '2019-07-03T00:00:00+00:00'))
+        self.assertTrue(date_is_older('20180702', '2019-07-02T00:00:00+00:00'))
+        self.assertFalse(date_is_older('20200702', '2019-07-02T00:00:00+00:00'))
+
+        # with some actual times
+        self.assertTrue(date_is_older('20190702', '2019-07-02T01:00:00+00:00'))
+        self.assertTrue(date_is_older('20190702', '2019-07-03T01:00:00+00:00'))
+        self.assertTrue(date_is_older('20180702', '2019-07-02T01:00:00+00:00'))
+        self.assertFalse(date_is_older('20200702', '2019-07-02T01:00:00+00:00'))
+
+        # date and time comparison with different timezone
+        self.assertFalse(date_is_older('20190702', '2019-07-02T00:00:00+01:00'))
+        self.assertTrue(date_is_older('20190702', '2019-07-02T00:00:00-01:00'))
 
     def test_build_usx(self, mock_reporter):
         usfm_dir = os.path.join(self.resources_dir, 'usfm')

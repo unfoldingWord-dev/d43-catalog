@@ -21,7 +21,7 @@ from libraries.tools.file_utils import read_file, download_rc, remove, get_subdi
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from libraries.tools.ts_v2_utils import convert_rc_links, build_json_source_from_usx, make_legacy_date, \
-    max_modified_date, get_rc_type, build_usx, prep_data_upload, index_tn_rc
+    max_modified_date, get_rc_type, build_usx, prep_data_upload, index_tn_rc, date_is_older
 
 from libraries.lambda_handlers.instance_handler import InstanceHandler
 
@@ -33,6 +33,7 @@ class TsV2CatalogHandler(InstanceHandler):
     def __init__(self, event, context, logger, **kwargs):
         super(TsV2CatalogHandler, self).__init__(event, context)
 
+        self.ts_resource_cache = {}
         env_vars = self.retrieve(event, 'stage-variables', 'payload')
         self.cdn_bucket = self.retrieve(env_vars, 'cdn_bucket', 'Environment Vars')
         self.cdn_url = self.retrieve(env_vars, 'cdn_url', 'Environment Vars').rstrip('/')
@@ -336,6 +337,33 @@ class TsV2CatalogHandler(InstanceHandler):
         # record the status
         self.status['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         self.db_handler.update_item({'api_version': TsV2CatalogHandler.api_version}, self.status)
+
+    def _has_project_changed(self, lid, rid, pid, modified_at):
+        # look up the existing resources entry
+        cache_key = '{0}--{1}'.format(pid, lid)
+        if cache_key in self.ts_resource_cache:
+            ts_resources = self.ts_resource_cache[cache_key]
+        else:
+            ts_resources = self.get_url('https://cdn.door43.org/v2/ts/{0}/{1}'.format(pid, lid), True)
+            if ts_resources:
+                self.ts_resource_cache[cache_key] = ts_resources
+
+        if not ts_resources:
+            return False
+        try:
+            resources = json.loads(ts_resources)
+        except:
+            return False
+
+        # check if the resource has been modified
+        for res in resources:
+            if res['slug'] != rid:
+                continue
+            if 'long_date_modified' in res:
+                return date_is_older(res['long_date_modified'], modified_at)
+            else:
+                # backwards compatibility
+                return date_is_older(res['date_modified'], make_legacy_date(modified_at))
 
     def _get_status(self):
         """

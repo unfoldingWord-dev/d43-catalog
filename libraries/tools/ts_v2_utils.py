@@ -6,6 +6,7 @@
 
 import re
 import codecs
+
 import dateutil.parser
 import os
 import json
@@ -14,6 +15,7 @@ import hashlib
 import tempfile
 import shutil
 import csv
+import pytz
 
 from libraries.lambda_handlers.handler import Handler
 from libraries.tools.file_utils import read_file, write_file
@@ -456,6 +458,28 @@ def make_legacy_date(date_str):
     except:
         return None
 
+
+def date_is_older(date_str1, date_str2):
+    """
+    Checks to see if the first date is older than the second date.
+    :param date_str1:
+    :param date_str2:
+    :return:
+    """
+    date1 = dateutil.parser.parse(date_str1)
+    date2 = dateutil.parser.parse(date_str2)
+
+    # set or normalize the timezone
+    target_tz = pytz.timezone('UTC')
+    if date1.tzinfo is None:
+        date1 = target_tz.localize(date1)
+    else:
+        date1 = target_tz.normalize(date1)
+    if date2.tzinfo is None:
+        date2 = target_tz.localize(date2)
+    else:
+        date2 = target_tz.normalize(date2)
+    return date1 < date2
 
 def usx_to_chunked_json(usx, chunks, lid, pid):
     """
