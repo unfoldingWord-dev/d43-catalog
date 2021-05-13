@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from d43_aws_tools import DynamoDBHandler
 import os
 import tempfile
@@ -61,7 +63,7 @@ def lambda_sec_remaining(context, dbname, lambda_suffix=None, dynamodb_handler=N
         expires_time = start_time.shift(microseconds=(int(request['expires']) * 1000))
         return expires_time - arrow.now()
     else:
-        return 0
+        return timedelta(seconds=0)
 
 
 def set_lambda_running(context, dbname, lambda_suffix=None, dynamodb_handler=None):
