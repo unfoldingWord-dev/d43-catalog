@@ -20,7 +20,7 @@ class InstanceHandler(Handler):
         running_db_name = '{}d43-catalog-running'.format(self.stage_prefix())
         sec_remaining = lambda_sec_remaining(self.context, running_db_name)
         if sec_remaining > timedelta(seconds=0):
-            self.logger.warning('Lambda started before last execution timed out ({}min remaining). Aborting.'.format(round(sec_remaining / 60)))
+            self.logger.warning('Lambda started before last execution timed out ({}min remaining). Aborting.'.format(round(sec_remaining.total_seconds() / 60)))
             return False
         else:
             set_lambda_running(self.context, running_db_name)
