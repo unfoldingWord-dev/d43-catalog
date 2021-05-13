@@ -7,7 +7,7 @@ from libraries.tools.file_utils import load_json_object, read_file
 from libraries.tools.mocks import MockS3Handler, MockAPI, MockDynamodbHandler, MockLogger
 from libraries.lambda_handlers.ts_v2_catalog_handler import TsV2CatalogHandler
 from libraries.tools.test_utils import assert_s3_equals_api_json, assert_json_files_equal
-from libraries.tools.ts_v2_utils import index_tn_rc, build_usx, index_chunks, convert_rc_links
+from libraries.tools.ts_v2_utils import build_usx, index_chunks, convert_rc_links
 import tempfile
 
 
@@ -288,31 +288,31 @@ some more text
         output = read_file(out_file)
         self.assertEqual(expected_usx, output)
 
-    def test_index_note_files(self, mock_reporter):
-        mockS3 = MockS3Handler()
-        mockS3._load_path(os.path.join(self.resources_dir, 'ts_api'))
-        temp_dir = tempfile.mkdtemp('-tn_index')
-        rc_dir = os.path.join(self.resources_dir, 'tn_rc')
-        tn = index_tn_rc('en', temp_dir, rc_dir)
-        # assert we have a note to be uploaded
-        tn_obj = tn['en_*_tit_tn']
-        self.assertEqual(tn_obj['key'], 'tit/en/notes.json')
-        self.assertTrue(tn_obj['path'].endswith('tit/en/notes.json'))
+    # def test_index_note_files(self, mock_reporter):
+    #     mockS3 = MockS3Handler()
+    #     mockS3._load_path(os.path.join(self.resources_dir, 'ts_api'))
+    #     temp_dir = tempfile.mkdtemp('-tn_index')
+    #     rc_dir = os.path.join(self.resources_dir, 'tn_rc')
+    #     tn = index_tn_rc('en', temp_dir, rc_dir)
+    #     # assert we have a note to be uploaded
+    #     tn_obj = tn['en_*_tit_tn']
+    #     self.assertEqual(tn_obj['key'], 'tit/en/notes.json')
+    #     self.assertTrue(tn_obj['path'].endswith('tit/en/notes.json'))
+    #
+    #     assert_json_files_equal(self, tn_obj['path'], os.path.join(self.resources_dir, 'ts_api/v2/ts/tit/en/notes.json'))
 
-        assert_json_files_equal(self, tn_obj['path'], os.path.join(self.resources_dir, 'ts_api/v2/ts/tit/en/notes.json'))
-
-    def test_index_obs_note_files(self, mock_reporter):
-        mockS3 = MockS3Handler()
-        mockS3._load_path(os.path.join(self.resources_dir, 'ts_api'))
-        temp_dir = tempfile.mkdtemp('-tn_index')
-        rc_dir = os.path.join(self.resources_dir, 'obs-tn_rc')
-        tn = index_tn_rc('en', temp_dir, rc_dir)
-        # assert we have a note to be uploaded
-        tn_obj = tn['en_*_obs_tn']
-        self.assertEqual(tn_obj['key'], 'obs/en/notes.json')
-        self.assertTrue(tn_obj['path'].endswith('obs/en/notes.json'))
-
-        assert_json_files_equal(self, tn_obj['path'], os.path.join(self.resources_dir, 'ts_api/v2/ts/obs/en/notes.json'))
+    # def test_index_obs_note_files(self, mock_reporter):
+    #     mockS3 = MockS3Handler()
+    #     mockS3._load_path(os.path.join(self.resources_dir, 'ts_api'))
+    #     temp_dir = tempfile.mkdtemp('-tn_index')
+    #     rc_dir = os.path.join(self.resources_dir, 'obs-tn_rc')
+    #     tn = index_tn_rc('en', temp_dir, rc_dir)
+    #     # assert we have a note to be uploaded
+    #     tn_obj = tn['en_*_obs_tn']
+    #     self.assertEqual(tn_obj['key'], 'obs/en/notes.json')
+    #     self.assertTrue(tn_obj['path'].endswith('obs/en/notes.json'))
+    #
+    #     assert_json_files_equal(self, tn_obj['path'], os.path.join(self.resources_dir, 'ts_api/v2/ts/obs/en/notes.json'))
 
     def test_index_chunks(self, mock_reporter):
         chunks = [

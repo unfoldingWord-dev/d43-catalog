@@ -13,16 +13,20 @@ import shutil
 import tempfile
 import time
 import sys
+import urlparse
+
 import markdown
 import yaml
+import csv
 
+from libraries.lambda_handlers.handler import Handler
 from d43_aws_tools import S3Handler, DynamoDBHandler
 from libraries.tools.file_utils import read_file, download_rc, remove, get_subdirs, remove_tree
 from libraries.tools.legacy_utils import index_obs
 from libraries.tools.url_utils import download_file, get_url, url_exists
 from libraries.tools.ts_v2_utils import convert_rc_links, build_json_source_from_usx, make_legacy_date, \
-    max_modified_date, get_rc_type, build_usx, prep_data_upload, index_tn_rc, date_is_older, max_long_modified_date, \
-    get_project_from_manifest
+    max_modified_date, get_rc_type, build_usx, prep_data_upload, date_is_older, max_long_modified_date, \
+    get_project_from_manifest, index_chunks, tn_tsv_to_json
 
 from libraries.lambda_handlers.instance_handler import InstanceHandler
 
@@ -146,7 +150,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
                                 self.logger.info('Processing notes {}_{}'.format(lid, rid))
-                                tn = self._index_note_files(lid, rid, format, process_id, res_temp_dir)
+                                tn = self._index_note_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tn:
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tn.keys()
@@ -210,7 +214,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             # TRICKY: obs notes and questions are in the project
                             process_id = '_'.join([lid, rid, pid, 'notes'])
                             if process_id not in self.status['processed']:
-                                tn = self._index_note_files(lid, rid, format, process_id, res_temp_dir)
+                                tn = self._index_note_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tn:
                                     self._upload_all(tn)
                                     finished_processes[process_id] = tn.keys()
@@ -377,13 +381,47 @@ class TsV2CatalogHandler(InstanceHandler):
 
         # check if the resource has been modified
         for res in resources:
-            if res['slug'] != rid:
+            # TRICKY: tn, tq, and tw are all the same across all resources in the same language and book.
+            #  so we can use the first available resource
+            if rid == 'tn':
+                if res['notes']:
+                    m = self._get_url_date_modified(res['notes'])
+                    return date_is_older(m, modified_at)
+                else:
+                    return True
+            elif rid == 'tq':
+                if res['checking_questions']:
+                    m = self._get_url_date_modified(res['checking_questions'])
+                    return date_is_older(m, modified_at)
+                else:
+                    return True
+            elif rid == 'tw':
+                if res['terms']:
+                    m = self._get_url_date_modified(res['terms'])
+                    return date_is_older(m, modified_at)
+                else:
+                    return True
+            elif res['slug'] != rid:
                 continue
+            # perform a standard date check with the source
             if 'long_date_modified' in res:
                 return date_is_older(res['long_date_modified'], modified_at)
             else:
                 # backwards compatibility
                 return date_is_older(res['date_modified'], make_legacy_date(modified_at))
+
+    def _get_url_date_modified(self, url_string):
+        try:
+            url = urlparse.urlparse(url_string)
+            value = urlparse.parse_qs(url.query)['date_modified']
+            if len(value) > 0:
+                return value[0]
+            else:
+                # just some default old date
+                return '19990101'
+        except:
+            # just some default old date
+            return '19990101'
 
     def _has_language_changed(self, pid, lid, modified_at):
         """
@@ -492,7 +530,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
         return (status, source_status)
 
-    def _index_note_files(self, lid, rid, format, process_id, temp_dir):
+    def _index_note_files(self, lid, rid, resource, format, process_id, temp_dir):
         """
 
         :param lid:
@@ -505,14 +543,245 @@ class TsV2CatalogHandler(InstanceHandler):
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
             self.logger.debug('Processing notes {}'.format(process_id))
-            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
-            if not rc_dir: return {}
 
-            tn_uploads = index_tn_rc(lid=lid,
-                                    temp_dir=temp_dir,
-                                    rc_dir=rc_dir,
-                                    reporter=self)
+            content_format = format['format']
+            if 'content=text/markdown' in content_format:
+                tn_uploads = self._tn_md_to_json_file(lid, 'tn', resource, format, temp_dir)
+            elif 'content=text/tsv' in content_format:
+                tn_uploads = self._tn_tsv_to_json_file(lid, 'tn', resource, format, temp_dir)
+            else:
+                self.report_error("Unsupported content type '{}' found in {}".format(content_format, format['url']))
+                raise Exception("Unsupported content type '{}' found in {}".format(content_format, format['url']))
+
+        return tn_uploads
+
+
+    def _tn_tsv_to_json_file(self, lid, rid, resource, format, temp_dir):
+        """
+        Converts a tsv tN to json
+        This will write a bunch of files and return a list of files to be uploaded.
+
+        Chunk definitions will be used to validate the note organization.
+
+        :param lid: the language id of the notes
+        :param temp_dir: the directory where all the files will be written
+        :return: a list of note files to upload
+        """
+        rc_dir = None
+        tn_uploads = {}
+
+        for project in resource['projects']:
+            pid = Handler.sanitize_identifier(project['identifier'])
+
+            # skip re-processing notes that have not changed
+            if not self._has_resource_changed(pid, lid, rid, format['modified']):
+                self.logger.debug('Skipping notes {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
+                continue
+
+            # download RC if not already
+            if rc_dir is None:
+                rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
+            if not rc_dir:
+                break
+
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+            dc = manifest['dublin_core']
+            project_path = get_project_from_manifest(manifest, project['identifier'])['path']
+
+            chunks = []
+
+            # verify project file exists
+            note_file = os.path.normpath(os.path.join(rc_dir, project_path))
+            if not os.path.exists(note_file):
+                raise Exception('Could not find translationNotes file at {}'.format(note_file))
+
+            # collect chunk data
+            if pid != 'obs':
+                try:
+                    data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
+                    chunks = index_chunks(json.loads(data))
+                except:
+                    self.report_error('Failed to retrieve chunk information for {}-{}'.format(lid, pid))
+                    continue
+
+            # convert
+            with open(note_file, 'rb') as tsvin:
+                tsv = csv.DictReader(tsvin, dialect='excel-tab')
+                note_json = tn_tsv_to_json(tsv, chunks)
+
+            if note_json:
+                tn_key = '_'.join([lid, '*', pid, 'tn'])
+                note_json.append({'date_modified': dc['modified'].replace('-', '')})
+                note_upload = prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json, temp_dir)
+                tn_uploads[tn_key] = note_upload
+
+        try:
             remove_tree(rc_dir, True)
+        except:
+            pass
+
+        return tn_uploads
+
+
+    def _tn_md_to_json_file(self, lid, rid, resource, format, temp_dir):
+        """
+        Converts a markdown tN to json
+        This will write a bunch of files and return a list of files to be uploaded.
+
+        Chunk definitions will be used to validate the note organization.
+
+        :param lid: the language id of the notes
+        :param temp_dir: the directory where all the files will be written
+        :param rc_dir: the directory of the resource container
+        :param manifest: the rc manifest data
+        :param reporter: a lambda handler used for reporting
+        :type reporter: Handler
+        :return: a list of note files to upload
+        """
+        rc_dir = None
+        # dc = manifest['dublin_core']
+        note_general_re = re.compile('^([^#]+)', re.UNICODE)
+        note_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
+        tn_uploads = {}
+
+        for project in resource['projects']:
+            pid = Handler.sanitize_identifier(project['identifier'])
+
+            # skip re-processing notes that have not changed
+            if not self._has_resource_changed(pid, lid, rid, format['modified']):
+                self.logger.debug('Skipping notes {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
+                continue
+
+            # download RC if not already
+            if rc_dir is None:
+                rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
+            if not rc_dir:
+                break
+
+            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+            dc = manifest['dublin_core']
+            project_path = get_project_from_manifest(manifest, project['identifier'])['path']
+
+            chunk_json = []
+            if pid != 'obs':
+                try:
+                    data = get_url('https://cdn.door43.org/bible/txt/1/{}/chunks.json'.format(pid))
+                    chunk_json = index_chunks(json.loads(data))
+                except:
+                    self.report_error('Failed to retrieve chunk information for {}-{}'.format(lid, pid))
+                    continue
+
+            note_dir = os.path.normpath(os.path.join(rc_dir, project_path))
+            note_json = []
+            if not os.path.exists(note_dir):
+                raise Exception('Could not find translationNotes directory at {}'.format(note_dir))
+            chapters = os.listdir(note_dir)
+
+            for chapter in chapters:
+                if chapter in ['.', '..', 'front', '.DS_Store']:
+                    continue
+                chapter_dir = os.path.join(note_dir, chapter)
+                verses = os.listdir(chapter_dir)
+                verses.sort()
+
+                notes = []
+                firstvs = None
+                note_hashes = []
+                for verse in verses:
+                    if verse in ['.', '..', 'intro.md', '.DS_Store']:
+                        continue
+
+                    # notes = []
+                    verse_file = os.path.join(chapter_dir, verse)
+                    verse = verse.split('.')[0]
+                    try:
+                        verse_body = read_file(verse_file)
+                    except Exception as e:
+                        self.report_error('Failed to read file {}'.format(verse_file))
+                        raise e
+
+                    general_notes = note_general_re.search(verse_body)
+
+                    # zero pad chapter to match chunking scheme
+                    padded_chapter = chapter
+                    while len(padded_chapter) < 3 and padded_chapter not in chunk_json:
+                        padded_chapter = padded_chapter.zfill(len(padded_chapter) + 1)
+                        # keep padding if match is found
+                        if padded_chapter in chunk_json:
+                            chapter = padded_chapter
+
+                    # validate chapters
+                    if pid != 'obs' and chapter not in chunk_json:
+                        raise Exception(
+                            'Missing chapter "{}" key in chunk json while reading chunks for {}. RC: {}'.format(chapter,
+                                                                                                                pid,
+                                                                                                                rc_dir))
+
+                    # zero pad verse to match chunking scheme
+                    padded_verse = verse
+                    while len(padded_verse) < 3 and chapter in chunk_json and padded_verse not in chunk_json[chapter]:
+                        padded_verse = padded_verse.zfill(len(padded_verse) + 1)
+                        # keep padding if match is found
+                        if padded_verse in chunk_json[chapter]:
+                            verse = padded_verse
+
+                    # close chunk
+                    chapter_key = chapter
+                    if firstvs is not None and (pid != 'obs' and chapter_key not in chunk_json):
+                        # attempt to recover if Psalms
+                        if pid == 'psa':
+                            chapter_key = chapter_key.zfill(3)
+                        else:
+                            self.report_error(
+                                    'Could not find chunk data for {} {} {}'.format(rc_dir, pid, chapter_key))
+
+                    if firstvs is not None and (pid == 'obs' or verse in chunk_json[chapter_key]):
+                        note_json.append({
+                            'id': '{}-{}'.format(chapter, firstvs),
+                            'tn': notes
+                        })
+                        firstvs = verse
+                        notes = []
+                    elif firstvs is None:
+                        firstvs = verse
+
+                    if general_notes:
+                        verse_body = note_general_re.sub('', verse_body)
+                        notes.append({
+                            'ref': 'General Information',
+                            'text': general_notes.group(0).strip()
+                        })
+
+                    for note in note_re.findall(verse_body):
+                        # TRICKY: do not include translation words in the list of notes
+                        if note[0].strip().lower() != 'translationwords':
+                            hasher = hashlib.md5()
+                            hasher.update(note[0].strip().lower().encode('utf-8'))
+                            note_hash = hasher.hexdigest()
+                            if note_hash not in note_hashes:
+                                note_hashes.append(note_hash)
+                                notes.append({
+                                    'ref': note[0].strip(),
+                                    'text': note[1].strip()
+                                })
+
+                # close last chunk
+                if firstvs is not None:
+                    note_json.append({
+                        'id': '{}-{}'.format(chapter, firstvs),
+                        'tn': notes
+                    })
+
+            if note_json:
+                tn_key = '_'.join([lid, '*', pid, 'tn'])
+                note_json.append({'date_modified': dc['modified'].replace('-', '')})
+                note_upload = prep_data_upload('{}/{}/notes.json'.format(pid, lid), note_json, temp_dir)
+                tn_uploads[tn_key] = note_upload
+
+        try:
+            remove_tree(rc_dir, True)
+        except:
+            pass
 
         return tn_uploads
 
