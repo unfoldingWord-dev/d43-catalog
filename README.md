@@ -229,4 +229,16 @@ You can run tests be executing the following:
 python -m unittest discover -s tests
 ```
 
+## Deploying
+
+In order to deploy to production you need to run this command.
+```bash
+apex deploy --env prod
+```
+
+If you want to cause a catalog to re-build you can delete the catalog entry from the `d43-catalog-status`.
+It will begin re-building within 5 minutes. Or you can try to force a re-try now by visiting https://api.door43.org/v3/lambda/catalog.
+The lambdas are not allowed to run too often, so if you are trying to re-start the catalog lambda right away
+you may also need to delete the `d43-catalog_catalog` record from the `d43-catalog-running` table.
+
 [Door43 Catalog]:https://git.door43.org/Door43-Catalog
