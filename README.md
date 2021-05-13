@@ -236,6 +236,12 @@ In order to deploy to production you need to run this command.
 apex deploy --env prod
 ```
 
+You can also deploy a specific function with 
+
+```bash
+apex deploy --env prod catalog
+```
+
 If you want to cause a catalog to re-build you can delete the catalog entry from the `d43-catalog-status`.
 It will begin re-building within 5 minutes. Or you can try to force a re-try now by visiting https://api.door43.org/v3/lambda/catalog.
 The lambdas are not allowed to run too often, so if you are trying to re-start the catalog lambda right away
