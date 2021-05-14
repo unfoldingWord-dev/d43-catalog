@@ -190,7 +190,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             # TRICKY: there should only be a single tW for each language
                             process_id = '_'.join([lid, 'words'])
                             if process_id not in self.status['processed']:
-                                tw = self._index_words_files(lid, rid, format, process_id, res_temp_dir)
+                                tw = self._index_words_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tw:
                                     self._upload_all(tw)
                                     finished_processes[process_id] = tw.keys()
@@ -873,7 +873,7 @@ class TsV2CatalogHandler(InstanceHandler):
                 pass
         return tq_uploads
 
-    def _index_words_files(self, lid, rid, format, process_id, temp_dir):
+    def _index_words_files(self, lid, rid, resource, format, process_id, temp_dir):
         """
         Returns an array of markdown files found in a tW dictionary
         :param lid:
@@ -890,19 +890,33 @@ class TsV2CatalogHandler(InstanceHandler):
                                 re.UNICODE | re.IGNORECASE)
 
         words = []
+        words_date_modified = None
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
-            self.logger.debug('Processing {}'.format(process_id))
-            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
-            if not rc_dir: return {}
-
-            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-            dc = manifest['dublin_core']
+            self.logger.debug('Inspecting {}'.format(process_id))
+            rc_dir = None
 
             # TRICKY: there should only be one project
-            for project in manifest['projects']:
+            for project in resource['projects']:
                 pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
-                content_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
+
+                # skip re-processing words that have not changed
+                if not self._has_resource_changed(pid, lid, rid, format['modified']):
+                    self.logger.debug('Skipping words {} because it hasn\'t changed'.format(process_id))
+                    continue
+
+                # download RC if not already
+                if rc_dir is None:
+                    rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
+                if not rc_dir:
+                    break
+
+                manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+                dc = manifest['dublin_core']
+                words_date_modified = dc['modified'].replace('-', '').split('T')[0]
+                project_path = get_project_from_manifest(manifest, project['identifier'])['path']
+
+                content_dir = os.path.normpath(os.path.join(rc_dir, project_path))
                 categories = os.listdir(content_dir)
                 for cat in categories:
                     if cat in ['.', '..']: continue
@@ -980,11 +994,14 @@ class TsV2CatalogHandler(InstanceHandler):
                             'term': title.strip()
                         })
 
-            remove_tree(rc_dir, True)
+            try:
+                remove_tree(rc_dir, True)
+            except:
+                pass
 
             if words:
                 words.append({
-                    'date_modified': dc['modified'].replace('-', '').split('T')[0]
+                    'date_modified': words_date_modified
                 })
                 upload = prep_data_upload('bible/{}/words.json'.format(lid), words, temp_dir)
                 return {
