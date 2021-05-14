@@ -201,12 +201,16 @@ class TsV2CatalogHandler(InstanceHandler):
                             if rid == 'obs':
                                 process_id = '_'.join([lid, rid, pid])
                                 if process_id not in self.status['processed']:
-                                    self.logger.debug('Processing {}'.format(process_id))
-                                    obs_json = index_obs(lid, rid, format, res_temp_dir, self.download_file)
-                                    upload = prep_data_upload(
-                                        '{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
-                                        obs_json, res_temp_dir)
-                                    self._upload(upload)
+                                    self.logger.debug('Inspecting {}'.format(process_id))
+                                    if self._has_resource_changed('obs', lid, rid, format['modified']):
+                                        obs_json = index_obs(lid, rid, format, res_temp_dir, self.download_file)
+                                        upload = prep_data_upload(
+                                            '{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
+                                            obs_json, res_temp_dir)
+                                        self._upload(upload)
+                                    else:
+                                        self.logger.debug(
+                                            'Skipping OBS {0}-{1} because it hasn\'t changed'.format(lid, rid))
                                     finished_processes[process_id] = []
                                 else:
                                     cat_keys = cat_keys + self.status['processed'][process_id]
