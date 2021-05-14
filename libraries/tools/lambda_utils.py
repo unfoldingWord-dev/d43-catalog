@@ -44,7 +44,7 @@ def lambda_sec_remaining(context, dbname, lambda_suffix=None, dynamodb_handler=N
     :return:
     """
     if not context:
-        return False
+        return timedelta(seconds=0)
     if dynamodb_handler:
         db = dynamodb_handler(dbname)
     else:

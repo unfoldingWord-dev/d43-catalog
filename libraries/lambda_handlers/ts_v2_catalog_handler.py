@@ -125,10 +125,10 @@ class TsV2CatalogHandler(InstanceHandler):
             # DEBUG
             # if lid != 'hi':
             #     continue
-            self.logger.info('Processing {}'.format(lid))
+            self.logger.info('Inspecting {}'.format(lid))
             for res in lang['resources']:
                 rid = TsV2CatalogHandler.sanitize_identifier(res['identifier'])
-                self.logger.info('Processing {}_{}'.format(lid, rid))
+                self.logger.info('Inspecting {}_{}'.format(lid, rid))
 
                 rc_format = None
 
@@ -161,7 +161,7 @@ class TsV2CatalogHandler(InstanceHandler):
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
                                 self.logger.info('Processing questions {}_{}'.format(lid, rid))
-                                tq = self._index_question_files(lid, rid, format, process_id, res_temp_dir)
+                                tq = self._index_question_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
@@ -179,7 +179,7 @@ class TsV2CatalogHandler(InstanceHandler):
                     # DEBUG
                     # if pid != 'tit' and rid != 'tw':
                     #     continue
-                    self.logger.info('Processing {}_{}_{}'.format(lid, rid, pid))
+                    self.logger.info('Inspecting {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -224,7 +224,7 @@ class TsV2CatalogHandler(InstanceHandler):
 
                             process_id = '_'.join([lid, rid, pid, 'questions'])
                             if process_id not in self.status['processed']:
-                                tq = self._index_question_files(lid, rid, format, process_id, res_temp_dir)
+                                tq = self._index_question_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tq:
                                     self._upload_all(tq)
                                     finished_processes[process_id] = tq.keys()
@@ -360,6 +360,9 @@ class TsV2CatalogHandler(InstanceHandler):
         :return:
         """
         # Check the language first
+        # TODO: this is dangerous, because it could accidentally hide resources that have
+        #  been updated, but are not the most recent within the language or project.
+        #  This would occur if content is created offline, then pushed out of order of creation.
         if not self._has_language_changed(pid, lid, modified_at):
             return False
 
@@ -383,13 +386,13 @@ class TsV2CatalogHandler(InstanceHandler):
         for res in resources:
             # TRICKY: tn, tq, and tw are all the same across all resources in the same language and book.
             #  so we can use the first available resource
-            if rid == 'tn':
+            if rid == 'tn' or rid == 'obs-tn':
                 if res['notes']:
                     m = self._get_url_date_modified(res['notes'])
                     return date_is_older(m, modified_at)
                 else:
                     return True
-            elif rid == 'tq':
+            elif rid == 'tq' or rid == 'obs-tq':
                 if res['checking_questions']:
                     m = self._get_url_date_modified(res['checking_questions'])
                     return date_is_older(m, modified_at)
@@ -475,7 +478,8 @@ class TsV2CatalogHandler(InstanceHandler):
             self.ts_projects_cache = self.get_url('https://cdn.door43.org/v2/ts/catalog.json', True)
 
         if not self.ts_projects_cache:
-            return False
+            # The cache could not be built, so automatically consider changed
+            return True
         try:
             projects = json.loads(self.ts_projects_cache)
         except:
@@ -542,13 +546,13 @@ class TsV2CatalogHandler(InstanceHandler):
 
         format_str = format['format']
         if (rid == 'obs-tn' or rid == 'tn') and 'type=help' in format_str:
-            self.logger.debug('Processing notes {}'.format(process_id))
+            self.logger.debug('Inspecting notes {}'.format(process_id))
 
             content_format = format['format']
             if 'content=text/markdown' in content_format:
-                tn_uploads = self._tn_md_to_json_file(lid, 'tn', resource, format, temp_dir)
+                tn_uploads = self._tn_md_to_json_file(lid, rid, resource, format, temp_dir)
             elif 'content=text/tsv' in content_format:
-                tn_uploads = self._tn_tsv_to_json_file(lid, 'tn', resource, format, temp_dir)
+                tn_uploads = self._tn_tsv_to_json_file(lid, rid, resource, format, temp_dir)
             else:
                 self.report_error("Unsupported content type '{}' found in {}".format(content_format, format['url']))
                 raise Exception("Unsupported content type '{}' found in {}".format(content_format, format['url']))
@@ -785,23 +789,34 @@ class TsV2CatalogHandler(InstanceHandler):
 
         return tn_uploads
 
-    def _index_question_files(self, lid, rid, format, process_id, temp_dir):
+    def _index_question_files(self, lid, rid, resource, format, process_id, temp_dir):
         question_re = re.compile('^#+([^#\n]+)#*([^#]*)', re.UNICODE | re.MULTILINE | re.DOTALL)
         tq_uploads = {}
 
         format_str = format['format']
         if (rid == 'obs-tq' or rid == 'tq') and 'type=help' in format_str:
-            self.logger.debug('Processing questions {}'.format(process_id))
-            rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
-            if not rc_dir: return {}
+            self.logger.debug('Inspecting questions {}'.format(process_id))
+            rc_dir = None
 
-            manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
-            dc = manifest['dublin_core']
-
-            for project in manifest['projects']:
+            for project in resource['projects']:
                 pid = TsV2CatalogHandler.sanitize_identifier(project['identifier'])
-                # TODO: check if the questions have changed and skip it otherwise.
-                question_dir = os.path.normpath(os.path.join(rc_dir, project['path']))
+
+                # skip re-processing notes that have not changed
+                if not self._has_resource_changed(pid, lid, rid, format['modified']):
+                    self.logger.debug('Skipping questions {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
+                    continue
+
+                # download RC if not already
+                if rc_dir is None:
+                    rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
+                if not rc_dir:
+                    break
+
+                manifest = yaml.load(read_file(os.path.join(rc_dir, 'manifest.yaml')))
+                dc = manifest['dublin_core']
+                project_path = get_project_from_manifest(manifest, project['identifier'])['path']
+
+                question_dir = os.path.normpath(os.path.join(rc_dir, project_path))
                 question_json = []
 
                 if not os.path.isdir(question_dir):
@@ -851,7 +866,11 @@ class TsV2CatalogHandler(InstanceHandler):
                     question_json.append({'date_modified': dc['modified'].replace('-', '')})
                     upload = prep_data_upload('{}/{}/questions.json'.format(pid, lid), question_json, temp_dir)
                     tq_uploads[tq_key] = upload
-            remove_tree(rc_dir, True)
+
+            try:
+                remove_tree(rc_dir, True)
+            except:
+                pass
         return tq_uploads
 
     def _index_words_files(self, lid, rid, format, process_id, temp_dir):
