@@ -149,7 +149,6 @@ class TsV2CatalogHandler(InstanceHandler):
                         if rid != 'obs':
                             process_id = '_'.join([lid, rid, 'notes'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing notes {}_{}'.format(lid, rid))
                                 tn = self._index_note_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tn:
                                     self._upload_all(tn)
@@ -160,7 +159,6 @@ class TsV2CatalogHandler(InstanceHandler):
 
                             process_id = '_'.join([lid, rid, 'questions'])
                             if process_id not in self.status['processed']:
-                                self.logger.info('Processing questions {}_{}'.format(lid, rid))
                                 tq = self._index_question_files(lid, rid, res, format, process_id, res_temp_dir)
                                 if tq:
                                     self._upload_all(tq)
@@ -179,7 +177,6 @@ class TsV2CatalogHandler(InstanceHandler):
                     # DEBUG
                     # if pid != 'tit' and rid != 'tw':
                     #     continue
-                    self.logger.info('Inspecting {}_{}_{}'.format(lid, rid, pid))
                     if 'formats' in project:
                         for format in project['formats']:
                             finished_processes = {}
@@ -201,8 +198,8 @@ class TsV2CatalogHandler(InstanceHandler):
                             if rid == 'obs':
                                 process_id = '_'.join([lid, rid, pid])
                                 if process_id not in self.status['processed']:
-                                    self.logger.debug('Inspecting {}'.format(process_id))
                                     if self._has_resource_changed('obs', lid, rid, format['modified']):
+                                        self.logger.info('Processing {}'.format(process_id))
                                         obs_json = index_obs(lid, rid, format, res_temp_dir, self.download_file)
                                         upload = prep_data_upload(
                                             '{}/{}/{}/v{}/source.json'.format(pid, lid, rid, res['version']),
@@ -586,6 +583,8 @@ class TsV2CatalogHandler(InstanceHandler):
                 self.logger.debug('Skipping notes {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
                 continue
 
+            self.logger.info('Processing notes {}-{}-{}'.format(lid, rid, pid))
+
             # download RC if not already
             if rc_dir is None:
                 rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
@@ -659,6 +658,8 @@ class TsV2CatalogHandler(InstanceHandler):
             if not self._has_resource_changed(pid, lid, rid, format['modified']):
                 self.logger.debug('Skipping notes {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
                 continue
+
+            self.logger.info('Processing notes {}-{}-{}'.format(lid, rid, pid))
 
             # download RC if not already
             if rc_dir is None:
@@ -810,6 +811,8 @@ class TsV2CatalogHandler(InstanceHandler):
                     self.logger.debug('Skipping questions {0}-{1}-{2} because it hasn\'t changed'.format(lid, rid, pid))
                     continue
 
+                self.logger.info('Processing questions {}-{}-{}'.format(lid, rid, pid))
+
                 # download RC if not already
                 if rc_dir is None:
                     rc_dir = download_rc(lid, rid, format['url'], temp_dir, self.download_file)
@@ -897,7 +900,6 @@ class TsV2CatalogHandler(InstanceHandler):
         words_date_modified = None
         format_str = format['format']
         if rid == 'tw' and 'type=dict' in format_str:
-            self.logger.debug('Inspecting {}'.format(process_id))
             rc_dir = None
 
             # TRICKY: there should only be one project
@@ -908,6 +910,8 @@ class TsV2CatalogHandler(InstanceHandler):
                 if not self._has_resource_changed(pid, lid, rid, format['modified']):
                     self.logger.debug('Skipping words {} because it hasn\'t changed'.format(process_id))
                     continue
+
+                self.logger.info('Processing words {}-{}-{}'.format(lid, rid, pid))
 
                 # download RC if not already
                 if rc_dir is None:
