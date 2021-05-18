@@ -364,8 +364,8 @@ class TsV2CatalogHandler(InstanceHandler):
         # TODO: this is dangerous, because it could accidentally hide resources that have
         #  been updated, but are not the most recent within the language or project.
         #  This would occur if content is created offline, then pushed out of order of creation.
-        if not self._has_language_changed(pid, lid, modified_at):
-            return False
+        # if not self._has_language_changed(pid, lid, modified_at):
+        #     return False
 
         # look up the existing resources entry
         cache_key = '{0}--{1}'.format(pid, lid)
