@@ -29,7 +29,7 @@ class TriggerHandler(InstanceHandler):
             'fork',
             'signing',
             'ts-v2-catalog',
-            'uw-v2-catalog'
+            # 'uw-v2-catalog'
         ]
         requests = []
         for u in urls:
