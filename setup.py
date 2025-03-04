@@ -24,7 +24,7 @@ setup(
         'arrow==0.10.0',
         'mutagen==1.38',
         'markdown==2.6.8',
-        'pyyaml==3.12',
+        'pyyaml==5.4',
         'gitea_client==1.0.9',
         'future==0.16.0',
         'usfm-tools==0.0.13',
